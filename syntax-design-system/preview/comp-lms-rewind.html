@@ -1,0 +1,40 @@
+<!doctype html>
+<!-- @dsCard group="LMS Patterns" name="Rewind divider" subtitle="Abstract circuit-trace boundary into the past — procedurally generated, edge-faded, purely decorative" viewport="720x220" -->
+<html><head><meta charset="utf-8"><title>Rewind divider</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body.card{ width:720px; }
+  .label{ font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#AAAAAA; margin:0 0 6px 2px; font-family:var(--font-body); }
+  .ctx{ font-family:var(--font-body); font-size:13px; color:var(--fg-3); padding:10px 4px; }
+  .rewind-divider{ position:relative; margin:18px 0; pointer-events:none;
+    -webkit-mask:linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+            mask:linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent); }
+  .rewind-divider svg{ display:block; width:100%; height:auto; }
+  .regen{ display:inline-flex; align-items:center; gap:7px; font-family:var(--font-body); font-size:12px; font-weight:600; color:var(--brand-primary); background:var(--brand-blue-50); border:1px solid rgba(0,85,255,.28); padding:7px 12px; cursor:pointer; margin-top:6px; }
+</style></head>
+<body class="card">
+  <div class="label">Boundary marker — separates current work from completed history above</div>
+  <div class="ctx">↑ Earlier classes (scroll up to revisit)</div>
+  <div class="rewind-divider" id="div"></div>
+  <div class="ctx">↓ Current module</div>
+  <button class="regen" id="regen"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-6.4 2.6L3 8"/><path d="M3 3v5h5"/></svg>Regenerate pattern</button>
+<script>
+  function rint(a,b){ return Math.floor(a+Math.random()*(b-a+1)); }
+  function buildCircuitSVG(){
+    var W=900,H=120, stroke="rgba(18,18,18,.10)", node="rgba(18,18,18,.16)";
+    var lanes=[rint(20,32),rint(46,58),rint(72,84),rint(96,108)];
+    var pick=function(arr){ return arr[rint(0,arr.length-1)]; };
+    var p=[];
+    lanes.forEach(function(y){ p.push('<path d="M'+rint(8,70)+' '+y+'H'+rint(830,892)+'" stroke="'+stroke+'" stroke-width="1.5"/>'); });
+    for(var i=0;i<rint(4,7);i++){ var x=rint(70,830),a=pick(lanes),b=pick(lanes); if(a!==b) p.push('<path d="M'+x+' '+Math.min(a,b)+'V'+Math.max(a,b)+'" stroke="'+stroke+'" stroke-width="1.5"/>'); }
+    for(var j=0;j<rint(4,7);j++){ var yy=pick(lanes),xx=rint(70,830),dir=Math.random()<.5?-1:1,len=rint(10,18),ex=xx+(Math.random()<.5?-1:1)*rint(22,46);
+      p.push('<path d="M'+xx+' '+yy+'V'+(yy+dir*len)+'H'+ex+'" stroke="'+stroke+'" stroke-width="1.5"/>');
+      p.push('<rect x="'+(ex-3)+'" y="'+(yy+dir*len-3)+'" width="6" height="6" fill="'+node+'"/>'); }
+    for(var k=0;k<rint(7,12);k++){ p.push('<circle cx="'+rint(40,860)+'" cy="'+pick(lanes)+'" r="'+rint(2,3)+'" fill="'+node+'"/>'); }
+    return '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet" fill="none">'+p.join("")+'</svg>';
+  }
+  function draw(){ document.getElementById('div').innerHTML = buildCircuitSVG(); }
+  draw();
+  document.getElementById('regen').addEventListener('click', draw);
+</script>
+</body></html>

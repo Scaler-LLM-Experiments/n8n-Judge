@@ -1,0 +1,266 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Brand — Lucide icon set" subtitle="Stroke-2 Lucide glyphs used across the system" viewport="700x240" --><html><head><meta charset="utf-8"><title>Iconography — Material Sharp</title>
+<link rel="stylesheet" href="_card.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@20..48,400,0,0" />
+<style>
+  /* ---- Base icon ---- */
+  .ico {
+    font-family:'Material Symbols Sharp';
+    font-weight:400; line-height:1;
+    display:inline-flex; align-items:center; justify-content:center;
+    color:#011845;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    font-size:24px;
+  }
+  .ico--fill { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+  /* ---- Section heads ---- */
+  .section { margin-top:28px; padding-top:18px; border-top:1px solid #E5E5E5; }
+  .section:first-of-type { margin-top:6px; padding-top:0; border-top:0; }
+  .section-head {
+    display:flex; align-items:baseline; justify-content:space-between; gap:14px;
+    margin-bottom:14px;
+  }
+  .section-title {
+    font-family:var(--font-display); font-weight:500; font-style:italic;
+    font-size:18px; letter-spacing:-0.01em; color:#0C0C0C;
+  }
+  .section-note {
+    font-family:var(--font-body); font-size:11px; color:#616161; max-width:56%;
+    text-align:right;
+  }
+
+  /* ---- Glyph grid ---- */
+  .grid {
+    display:grid; grid-template-columns: repeat(12, 1fr); gap:4px;
+  }
+  .tile {
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    padding:14px 6px 12px;
+    border:1px solid transparent;
+    transition: border-color 120ms ease, background-color 120ms ease;
+  }
+  .tile:hover { border-color:#E5E5E5; background:#FAFAFA; }
+  .tile .ico { font-size:28px; width:40px; height:40px; }
+  .lbl {
+    font-family:var(--font-body); font-size:9px; color:#AAAAAA; text-align:center;
+    letter-spacing:0.02em;
+  }
+
+  /* ---- Sizing scale ---- */
+  .sizes {
+    display:flex; align-items:flex-end; gap:28px;
+  }
+  .size-step { display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .size-step .ico { color:#011845; }
+  .size-step .meta {
+    font-family:var(--font-body); font-size:10px; color:#616161; letter-spacing:0.08em;
+  }
+  .size-step strong { color:#0C0C0C; font-weight:600; }
+
+  /* ---- Do / Don't swatches ---- */
+  .rules {
+    display:grid; grid-template-columns: repeat(4, 1fr); gap:10px;
+  }
+  .rule {
+    border:1px solid #E5E5E5; padding:16px; display:flex; flex-direction:column; gap:10px;
+    min-height:130px; justify-content:space-between;
+  }
+  .rule-tag {
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:var(--font-body); font-size:10px; letter-spacing:0.14em;
+    text-transform:uppercase; font-weight:500;
+  }
+  .rule-tag.do  { color:#178A4F; }
+  .rule-tag.dont { color:#D62B2B; }
+  .rule-tag::before { content:""; width:6px; height:6px; background:currentColor; }
+  .rule-demo {
+    display:flex; align-items:center; gap:10px;
+    font-family:var(--font-body); font-size:12px; color:#262626;
+  }
+  .rule-copy { font-family:var(--font-body); font-size:11px; color:#616161; line-height:1.4; }
+
+  /* Pretend chips + button for contextual demos */
+  .chip {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:5px 9px; border:1px solid #E5E5E5; background:#fff;
+    font-size:11px; color:#262626;
+  }
+  .chip .ico { font-size:14px; width:14px; height:14px; color:#262626; }
+  .pill-btn {
+    display:inline-flex; align-items:center; gap:8px;
+    padding:8px 14px; background:#0055FF; color:#fff;
+    font-family:var(--font-body); font-size:12px; font-weight:500;
+  }
+  .pill-btn .ico { color:#fff; font-size:16px; width:16px; height:16px; }
+
+  .meta-band {
+    display:flex; gap:16px; flex-wrap:wrap; margin-top:6px;
+    font-family:var(--font-body); font-size:10px; color:#616161;
+  }
+  .meta-band span strong { color:#262626; }
+</style>
+</head>
+<body class="card">
+
+<div class="section-head" style="margin-bottom:10px">
+  <div>
+    <div style="font-family:var(--font-body); font-size:10px; letter-spacing:0.16em; text-transform:uppercase; color:#AAAAAA;">
+      Icon pack · locked
+    </div>
+    <div class="section-title" style="font-size:22px; margin-top:4px;">Material Symbols — Sharp</div>
+  </div>
+  <div class="meta-band" style="text-align:right; justify-content:flex-end;">
+    <span><strong>3,300+</strong> glyphs</span>
+    <span><strong>Variable</strong> font · 4 axes</span>
+    <span><strong>Apache 2.0</strong></span>
+  </div>
+</div>
+
+<div class="meta" style="margin-top:0">
+  Default setting: <strong>weight 400</strong>, <strong>fill 0</strong>, <strong>grade 0</strong>, <strong>opsz 24</strong>. Sharp mitered joins and square terminals match our button + card geometry.
+</div>
+
+<!-- ── Sizing scale ─────────────────────────────────────── -->
+<div class="section">
+  <div class="section-head">
+    <div class="section-title">Sizes</div>
+    <div class="section-note">Stick to the scale. 16 / 20 / 24 / 32 / 48 — pick the nearest size, don't scale by 1s.</div>
+  </div>
+  <div class="sizes">
+    <div class="size-step"><span class="ico" style="font-size:16px; width:16px; height:16px;">arrow_forward</span><div class="meta"><strong>16</strong> · inline w/ body</div></div>
+    <div class="size-step"><span class="ico" style="font-size:20px; width:20px; height:20px;">arrow_forward</span><div class="meta"><strong>20</strong> · button</div></div>
+    <div class="size-step"><span class="ico" style="font-size:24px; width:24px; height:24px;">arrow_forward</span><div class="meta"><strong>24</strong> · default</div></div>
+    <div class="size-step"><span class="ico" style="font-size:32px; width:32px; height:32px;">arrow_forward</span><div class="meta"><strong>32</strong> · feature card</div></div>
+    <div class="size-step"><span class="ico" style="font-size:48px; width:48px; height:48px;">arrow_forward</span><div class="meta"><strong>48</strong> · marketing moment</div></div>
+  </div>
+</div>
+
+<!-- ── Core set: Action ─────────────────────────────────── -->
+<div class="section">
+  <div class="section-head">
+    <div class="section-title">Action</div>
+    <div class="section-note">Navigation, CTAs, form actions — the high-frequency set users see every screen.</div>
+  </div>
+  <div class="grid">
+    <div class="tile"><span class="ico">arrow_forward</span><span class="lbl">arrow_forward</span></div>
+    <div class="tile"><span class="ico">arrow_back</span><span class="lbl">arrow_back</span></div>
+    <div class="tile"><span class="ico">north_east</span><span class="lbl">north_east</span></div>
+    <div class="tile"><span class="ico">expand_more</span><span class="lbl">expand_more</span></div>
+    <div class="tile"><span class="ico">chevron_right</span><span class="lbl">chevron_right</span></div>
+    <div class="tile"><span class="ico">close</span><span class="lbl">close</span></div>
+    <div class="tile"><span class="ico">check</span><span class="lbl">check</span></div>
+    <div class="tile"><span class="ico">add</span><span class="lbl">add</span></div>
+    <div class="tile"><span class="ico">remove</span><span class="lbl">remove</span></div>
+    <div class="tile"><span class="ico">search</span><span class="lbl">search</span></div>
+    <div class="tile"><span class="ico">menu</span><span class="lbl">menu</span></div>
+    <div class="tile"><span class="ico">more_horiz</span><span class="lbl">more_horiz</span></div>
+  </div>
+</div>
+
+<!-- ── Core set: Content ─────────────────────────────────── -->
+<div class="section">
+  <div class="section-head">
+    <div class="section-title">Content &amp; learning</div>
+    <div class="section-note">Product concepts: programs, curriculum, mentorship, progress, community.</div>
+  </div>
+  <div class="grid">
+    <div class="tile"><span class="ico">menu_book</span><span class="lbl">menu_book</span></div>
+    <div class="tile"><span class="ico">auto_stories</span><span class="lbl">auto_stories</span></div>
+    <div class="tile"><span class="ico">school</span><span class="lbl">school</span></div>
+    <div class="tile"><span class="ico">psychology</span><span class="lbl">psychology</span></div>
+    <div class="tile"><span class="ico">code</span><span class="lbl">code</span></div>
+    <div class="tile"><span class="ico">terminal</span><span class="lbl">terminal</span></div>
+    <div class="tile"><span class="ico">grid_view</span><span class="lbl">grid_view</span></div>
+    <div class="tile"><span class="ico">dashboard</span><span class="lbl">dashboard</span></div>
+    <div class="tile"><span class="ico">all_inclusive</span><span class="lbl">all_inclusive</span></div>
+    <div class="tile"><span class="ico">groups</span><span class="lbl">groups</span></div>
+    <div class="tile"><span class="ico">workspace_premium</span><span class="lbl">workspace_premium</span></div>
+    <div class="tile"><span class="ico">trending_up</span><span class="lbl">trending_up</span></div>
+  </div>
+</div>
+
+<!-- ── Core set: Signal ─────────────────────────────────── -->
+<div class="section">
+  <div class="section-head">
+    <div class="section-title">Signal &amp; feedback</div>
+    <div class="section-note">Status, notices, toasts. Use <code>fill 1</code> when the glyph is carrying state (success, error).</div>
+  </div>
+  <div class="grid">
+    <div class="tile"><span class="ico">shield</span><span class="lbl">shield</span></div>
+    <div class="tile"><span class="ico ico--fill">check_circle</span><span class="lbl">check_circle · fill</span></div>
+    <div class="tile"><span class="ico ico--fill" style="color:#D62B2B">error</span><span class="lbl">error · fill</span></div>
+    <div class="tile"><span class="ico ico--fill" style="color:#C8A800">warning</span><span class="lbl">warning · fill</span></div>
+    <div class="tile"><span class="ico">info</span><span class="lbl">info</span></div>
+    <div class="tile"><span class="ico">bolt</span><span class="lbl">bolt</span></div>
+    <div class="tile"><span class="ico">auto_awesome</span><span class="lbl">auto_awesome</span></div>
+    <div class="tile"><span class="ico">grade</span><span class="lbl">grade</span></div>
+    <div class="tile"><span class="ico">notifications</span><span class="lbl">notifications</span></div>
+    <div class="tile"><span class="ico">calendar_today</span><span class="lbl">calendar_today</span></div>
+    <div class="tile"><span class="ico">schedule</span><span class="lbl">schedule</span></div>
+    <div class="tile"><span class="ico">campaign</span><span class="lbl">campaign</span></div>
+  </div>
+</div>
+
+<!-- ── In context demos ─────────────────────────────────── -->
+<div class="section">
+  <div class="section-head">
+    <div class="section-title">In context</div>
+    <div class="section-note">How icons sit inside buttons, chips, nav items.</div>
+  </div>
+  <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+    <a class="pill-btn">Apply now <span class="ico">arrow_forward</span></a>
+    <a class="pill-btn" style="background:#fff; color:#0055FF; border:1px solid #0055FF;">
+      <span class="ico" style="color:#0055FF;">play_arrow</span> Watch the tour
+    </a>
+    <span class="chip"><span class="ico">shield</span> Mentor-vetted</span>
+    <span class="chip"><span class="ico">check</span> Verified alumnus</span>
+    <span class="chip"><span class="ico">bolt</span> New cohort · Aug</span>
+    <span class="chip"><span class="ico">schedule</span> 32 week program</span>
+  </div>
+</div>
+
+<!-- ── Do / Don't ─────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-head">
+    <div class="section-title">Rules</div>
+    <div class="section-note">Four things that keep a mixed-icon page looking consistent.</div>
+  </div>
+  <div class="rules">
+    <div class="rule">
+      <div class="rule-tag do">Do</div>
+      <div class="rule-demo"><span class="ico" style="font-size:20px; width:20px; height:20px;">arrow_forward</span><span>See the curriculum</span></div>
+      <div class="rule-copy">Inline-match icons to the text size — 20px icon next to 14–16px copy.</div>
+    </div>
+    <div class="rule">
+      <div class="rule-tag dont">Don't</div>
+      <div class="rule-demo"><span class="ico" style="font-size:40px; width:40px; height:40px;">arrow_forward</span><span>See the curriculum</span></div>
+      <div class="rule-copy">Oversize icons inside body copy — it breaks rhythm and reads as a decoration, not a cue.</div>
+    </div>
+    <div class="rule">
+      <div class="rule-tag do">Do</div>
+      <div class="rule-demo">
+        <span class="ico">shield</span><span class="ico">bolt</span><span class="ico">auto_awesome</span>
+      </div>
+      <div class="rule-copy">Mix glyphs within the <strong>Sharp</strong> pack only — weight 400, grade 0, opsz 24.</div>
+    </div>
+    <div class="rule">
+      <div class="rule-tag dont">Don't</div>
+      <div class="rule-demo">
+        <span class="ico" style="font-variation-settings:'FILL' 1, 'wght' 700">shield</span>
+        <span class="ico" style="font-variation-settings:'FILL' 0, 'wght' 300">bolt</span>
+        <span class="ico">auto_awesome</span>
+      </div>
+      <div class="rule-copy">Mix weights or fills within one layout — the visual rhythm falls apart.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Usage note ────────────────────────────────────────── -->
+<div class="meta" style="margin-top:22px">
+  <strong style="color:#262626;">Implementation:</strong>
+  load the font once; render glyphs with <code>&lt;span class="ico"&gt;glyph_name&lt;/span&gt;</code>.
+  For filled variants add <code>.ico--fill</code>. The variable axes give you fine-grained control when you need it — don't reach for other packs.
+</div>
+
+</body></html>

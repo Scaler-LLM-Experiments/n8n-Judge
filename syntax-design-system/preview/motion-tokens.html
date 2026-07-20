@@ -1,0 +1,82 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Motion tokens" subtitle="Durations + easings (CSS + GSAP)" viewport="720x360" --><html><head><meta charset="utf-8"><title>Motion tokens</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .panel {
+    border:1px solid var(--border-subtle); padding:16px;
+    display:flex; flex-direction:column; gap:12px;
+  }
+  .panel h4 {
+    margin:0;
+    font-family:var(--font-body); font-size:10px; letter-spacing:0.18em;
+    text-transform:uppercase; color:#616161;
+  }
+  table { width:100%; border-collapse:collapse; }
+  th, td { padding:6px 0; text-align:left;
+    font-family:var(--font-body); font-size:12px; color:#262626;
+    border-bottom:1px solid #F0F0F0; }
+  th { font-weight:600; color:#121212; font-size:11px; letter-spacing:0.04em; }
+  td.tok { font-family:var(--font-mono); font-size:11px; color:#0055FF; }
+
+  .lane {
+    position:relative; height:36px; border:1px solid #ECECEC; background:#FAFAFA;
+    overflow:hidden;
+  }
+  .puck {
+    position:absolute; top:6px; left:6px; width:24px; height:24px;
+    background:#0055FF;
+  }
+  .lane.l1 .puck { animation: slide 1800ms cubic-bezier(0.22, 1.00, 0.36, 1.00) infinite alternate; }
+  .lane.l2 .puck { animation: slide 1800ms cubic-bezier(0.16, 1.00, 0.30, 1.00) infinite alternate; }
+  .lane.l3 .puck { animation: slide 1800ms cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite alternate; }
+  @keyframes slide { to { left: calc(100% - 30px); } }
+  .ease-name {
+    display:flex; justify-content:space-between; align-items:center;
+    font-family:var(--font-body); font-size:11px; color:#121212; font-weight:500;
+  }
+  .ease-name .gs { font-family:var(--font-mono); font-size:10px; color:#616161; font-weight:400; }
+  .ease-note { font-family:var(--font-body); font-size:11px; color:#616161; line-height:1.5; }
+  @media (prefers-reduced-motion: reduce) { .lane .puck { animation: none; } }
+</style></head>
+<body class="card">
+<div class="meta" style="margin-bottom:14px">
+  <strong>Six durations · three easings, all decelerating.</strong>
+  No overshoot, no snap. Premium reads as unhurried.
+</div>
+
+<div class="grid">
+
+  <div class="panel">
+    <h4>Durations</h4>
+    <table>
+      <thead><tr><th>Token</th><th>ms</th><th>Use</th></tr></thead>
+      <tbody>
+        <tr><td class="tok">--dur-1</td><td>80</td><td>press</td></tr>
+        <tr><td class="tok">--dur-2</td><td>120</td><td>hover · color</td></tr>
+        <tr><td class="tok">--dur-3</td><td>180</td><td>tooltip · small</td></tr>
+        <tr><td class="tok">--dur-4</td><td>240</td><td>modal · drawer</td></tr>
+        <tr><td class="tok">--dur-5</td><td>360</td><td>page swap</td></tr>
+        <tr><td class="tok">--dur-6</td><td>600</td><td>progress · milestone</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <h4>Easings · live</h4>
+
+    <div class="ease-name">--ease-entrance <span class="gs">expo.out</span></div>
+    <div class="lane l2"><div class="puck"></div></div>
+    <div class="ease-note">Dramatic settle. Modals, drawers, hero reveals.</div>
+
+    <div class="ease-name">--ease-standard <span class="gs">power3.out</span></div>
+    <div class="lane l1"><div class="puck"></div></div>
+    <div class="ease-note">Everyday default. Hover, color, transforms.</div>
+
+    <div class="ease-name">--ease-soft <span class="gs">sine.inOut</span></div>
+    <div class="lane l3"><div class="puck"></div></div>
+    <div class="ease-note">Continuous motion. Progress, scrub, scroll.</div>
+  </div>
+
+</div>
+</body></html>

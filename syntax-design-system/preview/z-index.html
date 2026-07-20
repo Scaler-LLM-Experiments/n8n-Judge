@@ -1,0 +1,40 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Z-index stack" subtitle="Documented stack: base→tooltip" viewport="720x260" --><html><head><meta charset="utf-8"><title>Z-index stack</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .stage {
+    position:relative; height:200px;
+    background: repeating-linear-gradient(
+      45deg, #FAFAFA, #FAFAFA 8px, #F4F4F4 8px, #F4F4F4 16px);
+    border:1px solid #E4E4E4;
+  }
+  .layer {
+    position:absolute; padding:8px 14px; background:#fff;
+    border:1px solid #D1D1D1; box-shadow:0 6px 16px -8px rgba(0,11,31,0.18);
+    font-family:var(--font-body); font-size:11px;
+  }
+  .layer .z { font-family:var(--font-mono); font-size:10px; color:#0055FF; margin-left:8px; }
+  .l1 { top:14px;  left:14px;   }
+  .l2 { top:36px;  left:48px;   z-index: 100; }
+  .l3 { top:58px;  left:84px;   z-index: 200; background:#E9F1FF; }
+  .l4 { top:80px;  left:120px;  z-index: 1000; background:#011845; color:#fff; border-color:#011845; }
+  .l5 { top:102px; left:156px;  z-index: 1500; background:rgba(1,24,69,0.85); color:#fff; border-color:transparent; }
+  .l6 { top:124px; left:192px;  z-index: 1700; background:#fff; border-color:#0055FF; box-shadow:0 18px 36px -10px rgba(1,24,69,0.30); }
+  .l7 { top:146px; left:228px;  z-index: 1900; background:#1F9D55; color:#fff; border-color:#1F9D55; }
+  .l8 { top:168px; left:264px;  z-index: 2000; background:#0C0C0C; color:#fff; border-color:#0C0C0C; }
+</style></head>
+<body class="card">
+<div class="meta" style="margin-bottom:14px">
+  <strong>Documented stack.</strong> Reach for the token, not a magic number.
+</div>
+<div class="stage">
+  <div class="layer l1">base<span class="z">--z-base · 0</span></div>
+  <div class="layer l2">sticky<span class="z">--z-sticky · 100</span></div>
+  <div class="layer l3">nav<span class="z">--z-nav · 200</span></div>
+  <div class="layer l4">dropdown<span class="z">--z-dropdown · 1000</span></div>
+  <div class="layer l5">overlay<span class="z">--z-overlay · 1500</span></div>
+  <div class="layer l6">modal<span class="z">--z-modal · 1700</span></div>
+  <div class="layer l7">toast<span class="z">--z-toast · 1900</span></div>
+  <div class="layer l8">tooltip<span class="z">--z-tooltip · 2000</span></div>
+</div>
+</body></html>

@@ -1,0 +1,56 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Breadcrumb & pagination" subtitle="Wayfinding primitives" viewport="720x220" --><html><head><meta charset="utf-8"><title>Breadcrumb</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .stack { display:flex; flex-direction:column; gap:20px; }
+  .grp-title { font-family:var(--font-body); font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:#AAAAAA; margin-bottom:10px; }
+
+  .crumbs { display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    font-family:var(--font-body); font-size:13px; color:#616161; }
+  .crumbs a { color:#616161; text-decoration:none; transition:color 120ms ease; }
+  .crumbs a:hover { color:#0055FF; }
+  .crumbs .sep { color:#AAAAAA; }
+  .crumbs .now { color:#0C0C0C; font-weight:500; }
+
+  .pages { display:flex; gap:6px; align-items:center; }
+  .pgbtn {
+    width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center;
+    background:#fff; border:1px solid #E4E4E4; cursor:pointer;
+    font-family:var(--font-body); font-size:13px; color:#262626;
+    transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+  }
+  .pgbtn:hover { background:#EBF8FF; color:#0055FF; border-color:#0055FF; }
+  .pgbtn.is-active { background:#0055FF; color:#fff; border-color:#0055FF; }
+  .pgbtn.is-disabled { color:#D1D1D1; cursor:not-allowed; }
+  .pgbtn.is-disabled:hover { background:#fff; color:#D1D1D1; border-color:#E4E4E4; }
+  .ellipsis { padding:0 4px; color:#AAAAAA; font-family:var(--font-body); font-size:13px; }
+</style></head>
+<body class="card">
+<div class="stack">
+  <div>
+    <div class="grp-title">Breadcrumb</div>
+    <div class="crumbs">
+      <a>Programs</a>
+      <span class="sep">/</span>
+      <a>Academy</a>
+      <span class="sep">/</span>
+      <a>Software Engineering</a>
+      <span class="sep">/</span>
+      <span class="now">Module 4 · Distributed systems</span>
+    </div>
+  </div>
+  <div>
+    <div class="grp-title">Pagination</div>
+    <div class="pages">
+      <button class="pgbtn is-disabled">‹</button>
+      <button class="pgbtn">1</button>
+      <button class="pgbtn is-active">2</button>
+      <button class="pgbtn">3</button>
+      <button class="pgbtn">4</button>
+      <span class="ellipsis">…</span>
+      <button class="pgbtn">12</button>
+      <button class="pgbtn">›</button>
+    </div>
+  </div>
+</div>
+</body></html>

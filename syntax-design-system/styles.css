@@ -1,0 +1,9 @@
+/* =========================================================
+   Syntax by Scaler — Design System global entry
+   Consumers link THIS file. It is an @import manifest only.
+   Everything reachable from here ships to consumers:
+   token custom properties + the Clash Grotesk @font-face.
+   ========================================================= */
+
+@import url('./colors_and_type.css');
+@import url('./motion/presets.css');

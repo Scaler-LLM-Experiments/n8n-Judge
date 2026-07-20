@@ -1,0 +1,100 @@
+<!-- @dsCard group="Components" name="Core — Button, Badge, Tag, Avatar, Card, Stat, IconButton, Divider" subtitle="The brand's reusable React primitives, mounted from the bundle" viewport="700x720" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Core components</title>
+<link rel="stylesheet" href="../../styles.css" />
+<style>
+  html, body { margin: 0; background: #fff; }
+  body { padding: 24px; font-family: var(--font-body); color: var(--fg-1); }
+  .group { margin-bottom: 26px; }
+  .lbl { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg-4); margin-bottom: 10px; }
+  .row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+  const { Button, Badge, Tag, Avatar, Card, Stat, Eyebrow, IconButton, ButtonGroup, Divider } = window.SyntaxByScalerDesignSystem_6a7054;
+  const Heart = <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg>;
+  const Bell = <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>;
+  function Demo() {
+    const [sel, setSel] = React.useState('AI/ML');
+    return (
+      <div>
+        <div className="group">
+          <div className="lbl">Buttons</div>
+          <div className="row">
+            <Button variant="primary">Apply now</Button>
+            <Button variant="outline">Login</Button>
+            <Button variant="ghost">Learn more</Button>
+            <Button variant="primary" size="lg">Talk to an advisor</Button>
+          </div>
+        </div>
+        <div className="group">
+          <div className="lbl">Badges</div>
+          <div className="row">
+            <Badge tone="success">Enrolled</Badge>
+            <Badge tone="warning">Closing soon</Badge>
+            <Badge tone="info">Live</Badge>
+            <Badge tone="danger">Full</Badge>
+            <Badge solid>New</Badge>
+          </div>
+        </div>
+        <div className="group">
+          <div className="lbl">Tags</div>
+          <div className="row">
+            {['AI/ML', 'Backend', 'Systems'].map((t) => (
+              <Tag key={t} selected={sel === t} onClick={() => setSel(t)}>{t}</Tag>
+            ))}
+            <Tag onRemove={() => {}}>Removable</Tag>
+          </div>
+        </div>
+        <div className="group">
+          <div className="lbl">Avatars</div>
+          <div className="row">
+            <Avatar name="Anshuman Singh" />
+            <Avatar name="Priya R" presence="online" />
+            <Avatar name="Mohit K" size={48} presence="busy" />
+          </div>
+        </div>
+        <div className="group">
+          <div className="lbl">Icon buttons</div>
+          <div className="row">
+            <IconButton icon={Heart} variant="primary" aria-label="Like" />
+            <IconButton icon={Bell} variant="outline" aria-label="Notifications" />
+            <IconButton icon={Heart} variant="ghost" aria-label="Like" />
+            <IconButton icon={Bell} variant="black" size="lg" aria-label="Notifications" />
+          </div>
+        </div>
+        <div className="group">
+          <div className="lbl">Button group (segmented)</div>
+          <ButtonGroup items={[
+            { value: 'all', label: 'All' },
+            { value: 'live', label: 'Live' },
+            { value: 'self', label: 'Self-paced' },
+          ]} value="live" onChange={() => {}} />
+        </div>
+        <Divider label="Surfaces" />
+        <div className="row" style={{ alignItems: 'stretch', gap: 16, marginTop: 16 }}>
+          <Card style={{ flex: 1 }}>
+            <Eyebrow>Why Scaler</Eyebrow>
+            <h4 style={{ margin: '8px 0 6px' }}>Built different</h4>
+            <p className="t-body-sm" style={{ color: 'var(--fg-3)' }}>1px hairline border, no shadow, zero radius.</p>
+          </Card>
+          <Card tone="deep" style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+            <Stat value="13×" label="Salary jumps" size={56} tone="inverse" />
+          </Card>
+        </div>
+      </div>
+    );
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(<Demo />);
+</script>
+</body>
+</html>

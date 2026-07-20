@@ -1,0 +1,97 @@
+<!doctype html>
+<!-- @dsCard group="LMS Patterns" name="Module accordion" subtitle="Blue 'current' hero + muted done/upcoming; single-open, grow-on-hover" viewport="760x520" -->
+<html><head><meta charset="utf-8"><title>Module accordion</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body.card { width: 760px; }
+  :root{ --ease-out-quart:cubic-bezier(.25,1,.5,1); }
+  .modules{ display:flex; flex-direction:column; gap:14px; }
+
+  .module__header{
+    width:100%; min-height:56px;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 22px; background:#f2f4f8; cursor:pointer;
+    transform-origin:center center;
+    outline:1.5px solid transparent; outline-offset:-1.5px;
+    transition:background .18s ease, transform .2s var(--ease-out-quart), outline-color .18s ease;
+  }
+  .module__header:hover{ transform:scale(1.006); outline-color:#c7ccd4; }
+  .module__header:active{ transform:scale(.99); transition-duration:.1s; }
+  .module__title{ display:flex; align-items:center; gap:8px; font-family:var(--font-body); font-size:16px; font-weight:700; color:var(--fg-1); }
+  .chev{ flex:none; transition:transform .25s ease; }
+  .module__meta{ display:flex; align-items:center; gap:16px; }
+  .meta-item{ display:flex; align-items:center; gap:6px; font-size:12px; font-weight:500; color:var(--fg-3); }
+  .meta-sep{ width:1px; height:20px; background:var(--border-subtle); }
+  .status-pill{ display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:600; color:#8a8a8a; }
+
+  /* done + upcoming = quiet */
+  .module--done .module__name{ color:var(--fg-3); }
+  .module--done .chev{ color:#9aa0a8; }
+  .module--upcoming .module__name{ color:#8a8a8a; }
+  .module--upcoming .chev{ color:#b4b9c0; }
+
+  /* open = blue hero */
+  .module.is-open .module__header{ background:var(--brand-primary); }
+  .module.is-open .module__name,
+  .module.is-open .chev{ color:#fff; }
+  .module.is-open .chev{ transform:rotate(90deg); }
+  .module.is-open .meta-item,
+  .module.is-open .meta-item svg{ color:#dbe7ff; }
+  .module.is-open .meta-sep{ background:#ffffff44; }
+
+  /* hint of the open body */
+  .body{ padding:6px 0 0; }
+  .row{ display:flex; align-items:center; gap:14px; padding:14px 8px; border-bottom:1px solid var(--border-subtle); font-family:var(--font-body); }
+  .row:last-child{ border-bottom:0; }
+  .date{ width:42px; flex:none; text-align:center; border:1px solid var(--border-subtle); }
+  .date .mon{ display:block; font-size:9px; font-weight:600; letter-spacing:1px; color:var(--fg-3); padding:4px 0 2px; }
+  .date .day{ display:block; font-size:15px; font-weight:700; color:var(--fg-1); padding-bottom:4px; }
+  .row.is-active .date{ background:var(--brand-primary); border-color:var(--brand-primary); }
+  .row.is-active .date .mon{ color:#cfe0ff; } .row.is-active .date .day{ color:#fff; }
+  .ttl{ flex:1; font-size:14px; font-weight:600; color:var(--fg-1); }
+  .row.is-active .ttl{ color:var(--brand-primary); }
+  .label{ font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#AAAAAA; margin:0 0 12px 4px; font-family:var(--font-body); }
+</style></head>
+<body class="card">
+  <div class="label">Completed · current (open) · upcoming</div>
+  <div class="modules">
+    <section class="module module--done">
+      <div class="module__header">
+        <span class="module__title"><svg class="chev" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg><span class="module__name">Module 11: Trees &amp; BST</span></span>
+        <span class="module__meta">
+          <span class="meta-item"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="0"/><path d="M3 10h18"/></svg>Attendance 92%</span>
+          <span class="meta-sep"></span>
+          <span class="meta-item">PSP 88%</span>
+        </span>
+      </div>
+    </section>
+
+    <section class="module is-open">
+      <div class="module__header">
+        <span class="module__title"><svg class="chev" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg><span class="module__name">Module 12: Heaps &amp; Priority Queues</span></span>
+        <span class="module__meta">
+          <span class="meta-item">Attendance 60%</span>
+          <span class="meta-sep"></span>
+          <span class="meta-item">PSP 60%</span>
+        </span>
+      </div>
+      <div class="body">
+        <div class="row">
+          <div class="date"><span class="mon">JUL</span><span class="day">12</span></div>
+          <span class="ttl">3. Heaps: build & heapify</span>
+        </div>
+        <div class="row is-active">
+          <div class="date"><span class="mon">JUL</span><span class="day">14</span></div>
+          <span class="ttl">4. Top-K problems with a priority queue</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="module module--upcoming">
+      <div class="module__header">
+        <span class="module__title"><svg class="chev" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg><span class="module__name">Module 13: Greedy Algorithms</span></span>
+        <span class="status-pill"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="0"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Upcoming</span>
+      </div>
+    </section>
+  </div>
+</body></html>

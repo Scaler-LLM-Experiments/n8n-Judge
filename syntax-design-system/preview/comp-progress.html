@@ -1,0 +1,101 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Progress" subtitle="Bars + rings + indeterminate" viewport="720x320" --><html><head><meta charset="utf-8"><title>Progress</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .stack { display:flex; flex-direction:column; gap:20px; }
+  .grp-title { font-family:var(--font-body); font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:#AAAAAA; margin-bottom:10px; }
+  .row { display:flex; gap:32px; align-items:center; flex-wrap:wrap; }
+
+  /* Linear bars */
+  .pbar { position:relative; height:6px; background:#E4E4E4; width:240px; overflow:hidden; }
+  .pbar > i { position:absolute; left:0; top:0; bottom:0; background:#0055FF;
+    transition:width 600ms cubic-bezier(0.20,0.80,0.20,1.00); }
+  .pbar.lg { height:10px; }
+  .pmeta { font-family:var(--font-body); font-size:11px; color:#616161; margin-top:6px; }
+
+  /* Indeterminate */
+  .pbar.ind > i {
+    width:35%; left:-35%;
+    animation: ind 1400ms cubic-bezier(0.16,1.00,0.30,1.00) infinite;
+  }
+  @keyframes ind {
+    0%   { left:-35%; }
+    100% { left:100%; }
+  }
+
+  /* Ring */
+  .ring-wrap { display:inline-flex; flex-direction:column; align-items:center; gap:8px; }
+  .ring { position:relative; width:88px; height:88px; }
+  .ring svg { transform: rotate(-90deg); }
+  .ring .num {
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-body); font-weight:600; font-size:18px;
+    font-variant-numeric: tabular-nums; letter-spacing:-0.01em;
+    color:#0C0C0C;
+  }
+  .ring-lbl { font-family:var(--font-body); font-size:11px; color:#616161; }
+</style></head>
+<body class="card">
+<div class="stack">
+  <div>
+    <div class="grp-title">Linear progress</div>
+    <div class="row">
+      <div>
+        <div class="pbar"><i style="width:24%"></i></div>
+        <div class="pmeta">3 of 12 lessons · 24%</div>
+      </div>
+      <div>
+        <div class="pbar"><i style="width:68%"></i></div>
+        <div class="pmeta">8 of 12 lessons · 68%</div>
+      </div>
+      <div>
+        <div class="pbar lg"><i style="width:92%; background:#1F9D55"></i></div>
+        <div class="pmeta">Almost there · 92%</div>
+      </div>
+      <div>
+        <div class="pbar ind"><i></i></div>
+        <div class="pmeta">Indeterminate</div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="grp-title">Progress rings</div>
+    <div class="row">
+      <div class="ring-wrap">
+        <div class="ring">
+          <svg width="88" height="88" viewBox="0 0 88 88">
+            <circle cx="44" cy="44" r="38" fill="none" stroke="#E4E4E4" stroke-width="6"/>
+            <circle cx="44" cy="44" r="38" fill="none" stroke="#0055FF" stroke-width="6"
+              stroke-dasharray="238.76" stroke-dashoffset="178" stroke-linecap="butt"/>
+          </svg>
+          <div class="num">25%</div>
+        </div>
+        <div class="ring-lbl">Module 1</div>
+      </div>
+      <div class="ring-wrap">
+        <div class="ring">
+          <svg width="88" height="88" viewBox="0 0 88 88">
+            <circle cx="44" cy="44" r="38" fill="none" stroke="#E4E4E4" stroke-width="6"/>
+            <circle cx="44" cy="44" r="38" fill="none" stroke="#0055FF" stroke-width="6"
+              stroke-dasharray="238.76" stroke-dashoffset="83" stroke-linecap="butt"/>
+          </svg>
+          <div class="num">65%</div>
+        </div>
+        <div class="ring-lbl">Module 2</div>
+      </div>
+      <div class="ring-wrap">
+        <div class="ring">
+          <svg width="88" height="88" viewBox="0 0 88 88">
+            <circle cx="44" cy="44" r="38" fill="none" stroke="#E4E4E4" stroke-width="6"/>
+            <circle cx="44" cy="44" r="38" fill="none" stroke="#1F9D55" stroke-width="6"
+              stroke-dasharray="238.76" stroke-dashoffset="0" stroke-linecap="butt"/>
+          </svg>
+          <div class="num" style="color:#1F9D55">100%</div>
+        </div>
+        <div class="ring-lbl">Module 3 · done</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

@@ -1,0 +1,111 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Badges & chips" subtitle="Status badges, filter chips, removable (Lucide x)" viewport="720x320" --><html><head><meta charset="utf-8"><title>Badges & chips</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .stack { display:flex; flex-direction:column; gap:18px; }
+  .grp-title { font-family:var(--font-body); font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:#AAAAAA; margin-bottom:10px; }
+  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+
+  /* ---- Badges (status, non-interactive) ---- */
+  .badge {
+    display:inline-flex; align-items:center; gap:6px;
+    height:22px; padding:0 8px;
+    font-family:var(--font-body); font-size:11px; font-weight:500;
+    border:1px solid;
+  }
+  .badge .dot { width:6px; height:6px; flex:none; }
+  .b-info    { background:#E6F0FF; border-color:#BAD4FF; color:#003BB5; }
+  .b-success { background:#E8F6EE; border-color:#B7E2C7; color:#15663A; }
+  .b-warning { background:#FFF4E0; border-color:#F2D49A; color:#8A4F00; }
+  .b-danger  { background:#FDECEC; border-color:#F2B5B5; color:#8B1B1B; }
+  .b-neutral { background:#F5F5F5; border-color:#E4E4E4; color:#262626; }
+  .b-solid   { background:#0C0C0C; border-color:#0C0C0C; color:#fff; }
+
+  /* ---- Filter chips (interactive) ---- */
+  .chip {
+    display:inline-flex; align-items:center; gap:8px;
+    height:28px; padding:0 12px;
+    font-family:var(--font-body); font-size:12px; font-weight:500; color:#262626;
+    background:#fff; border:1px solid #D1D1D1; cursor:pointer;
+    transition:background 120ms ease, color 120ms ease, border-color 120ms ease;
+  }
+  .chip:hover { background:#EBF8FF; color:#0055FF; border-color:#0055FF; }
+  .chip.is-active { background:#0055FF; color:#fff; border-color:#0055FF; }
+
+  /* ---- Removable chip (filled, with affordance) ----
+     Pattern: text + Lucide x in a tappable trailing slot.
+     Slot has its own hover state so it reads as removable. */
+  .chip--removable {
+    padding:0 4px 0 12px;     /* tighter on the right to host the slot */
+  }
+  .chip--removable .x {
+    width:20px; height:20px;
+    margin-left:2px;
+    display:inline-flex; align-items:center; justify-content:center;
+    color: currentColor; opacity: 0.65;
+    cursor:pointer;
+    transition: background 120ms ease, opacity 120ms ease, color 120ms ease;
+  }
+  .chip--removable .x:hover {
+    background: rgba(0,85,255,0.10);
+    opacity: 1;
+  }
+  /* When the chip is selected (filled blue), the x slot needs an inverted hover */
+  .chip--removable.is-active .x:hover {
+    background: rgba(255,255,255,0.18);
+  }
+  /* Lucide stroke conventions */
+  .chip--removable .x svg {
+    width:14px; height:14px;
+    stroke: currentColor; stroke-width: 2;
+    stroke-linecap: square; stroke-linejoin: miter; fill: none;
+  }
+</style></head>
+<body class="card">
+<div class="stack">
+  <div>
+    <div class="grp-title">Badges · status</div>
+    <div class="row">
+      <span class="badge b-info"><span class="dot" style="background:#0055FF"></span>In review</span>
+      <span class="badge b-success"><span class="dot" style="background:#1F9D55"></span>Submitted</span>
+      <span class="badge b-warning"><span class="dot" style="background:#C97A0E"></span>Due in 2d</span>
+      <span class="badge b-danger"><span class="dot" style="background:#D62B2B"></span>Overdue</span>
+      <span class="badge b-neutral">Draft</span>
+      <span class="badge b-solid">New · cohort 18</span>
+    </div>
+  </div>
+  <div>
+    <div class="grp-title">Filter chips</div>
+    <div class="row">
+      <span class="chip is-active">All courses</span>
+      <span class="chip">Frontend</span>
+      <span class="chip">Backend</span>
+      <span class="chip">AI / ML</span>
+      <span class="chip">System design</span>
+    </div>
+  </div>
+  <div>
+    <div class="grp-title">Removable · selected filters</div>
+    <div class="row">
+      <span class="chip chip--removable is-active">
+        Frontend
+        <span class="x" role="button" aria-label="Remove Frontend filter">
+          <svg viewBox="0 0 24 24"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+        </span>
+      </span>
+      <span class="chip chip--removable is-active">
+        2024 cohort
+        <span class="x" role="button" aria-label="Remove cohort filter">
+          <svg viewBox="0 0 24 24"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+        </span>
+      </span>
+      <span class="chip chip--removable">
+        Self-paced
+        <span class="x" role="button" aria-label="Remove self-paced filter">
+          <svg viewBox="0 0 24 24"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+        </span>
+      </span>
+    </div>
+  </div>
+</div>
+</body></html>
