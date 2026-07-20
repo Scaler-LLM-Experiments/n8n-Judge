@@ -19,7 +19,21 @@ describe('currentBuildStepIndex', () => {
     expect(currentBuildStepIndex(graph, emailTriage)).toBe(1);
   });
 
-  it('advances to step 2 once trigger, classify, parse, and switch are all placed', () => {
+  it('advances to step 2 once trigger, classify, model, parse, and switch are all placed', () => {
+    const graph = {
+      nodes: [
+        { id: 'n1', type: 'trigger' },
+        { id: 'n2', type: 'classify' },
+        { id: 'nm', type: 'chat-gemini' },
+        { id: 'n3', type: 'parse' },
+        { id: 'n4', type: 'switch' },
+      ],
+      edges: [],
+    };
+    expect(currentBuildStepIndex(graph, emailTriage)).toBe(2);
+  });
+
+  it('stays on step 1 if the chat model is not yet placed', () => {
     const graph = {
       nodes: [
         { id: 'n1', type: 'trigger' },
@@ -29,7 +43,7 @@ describe('currentBuildStepIndex', () => {
       ],
       edges: [],
     };
-    expect(currentBuildStepIndex(graph, emailTriage)).toBe(2);
+    expect(currentBuildStepIndex(graph, emailTriage)).toBe(1);
   });
 });
 
@@ -55,11 +69,12 @@ describe('checkDrop', () => {
     expect(result.allowed).toBe(true);
   });
 
-  it('allows switch and action distractors are still blocked once on the action step', () => {
+  it('allows the action node but blocks action distractors once on the action step', () => {
     const graph = {
       nodes: [
         { id: 'n1', type: 'trigger' },
         { id: 'n2', type: 'classify' },
+        { id: 'nm', type: 'chat-gemini' },
         { id: 'n3', type: 'parse' },
         { id: 'n4', type: 'switch' },
       ],

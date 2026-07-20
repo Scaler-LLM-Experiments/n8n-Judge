@@ -1,43 +1,59 @@
 import React from 'react';
 import { Handle, Position } from 'reactflow';
-import { Card } from '../design-system/Card.jsx';
-import { nodeIcons } from './nodeIcons.js';
+import { NodeCard, handleStyle } from './NodeCard.jsx';
 
 const BRANCHES = [
-  { id: 'bug_report', label: 'Bug Report', top: '25%' },
-  { id: 'feature_request', label: 'Feature Request', top: '50%' },
-  { id: 'urgent_complaint', label: 'Urgent Complaint', top: '75%' },
+  { id: 'bug_report', label: 'Bug Report' },
+  { id: 'feature_request', label: 'Feature Request' },
+  { id: 'urgent_complaint', label: 'Urgent Complaint' },
 ];
 
-export function SwitchNode({ data, type }) {
-  const Icon = nodeIcons[type];
+export function SwitchNode({ data, type, selected }) {
   return (
-    <Card tone="soft" padding={12} style={{ minWidth: 190, minHeight: 100, position: 'relative' }}>
-      <Handle type="target" position={Position.Left} />
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        {Icon ? <Icon size={18} color="var(--fg-2)" /> : null}
-        <div>
-          <div style={{ fontSize: 11, textTransform: 'uppercase', color: 'var(--fg-2)' }}>Core Node</div>
-          <div style={{ fontWeight: 600 }}>{data.label}</div>
-        </div>
-      </div>
-      {BRANCHES.map((branch) => (
-        <React.Fragment key={branch.id}>
-          <Handle type="source" position={Position.Right} id={branch.id} style={{ top: branch.top }} />
+    <NodeCard type={type} label={data.label} selected={selected} width={220}>
+      <Handle type="target" position={Position.Left} style={handleStyle} />
+      <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {BRANCHES.map((branch, i) => (
           <div
+            key={branch.id}
             style={{
-              position: 'absolute',
-              right: 8,
-              top: branch.top,
-              fontSize: 10,
-              transform: 'translateY(-50%)',
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-end',
+              gap: 6,
+              fontSize: 11,
               color: 'var(--fg-2)',
+              paddingRight: 4,
             }}
           >
+            <span
+              style={{
+                width: 16,
+                height: 16,
+                borderRadius: 4,
+                background: 'var(--surface-1)',
+                border: '1px solid var(--border-subtle)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 9,
+                fontWeight: 700,
+                color: 'var(--fg-3)',
+              }}
+            >
+              {i}
+            </span>
             {branch.label}
+            <Handle
+              type="source"
+              position={Position.Right}
+              id={branch.id}
+              style={{ ...handleStyle, position: 'absolute', right: -18, top: '50%' }}
+            />
           </div>
-        </React.Fragment>
-      ))}
-    </Card>
+        ))}
+      </div>
+    </NodeCard>
   );
 }

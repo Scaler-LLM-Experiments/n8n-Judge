@@ -17,23 +17,26 @@ export function checkDrop(studentGraph, paletteNode, problem) {
   if (!step.categories.includes(paletteNode.category)) {
     return {
       allowed: false,
+      title: 'Not yet',
       mascotClip: 'shake-no',
-      message: `Not yet — right now we're on "${step.label}". Come back to this one later.`,
+      message: `We're still on "${step.label}". Come back to "${paletteNode.label}" a little later.`,
     };
   }
 
   if (paletteNode.isDistractor) {
     return {
       allowed: false,
+      title: 'Think again',
       mascotClip: 'confused',
-      message: `Hmm — is "${paletteNode.label}" really the right node here? Think again.`,
+      message: `Is "${paletteNode.label}" really the right node for this step? Take another look at the palette.`,
     };
   }
 
   return {
     allowed: true,
+    title: 'Nice',
     mascotClip: 'correct',
-    message: 'Nice — that\'s the right pick.',
+    message: `"${paletteNode.label}" is the right pick.`,
   };
 }
 

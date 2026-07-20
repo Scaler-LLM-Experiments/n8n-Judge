@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { emailTriage } from './emailTriage.js';
 
 describe('emailTriage problem spec', () => {
-  it('has 4 test cases and 2 eval questions', () => {
-    expect(emailTriage.testCases).toHaveLength(4);
+  it('has 5 test cases and 2 eval questions', () => {
+    expect(emailTriage.testCases).toHaveLength(5);
     expect(emailTriage.evalQuestions).toHaveLength(2);
   });
 
@@ -18,7 +18,7 @@ describe('emailTriage problem spec', () => {
     const requiredTypes = new Set(
       emailTriage.nodePalette.filter((n) => !n.isDistractor).map((n) => n.type)
     );
-    for (const type of ['trigger', 'classify', 'parse', 'switch', 'action']) {
+    for (const type of ['trigger', 'classify', 'chat-gemini', 'parse', 'switch', 'action']) {
       expect(requiredTypes.has(type)).toBe(true);
     }
   });

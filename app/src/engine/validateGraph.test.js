@@ -7,6 +7,7 @@ function buildCorrectGraph() {
     nodes: [
       { id: 'n1', type: 'trigger' },
       { id: 'n2', type: 'classify' },
+      { id: 'nm', type: 'chat-gemini' },
       { id: 'n3', type: 'parse' },
       { id: 'n4', type: 'switch' },
       { id: 'n5', type: 'action' },
@@ -14,6 +15,7 @@ function buildCorrectGraph() {
       { id: 'n7', type: 'action' },
     ],
     edges: [
+      { id: 'em', source: 'nm', target: 'n2', targetHandle: 'ai_model' },
       { id: 'e1', source: 'n1', target: 'n2' },
       { id: 'e2', source: 'n2', target: 'n3' },
       { id: 'e3', source: 'n3', target: 'n4' },
@@ -39,6 +41,20 @@ describe('validateGraph', () => {
     expect(result.results.find((r) => r.id === 'trigger-present').passed).toBe(false);
   });
 
+  it('fails the model-connected check when no chat model is wired into classify', () => {
+    const graph = buildCorrectGraph();
+    graph.edges = graph.edges.filter((e) => e.id !== 'em');
+    const result = validateGraph(graph, emailTriage);
+    expect(result.results.find((r) => r.id === 'model-connected').passed).toBe(false);
+  });
+
+  it('fails the model-connected check when the model edge is on the wrong port', () => {
+    const graph = buildCorrectGraph();
+    graph.edges = graph.edges.map((e) => (e.id === 'em' ? { ...e, targetHandle: undefined } : e));
+    const result = validateGraph(graph, emailTriage);
+    expect(result.results.find((r) => r.id === 'model-connected').passed).toBe(false);
+  });
+
   it('fails the switch-connection check when parse does not feed into switch', () => {
     const graph = buildCorrectGraph();
     graph.edges = graph.edges.filter((e) => e.id !== 'e3');
@@ -57,7 +73,7 @@ describe('validateGraph', () => {
 
   it('ignores distractor nodes present in the student graph', () => {
     const graph = buildCorrectGraph();
-    graph.nodes.push({ id: 'n9', type: 'slack-message' });
+    graph.nodes.push({ id: 'nx', type: 'slack-message' });
     const result = validateGraph(graph, emailTriage);
     expect(result.allPassed).toBe(true);
   });

@@ -2,11 +2,14 @@ import { TriggerNode } from './TriggerNode.jsx';
 import { ProcessNode } from './ProcessNode.jsx';
 import { SwitchNode } from './SwitchNode.jsx';
 import { ActionNode } from './ActionNode.jsx';
+import { ClassifyNode } from './ClassifyNode.jsx';
+import { ChatModelNode } from './ChatModelNode.jsx';
 
 export const nodeTypes = {
   trigger: TriggerNode,
   'chat-trigger': TriggerNode,
-  classify: ProcessNode,
+  classify: ClassifyNode,
+  'chat-gemini': ChatModelNode,
   parse: ProcessNode,
   'web-search': ProcessNode,
   switch: SwitchNode,
