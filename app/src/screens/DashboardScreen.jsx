@@ -11,12 +11,13 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import { nodeTypes } from '../nodes/nodeTypes.js';
 import { NodePalette } from '../components/NodePalette.jsx';
-import { Button } from '../design-system/Button.jsx';
-import { Badge } from '../design-system/Badge.jsx';
-import { Switch } from '../design-system/Switch.jsx';
+import { TopBar } from '../components/TopBar.jsx';
+import { ProblemStatementPanel } from '../components/ProblemStatementPanel.jsx';
+import { NodePropertyPanel } from '../components/NodePropertyPanel.jsx';
+import { JudgeMascot } from '../mascot/JudgeMascot.jsx';
 import { Alert } from '../design-system/Alert.jsx';
 import { validateGraph } from '../engine/validateGraph.js';
-import { computeMissingReferenceNodes, countPendingNodes } from '../engine/xray.js';
+import { checkDrop } from '../engine/checkDrop.js';
 
 let nodeIdCounter = 0;
 function nextNodeId() {
@@ -27,8 +28,10 @@ function nextNodeId() {
 function DashboardCanvas({ problem, onAllTestsPassed }) {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
-  const [xrayOn, setXrayOn] = useState(false);
   const [runResult, setRunResult] = useState(null);
+  const [selectedNode, setSelectedNode] = useState(null);
+  const [showStatement, setShowStatement] = useState(false);
+  const [reaction, setReaction] = useState(null);
   const { screenToFlowPosition } = useReactFlow();
 
   const studentGraph = useMemo(
@@ -38,24 +41,6 @@ function DashboardCanvas({ problem, onAllTestsPassed }) {
     }),
     [nodes, edges]
   );
-
-  const pendingCount = useMemo(
-    () => countPendingNodes(studentGraph, problem.referenceGraph),
-    [studentGraph, problem.referenceGraph]
-  );
-
-  const ghostNodes = useMemo(() => {
-    if (!xrayOn) return [];
-    return computeMissingReferenceNodes(studentGraph, problem.referenceGraph).map((refNode) => ({
-      id: `ghost-${refNode.id}`,
-      type: 'ghost',
-      position: refNode.position,
-      data: { label: refNode.requiredLabel },
-      draggable: false,
-      selectable: false,
-      connectable: false,
-    }));
-  }, [xrayOn, studentGraph, problem.referenceGraph]);
 
   const onNodesChange = useCallback((changes) => setNodes((nds) => applyNodeChanges(changes, nds)), []);
   const onEdgesChange = useCallback((changes) => setEdges((eds) => applyEdgeChanges(changes, eds)), []);
@@ -72,7 +57,19 @@ function DashboardCanvas({ problem, onAllTestsPassed }) {
       const raw = event.dataTransfer.getData('application/judge-node');
       if (!raw) return;
       const paletteNode = JSON.parse(raw);
-      const position = screenToFlowPosition({ x: event.clientX, y: event.clientY });
+      const anchor = { x: event.clientX, y: event.clientY };
+      const result = checkDrop(studentGraph, paletteNode, problem);
+
+      setReaction({
+        anchor,
+        clip: result.mascotClip,
+        message: result.message,
+        tone: result.allowed ? 'correct' : 'wrong',
+      });
+
+      if (!result.allowed) return;
+
+      const position = screenToFlowPosition(anchor);
       const newNode = {
         id: nextNodeId(),
         type: paletteNode.type,
@@ -81,7 +78,7 @@ function DashboardCanvas({ problem, onAllTestsPassed }) {
       };
       setNodes((nds) => nds.concat(newNode));
     },
-    [screenToFlowPosition]
+    [screenToFlowPosition, studentGraph, problem]
   );
 
   const handleRun = () => {
@@ -90,50 +87,58 @@ function DashboardCanvas({ problem, onAllTestsPassed }) {
     if (result.allPassed) onAllTestsPassed(result);
   };
 
+  const handleReset = () => {
+    setNodes([]);
+    setEdges([]);
+    setRunResult(null);
+    setSelectedNode(null);
+  };
+
   return (
-    <div style={{ display: 'flex', height: '100%' }}>
-      <NodePalette problem={problem} />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 16,
-            padding: 12,
-            borderBottom: '1px solid var(--border-subtle)',
-          }}
-        >
-          <Switch checked={xrayOn} onChange={setXrayOn} label="X-ray" />
-          <Badge tone={pendingCount === 0 ? 'success' : 'neutral'}>{pendingCount} nodes pending</Badge>
-          <div style={{ flex: 1 }} />
-          <Button variant="primary" onClick={handleRun}>Run</Button>
-        </div>
-        <div style={{ flex: 1, minHeight: 0 }}>
-          <ReactFlow
-            nodes={nodes.concat(ghostNodes)}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            onDrop={onDrop}
-            onDragOver={onDragOver}
-            nodeTypes={nodeTypes}
-            fitView
-          >
-            <Background />
-            <Controls />
-          </ReactFlow>
-        </div>
-        {runResult ? (
-          <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 220, overflowY: 'auto' }}>
-            {runResult.results.map((r) => (
-              <Alert key={r.id} tone={r.passed ? 'success' : 'danger'} title={r.description}>
-                {r.passed ? 'Passed' : r.reason}
-              </Alert>
-            ))}
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      <TopBar
+        activeStage="dashboard"
+        onShowProblemStatement={() => setShowStatement(true)}
+        onReset={handleReset}
+        onRun={handleRun}
+      />
+      <div style={{ flex: 1, display: 'flex', minHeight: 0, position: 'relative' }}>
+        <NodePalette problem={problem} />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, position: 'relative' }}>
+          <div style={{ flex: 1, minHeight: 0 }}>
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              onDrop={onDrop}
+              onDragOver={onDragOver}
+              onNodeClick={(_, node) => setSelectedNode(node)}
+              onPaneClick={() => setSelectedNode(null)}
+              nodeTypes={nodeTypes}
+              fitView
+            >
+              <Background />
+              <Controls />
+            </ReactFlow>
           </div>
+          {runResult ? (
+            <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 220, overflowY: 'auto' }}>
+              {runResult.results.map((r) => (
+                <Alert key={r.id} tone={r.passed ? 'success' : 'danger'} title={r.description}>
+                  {r.passed ? 'Passed' : r.reason}
+                </Alert>
+              ))}
+            </div>
+          ) : null}
+          <JudgeMascot reaction={reaction} onReactionDone={() => setReaction(null)} />
+        </div>
+        {selectedNode ? (
+          <NodePropertyPanel node={selectedNode} problem={problem} onClose={() => setSelectedNode(null)} />
         ) : null}
       </div>
+      {showStatement ? <ProblemStatementPanel problem={problem} onClose={() => setShowStatement(false)} /> : null}
     </div>
   );
 }

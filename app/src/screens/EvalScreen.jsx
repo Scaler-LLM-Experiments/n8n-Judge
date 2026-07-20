@@ -1,12 +1,14 @@
-// app/src/screens/EvalScreen.jsx
 import React, { useState } from 'react';
 import { Card } from '../design-system/Card.jsx';
 import { Button } from '../design-system/Button.jsx';
 import { RadioGroup } from '../design-system/RadioGroup.jsx';
+import { TopBar } from '../components/TopBar.jsx';
+import { ProblemStatementPanel } from '../components/ProblemStatementPanel.jsx';
 import { scoreEval } from '../engine/evalScore.js';
 
 export function EvalScreen({ problem, onSubmit }) {
   const [answers, setAnswers] = useState({});
+  const [showStatement, setShowStatement] = useState(false);
 
   const allAnswered = problem.evalQuestions.every((q) => answers[q.id] !== undefined);
 
@@ -19,28 +21,32 @@ export function EvalScreen({ problem, onSubmit }) {
   };
 
   return (
-    <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <Card style={{ maxWidth: 640, width: '100%' }}>
-        <div style={{ fontSize: 12, textTransform: 'uppercase', color: 'var(--fg-2)', marginBottom: 16 }}>
-          Eval
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
-          {problem.evalQuestions.map((q) => (
-            <div key={q.id}>
-              <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 12 }}>{q.prompt}</div>
-              <RadioGroup
-                name={q.id}
-                value={answers[q.id]}
-                onChange={(value) => setAnswers((a) => ({ ...a, [q.id]: value }))}
-                options={q.options.map((option, index) => ({ value: String(index), label: option }))}
-              />
-            </div>
-          ))}
-        </div>
-        <div style={{ marginTop: 24 }}>
-          <Button variant="primary" disabled={!allAnswered} onClick={handleSubmit}>Submit</Button>
-        </div>
-      </Card>
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      <TopBar activeStage="eval" onShowProblemStatement={() => setShowStatement(true)} />
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+        <Card style={{ maxWidth: 640, width: '100%' }}>
+          <div style={{ fontSize: 12, textTransform: 'uppercase', color: 'var(--fg-2)', marginBottom: 16 }}>
+            Stress Testing
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+            {problem.evalQuestions.map((q) => (
+              <div key={q.id}>
+                <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 12 }}>{q.prompt}</div>
+                <RadioGroup
+                  name={q.id}
+                  value={answers[q.id]}
+                  onChange={(value) => setAnswers((a) => ({ ...a, [q.id]: value }))}
+                  options={q.options.map((option, index) => ({ value: String(index), label: option }))}
+                />
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: 24 }}>
+            <Button variant="primary" disabled={!allAnswered} onClick={handleSubmit}>Submit</Button>
+          </div>
+        </Card>
+      </div>
+      {showStatement ? <ProblemStatementPanel problem={problem} onClose={() => setShowStatement(false)} /> : null}
     </div>
   );
 }

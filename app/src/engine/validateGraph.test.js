@@ -8,11 +8,10 @@ function buildCorrectGraph() {
       { id: 'n1', type: 'trigger' },
       { id: 'n2', type: 'classify' },
       { id: 'n3', type: 'parse' },
-      { id: 'n4', type: 'route' },
+      { id: 'n4', type: 'switch' },
       { id: 'n5', type: 'action' },
       { id: 'n6', type: 'action' },
       { id: 'n7', type: 'action' },
-      { id: 'n8', type: 'complete' },
     ],
     edges: [
       { id: 'e1', source: 'n1', target: 'n2' },
@@ -21,9 +20,6 @@ function buildCorrectGraph() {
       { id: 'e4', source: 'n4', target: 'n5', sourceHandle: 'bug_report' },
       { id: 'e5', source: 'n4', target: 'n6', sourceHandle: 'feature_request' },
       { id: 'e6', source: 'n4', target: 'n7', sourceHandle: 'urgent_complaint' },
-      { id: 'e7', source: 'n5', target: 'n8' },
-      { id: 'e8', source: 'n6', target: 'n8' },
-      { id: 'e9', source: 'n7', target: 'n8' },
     ],
   };
 }
@@ -43,11 +39,11 @@ describe('validateGraph', () => {
     expect(result.results.find((r) => r.id === 'trigger-present').passed).toBe(false);
   });
 
-  it('fails the route-connection check when parse does not feed into route', () => {
+  it('fails the switch-connection check when parse does not feed into switch', () => {
     const graph = buildCorrectGraph();
     graph.edges = graph.edges.filter((e) => e.id !== 'e3');
     const result = validateGraph(graph, emailTriage);
-    expect(result.results.find((r) => r.id === 'route-present-with-branches').passed).toBe(false);
+    expect(result.results.find((r) => r.id === 'switch-present-with-branches').passed).toBe(false);
   });
 
   it('fails the branch check when the urgent complaint branch is missing', () => {
@@ -57,13 +53,6 @@ describe('validateGraph', () => {
     const failed = result.results.find((r) => r.id === 'each-branch-sends-reply');
     expect(failed.passed).toBe(false);
     expect(failed.reason).toContain('urgent_complaint');
-  });
-
-  it('fails the path check when a branch action does not reach Complete', () => {
-    const graph = buildCorrectGraph();
-    graph.edges = graph.edges.filter((e) => e.id !== 'e8');
-    const result = validateGraph(graph, emailTriage);
-    expect(result.results.find((r) => r.id === 'all-paths-complete').passed).toBe(false);
   });
 
   it('ignores distractor nodes present in the student graph', () => {

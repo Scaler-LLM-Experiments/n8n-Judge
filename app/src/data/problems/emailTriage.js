@@ -4,17 +4,23 @@ export const emailTriage = {
   statement:
     "Your inbox is full of mixed feedback. Build a flow that watches for new emails, uses AI to classify each one (Bug Report / Feature Request / Complaint), and routes urgent complaints differently from everything else — each path sends the right reply.",
 
+  testCaseSummary: [
+    'A New Email trigger starts the flow.',
+    'The email is classified with AI, then the result is parsed.',
+    'A Switch node routes based on category.',
+    'Each of the 3 categories — Bug Report, Feature Request, Urgent Complaint — sends its own reply.',
+  ],
+
   nodePalette: [
     { type: 'trigger', label: 'New Email', category: 'trigger', isDistractor: false },
-    { type: 'classify', label: 'Classify with AI', category: 'process', isDistractor: false },
-    { type: 'parse', label: 'Parse Result', category: 'process', isDistractor: false },
-    { type: 'route', label: 'Route', category: 'branch', isDistractor: false },
+    { type: 'classify', label: 'Classify with AI', category: 'ai', isDistractor: false },
+    { type: 'parse', label: 'Parse Result', category: 'core', isDistractor: false },
+    { type: 'switch', label: 'Switch', category: 'core', isDistractor: false },
     { type: 'action', label: 'Send Reply', category: 'action', isDistractor: false },
-    { type: 'complete', label: 'Complete', category: 'finish', isDistractor: false },
     { type: 'slack-message', label: 'Slack — Send Message', category: 'action', isDistractor: true },
     { type: 'calendar-event', label: 'Google Calendar — Create Event', category: 'action', isDistractor: true },
     { type: 'notion-page', label: 'Notion — Create Page', category: 'action', isDistractor: true },
-    { type: 'web-search', label: 'Web Search', category: 'process', isDistractor: true },
+    { type: 'web-search', label: 'Web Search', category: 'core', isDistractor: true },
     { type: 'google-docs', label: 'Google Docs — Create Document', category: 'action', isDistractor: true },
     { type: 'chat-trigger', label: 'Chat Trigger', category: 'trigger', isDistractor: true },
   ],
@@ -24,22 +30,18 @@ export const emailTriage = {
       { id: 'trigger-1', type: 'trigger', position: { x: 0, y: 200 }, requiredLabel: 'New Email' },
       { id: 'classify-1', type: 'classify', position: { x: 260, y: 200 }, requiredLabel: 'Classify with AI' },
       { id: 'parse-1', type: 'parse', position: { x: 520, y: 200 }, requiredLabel: 'Parse Result' },
-      { id: 'route-1', type: 'route', position: { x: 780, y: 200 }, requiredLabel: 'Route' },
+      { id: 'switch-1', type: 'switch', position: { x: 780, y: 200 }, requiredLabel: 'Switch' },
       { id: 'action-bug', type: 'action', position: { x: 1040, y: 40 }, requiredLabel: 'Send Reply — Bug Report' },
       { id: 'action-feature', type: 'action', position: { x: 1040, y: 200 }, requiredLabel: 'Send Reply — Feature Request' },
       { id: 'action-urgent', type: 'action', position: { x: 1040, y: 360 }, requiredLabel: 'Send Reply — Urgent Complaint' },
-      { id: 'complete-1', type: 'complete', position: { x: 1300, y: 200 }, requiredLabel: 'Complete' },
     ],
     edges: [
       { source: 'trigger-1', target: 'classify-1' },
       { source: 'classify-1', target: 'parse-1' },
-      { source: 'parse-1', target: 'route-1' },
-      { source: 'route-1', target: 'action-bug', branch: 'bug_report' },
-      { source: 'route-1', target: 'action-feature', branch: 'feature_request' },
-      { source: 'route-1', target: 'action-urgent', branch: 'urgent_complaint' },
-      { source: 'action-bug', target: 'complete-1' },
-      { source: 'action-feature', target: 'complete-1' },
-      { source: 'action-urgent', target: 'complete-1' },
+      { source: 'parse-1', target: 'switch-1' },
+      { source: 'switch-1', target: 'action-bug', branch: 'bug_report' },
+      { source: 'switch-1', target: 'action-feature', branch: 'feature_request' },
+      { source: 'switch-1', target: 'action-urgent', branch: 'urgent_complaint' },
     ],
   },
 
@@ -60,12 +62,12 @@ export const emailTriage = {
       },
     },
     {
-      id: 'route-present-with-branches',
-      description: 'Route node present and receives input from Parse Result.',
+      id: 'switch-present-with-branches',
+      description: 'Switch node present and receives input from Parse Result.',
       kind: 'structural',
       checks: {
-        requiredNodeTypes: ['route'],
-        requiredEdges: [{ sourceType: 'parse', targetType: 'route' }],
+        requiredNodeTypes: ['switch'],
+        requiredEdges: [{ sourceType: 'parse', targetType: 'switch' }],
       },
     },
     {
@@ -74,18 +76,18 @@ export const emailTriage = {
       kind: 'structural',
       checks: {
         requiredEdges: [
-          { sourceType: 'route', targetType: 'action', branch: 'bug_report' },
-          { sourceType: 'route', targetType: 'action', branch: 'feature_request' },
-          { sourceType: 'route', targetType: 'action', branch: 'urgent_complaint' },
+          { sourceType: 'switch', targetType: 'action', branch: 'bug_report' },
+          { sourceType: 'switch', targetType: 'action', branch: 'feature_request' },
+          { sourceType: 'switch', targetType: 'action', branch: 'urgent_complaint' },
         ],
       },
     },
-    {
-      id: 'all-paths-complete',
-      description: 'Every path terminates at a Complete node (no dangling nodes).',
-      kind: 'structural',
-      checks: { requiresPath: true },
-    },
+  ],
+
+  buildSteps: [
+    { id: 'trigger', label: 'Start the flow', categories: ['trigger'] },
+    { id: 'think', label: 'Classify, parse, and route', categories: ['ai', 'core'] },
+    { id: 'act', label: 'Send the replies', categories: ['action'] },
   ],
 
   evalQuestions: [
