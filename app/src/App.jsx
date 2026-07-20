@@ -1,11 +1,11 @@
 import React from 'react';
 import { emailTriage } from './data/problems/emailTriage.js';
-import { DashboardScreen } from './screens/DashboardScreen.jsx';
+import { EvalScreen } from './screens/EvalScreen.jsx';
 
 export default function App() {
   return (
     <div style={{ height: '100vh' }}>
-      <DashboardScreen problem={emailTriage} onAllTestsPassed={() => alert('All tests passed!')} />
+      <EvalScreen problem={emailTriage} onSubmit={(result) => console.log('eval result', result)} />
     </div>
   );
 }
