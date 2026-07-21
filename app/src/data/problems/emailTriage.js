@@ -4,6 +4,76 @@ export const emailTriage = {
   statement:
     "Your inbox is full of mixed feedback. Build a flow that watches for new emails, uses AI to classify each one (Bug Report / Feature Request / Complaint), and routes urgent complaints differently from everything else — each path sends the right reply.",
 
+  // Front-of-flow: dissect the problem. Each correct answer unlocks node(s) for
+  // the builder. Learner must answer each correctly (with retry) to proceed.
+  dissection: [
+    {
+      id: 'trigger',
+      prompt: 'What event should kick this workflow off?',
+      options: [
+        'When a new email arrives in the inbox',
+        'On a fixed schedule, every hour',
+        'When someone opens a chat window',
+        'Only when you run it manually',
+      ],
+      correctIndex: 0,
+      explanation:
+        'The job is to react to incoming support emails, so the flow should start the moment a new email lands. That is an event trigger — a New Email trigger — not a schedule or a manual run.',
+      unlocks: ['trigger'],
+    },
+    {
+      id: 'classify',
+      prompt: 'How should the flow decide what kind of email each one is?',
+      options: [
+        'Use an AI model to read and classify it',
+        'Check the sender’s email domain',
+        'Ask the customer to pick a category',
+        'Assign a category at random',
+      ],
+      correctIndex: 0,
+      explanation:
+        'Emails are free-form text, so rules on the domain won’t work and you can’t make the customer do it. An AI classification step reads the message and labels it — that’s the Classify with AI node, which needs a language model plugged in.',
+      unlocks: ['classify', 'chat-gemini'],
+    },
+    {
+      id: 'parse',
+      prompt: 'The AI returns its answer as a line of text. What do you need before you can branch on it?',
+      options: [
+        'Parse it into structured fields (category, urgency)',
+        'Send the text straight to the Switch',
+        'Nothing — text works everywhere',
+        'Email the raw text to yourself',
+      ],
+      correctIndex: 0,
+      explanation:
+        'The Switch node routes on a specific field, but the AI hands back a blob of text. You first parse it into clean fields — category and urgency — so later nodes can read them reliably.',
+      unlocks: ['parse'],
+    },
+    {
+      id: 'switch',
+      prompt: 'You have three categories that each need different handling. Which node sends one input down multiple paths by rules?',
+      options: ['Switch', 'If', 'Merge', 'Filter'],
+      correctIndex: 0,
+      explanation:
+        'If only splits two ways (true/false). Merge combines streams and Filter drops items. The Switch node routes a single input to any number of outputs based on rules — exactly what three categories need.',
+      unlocks: ['switch'],
+    },
+    {
+      id: 'action',
+      prompt: 'What should happen at the end of each category’s path?',
+      options: [
+        'Send a reply email tailored to that category',
+        'Delete the incoming email',
+        'Do nothing and stop',
+        'Write it to a spreadsheet only',
+      ],
+      correctIndex: 0,
+      explanation:
+        'The whole point is to respond appropriately. Each branch ends in a Send Reply action so the customer actually hears back — with a message that fits their category.',
+      unlocks: ['action'],
+    },
+  ],
+
   testCaseSummary: [
     'A New Email trigger starts the flow.',
     'A Chat Model is plugged into the Classify with AI node.',

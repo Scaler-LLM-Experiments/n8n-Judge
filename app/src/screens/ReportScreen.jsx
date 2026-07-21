@@ -5,9 +5,11 @@ import { Badge } from '../design-system/Badge.jsx';
 import { TopBar } from '../components/TopBar.jsx';
 import { ProblemStatementPanel } from '../components/ProblemStatementPanel.jsx';
 
-export function ReportScreen({ problem, runResult, evalOutcome }) {
+export function ReportScreen({ problem, dissection, runResult, evalOutcome }) {
   const [showStatement, setShowStatement] = useState(false);
   const overallPassed = Boolean(runResult?.allPassed) && evalOutcome?.correctCount === evalOutcome?.total;
+  const dissectionFirstTry = dissection ? dissection.attempts.filter((a) => a === 0).length : 0;
+  const dissectionTotal = dissection ? dissection.attempts.length : 0;
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
@@ -22,6 +24,15 @@ export function ReportScreen({ problem, runResult, evalOutcome }) {
               {overallPassed ? 'Solved' : 'Needs another look'}
             </Badge>
           </div>
+
+          {dissection ? (
+            <>
+              <h3 style={{ margin: '0 0 8px' }}>Problem dissection</h3>
+              <div style={{ fontSize: 13.5, color: 'var(--fg-2)', marginBottom: 24 }}>
+                Answered {dissectionFirstTry} of {dissectionTotal} questions correctly on the first try.
+              </div>
+            </>
+          ) : null}
 
           <h3 style={{ margin: '0 0 8px' }}>Test cases</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
