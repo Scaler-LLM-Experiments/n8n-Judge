@@ -106,6 +106,18 @@ export const emailTriage = {
     { id: 'act', label: 'Send the replies', categories: ['action'] },
   ],
 
+  // The connections the learner must make, in order, with plain-language labels.
+  // `match` reuses the same shape as testCases.requiredEdges.
+  connectionGuide: [
+    { id: 'trigger-classify', label: 'New Email → Classify with AI', match: { sourceType: 'trigger', targetType: 'classify' } },
+    { id: 'model-classify', label: 'Gemini Chat Model → Classify’s Chat Model port', hint: 'Drag from the model’s top dot up into the dashed “Chat Model” port under Classify.', match: { sourceCategory: 'model', targetType: 'classify', targetHandle: 'ai_model' } },
+    { id: 'classify-parse', label: 'Classify with AI → Parse Result', match: { sourceType: 'classify', targetType: 'parse' } },
+    { id: 'parse-switch', label: 'Parse Result → Switch', match: { sourceType: 'parse', targetType: 'switch' } },
+    { id: 'bug', label: 'Switch · Bug Report → Send Reply', match: { sourceType: 'switch', targetType: 'action', branch: 'bug_report' } },
+    { id: 'feature', label: 'Switch · Feature Request → Send Reply', match: { sourceType: 'switch', targetType: 'action', branch: 'feature_request' } },
+    { id: 'urgent', label: 'Switch · Urgent Complaint → Send Reply', match: { sourceType: 'switch', targetType: 'action', branch: 'urgent_complaint' } },
+  ],
+
   // Sample emails the Run simulation streams through the flow, one after another.
   // `branch` is the Switch handle each should take (null = matches no branch).
   sampleCases: [
@@ -127,6 +139,8 @@ export const emailTriage = {
         'It is automatically escalated as Urgent Complaint',
       ],
       correctIndex: 1,
+      explanation:
+        'Your Switch only has 3 branches — Bug Report, Feature Request, Urgent Complaint. A plain question matches none of them, so it silently falls through and no reply is ever sent. Real automations need a default/catch-all branch for exactly this.',
     },
     {
       id: 'why-fixed-path',
@@ -139,6 +153,8 @@ export const emailTriage = {
         'Because fixed-path classifiers are always more accurate than agents',
       ],
       correctIndex: 2,
+      explanation:
+        'The workflow is deterministic: the AI does exactly one job — classify — and everything else (parse, route, reply) is fixed wiring you designed. A full agent would decide its own steps and tools at runtime, which is powerful but unpredictable. For reliable, repeatable triage, a fixed path is the right call.',
     },
   ],
 };

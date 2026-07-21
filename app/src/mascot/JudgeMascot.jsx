@@ -9,7 +9,7 @@ const BUBBLE_W = 268;
 // Idles at the bottom-left of its (positioned) parent. When `reaction` changes,
 // GSAP slides it next to the attempted node, it plays the reaction clip and shows
 // a speech bubble above itself, then it returns home.
-export function JudgeMascot({ reaction, onReactionDone }) {
+export function JudgeMascot({ reaction, onReactionDone, coach }) {
   const wrapperRef = useRef(null);
   const home = useRef({ x: 0, y: 0, parentW: 0, parentH: 0 });
   const [clip, setClip] = useState('idle');
@@ -121,6 +121,44 @@ export function JudgeMascot({ reaction, onReactionDone }) {
               borderLeft: '7px solid transparent',
               borderRight: '7px solid transparent',
               borderTop: `8px solid ${wrong ? '#111827' : '#0055FF'}`,
+            }}
+          />
+        </div>
+      ) : null}
+
+      {/* persistent coaching bubble at home when idle */}
+      {!bubble && !reaction && coach ? (
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '100%',
+            left: 0,
+            marginBottom: 14,
+            width: 250,
+            background: 'var(--brand-primary)',
+            color: '#fff',
+            padding: '11px 13px',
+            fontSize: 12.5,
+            lineHeight: 1.45,
+            fontFamily: 'var(--font-body)',
+            boxShadow: '0 10px 30px rgba(1,24,69,0.22)',
+          }}
+        >
+          <div style={{ fontSize: 10.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', opacity: 0.75, marginBottom: 3 }}>
+            Your guide
+          </div>
+          {coach}
+          <span
+            style={{
+              position: 'absolute',
+              top: '100%',
+              left: SIZE / 2,
+              transform: 'translateX(-50%)',
+              width: 0,
+              height: 0,
+              borderLeft: '7px solid transparent',
+              borderRight: '7px solid transparent',
+              borderTop: '8px solid #0055FF',
             }}
           />
         </div>
