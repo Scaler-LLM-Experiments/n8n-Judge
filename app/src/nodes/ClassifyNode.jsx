@@ -12,7 +12,7 @@ const MODEL = categoryMeta.model;
 export function ClassifyNode({ data, type, selected }) {
   return (
     <div style={{ position: 'relative' }}>
-      <NodeCard type={type} label={data.label} selected={selected} width={220}>
+      <NodeCard type={type} label={data.label} selected={selected} sim={data.sim} seen={data.seen} width={220}>
         <Handle type="target" position={Position.Left} style={handleStyle} />
         <Handle type="source" position={Position.Right} style={handleStyle} />
       </NodeCard>

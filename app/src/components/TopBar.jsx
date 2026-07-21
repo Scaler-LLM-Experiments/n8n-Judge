@@ -8,11 +8,12 @@ const STAGES = [
   { id: 'report', label: 'Result' },
 ];
 
-function IconButton({ icon: Icon, title, onClick, primary }) {
+function IconButton({ icon: Icon, title, onClick, primary, dataTour }) {
   return (
     <button
       type="button"
       title={title}
+      data-tour={dataTour}
       onClick={onClick}
       style={{
         width: 34,
@@ -91,9 +92,9 @@ export function TopBar({ activeStage, onShowProblemStatement, onReset, onRun }) 
       </div>
 
       <div style={{ display: 'flex', gap: 8, justifySelf: 'end' }}>
-        {onShowProblemStatement ? <IconButton icon={Question} title="Problem statement" onClick={onShowProblemStatement} /> : null}
+        {onShowProblemStatement ? <IconButton icon={Question} title="Problem statement" onClick={onShowProblemStatement} dataTour="problem" /> : null}
         {onReset ? <IconButton icon={ArrowCounterClockwise} title="Reset" onClick={onReset} /> : null}
-        {onRun ? <IconButton icon={Play} title="Run" onClick={onRun} primary /> : null}
+        {onRun ? <IconButton icon={Play} title="Run" onClick={onRun} primary dataTour="run" /> : null}
       </div>
     </div>
   );

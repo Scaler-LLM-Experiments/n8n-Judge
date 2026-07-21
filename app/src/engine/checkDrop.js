@@ -10,9 +10,22 @@ export function currentBuildStepIndex(studentGraph, problem) {
   return index;
 }
 
-export function checkDrop(studentGraph, paletteNode, problem) {
-  const stepIndex = currentBuildStepIndex(studentGraph, problem);
-  const step = problem.buildSteps[stepIndex];
+// Which node types the step needs placed AND opened (configured) before it can
+// be considered complete.
+function requiredTypesForStepById(problem, stepIndex) {
+  return requiredTypesForStep(problem, problem.buildSteps[stepIndex]);
+}
+
+export function isStepComplete(studentGraph, problem, stepIndex) {
+  const required = requiredTypesForStepById(problem, stepIndex);
+  return required.every((type) =>
+    studentGraph.nodes.some((n) => n.type === type && n.data && n.data.seen)
+  );
+}
+
+export function checkDrop(studentGraph, paletteNode, problem, stepIndex) {
+  const index = stepIndex === undefined ? currentBuildStepIndex(studentGraph, problem) : stepIndex;
+  const step = problem.buildSteps[index];
 
   if (!step.categories.includes(paletteNode.category)) {
     return {

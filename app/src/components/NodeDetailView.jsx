@@ -1,36 +1,31 @@
 import React from 'react';
-import { X, CaretRight, Brain, CheckCircle, WarningCircle } from '@phosphor-icons/react';
+import { X, CaretDown, Sparkle, CheckCircle, WarningCircle, ArrowRight } from '@phosphor-icons/react';
+import { Button } from '../design-system/Button.jsx';
 import { nodeIcons, nodeIconColor, metaOf, nodeParams } from '../nodes/nodeIcons.js';
-
-function Field({ children }) {
-  return <div style={{ marginBottom: 16 }}>{children}</div>;
-}
 
 function Label({ children }) {
   return (
-    <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--fg-1)', marginBottom: 6 }}>
-      {children}
-    </label>
+    <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--fg-1)', marginBottom: 6 }}>{children}</label>
   );
 }
 
-function inputBox(extra) {
-  return {
-    border: '1px solid var(--border-subtle)',
-    background: 'var(--surface-0)',
-    padding: '8px 10px',
-    fontSize: 12.5,
-    color: 'var(--fg-1)',
-    fontFamily: 'var(--font-body)',
-    ...extra,
-  };
-}
+const fieldBase = {
+  width: '100%',
+  boxSizing: 'border-box',
+  border: '1px solid var(--border-subtle)',
+  background: 'var(--surface-0)',
+  padding: '8px 10px',
+  fontSize: 12.5,
+  color: 'var(--fg-1)',
+  fontFamily: 'var(--font-body)',
+  outline: 'none',
+};
 
 function ConnectionField({ param, connectedModelType }) {
   const connected = Boolean(connectedModelType);
   const modelLabel = connectedModelType === 'chat-gemini' ? 'Gemini Chat Model' : 'a Chat Model';
   return (
-    <Field>
+    <div style={{ marginBottom: 16 }}>
       <Label>{param.label}</Label>
       <div
         style={{
@@ -48,20 +43,21 @@ function ConnectionField({ param, connectedModelType }) {
         {connected ? <CheckCircle size={15} weight="fill" /> : <WarningCircle size={15} weight="fill" />}
         {connected ? `Connected: ${modelLabel}` : 'Connect a Chat Model'}
       </div>
-      {!connected ? (
-        <div style={{ fontSize: 11, color: 'var(--fg-3)', marginTop: 5 }}>{param.hint}</div>
-      ) : null}
-    </Field>
+      {!connected ? <div style={{ fontSize: 11, color: 'var(--fg-3)', marginTop: 5 }}>{param.hint}</div> : null}
+    </div>
   );
 }
 
-export function NodeDetailView({ node, studentGraph, onClose }) {
+export function NodeDetailView({ node, studentGraph, onChange, onClose, canAdvance, advanceLabel, onAdvance }) {
   if (!node) return null;
 
   const meta = metaOf(node.type);
   const Icon = nodeIcons[node.type];
   const iconColor = nodeIconColor[node.type] || meta.color;
   const params = nodeParams[node.type] || [];
+  const values = node.data.params || {};
+
+  const setValue = (label, value) => onChange(node.id, label, value);
 
   const connectedModelType = (() => {
     if (node.type !== 'classify') return null;
@@ -72,16 +68,16 @@ export function NodeDetailView({ node, studentGraph, onClose }) {
   })();
 
   return (
-    <div style={{ width: 320, flex: 'none', borderLeft: '1px solid var(--border-strong)', background: 'var(--surface-0)', display: 'flex', flexDirection: 'column', boxShadow: '-8px 0 24px rgba(1,24,69,0.05)' }}>
-      {/* header */}
+    <div
+      data-tour="ndv"
+      style={{ width: 320, flex: 'none', borderLeft: '1px solid var(--border-strong)', background: 'var(--surface-0)', display: 'flex', flexDirection: 'column', boxShadow: '-8px 0 24px rgba(1,24,69,0.05)' }}
+    >
       <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '14px 16px', borderBottom: '1px solid var(--border-subtle)' }}>
         <div style={{ width: 36, height: 36, flex: 'none', borderRadius: 8, background: meta.tint, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {Icon ? <Icon size={19} color={iconColor} /> : null}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.05em', color: meta.color, fontWeight: 700 }}>
-            {meta.label}
-          </div>
+          <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.05em', color: meta.color, fontWeight: 700 }}>{meta.label}</div>
           <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--fg-1)' }}>{node.data.label}</div>
         </div>
         <button type="button" onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--fg-3)' }}>
@@ -89,17 +85,16 @@ export function NodeDetailView({ node, studentGraph, onClose }) {
         </button>
       </div>
 
-      {/* tabs (cosmetic) */}
       <div style={{ display: 'flex', gap: 18, padding: '0 16px', borderBottom: '1px solid var(--border-subtle)' }}>
-        {['Parameters', 'Settings', 'Docs'].map((tab, i) => (
+        {['Parameters', 'Settings', 'Docs'].map((tab, idx) => (
           <div
             key={tab}
             style={{
               padding: '11px 0',
               fontSize: 12.5,
               fontWeight: 600,
-              color: i === 0 ? 'var(--brand-primary)' : 'var(--fg-3)',
-              borderBottom: i === 0 ? '2px solid var(--brand-primary)' : '2px solid transparent',
+              color: idx === 0 ? 'var(--brand-primary)' : 'var(--fg-3)',
+              borderBottom: idx === 0 ? '2px solid var(--brand-primary)' : '2px solid transparent',
               marginBottom: -1,
               cursor: 'default',
             }}
@@ -109,62 +104,84 @@ export function NodeDetailView({ node, studentGraph, onClose }) {
         ))}
       </div>
 
-      {/* body */}
       <div style={{ flex: 1, overflowY: 'auto', padding: 16 }}>
         {params.map((param, idx) => {
+          const current = values[param.label] !== undefined ? values[param.label] : param.value;
+
           if (param.kind === 'connection') {
             return <ConnectionField key={idx} param={param} connectedModelType={connectedModelType} />;
           }
           if (param.kind === 'textarea') {
             return (
-              <Field key={idx}>
+              <div key={idx} style={{ marginBottom: 16 }}>
                 <Label>{param.label}</Label>
-                <div style={inputBox({ whiteSpace: 'pre-wrap', lineHeight: 1.5, color: 'var(--fg-2)', minHeight: 40 })}>
-                  {param.value}
-                </div>
-              </Field>
+                <textarea
+                  value={current}
+                  onChange={(e) => setValue(param.label, e.target.value)}
+                  rows={4}
+                  style={{ ...fieldBase, resize: 'vertical', lineHeight: 1.5 }}
+                />
+              </div>
             );
           }
           if (param.kind === 'select') {
             return (
-              <Field key={idx}>
+              <div key={idx} style={{ marginBottom: 16 }}>
                 <Label>{param.label}</Label>
-                <div style={inputBox({ display: 'flex', alignItems: 'center', justifyContent: 'space-between' })}>
-                  <span>{param.value}</span>
-                  <CaretRight size={13} color="var(--fg-3)" style={{ transform: 'rotate(90deg)' }} />
+                <div style={{ position: 'relative' }}>
+                  <input
+                    value={current}
+                    onChange={(e) => setValue(param.label, e.target.value)}
+                    style={{ ...fieldBase, paddingRight: 28 }}
+                  />
+                  <CaretDown size={13} color="var(--fg-3)" style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
                 </div>
-              </Field>
+              </div>
             );
           }
           if (param.kind === 'rules') {
             return (
-              <Field key={idx}>
+              <div key={idx} style={{ marginBottom: 16 }}>
                 <Label>{param.label}</Label>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {param.rules.map((rule, ri) => (
                     <div key={ri} style={{ border: '1px solid var(--border-subtle)', background: 'var(--surface-1)', padding: '8px 10px' }}>
-                      <div style={{ fontSize: 11, color: 'var(--fg-3)', marginBottom: 3 }}>
+                      <div style={{ fontSize: 11, color: 'var(--fg-3)', marginBottom: 4 }}>
                         Output {ri} — <span style={{ color: 'var(--fg-1)', fontWeight: 600 }}>{rule.out}</span>
                       </div>
-                      <div style={{ fontSize: 11.5, fontFamily: 'var(--font-mono, monospace)', color: 'var(--fg-2)' }}>{rule.expr}</div>
+                      <input
+                        defaultValue={rule.expr}
+                        style={{ ...fieldBase, fontSize: 11.5, fontFamily: 'var(--font-mono, monospace)', padding: '5px 8px' }}
+                      />
                     </div>
                   ))}
                 </div>
-              </Field>
+              </div>
             );
           }
           return (
-            <Field key={idx}>
+            <div key={idx} style={{ marginBottom: 16 }}>
               <Label>{param.label}</Label>
-              <div style={inputBox()}>{param.value}</div>
-            </Field>
+              <input value={current} onChange={(e) => setValue(param.label, e.target.value)} style={fieldBase} />
+            </div>
           );
         })}
       </div>
 
-      <div style={{ padding: '10px 16px', borderTop: '1px solid var(--border-subtle)', fontSize: 11, color: 'var(--fg-3)', display: 'flex', alignItems: 'center', gap: 6 }}>
-        <Brain size={13} /> Preview — parameters are read-only in this prototype.
-      </div>
+      {canAdvance ? (
+        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--border-subtle)', background: 'var(--status-success-bg)' }}>
+          <div style={{ fontSize: 11.5, color: 'var(--status-success)', fontWeight: 600, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <CheckCircle size={14} weight="fill" /> This step is set up.
+          </div>
+          <Button variant="primary" size="md" iconRight={<ArrowRight size={15} />} onClick={onAdvance} style={{ width: '100%' }}>
+            {advanceLabel}
+          </Button>
+        </div>
+      ) : (
+        <div style={{ padding: '10px 16px', borderTop: '1px solid var(--border-subtle)', fontSize: 11, color: 'var(--fg-3)', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <Sparkle size={13} weight="fill" color={meta.color} /> Configuring a node is part of the build — tweak the values, not just the wires.
+        </div>
+      )}
     </div>
   );
 }

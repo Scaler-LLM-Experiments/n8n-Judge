@@ -9,7 +9,7 @@ const MODEL = categoryMeta.model;
 // Model port, so its only handle is a source on top.
 export function ChatModelNode({ data, type, selected }) {
   return (
-    <NodeCard type={type} label={data.label} selected={selected} width={190}>
+    <NodeCard type={type} label={data.label} selected={selected} sim={data.sim} seen={data.seen} width={190}>
       <Handle
         type="source"
         position={Position.Top}

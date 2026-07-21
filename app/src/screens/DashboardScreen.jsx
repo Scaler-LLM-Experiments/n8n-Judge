@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactFlow, {
   Background,
   BackgroundVariant,
@@ -11,21 +11,31 @@ import ReactFlow, {
   ReactFlowProvider,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { CheckCircle, XCircle, Lightning } from '@phosphor-icons/react';
+import {
+  EnvelopeSimpleOpen,
+  Sparkle,
+  BracketsCurly,
+  ArrowsSplit,
+  PaperPlaneTilt,
+  XCircle,
+  CheckCircle,
+  Lightning,
+  ArrowRight,
+} from '@phosphor-icons/react';
 import { nodeTypes } from '../nodes/nodeTypes.js';
 import { NodePalette } from '../components/NodePalette.jsx';
 import { TopBar } from '../components/TopBar.jsx';
 import { ProblemStatementPanel } from '../components/ProblemStatementPanel.jsx';
 import { NodeDetailView } from '../components/NodeDetailView.jsx';
+import { Tour } from '../components/Tour.jsx';
 import { JudgeMascot } from '../mascot/JudgeMascot.jsx';
+import { Button } from '../design-system/Button.jsx';
 import { validateGraph } from '../engine/validateGraph.js';
-import { checkDrop, currentBuildStepIndex } from '../engine/checkDrop.js';
+import { checkDrop, isStepComplete } from '../engine/checkDrop.js';
+import { simulateAll } from '../engine/simulate.js';
 
 let nodeIdCounter = 0;
-function nextNodeId() {
-  nodeIdCounter += 1;
-  return `node-${nodeIdCounter}`;
-}
+const nextNodeId = () => `node-${(nodeIdCounter += 1)}`;
 
 const defaultEdgeOptions = {
   type: 'smoothstep',
@@ -33,29 +43,67 @@ const defaultEdgeOptions = {
   style: { stroke: '#94A3B8', strokeWidth: 1.75 },
 };
 
+const STEP_ICON = {
+  email: EnvelopeSimpleOpen,
+  trigger: EnvelopeSimpleOpen,
+  classify: Sparkle,
+  parse: BracketsCurly,
+  switch: ArrowsSplit,
+  action: PaperPlaneTilt,
+  dead: XCircle,
+};
+
+const CANVAS_TOUR = [
+  { selector: '[data-tour="active-step"]', eyebrow: 'Building a workflow', title: 'Work one step at a time', body: 'The palette is split into steps. Only the current step is unlocked — drag its nodes onto the canvas. The next step opens once this one is done.' },
+  { selector: '[data-tour="canvas"]', title: 'Wire the nodes together', body: 'Drag from a node’s right dot to the next node’s left dot. The dashed port under Classify with AI is where a language model plugs in — n8n is about configuration and connections, not just placing boxes.' },
+  { selector: '[data-tour="run"]', title: 'Run it on real emails', body: 'Hit Run and watch four sample emails flow through your automation, node by node — you’ll see exactly where each one ends up.' },
+];
+
+const NDV_TOUR = [
+  { selector: '[data-tour="ndv"]', eyebrow: 'Every node has a brain', title: 'Configure the node', body: 'This is the node’s detail view. Real n8n work happens here — set the model, the routing rules, the reply text. Tweak the values, not just the wires.' },
+];
+
 function DashboardCanvas({ problem, onAllTestsPassed }) {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
-  const [runResult, setRunResult] = useState(null);
   const [selectedNode, setSelectedNode] = useState(null);
   const [showStatement, setShowStatement] = useState(false);
   const [reaction, setReaction] = useState(null);
-  const [dropPreview, setDropPreview] = useState(null); // {x,y} canvas-local
-  const [rejectedAt, setRejectedAt] = useState(null); // {x,y} canvas-local
+  const [dropPreview, setDropPreview] = useState(null);
+  const [rejectedAt, setRejectedAt] = useState(null);
+  const [sim, setSim] = useState(null);
+  const [stepIndex, setStepIndex] = useState(0);
+  const [tour, setTour] = useState(CANVAS_TOUR);
+  const ndvTouredRef = useRef(false);
   const canvasRef = useRef(null);
   const rejectTimer = useRef(null);
+  const simTimers = useRef([]);
   const { screenToFlowPosition } = useReactFlow();
 
   const studentGraph = useMemo(
     () => ({
-      nodes: nodes.map((n) => ({ id: n.id, type: n.type })),
+      nodes: nodes.map((n) => ({ id: n.id, type: n.type, data: n.data })),
       edges: edges.map((e) => ({ id: e.id, source: e.source, target: e.target, sourceHandle: e.sourceHandle, targetHandle: e.targetHandle })),
     }),
     [nodes, edges]
   );
 
-  const stepIndex = currentBuildStepIndex(studentGraph, problem);
   const step = problem.buildSteps[stepIndex];
+  const running = Boolean(sim && sim.running);
+  const stepComplete = step ? isStepComplete(studentGraph, problem, stepIndex) : false;
+  const isLastStep = stepIndex === problem.buildSteps.length - 1;
+
+  const advanceStep = () => {
+    setStepIndex((i) => Math.min(i + 1, problem.buildSteps.length));
+    setSelectedNode(null);
+  };
+
+  useEffect(() => () => simTimers.current.forEach(clearTimeout), []);
+
+  const clearSim = () => {
+    simTimers.current.forEach(clearTimeout);
+    simTimers.current = [];
+  };
 
   const onNodesChange = useCallback((changes) => setNodes((nds) => applyNodeChanges(changes, nds)), []);
   const onEdgesChange = useCallback((changes) => setEdges((eds) => applyEdgeChanges(changes, eds)), []);
@@ -77,7 +125,6 @@ function DashboardCanvas({ problem, onAllTestsPassed }) {
     event.dataTransfer.dropEffect = 'move';
     setDropPreview(localPoint(event));
   }, []);
-
   const onDragLeave = useCallback(() => setDropPreview(null), []);
 
   const onDrop = useCallback(
@@ -88,8 +135,7 @@ function DashboardCanvas({ problem, onAllTestsPassed }) {
       if (!raw) return;
       const paletteNode = JSON.parse(raw);
       const anchor = { x: event.clientX, y: event.clientY };
-      const result = checkDrop(studentGraph, paletteNode, problem);
-
+      const result = checkDrop(studentGraph, paletteNode, problem, stepIndex);
       setReaction({ anchor, clip: result.mascotClip, title: result.title, message: result.message, tone: result.allowed ? 'correct' : 'wrong' });
 
       if (!result.allowed) {
@@ -99,150 +145,215 @@ function DashboardCanvas({ problem, onAllTestsPassed }) {
         rejectTimer.current = setTimeout(() => setRejectedAt(null), 1300);
         return;
       }
-
       const position = screenToFlowPosition(anchor);
-      const newNode = { id: nextNodeId(), type: paletteNode.type, position, data: { label: paletteNode.label } };
-      setNodes((nds) => nds.concat(newNode));
+      setNodes((nds) => nds.concat({ id: nextNodeId(), type: paletteNode.type, position, data: { label: paletteNode.label, params: {} } }));
     },
-    [screenToFlowPosition, studentGraph, problem]
+    [screenToFlowPosition, studentGraph, problem, stepIndex]
   );
 
+  const handleParamChange = (nodeId, label, value) => {
+    setNodes((nds) => nds.map((n) => (n.id === nodeId ? { ...n, data: { ...n.data, params: { ...(n.data.params || {}), [label]: value } } } : n)));
+    setSelectedNode((sel) => (sel && sel.id === nodeId ? { ...sel, data: { ...sel.data, params: { ...(sel.data.params || {}), [label]: value } } } : sel));
+  };
+
+  const handleSelect = (node) => {
+    setNodes((nds) => nds.map((n) => (n.id === node.id ? { ...n, data: { ...n.data, seen: true } } : n)));
+    setSelectedNode({ ...node, data: { ...node.data, seen: true } });
+    if (!ndvTouredRef.current) {
+      ndvTouredRef.current = true;
+      setTimeout(() => setTour(NDV_TOUR), 300);
+    }
+  };
+
   const handleRun = () => {
-    const result = validateGraph(studentGraph, problem);
-    setRunResult(result);
-    if (result.allPassed) onAllTestsPassed(result);
+    clearSim();
+    setSelectedNode(null);
+    const { cases, success } = simulateAll(studentGraph, problem);
+
+    const frames = [];
+    cases.forEach((res, ci) => {
+      frames.push({ kind: 'case', ci });
+      res.steps.forEach((s) => frames.push({ kind: 'step', ci, step: s }));
+    });
+    frames.push({ kind: 'end', success });
+
+    setSim({ running: true, cases, caseIndex: 0, activeNodeId: null, activeEdgeId: null, visited: [], stepInCase: 0, finished: false, success });
+
+    let t = 450;
+    frames.forEach((f) => {
+      simTimers.current.push(setTimeout(() => applyFrame(f), t));
+      t += f.kind === 'case' ? 550 : f.kind === 'end' ? 0 : 900;
+    });
+  };
+
+  const applyFrame = (f) => {
+    setSim((prev) => {
+      if (!prev) return prev;
+      if (f.kind === 'case') return { ...prev, caseIndex: f.ci, activeNodeId: null, activeEdgeId: null, visited: [], stepInCase: 0 };
+      if (f.kind === 'step') {
+        const visited = f.step.nodeId ? [...new Set([...prev.visited, f.step.nodeId])] : prev.visited;
+        return { ...prev, activeNodeId: f.step.nodeId || null, activeEdgeId: f.step.edgeId || null, visited, stepInCase: prev.stepInCase + 1 };
+      }
+      if (f.kind === 'end') return { ...prev, activeNodeId: null, activeEdgeId: null, finished: true, success: f.success };
+      return prev;
+    });
   };
 
   const handleReset = () => {
+    clearSim();
     setNodes([]);
     setEdges([]);
-    setRunResult(null);
+    setSim(null);
     setSelectedNode(null);
     setReaction(null);
+    setStepIndex(0);
   };
 
-  const passCount = runResult ? runResult.results.filter((r) => r.passed).length : 0;
+  const closeSim = () => {
+    clearSim();
+    setSim(null);
+  };
+
+  // decorate nodes/edges during simulation
+  const flowNodes = useMemo(() => {
+    if (!running) return nodes;
+    return nodes.map((n) => ({
+      ...n,
+      data: { ...n.data, sim: n.id === sim.activeNodeId ? 'active' : sim.visited.includes(n.id) ? 'done' : 'dim' },
+    }));
+  }, [nodes, running, sim]);
+
+  const flowEdges = useMemo(() => {
+    if (!running) return edges;
+    return edges.map((e) => {
+      if (e.id === sim.activeEdgeId) {
+        return { ...e, animated: true, style: { ...e.style, stroke: '#0055FF', strokeWidth: 3 } };
+      }
+      return { ...e, style: { ...e.style, opacity: 0.4 } };
+    });
+  }, [edges, running, sim]);
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--surface-0)' }}>
       <TopBar activeStage="dashboard" onShowProblemStatement={() => setShowStatement(true)} onReset={handleReset} onRun={handleRun} />
       <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
-        <NodePalette problem={problem} />
+        <NodePalette problem={problem} currentStepIndex={stepIndex} />
 
-        {/* Canvas — visually recessed vs the white side panels */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, background: '#E9ECF2' }}>
-          <div ref={canvasRef} style={{ flex: 1, minHeight: 0, position: 'relative' }} onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDrop}>
-            {/* build-step hint */}
-            <div
-              style={{
-                position: 'absolute',
-                top: 14,
-                left: 14,
-                zIndex: 20,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                background: 'var(--surface-0)',
-                border: '1px solid var(--border-subtle)',
-                boxShadow: '0 2px 8px rgba(1,24,69,0.08)',
-                padding: '7px 12px',
-                fontSize: 12.5,
-              }}
-            >
-              <Lightning size={15} weight="fill" color="var(--brand-primary)" />
-              <span style={{ fontWeight: 700, color: 'var(--fg-1)' }}>Step {stepIndex + 1} of {problem.buildSteps.length}</span>
-              <span style={{ color: 'var(--fg-2)' }}>{step.label}</span>
-            </div>
+          <div ref={canvasRef} data-tour="canvas" style={{ flex: 1, minHeight: 0, position: 'relative' }} onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDrop}>
+            {!running ? (
+              <div style={{ position: 'absolute', top: 14, left: 14, zIndex: 20, display: 'flex', alignItems: 'center', gap: 8, background: 'var(--surface-0)', border: '1px solid var(--border-subtle)', boxShadow: '0 2px 8px rgba(1,24,69,0.08)', padding: '7px 12px', fontSize: 12.5 }}>
+                <Lightning size={15} weight="fill" color="var(--brand-primary)" />
+                <span style={{ fontWeight: 700, color: 'var(--fg-1)' }}>Step {stepIndex + 1} of {problem.buildSteps.length}</span>
+                <span style={{ color: 'var(--fg-2)' }}>{step.label}</span>
+              </div>
+            ) : null}
 
             <ReactFlow
-              nodes={nodes}
-              edges={edges}
+              nodes={flowNodes}
+              edges={flowEdges}
               onNodesChange={onNodesChange}
               onEdgesChange={onEdgesChange}
               onConnect={onConnect}
-              onNodeClick={(_, node) => setSelectedNode(node)}
+              onNodeClick={(_, node) => handleSelect(node)}
               onPaneClick={() => setSelectedNode(null)}
               nodeTypes={nodeTypes}
               defaultEdgeOptions={defaultEdgeOptions}
               proOptions={{ hideAttribution: true }}
+              nodesDraggable={!running}
               fitView
             >
               <Background variant={BackgroundVariant.Dots} gap={18} size={1.5} color="#C4CAD4" />
               <Controls showInteractive={false} />
             </ReactFlow>
 
-            {/* drop-location indicator */}
-            {dropPreview ? (
-              <div
-                style={{
-                  position: 'absolute',
-                  left: dropPreview.x - 105,
-                  top: dropPreview.y - 30,
-                  width: 210,
-                  height: 60,
-                  border: '2px dashed var(--brand-primary)',
-                  background: 'var(--brand-blue-50)',
-                  borderRadius: 10,
-                  pointerEvents: 'none',
-                  zIndex: 15,
-                  opacity: 0.9,
-                }}
-              />
+            {dropPreview && !running ? (
+              <div style={{ position: 'absolute', left: dropPreview.x - 105, top: dropPreview.y - 30, width: 210, height: 60, border: '2px dashed var(--brand-primary)', background: 'var(--brand-blue-50)', borderRadius: 10, pointerEvents: 'none', zIndex: 15, opacity: 0.9 }} />
             ) : null}
-
-            {/* rejected-drop flash */}
-            {rejectedAt ? (
-              <div
-                style={{
-                  position: 'absolute',
-                  left: rejectedAt.x - 105,
-                  top: rejectedAt.y - 30,
-                  width: 210,
-                  height: 60,
-                  border: '2px dashed var(--status-danger)',
-                  background: 'var(--status-danger-bg)',
-                  borderRadius: 10,
-                  pointerEvents: 'none',
-                  zIndex: 15,
-                }}
-              />
+            {rejectedAt && !running ? (
+              <div style={{ position: 'absolute', left: rejectedAt.x - 105, top: rejectedAt.y - 30, width: 210, height: 60, border: '2px dashed var(--status-danger)', background: 'var(--status-danger-bg)', borderRadius: 10, pointerEvents: 'none', zIndex: 15 }} />
             ) : null}
           </div>
 
-          {/* run results strip */}
-          {runResult ? (
-            <div style={{ borderTop: '1px solid var(--border-strong)', background: 'var(--surface-0)', padding: '10px 14px', maxHeight: 210, overflowY: 'auto' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <span style={{ fontSize: 12.5, fontWeight: 700, color: runResult.allPassed ? 'var(--status-success)' : 'var(--fg-1)' }}>
-                  {runResult.allPassed ? 'All checks passed' : `${passCount} of ${runResult.results.length} checks passed`}
-                </span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {runResult.results.map((r) => (
-                  <div key={r.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12.5 }}>
-                    {r.passed ? (
-                      <CheckCircle size={16} weight="fill" color="var(--status-success)" style={{ flex: 'none', marginTop: 1 }} />
-                    ) : (
-                      <XCircle size={16} weight="fill" color="var(--status-danger)" style={{ flex: 'none', marginTop: 1 }} />
-                    )}
-                    <span style={{ color: 'var(--fg-1)' }}>
-                      {r.description}
-                      {!r.passed ? <span style={{ color: 'var(--fg-3)' }}> — {r.reason}</span> : null}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : null}
+          {sim ? <SimulationPanel sim={sim} problem={problem} onClose={closeSim} onContinue={() => onAllTestsPassed(validateGraph(studentGraph, problem))} /> : null}
         </div>
 
-        {selectedNode ? (
-          <NodeDetailView node={selectedNode} studentGraph={studentGraph} onClose={() => setSelectedNode(null)} />
+        {selectedNode && !running ? (
+          <NodeDetailView
+            node={selectedNode}
+            studentGraph={studentGraph}
+            onChange={handleParamChange}
+            onClose={() => setSelectedNode(null)}
+            canAdvance={stepComplete}
+            advanceLabel={isLastStep ? 'Done — wire it up & Run' : `Move to Step ${stepIndex + 2}`}
+            onAdvance={advanceStep}
+          />
         ) : null}
       </div>
 
       {showStatement ? <ProblemStatementPanel problem={problem} onClose={() => setShowStatement(false)} /> : null}
+      {tour ? <Tour steps={tour} onClose={() => setTour(null)} /> : null}
       <JudgeMascot reaction={reaction} onReactionDone={() => setReaction(null)} />
+    </div>
+  );
+}
+
+function SimulationPanel({ sim, problem, onClose, onContinue }) {
+  const active = sim.cases[sim.caseIndex];
+
+  return (
+    <div style={{ borderTop: '1px solid var(--border-strong)', background: 'var(--surface-0)', maxHeight: 260, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', borderBottom: '1px solid var(--border-subtle)' }}>
+        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--fg-1)' }}>Running your automation</span>
+        <div style={{ display: 'flex', gap: 6, flex: 1, flexWrap: 'wrap' }}>
+          {sim.cases.map((res, i) => {
+            const done = sim.finished || i < sim.caseIndex;
+            const isActive = i === sim.caseIndex && !sim.finished;
+            const good = res.delivered || (!res.case.branch && (done || isActive)); // question case: dead-end is expected
+            return (
+              <span key={res.case.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, padding: '3px 8px', border: '1px solid var(--border-subtle)', background: isActive ? 'var(--brand-blue-50)' : 'var(--surface-1)', color: 'var(--fg-2)', fontWeight: isActive ? 700 : 500 }}>
+                {done ? (res.delivered ? <CheckCircle size={12} weight="fill" color="var(--status-success)" /> : <XCircle size={12} weight="fill" color={res.case.branch ? 'var(--status-danger)' : 'var(--fg-3)'} />) : null}
+                {res.case.reply || 'General question'}
+              </span>
+            );
+          })}
+        </div>
+        {sim.finished ? (
+          sim.success ? (
+            <Button variant="primary" size="sm" iconRight={<ArrowRight size={14} />} onClick={onContinue}>Continue to Stress Testing</Button>
+          ) : (
+            <Button variant="outline" size="sm" onClick={onClose}>Back to editing</Button>
+          )
+        ) : (
+          <button type="button" onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--fg-3)', fontSize: 12, cursor: 'pointer' }}>Stop</button>
+        )}
+      </div>
+
+      <div style={{ padding: '12px 16px', overflowY: 'auto' }}>
+        {sim.finished ? (
+          <div style={{ fontSize: 13, fontWeight: 600, color: sim.success ? 'var(--status-success)' : 'var(--fg-1)', marginBottom: 10 }}>
+            {sim.success
+              ? 'Every categorised email reached the right reply. The general question intentionally goes unanswered — notice that gap.'
+              : 'Some emails didn’t reach a reply. Check the highlighted nodes and finish wiring the flow.'}
+          </div>
+        ) : (
+          <div style={{ fontSize: 12.5, color: 'var(--fg-2)', marginBottom: 10 }}>
+            <span style={{ fontWeight: 700, color: 'var(--fg-1)' }}>Email {sim.caseIndex + 1}:</span> {active?.case.subject}
+          </div>
+        )}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+          {(active?.steps || []).slice(0, sim.finished ? undefined : Math.max(1, sim.stepInCase)).map((s, i) => {
+            const Icon = STEP_ICON[s.iconType] || Sparkle;
+            const color = s.status === 'dead' ? 'var(--status-danger)' : s.status === 'done' ? 'var(--status-success)' : 'var(--fg-2)';
+            return (
+              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 9, fontSize: 12.5, color: 'var(--fg-1)' }}>
+                <Icon size={16} weight="fill" color={color} style={{ flex: 'none', marginTop: 1 }} />
+                <span>{s.text}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

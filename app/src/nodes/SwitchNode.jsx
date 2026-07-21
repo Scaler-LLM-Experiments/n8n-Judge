@@ -10,7 +10,7 @@ const BRANCHES = [
 
 export function SwitchNode({ data, type, selected }) {
   return (
-    <NodeCard type={type} label={data.label} selected={selected} width={220}>
+    <NodeCard type={type} label={data.label} selected={selected} sim={data.sim} seen={data.seen} width={220}>
       <Handle type="target" position={Position.Left} style={handleStyle} />
       <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
         {BRANCHES.map((branch, i) => (

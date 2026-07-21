@@ -106,6 +106,15 @@ export const emailTriage = {
     { id: 'act', label: 'Send the replies', categories: ['action'] },
   ],
 
+  // Sample emails the Run simulation streams through the flow, one after another.
+  // `branch` is the Switch handle each should take (null = matches no branch).
+  sampleCases: [
+    { id: 'bug', from: 'dev@acme.io', subject: 'App crashes every time I log in', category: 'BUG_REPORT', urgency: 'HIGH', branch: 'bug_report', reply: 'Bug Report' },
+    { id: 'feature', from: 'maria@acme.io', subject: 'Could you add a dark mode?', category: 'FEATURE_REQUEST', urgency: 'LOW', branch: 'feature_request', reply: 'Feature Request' },
+    { id: 'urgent', from: 'furious@acme.io', subject: "I've been charged twice and no one is helping!", category: 'COMPLAINT', urgency: 'HIGH', branch: 'urgent_complaint', reply: 'Urgent Complaint' },
+    { id: 'question', from: 'curious@acme.io', subject: 'What are your business hours?', category: 'QUESTION', urgency: 'LOW', branch: null, reply: null },
+  ],
+
   evalQuestions: [
     {
       id: 'general-question-gap',
