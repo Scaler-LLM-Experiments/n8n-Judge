@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { CheckCircle, XCircle } from '@phosphor-icons/react';
 import { Card } from '../design-system/Card.jsx';
 import { Button } from '../design-system/Button.jsx';
 import { RadioGroup } from '../design-system/RadioGroup.jsx';
@@ -28,18 +29,51 @@ export function EvalScreen({ problem, onSubmit }) {
           <div style={{ fontSize: 12, textTransform: 'uppercase', color: 'var(--fg-2)', marginBottom: 16 }}>
             Stress Testing
           </div>
+          <div style={{ fontSize: 13, color: 'var(--fg-2)', marginTop: -8, marginBottom: 20 }}>
+            You built the flow — now let’s check you understand how it behaves. Pick an answer to see why.
+          </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
-            {problem.evalQuestions.map((q) => (
-              <div key={q.id}>
-                <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 12 }}>{q.prompt}</div>
-                <RadioGroup
-                  name={q.id}
-                  value={answers[q.id]}
-                  onChange={(value) => setAnswers((a) => ({ ...a, [q.id]: value }))}
-                  options={q.options.map((option, index) => ({ value: String(index), label: option }))}
-                />
-              </div>
-            ))}
+            {problem.evalQuestions.map((q, qi) => {
+              const answered = answers[q.id] !== undefined;
+              const correct = Number(answers[q.id]) === q.correctIndex;
+              return (
+                <div key={q.id}>
+                  <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 12 }}>
+                    {qi + 1}. {q.prompt}
+                  </div>
+                  <RadioGroup
+                    name={q.id}
+                    value={answers[q.id]}
+                    onChange={(value) => setAnswers((a) => ({ ...a, [q.id]: value }))}
+                    options={q.options.map((option, index) => ({ value: String(index), label: option }))}
+                  />
+                  {answered ? (
+                    <div
+                      style={{
+                        marginTop: 12,
+                        display: 'flex',
+                        gap: 9,
+                        padding: '11px 13px',
+                        border: `1px solid ${correct ? 'var(--status-success-border)' : 'var(--status-danger-border)'}`,
+                        background: correct ? 'var(--status-success-bg)' : 'var(--status-danger-bg)',
+                      }}
+                    >
+                      {correct ? (
+                        <CheckCircle size={17} weight="fill" color="var(--status-success)" style={{ flex: 'none', marginTop: 1 }} />
+                      ) : (
+                        <XCircle size={17} weight="fill" color="var(--status-danger)" style={{ flex: 'none', marginTop: 1 }} />
+                      )}
+                      <div>
+                        <div style={{ fontSize: 12.5, fontWeight: 700, color: correct ? 'var(--status-success)' : 'var(--status-danger)', marginBottom: 3 }}>
+                          {correct ? 'Correct' : `Not quite — the answer is “${q.options[q.correctIndex]}”`}
+                        </div>
+                        <div style={{ fontSize: 12.5, lineHeight: 1.5, color: 'var(--fg-2)' }}>{q.explanation}</div>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
           </div>
           <div style={{ marginTop: 24 }}>
             <Button variant="primary" disabled={!allAnswered} onClick={handleSubmit}>Submit</Button>
