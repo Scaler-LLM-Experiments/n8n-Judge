@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import gsap from 'gsap';
 import { X, LockSimple, CaretDown, Flask, ArrowSquareOut, Lightning } from '@phosphor-icons/react';
 import { nodeIcons, nodeIconColor, metaOf } from '../nodes/nodeIcons.js';
 import { variantOf } from './N8nNodeView.jsx';
@@ -15,9 +16,15 @@ export function Ndv({ node, inputData, inputLabel, onChangeParam, onClose }) {
   const iconColor = nodeIconColor[node.nodeType] || meta.color;
   const isTrigger = variantOf(node.nodeType) === 'trigger';
   const setS = (k, v) => setSettings((s) => ({ ...s, [k]: v }));
+  const rootRef = useRef(null);
+
+  useEffect(() => {
+    gsap.fromTo(rootRef.current, { yPercent: 100 }, { yPercent: 0, duration: 0.34, ease: 'power3.out' });
+  }, []);
+  const requestClose = () => gsap.to(rootRef.current, { yPercent: 100, duration: 0.26, ease: 'power2.in', onComplete: onClose });
 
   return (
-    <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '54%', background: 'var(--surface-0)', borderTop: '1px solid var(--border-strong)', boxShadow: '0 -12px 32px rgba(1,24,69,0.12)', zIndex: 45, display: 'flex', flexDirection: 'column' }}>
+    <div ref={rootRef} style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '66%', background: 'var(--surface-0)', borderTop: '1px solid var(--border-strong)', boxShadow: '0 -14px 40px rgba(1,24,69,0.16)', zIndex: 45, display: 'flex', flexDirection: 'column' }}>
       {/* header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 16px', borderBottom: '1px solid var(--border-subtle)' }}>
         <span style={{ width: 28, height: 28, borderRadius: 7, background: meta.tint, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -26,7 +33,7 @@ export function Ndv({ node, inputData, inputLabel, onChangeParam, onClose }) {
         <span style={{ fontSize: 14, fontWeight: 700 }}>{node.label}</span>
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 14 }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12.5, color: 'var(--fg-3)' }}>Docs <ArrowSquareOut size={13} /></span>
-          <button type="button" onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--fg-2)', display: 'flex' }}><X size={18} /></button>
+          <button type="button" onClick={requestClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--fg-2)', display: 'flex' }}><X size={18} /></button>
         </div>
       </div>
 
@@ -48,7 +55,7 @@ export function Ndv({ node, inputData, inputLabel, onChangeParam, onClose }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 18, padding: '0 16px', borderBottom: '1px solid var(--border-subtle)' }}>
             <Tab active={tab === 'params'} onClick={() => setTab('params')}>Parameters</Tab>
             <Tab active={tab === 'settings'} onClick={() => setTab('settings')}>Settings</Tab>
-            <button type="button" style={{ marginLeft: 'auto', margin: '8px 0 8px auto', display: 'flex', alignItems: 'center', gap: 6, background: '#FF5C39', color: '#fff', border: 'none', padding: '7px 13px', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
+            <button type="button" style={{ marginLeft: 'auto', margin: '8px 0 8px auto', display: 'flex', alignItems: 'center', gap: 6, background: 'var(--brand-primary)', color: '#fff', border: 'none', padding: '7px 13px', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
               <Flask size={14} weight="fill" /> {isTrigger ? 'Test this trigger' : 'Test step'}
             </button>
           </div>
@@ -75,7 +82,7 @@ export function Ndv({ node, inputData, inputLabel, onChangeParam, onClose }) {
 
 function Tab({ active, onClick, children }) {
   return (
-    <button type="button" onClick={onClick} style={{ padding: '11px 0', fontSize: 12.5, fontWeight: 600, color: active ? 'var(--fg-1)' : 'var(--fg-3)', borderBottom: `2px solid ${active ? '#FF5C39' : 'transparent'}`, marginBottom: -1, background: 'none', border: 'none', borderBottomStyle: 'solid', cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
+    <button type="button" onClick={onClick} style={{ padding: '11px 0', fontSize: 12.5, fontWeight: 600, color: active ? 'var(--fg-1)' : 'var(--fg-3)', borderBottom: `2px solid ${active ? 'var(--brand-primary)' : 'transparent'}`, marginBottom: -1, background: 'none', border: 'none', borderBottomStyle: 'solid', cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
       {children}
     </button>
   );

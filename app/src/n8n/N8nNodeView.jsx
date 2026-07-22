@@ -21,7 +21,7 @@ export function variantOf(type) {
 
 const BODY = 88;
 
-export function N8nNodeView({ type, label, placeholder, tag, selected, size = BODY, hidePorts }) {
+export function N8nNodeView({ type, label, placeholder, tag, selected, size = BODY, hidePorts, hideAiChip }) {
   const cat = typeCategory[type] || 'core';
   const meta = categoryMeta[cat];
   const variant = variantOf(type);
@@ -70,8 +70,9 @@ export function N8nNodeView({ type, label, placeholder, tag, selected, size = BO
           ) : null}
         </div>
 
-        {/* AI nodes: a Chat Model sub-node port hanging below */}
-        {variant === 'ai' && !placeholder ? (
+        {/* AI nodes: a Chat Model sub-node port hanging below (suppressed in the
+            editor, where the flow node renders the real ports) */}
+        {variant === 'ai' && !placeholder && !hideAiChip ? (
           <div style={{ position: 'absolute', left: '50%', top: '100%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <div style={{ width: 1.5, height: 12, background: categoryMeta.model.color, marginTop: -1 }} />
             <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', border: `1px dashed ${categoryMeta.model.color}`, borderRadius: 999, background: categoryMeta.model.tint, color: categoryMeta.model.color, fontSize: 9.5, fontWeight: 700, whiteSpace: 'nowrap' }}>

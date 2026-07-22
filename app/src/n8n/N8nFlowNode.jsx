@@ -24,9 +24,9 @@ export function N8nFlowNode({ id, type, data, selected }) {
     <div style={{ position: 'relative' }} onClick={() => openNdv(id)}>
       {!isTrigger ? <Handle type="target" position={Position.Left} style={portStyle} /> : null}
       <Handle type="source" position={Position.Right} style={portStyle} />
-      {isAi ? <Handle type="target" id="ai_model" position={Position.Bottom} style={{ ...portStyle, left: '30%', borderColor: categoryMeta.model.color, borderStyle: 'dashed' }} /> : null}
+      {isAi ? <Handle type="target" id="ai_model" position={Position.Bottom} style={{ ...portStyle, left: '17%', borderColor: categoryMeta.model.color, borderStyle: 'dashed' }} /> : null}
 
-      <N8nNodeView type={type} label={data.label} selected={selected} hidePorts />
+      <N8nNodeView type={type} label={data.label} selected={selected} hidePorts hideAiChip />
 
       {/* unconfigured warning (n8n shows a red triangle) */}
       {!data.configured ? (

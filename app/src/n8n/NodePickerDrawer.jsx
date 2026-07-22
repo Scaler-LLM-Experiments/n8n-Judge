@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import gsap from 'gsap';
 import { X, MagnifyingGlass } from '@phosphor-icons/react';
 import { NODE_CATALOG, TRIGGER_OPTIONS, NODE_OPTIONS } from './catalog.js';
 import { nodeIcons, nodeIconColor, categoryMeta, categoryOrder, typeCategory, CHIP_BG } from '../nodes/nodeIcons.js';
@@ -7,6 +8,12 @@ import { nodeIcons, nodeIconColor, categoryMeta, categoryOrder, typeCategory, CH
 // vs regular vs model), searchable and grouped by category.
 export function NodePickerDrawer({ context, onPick, onClose }) {
   const [query, setQuery] = useState('');
+  const rootRef = useRef(null);
+
+  useEffect(() => {
+    gsap.fromTo(rootRef.current, { xPercent: 100 }, { xPercent: 0, duration: 0.3, ease: 'power3.out' });
+  }, []);
+  const requestClose = () => gsap.to(rootRef.current, { xPercent: 100, duration: 0.24, ease: 'power2.in', onComplete: onClose });
 
   let types;
   let title;
@@ -27,11 +34,11 @@ export function NodePickerDrawer({ context, onPick, onClose }) {
     .filter((n) => n.label.toLowerCase().includes(query.trim().toLowerCase()));
 
   return (
-    <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: 320, background: 'var(--surface-0)', borderLeft: '1px solid var(--border-strong)', boxShadow: '-10px 0 30px rgba(1,24,69,0.10)', zIndex: 40, display: 'flex', flexDirection: 'column' }}>
-      <div style={{ display: 'flex', alignItems: 'center', padding: '14px 16px', borderBottom: '1px solid var(--border-subtle)' }}>
-        <span style={{ fontSize: 13.5, fontWeight: 700 }}>{title}</span>
-        <button type="button" onClick={onClose} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--fg-3)', display: 'flex' }}>
-          <X size={16} />
+    <div ref={rootRef} style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: 400, background: 'var(--surface-0)', borderLeft: '1px solid var(--border-strong)', boxShadow: '-14px 0 40px rgba(1,24,69,0.14)', zIndex: 40, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'flex', alignItems: 'center', padding: '16px 18px', borderBottom: '1px solid var(--border-subtle)' }}>
+        <span style={{ fontSize: 15, fontWeight: 700 }}>{title}</span>
+        <button type="button" onClick={requestClose} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--fg-3)', display: 'flex' }}>
+          <X size={17} />
         </button>
       </div>
       <div style={{ padding: 12, borderBottom: '1px solid var(--border-subtle)' }}>
