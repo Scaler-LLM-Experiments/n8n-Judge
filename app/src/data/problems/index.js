@@ -1,9 +1,11 @@
 // Problem registry. To add a challenge, create data/problems/<id>/index.js
 // exporting a problem object, then register it here.
 import { emailTriage } from './emailTriage/index.js';
+import { leadTriage } from './lead-triage/index.js';
 
 export const problems = {
   [emailTriage.id]: emailTriage,
+  [leadTriage.id]: leadTriage,
 };
 
 export const problemList = Object.values(problems);

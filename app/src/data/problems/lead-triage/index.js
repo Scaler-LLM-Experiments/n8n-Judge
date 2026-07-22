@@ -1,9 +1,9 @@
-export const emailTriage = {
-  id: 'email-triage',
-  title: 'Email Triage Automation',
+export const leadTriage = {
+  id: 'lead-triage',
+  title: 'Inbound Sales Lead Triage',
+  tagline: 'Sort inbound sales emails by intent and auto-reply to each.',
   statement:
-    "Your inbox is full of mixed feedback. Build a flow that watches for new emails, uses AI to classify each one (Bug Report / Feature Request / Complaint), and routes urgent complaints differently from everything else — each path sends the right reply.",
-  tagline: 'Classify incoming support emails with AI and route each to the right reply.',
+    "Sales leads pour into a shared inbox all day. Build a flow that watches for new emails, uses AI to read each one and label the lead's intent (Demo Request / Pricing Question / Not a Fit), and routes each intent down its own path — where a tailored reply goes back to the sender.",
 
   // Front-of-flow: Iris interrogates the learner to dissect the problem. Each
   // question is a NODE/APP pick — options map to real node types, and the chosen
@@ -20,13 +20,13 @@ export const emailTriage = {
         { label: 'Webhook', type: 'webhook' },
       ],
       correctType: 'trigger',
-      wrongHint: 'Think about what has to be watching the inbox in real time. Does this one actually do that?',
-      explanation: 'A New Email trigger fires the moment a support email lands — exactly the signal this workflow needs to react to.',
+      wrongHint: 'Think about what has to be watching the sales inbox in real time. Does this one actually do that?',
+      explanation: 'A New Email trigger fires the moment a lead emails in — exactly the signal this workflow needs to react to.',
       unlocks: ['trigger'],
     },
     {
       id: 'classify',
-      prompt: 'A raw email just came in. What should read it and work out what kind of email it is?',
+      prompt: 'A raw sales email just came in. What should read it and work out what the lead actually wants?',
       options: [
         { label: 'Classify with AI', type: 'classify' },
         { label: 'If', type: 'if' },
@@ -34,8 +34,8 @@ export const emailTriage = {
         { label: 'Switch', type: 'switch' },
       ],
       correctType: 'classify',
-      wrongHint: 'The email is messy, free-form text. Would fixed rules or code reliably tell a bug apart from a complaint?',
-      explanation: 'Classify with AI reads the message the way a person would and labels it — resilient to however the email is phrased. It’ll need a language model plugged in, which you’ll wire up later.',
+      wrongHint: 'The email is messy, free-form text. Would fixed rules or code reliably tell a demo request apart from a price question?',
+      explanation: 'Classify with AI reads the message the way a person would and labels the intent — resilient to however the lead phrased it. It’ll need a language model plugged in, which you’ll wire up later.',
       unlocks: ['classify', 'chat-gemini'],
     },
     {
@@ -49,12 +49,12 @@ export const emailTriage = {
       ],
       correctType: 'parse',
       wrongHint: 'Right now it’s just a string of text. Can the next node reliably branch on that as-is?',
-      explanation: 'Parse Result turns the AI’s text into clean fields — category and urgency — so every node after it can read them reliably.',
+      explanation: 'Parse Result turns the AI’s text into clean fields — intent and urgency — so every node after it can read them reliably.',
       unlocks: ['parse'],
     },
     {
       id: 'switch',
-      prompt: 'Three categories, three different replies. Which node sends one input down several paths by rule?',
+      prompt: 'Three intents, three different replies. Which node sends one input down several paths by rule?',
       options: [
         { label: 'Switch', type: 'switch' },
         { label: 'If', type: 'if' },
@@ -63,12 +63,12 @@ export const emailTriage = {
       ],
       correctType: 'switch',
       wrongHint: 'You need one item to go down three separate paths by rule. Does this node give you that many outputs?',
-      explanation: 'Switch routes a single input to as many labelled outputs as you define — one each for Bug Report, Feature Request and Urgent Complaint.',
+      explanation: 'Switch routes a single input to as many labelled outputs as you define — one each for Demo Request, Pricing Question and Not a Fit.',
       unlocks: ['switch'],
     },
     {
       id: 'action',
-      prompt: 'Last decision. At the end of each branch, what actually responds to the customer?',
+      prompt: 'Last decision. At the end of each branch, what actually responds to the lead?',
       options: [
         { label: 'Send Reply', type: 'action' },
         { label: 'Slack — Send Message', type: 'slack-message' },
@@ -76,8 +76,8 @@ export const emailTriage = {
         { label: 'Do nothing', type: 'noop' },
       ],
       correctType: 'action',
-      wrongHint: 'The customer reached out over email. Would this option actually get a response back to them?',
-      explanation: 'Send Reply emails the customer back with a message tailored to their category — the whole point of the triage.',
+      wrongHint: 'The lead reached out over email. Would this option actually get a response back to them?',
+      explanation: 'Send Reply emails the lead back with a message tailored to their intent — the whole point of the triage.',
       unlocks: ['action'],
     },
   ],
@@ -86,8 +86,8 @@ export const emailTriage = {
     'A New Email trigger starts the flow.',
     'A Chat Model is plugged into the Classify with AI node.',
     'The email is classified with AI, then the result is parsed.',
-    'A Switch node routes the parsed result by category.',
-    'Each of the 3 categories — Bug Report, Feature Request, Urgent Complaint — sends its own reply.',
+    'A Switch node routes the parsed result by intent.',
+    'Each of the 3 intents — Demo Request, Pricing Question, Not a Fit — sends its own reply.',
   ],
 
   nodePalette: [
@@ -112,18 +112,18 @@ export const emailTriage = {
       { id: 'model-1', type: 'chat-gemini', position: { x: 275, y: 340 }, requiredLabel: 'Gemini Chat Model' },
       { id: 'parse-1', type: 'parse', position: { x: 540, y: 180 }, requiredLabel: 'Parse Result' },
       { id: 'switch-1', type: 'switch', position: { x: 800, y: 180 }, requiredLabel: 'Switch' },
-      { id: 'action-bug', type: 'action', position: { x: 1080, y: 40 }, requiredLabel: 'Send Reply — Bug Report' },
-      { id: 'action-feature', type: 'action', position: { x: 1080, y: 180 }, requiredLabel: 'Send Reply — Feature Request' },
-      { id: 'action-urgent', type: 'action', position: { x: 1080, y: 320 }, requiredLabel: 'Send Reply — Urgent Complaint' },
+      { id: 'action-demo', type: 'action', position: { x: 1080, y: 40 }, requiredLabel: 'Send Reply — Demo Request' },
+      { id: 'action-pricing', type: 'action', position: { x: 1080, y: 180 }, requiredLabel: 'Send Reply — Pricing Question' },
+      { id: 'action-notfit', type: 'action', position: { x: 1080, y: 320 }, requiredLabel: 'Send Reply — Not a Fit' },
     ],
     edges: [
       { source: 'model-1', target: 'classify-1', targetHandle: 'ai_model' },
       { source: 'trigger-1', target: 'classify-1' },
       { source: 'classify-1', target: 'parse-1' },
       { source: 'parse-1', target: 'switch-1' },
-      { source: 'switch-1', target: 'action-bug', branch: 'bug_report' },
-      { source: 'switch-1', target: 'action-feature', branch: 'feature_request' },
-      { source: 'switch-1', target: 'action-urgent', branch: 'urgent_complaint' },
+      { source: 'switch-1', target: 'action-demo', branch: 'demo_request' },
+      { source: 'switch-1', target: 'action-pricing', branch: 'pricing_question' },
+      { source: 'switch-1', target: 'action-notfit', branch: 'not_a_fit' },
     ],
   },
 
@@ -157,7 +157,7 @@ export const emailTriage = {
     },
     {
       id: 'switch-present-with-branches',
-      description: 'A Switch node routes the parsed result by category.',
+      description: 'A Switch node routes the parsed result by intent.',
       kind: 'structural',
       checks: {
         requiredNodeTypes: ['switch'],
@@ -166,13 +166,13 @@ export const emailTriage = {
     },
     {
       id: 'each-branch-sends-reply',
-      description: 'Each branch reaches its own Send Reply node (Bug Report, Feature Request, Urgent Complaint).',
+      description: 'Each branch reaches its own Send Reply node (Demo Request, Pricing Question, Not a Fit).',
       kind: 'structural',
       checks: {
         requiredEdges: [
-          { sourceType: 'switch', targetType: 'action', branch: 'bug_report' },
-          { sourceType: 'switch', targetType: 'action', branch: 'feature_request' },
-          { sourceType: 'switch', targetType: 'action', branch: 'urgent_complaint' },
+          { sourceType: 'switch', targetType: 'action', branch: 'demo_request' },
+          { sourceType: 'switch', targetType: 'action', branch: 'pricing_question' },
+          { sourceType: 'switch', targetType: 'action', branch: 'not_a_fit' },
         ],
       },
     },
@@ -191,17 +191,17 @@ export const emailTriage = {
     { id: 'model-classify', label: 'Gemini Chat Model → Classify’s Chat Model port', hint: 'Drag from the model’s top dot up into the dashed “Chat Model” port under Classify.', match: { sourceCategory: 'model', targetType: 'classify', targetHandle: 'ai_model' } },
     { id: 'classify-parse', label: 'Classify with AI → Parse Result', match: { sourceType: 'classify', targetType: 'parse' } },
     { id: 'parse-switch', label: 'Parse Result → Switch', match: { sourceType: 'parse', targetType: 'switch' } },
-    { id: 'bug', label: 'Switch · Bug Report → Send Reply', match: { sourceType: 'switch', targetType: 'action', branch: 'bug_report' } },
-    { id: 'feature', label: 'Switch · Feature Request → Send Reply', match: { sourceType: 'switch', targetType: 'action', branch: 'feature_request' } },
-    { id: 'urgent', label: 'Switch · Urgent Complaint → Send Reply', match: { sourceType: 'switch', targetType: 'action', branch: 'urgent_complaint' } },
+    { id: 'demo', label: 'Switch · Demo Request → Send Reply', match: { sourceType: 'switch', targetType: 'action', branch: 'demo_request' } },
+    { id: 'pricing', label: 'Switch · Pricing Question → Send Reply', match: { sourceType: 'switch', targetType: 'action', branch: 'pricing_question' } },
+    { id: 'notfit', label: 'Switch · Not a Fit → Send Reply', match: { sourceType: 'switch', targetType: 'action', branch: 'not_a_fit' } },
   ],
 
   // The Switch's labelled outputs (branches). Drives the branch ports on the
   // Switch node, the "all branches wired" completion check, and the run.
   branches: [
-    { id: 'bug_report', label: 'Bug Report' },
-    { id: 'feature_request', label: 'Feature Request' },
-    { id: 'urgent_complaint', label: 'Urgent Complaint' },
+    { id: 'demo_request', label: 'Demo Request' },
+    { id: 'pricing_question', label: 'Pricing Question' },
+    { id: 'not_a_fit', label: 'Not a Fit' },
   ],
 
   // Read-only summary of the built agent, shown atop the Stress Testing stage.
@@ -213,7 +213,7 @@ export const emailTriage = {
       { type: 'switch', label: 'Switch' },
       { type: 'action', label: 'Send Reply' },
     ],
-    caption: 'Gemini Chat Model powers Classify · Switch fans out to 3 replies (Bug Report · Feature Request · Urgent Complaint).',
+    caption: 'Gemini Chat Model powers Classify · Switch fans out to 3 replies (Demo Request · Pricing Question · Not a Fit).',
   },
 
   // Canonical flow order. Used to detect sequence mistakes: from a given source
@@ -228,8 +228,8 @@ export const emailTriage = {
   // The 3 guided build sub-phases. `coach` is Iris's line on entering the phase.
   buildPhases: [
     { id: 'trigger', label: 'Set your trigger', coach: "Let's build. First — what should start this flow?", nodeTypes: ['trigger'], pickable: ['trigger', 'chat-trigger', 'schedule', 'webhook'] },
-    { id: 'brain', label: 'Give it a brain', coach: "Trigger's set. Now let's make it read and understand each email.", nodeTypes: ['classify', 'chat-gemini', 'parse'], pickable: ['classify', 'parse', 'code', 'if', 'web-search'] },
-    { id: 'route', label: 'Route & reply', coach: 'It can read emails now. Last part — route by category and send the right reply.', nodeTypes: ['switch', 'action'], pickable: ['switch', 'action', 'if', 'merge', 'filter', 'slack-message', 'google-docs'] },
+    { id: 'brain', label: 'Give it a brain', coach: "Trigger's set. Now let's make it read each lead and figure out what they want.", nodeTypes: ['classify', 'chat-gemini', 'parse'], pickable: ['classify', 'parse', 'code', 'if', 'web-search'] },
+    { id: 'route', label: 'Route & reply', coach: 'It can read leads now. Last part — route by intent and send the right reply.', nodeTypes: ['switch', 'action'], pickable: ['switch', 'action', 'if', 'merge', 'filter', 'slack-message', 'google-docs'] },
   ],
 
   // Node setup, field-based. Each node's NDV shows a locked credential plus the
@@ -250,9 +250,9 @@ export const emailTriage = {
           label: 'Mailbox to watch',
           subtitle: 'Which folder new mail is picked up from.',
           options: [
-            { value: 'inbox', label: 'INBOX', correct: true, why: 'Support mail lands in the inbox — that’s what this flow should watch.' },
-            { value: 'spam', label: 'Spam', correct: false, why: 'Spam is filtered-out junk; real requests won’t be waiting here.' },
-            { value: 'sent', label: 'Sent', correct: false, why: 'That’s mail you sent out, not incoming customer email.' },
+            { value: 'inbox', label: 'INBOX', correct: true, why: 'Inbound leads land in the sales inbox — that’s what this flow should watch.' },
+            { value: 'spam', label: 'Spam', correct: false, why: 'Spam is filtered-out junk; real leads won’t be waiting here.' },
+            { value: 'sent', label: 'Sent', correct: false, why: 'That’s mail you sent out, not incoming leads.' },
           ],
         },
         {
@@ -261,7 +261,7 @@ export const emailTriage = {
           subtitle: 'Which part of each incoming email flows on to the next steps.',
           options: [
             { value: 'body', label: 'Body — full message', correct: true, why: 'The full text of the email — what every step downstream judges intent on.' },
-            { value: 'subject', label: 'Subject line', correct: false, why: 'Just the title. Often too little to tell a bug apart from a complaint.' },
+            { value: 'subject', label: 'Subject line', correct: false, why: 'Just the title. Often too little to tell a demo request apart from a price question.' },
             { value: 'from', label: 'From — sender address', correct: false, why: 'The sender’s address — that’s identity, not the content you classify.' },
           ],
         },
@@ -270,7 +270,7 @@ export const emailTriage = {
     classify: {
       credential: 'Scaler AI Gateway',
       locked: [
-        { label: 'System prompt', value: 'Classify this email as Bug Report, Feature Request or Complaint, with an urgency.', kind: 'textarea' },
+        { label: 'System prompt', value: 'Classify this sales email as Demo Request, Pricing Question or Not a Fit, with an urgency.', kind: 'textarea' },
         { label: 'Auto-fix format', value: 'On' },
       ],
       fields: [
@@ -289,7 +289,7 @@ export const emailTriage = {
           label: 'How should it return the answer?',
           subtitle: 'The shape the next nodes can rely on.',
           options: [
-            { value: 'json', label: 'JSON — { category, urgency }', correct: true, why: 'Structured fields the Parse and Switch steps can read reliably.' },
+            { value: 'json', label: 'JSON — { intent, urgency }', correct: true, why: 'Structured fields the Parse and Switch steps can read reliably.' },
             { value: 'paragraph', label: 'A written paragraph', correct: false, why: 'Free text is hard to branch on — you’d be back to square one.' },
             { value: 'word', label: 'A single word', correct: false, why: 'You’d lose the urgency, and one loose word is brittle to parse.' },
           ],
@@ -319,7 +319,7 @@ export const emailTriage = {
           label: 'Text to parse',
           subtitle: 'Which value gets turned into clean, structured fields.',
           options: [
-            { value: 'text', label: '{{ $json.text }}', correct: true, why: 'The AI’s raw answer — parse this into category + urgency.' },
+            { value: 'text', label: '{{ $json.text }}', correct: true, why: 'The AI’s raw answer — parse this into intent + urgency.' },
             { value: 'body', label: '{{ $json.body }}', correct: false, why: 'That’s the original email, not the AI’s answer.' },
             { value: 'subject', label: '{{ $json.subject }}', correct: false, why: 'The email’s title — there’s nothing to parse here.' },
           ],
@@ -329,7 +329,7 @@ export const emailTriage = {
           label: 'Fields to pull out',
           subtitle: 'What Parse should extract into clean values.',
           options: [
-            { value: 'cat-urg', label: 'category, urgency', correct: true, why: 'Exactly what the Switch and the replies need downstream.' },
+            { value: 'int-urg', label: 'intent, urgency', correct: true, why: 'Exactly what the Switch and the replies need downstream.' },
             { value: 'from-subj', label: 'from, subject', correct: false, why: 'Those already exist on the email — not what the AI produced.' },
             { value: 'body-time', label: 'body, receivedAt', correct: false, why: 'Raw email fields, not the classification result.' },
           ],
@@ -338,15 +338,15 @@ export const emailTriage = {
     },
     switch: {
       locked: [
-        { label: 'Mode', value: 'Rules — 3 outputs (Bug Report · Feature Request · Urgent Complaint)' },
+        { label: 'Mode', value: 'Rules — 3 outputs (Demo Request · Pricing Question · Not a Fit)' },
       ],
       fields: [
         {
           key: 'routeOn',
           label: 'Value to route on',
-          subtitle: 'The Switch reads this to decide which branch an email takes.',
+          subtitle: 'The Switch reads this to decide which branch a lead takes.',
           options: [
-            { value: 'category', label: '{{ $json.category }}', correct: true, why: 'The label the AI assigned — Bug / Feature / Complaint. Route on this.' },
+            { value: 'intent', label: '{{ $json.intent }}', correct: true, why: 'The label the AI assigned — Demo / Pricing / Not a Fit. Route on this.' },
             { value: 'urgency', label: '{{ $json.urgency }}', correct: false, why: 'How urgent, not what type — a secondary signal, not the split.' },
             { value: 'body', label: '{{ $json.body }}', correct: false, why: 'Raw text — the Switch needs a clean, predictable value.' },
           ],
@@ -354,10 +354,10 @@ export const emailTriage = {
         {
           key: 'fallback',
           label: 'Emails matching no rule',
-          subtitle: 'What happens to an email that fits none of the three categories.',
+          subtitle: 'What happens to an email that fits none of the three intents.',
           options: [
             { value: 'none', label: 'Fall through — no reply sent', correct: true, why: 'With only three branches, anything else silently falls through — that’s the gap the stress test asks about.' },
-            { value: 'first', label: 'Send it down the first branch', correct: false, why: 'That would mislabel unrelated mail as a bug report.' },
+            { value: 'first', label: 'Send it down the first branch', correct: false, why: 'That would mislabel unrelated mail as a demo request.' },
             { value: 'error', label: 'Throw an error', correct: false, why: 'A non-match isn’t an error — the Switch simply has no matching output.' },
           ],
         },
@@ -367,7 +367,7 @@ export const emailTriage = {
       credential: 'Gmail — Scaler Workspace',
       locked: [
         { label: 'Operation', value: 'Reply to message' },
-        { label: 'Subject', value: 'Re: your request' },
+        { label: 'Subject', value: 'Re: your enquiry' },
         { label: 'Send as', value: 'HTML' },
       ],
       fields: [
@@ -376,7 +376,7 @@ export const emailTriage = {
           label: 'Send reply to',
           subtitle: 'Where the outgoing reply is addressed.',
           options: [
-            { value: 'from', label: '{{ $json.from }}', correct: true, why: 'The person who emailed in — the reply goes back to them.' },
+            { value: 'from', label: '{{ $json.from }}', correct: true, why: 'The lead who emailed in — the reply goes back to them.' },
             { value: 'to', label: '{{ $json.to }}', correct: false, why: 'That was your own inbox — replying here just emails yourself.' },
             { value: 'subject', label: '{{ $json.subject }}', correct: false, why: 'The email’s title, not an address.' },
           ],
@@ -384,11 +384,11 @@ export const emailTriage = {
         {
           key: 'bodySrc',
           label: 'What goes in the reply',
-          subtitle: 'Which message the customer actually receives.',
+          subtitle: 'Which message the lead actually receives.',
           options: [
-            { value: 'template', label: 'The category-specific template', correct: true, why: 'Each branch sends the reply matched to that category.' },
+            { value: 'template', label: 'The intent-specific template', correct: true, why: 'Each branch sends the reply matched to that intent.' },
             { value: 'original', label: 'The original email text', correct: false, why: 'That just echoes their own message back to them.' },
-            { value: 'blank', label: 'An empty message', correct: false, why: 'No help to the customer — the whole point is a real reply.' },
+            { value: 'blank', label: 'An empty message', correct: false, why: 'No help to the lead — the whole point is a real reply.' },
           ],
         },
       ],
@@ -400,7 +400,7 @@ export const emailTriage = {
     'chat-trigger': {
       prompt: 'Hmm — why Chat Trigger?',
       options: [
-        { text: 'Emails and chats both bring in a message', correct: false, misconception: 'chat-trigger-is-email', response: 'Close, but Chat Trigger only listens for chatbot messages, not an inbox. A support inbox needs an email trigger.' },
+        { text: 'Emails and chats both bring in a message', correct: false, misconception: 'chat-trigger-is-email', response: 'Close, but Chat Trigger only listens for chatbot messages, not an inbox. A sales inbox needs an email trigger.' },
         { text: 'Any trigger starts the flow, so it’s fine', correct: false, misconception: 'triggers-interchangeable', response: 'Triggers aren’t interchangeable — each fires on one specific event. You need the one that fires on a new email.' },
         { text: 'Added it by mistake', correct: true, response: 'No worries — popping it back.' },
       ],
@@ -408,7 +408,7 @@ export const emailTriage = {
     schedule: {
       prompt: 'Why a Schedule trigger?',
       options: [
-        { text: 'It can check the inbox on a timer', correct: false, misconception: 'poll-vs-event', response: 'It can, but that polls on a clock and adds delay. You want to react the instant an email lands — an event trigger.' },
+        { text: 'It can check the inbox on a timer', correct: false, misconception: 'poll-vs-event', response: 'It can, but that polls on a clock and adds delay. A hot lead deserves an instant response — use an event trigger.' },
         { text: 'Added it by mistake', correct: true, response: 'All good — back it goes.' },
       ],
     },
@@ -422,21 +422,21 @@ export const emailTriage = {
     if: {
       prompt: 'Why If here?',
       options: [
-        { text: 'It branches, and I need branches', correct: false, misconception: 'if-vs-switch', response: 'If only splits two ways (true/false). You have three categories — that’s what Switch is for.' },
+        { text: 'It branches, and I need branches', correct: false, misconception: 'if-vs-switch', response: 'If only splits two ways (true/false). You have three intents — that’s what Switch is for.' },
         { text: 'Added it by mistake', correct: true, response: 'Back to the sidebar.' },
       ],
     },
     code: {
       prompt: 'Why Code to classify?',
       options: [
-        { text: 'I can write rules to detect the category', correct: false, misconception: 'rules-vs-ai', response: 'Brittle — emails are free text phrased a thousand ways. Let an AI read it instead.' },
+        { text: 'I can write rules to detect the intent', correct: false, misconception: 'rules-vs-ai', response: 'Brittle — leads phrase their asks a thousand ways. Let an AI read it instead.' },
         { text: 'Added it by mistake', correct: true, response: 'Removing it.' },
       ],
     },
     'web-search': {
       prompt: 'Why Web Search?',
       options: [
-        { text: 'To look up what the email means', correct: false, misconception: 'search-vs-classify', response: 'The answer is inside the email itself — you classify it, you don’t search the web for it.' },
+        { text: 'To look up what the lead wants', correct: false, misconception: 'search-vs-classify', response: 'The intent is inside the email itself — you classify it, you don’t search the web for it.' },
         { text: 'Added it by mistake', correct: true, response: 'Back it goes.' },
       ],
     },
@@ -457,26 +457,26 @@ export const emailTriage = {
   // Sample emails the Run simulation streams through the flow, one after another.
   // `branch` is the Switch handle each should take (null = matches no branch).
   sampleCases: [
-    { id: 'bug', from: 'dev@acme.io', subject: 'App crashes every time I log in', category: 'BUG_REPORT', urgency: 'HIGH', branch: 'bug_report', reply: 'Bug Report' },
-    { id: 'feature', from: 'maria@acme.io', subject: 'Could you add a dark mode?', category: 'FEATURE_REQUEST', urgency: 'LOW', branch: 'feature_request', reply: 'Feature Request' },
-    { id: 'urgent', from: 'furious@acme.io', subject: "I've been charged twice and no one is helping!", category: 'COMPLAINT', urgency: 'HIGH', branch: 'urgent_complaint', reply: 'Urgent Complaint' },
-    { id: 'question', from: 'curious@acme.io', subject: 'What are your business hours?', category: 'QUESTION', urgency: 'LOW', branch: null, reply: null },
+    { id: 'demo', from: 'priya@northwind.co', subject: 'Can we set up a product demo next week?', category: 'DEMO_REQUEST', urgency: 'HIGH', branch: 'demo_request', reply: 'Demo Request' },
+    { id: 'pricing', from: 'ops@brightloop.io', subject: 'What does your team plan cost per seat?', category: 'PRICING_QUESTION', urgency: 'MEDIUM', branch: 'pricing_question', reply: 'Pricing Question' },
+    { id: 'notfit', from: 'hi@studentclub.org', subject: 'We’re a student group looking for free tools', category: 'NOT_A_FIT', urgency: 'LOW', branch: 'not_a_fit', reply: 'Not a Fit' },
+    { id: 'support', from: 'existing@customer.com', subject: 'My login stopped working this morning', category: 'SUPPORT', urgency: 'MEDIUM', branch: null, reply: null },
   ],
 
   evalQuestions: [
     {
-      id: 'general-question-gap',
+      id: 'support-question-gap',
       prompt:
-        "A customer email arrives that's just a general question, with no bug/feature/complaint keywords. What happens in this flow?",
+        'An email arrives from an existing customer asking for help with a broken login — no demo, pricing, or fit signal at all. What happens in this flow?',
       options: [
-        'It gets logged as a Feature Request by default',
+        'It gets logged as a Pricing Question by default',
         "It doesn't match any of the 3 defined paths, so nothing sends",
         'The flow throws an error and stops',
-        'It is automatically escalated as Urgent Complaint',
+        'It is automatically escalated as a Demo Request',
       ],
       correctIndex: 1,
       explanation:
-        'Your Switch only has 3 branches — Bug Report, Feature Request, Urgent Complaint. A plain question matches none of them, so it silently falls through and no reply is ever sent. Real automations need a default/catch-all branch for exactly this.',
+        'Your Switch only has 3 branches — Demo Request, Pricing Question, Not a Fit. A support message matches none of them, so it silently falls through and no reply is ever sent. Real automations need a default/catch-all branch (or a hand-off to support) for exactly this.',
     },
     {
       id: 'why-fixed-path',
@@ -490,7 +490,7 @@ export const emailTriage = {
       ],
       correctIndex: 2,
       explanation:
-        'The workflow is deterministic: the AI does exactly one job — classify — and everything else (parse, route, reply) is fixed wiring you designed. A full agent would decide its own steps and tools at runtime, which is powerful but unpredictable. For reliable, repeatable triage, a fixed path is the right call.',
+        'The workflow is deterministic: the AI does exactly one job — classify the lead’s intent — and everything else (parse, route, reply) is fixed wiring you designed. A full agent would decide its own steps and tools at runtime, which is powerful but unpredictable. For reliable, repeatable lead triage, a fixed path is the right call.',
     },
   ],
 };

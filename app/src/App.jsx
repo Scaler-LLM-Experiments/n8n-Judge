@@ -1,6 +1,7 @@
 // app/src/App.jsx
 import React, { useState } from 'react';
-import { resolveProblem } from './data/problems/index.js';
+import { resolveProblem, problemList } from './data/problems/index.js';
+import { HomeScreen } from './screens/HomeScreen.jsx';
 import { DissectionScreen } from './screens/DissectionScreen.jsx';
 import { BuildStage } from './screens/BuildStage.jsx';
 import { EvalScreen } from './screens/EvalScreen.jsx';
@@ -82,7 +83,14 @@ export default function App() {
     const evalOutcome = scoreEval({ 'general-question-gap': 1, 'why-fixed-path': 0 }, problem.evalQuestions);
     return <div style={{ height: '100vh' }}><ReportScreen problem={problem} grading={s} runResult={runResult} evalOutcome={evalOutcome} /></div>;
   }
-  return <MainApp problem={problem} />;
+  return <Landing />;
+}
+
+// Home → pick a problem → run its full journey. Selecting remounts MainApp fresh.
+function Landing() {
+  const [selected, setSelected] = useState(null);
+  if (selected) return <MainApp key={selected.id} problem={selected} />;
+  return <HomeScreen problems={problemList} onSelect={setSelected} />;
 }
 
 // Preview wrapper for the #build / #run-story routes: build → eval → report,
