@@ -29,9 +29,12 @@ export function N8nNodeView({ type, label, placeholder, tag, selected, size = BO
   const color = nodeIconColor[type] || meta.color;
 
   const isTrigger = variant === 'trigger';
+  const wide = variant === 'ai'; // AI root nodes are wide, with the label inside
   const radius = isTrigger ? `${size / 2}px 18px 18px ${size / 2}px` : '18px';
 
   const borderColor = placeholder ? 'var(--border-strong)' : selected ? meta.color : '#C9CED6';
+  const bodyW = wide ? 216 : size;
+  const bodyH = wide ? 84 : size;
 
   return (
     <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 9 }}>
@@ -51,22 +54,28 @@ export function N8nNodeView({ type, label, placeholder, tag, selected, size = BO
         {/* body */}
         <div
           style={{
-            width: size,
-            height: size,
+            width: bodyW,
+            height: bodyH,
             borderRadius: radius,
             background: placeholder ? 'repeating-linear-gradient(45deg, #EEF1F6, #EEF1F6 6px, #E6EAF0 6px, #E6EAF0 12px)' : 'var(--surface-0)',
             border: `${placeholder ? '1.5px dashed' : '1px solid'} ${borderColor}`,
             boxShadow: placeholder ? 'none' : selected ? `0 0 0 3px ${meta.tint}, 0 8px 22px rgba(1,24,69,0.12)` : '0 2px 6px rgba(1,24,69,0.10)',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
+            justifyContent: wide ? 'flex-start' : 'center',
+            gap: wide ? 13 : 0,
+            padding: wide ? '0 18px' : 0,
+            boxSizing: 'border-box',
             transition: 'border-color 140ms ease, box-shadow 140ms ease',
           }}
         >
           {placeholder ? (
             <span style={{ fontSize: 34, fontWeight: 700, color: 'var(--fg-3)' }}>?</span>
           ) : Icon ? (
-            <Icon size={38} color={color} />
+            <Icon size={wide ? 32 : 38} color={color} />
+          ) : null}
+          {wide && !placeholder ? (
+            <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--fg-1)', lineHeight: 1.2 }}>{label}</span>
           ) : null}
         </div>
 
@@ -89,10 +98,12 @@ export function N8nNodeView({ type, label, placeholder, tag, selected, size = BO
         ) : null}
       </div>
 
-      {/* label below */}
-      <div style={{ fontSize: 12.5, fontWeight: 600, color: placeholder ? 'var(--fg-3)' : 'var(--fg-1)', textAlign: 'center', maxWidth: 150, lineHeight: 1.25 }}>
-        {label}
-      </div>
+      {/* label below (square nodes only — wide AI nodes carry the label inside) */}
+      {!wide ? (
+        <div style={{ fontSize: 12.5, fontWeight: 600, color: placeholder ? 'var(--fg-3)' : 'var(--fg-1)', textAlign: 'center', maxWidth: 150, lineHeight: 1.25 }}>
+          {label}
+        </div>
+      ) : null}
     </div>
   );
 }
