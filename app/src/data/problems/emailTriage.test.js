@@ -36,12 +36,15 @@ describe('emailTriage problem spec', () => {
     for (const p of emailTriage.buildPhases) expect(typeof p.coach).toBe('string');
   });
 
-  it('every node-setup section has exactly one correct candidate', () => {
+  it('every node-setup field has exactly one correct option, each with a why', () => {
     for (const [type, setup] of Object.entries(emailTriage.nodeSetup)) {
-      for (const section of setup.sections) {
-        const correct = section.candidates.filter((c) => c.correct);
-        expect(correct.length, `${type}/${section.id}`).toBe(1);
-        for (const c of section.candidates) expect(typeof c.why).toBe('string');
+      for (const field of setup.fields || []) {
+        const correct = field.options.filter((o) => o.correct);
+        expect(correct.length, `${type}/${field.key}`).toBe(1);
+        for (const o of field.options) {
+          expect(typeof o.why).toBe('string');
+          expect(typeof o.label).toBe('string');
+        }
       }
     }
   });

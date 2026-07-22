@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import ReactFlow, {
   Background,
   BackgroundVariant,
@@ -7,6 +7,7 @@ import ReactFlow, {
   applyNodeChanges,
   applyEdgeChanges,
   ReactFlowProvider,
+  useReactFlow,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Plus } from '@phosphor-icons/react';
@@ -27,11 +28,23 @@ const defaultEdgeOptions = {
 let idc = 0;
 const nextId = () => `n${(idc += 1)}`;
 
-function EditorInner({ pickable, onGraphChange, nodeSetup, onDecision, correctTypes, onWrongPick }) {
+// Which node types may validly follow the current add-context, per the problem's
+// canonical flow. Anything else is a sequence mistake.
+function expectedNext(ctx, nodes, flow) {
+  if (!flow) return null; // no flow rules → accept anything
+  if (ctx.modelSlot) return flow.modelNext || [];
+  if (ctx.branch) return flow.branchNext || [];
+  if (ctx.triggerSlot || !ctx.sourceId) return flow.start || [];
+  const src = nodes.find((n) => n.id === ctx.sourceId);
+  return (src && flow.next?.[src.type]) || [];
+}
+
+const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, nodeSetup, onDecision, flow, onWrongPick, onPlaceCorrect }, ref) {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
-  const [picker, setPicker] = useState(null); // {sourceId, triggerSlot, modelSlot}
+  const [picker, setPicker] = useState(null); // {sourceId, triggerSlot, modelSlot, branch, branchIndex}
   const [ndvId, setNdvId] = useState(null);
+  const rf = useReactFlow();
 
   useEffect(() => {
     if (onGraphChange) onGraphChange(nodes, edges);
@@ -44,28 +57,33 @@ function EditorInner({ pickable, onGraphChange, nodeSetup, onDecision, correctTy
   const openNdv = useCallback((id) => setNdvId(id), []);
   const completeNode = useCallback((id) => setNodes((ns) => ns.map((n) => (n.id === id ? { ...n, data: { ...n.data, configured: true } } : n))), []);
 
+  const removeNode = useCallback((id) => {
+    setNodes((ns) => ns.filter((n) => n.id !== id));
+    setEdges((es) => es.filter((e) => e.source !== id && e.target !== id));
+    setNdvId((cur) => (cur === id ? null : cur));
+  }, []);
+
+  useImperativeHandle(ref, () => ({ removeNode }), [removeNode]);
+
   const addNode = (catalogType) => {
     const ctx = picker || {};
-    // Wrong pick for this phase — don't place it; let the parent probe/nudge.
-    if (!ctx.modelSlot && correctTypes && !correctTypes.includes(catalogType)) {
-      setPicker(null);
-      if (onWrongPick) onWrongPick(catalogType);
-      return;
-    }
+    const expected = expectedNext(ctx, nodes, flow);
+    const isWrong = expected ? !expected.includes(catalogType) : false;
+
     const entry = NODE_CATALOG[catalogType];
     const id = nextId();
     const source = ctx.sourceId ? nodes.find((n) => n.id === ctx.sourceId) : null;
 
     let position = { x: 220, y: 180 };
-    if (source && ctx.modelSlot) position = { x: source.position.x + 15, y: source.position.y + 170 };
-    else if (source && ctx.branch) position = { x: source.position.x + 300, y: source.position.y + (ctx.branchIndex - 1) * 130 };
-    else if (source) position = { x: source.position.x + 260, y: source.position.y };
+    if (source && ctx.modelSlot) position = { x: source.position.x + 40, y: source.position.y + 200 };
+    else if (source && ctx.branch) position = { x: source.position.x + 380, y: source.position.y + (ctx.branchIndex - 1) * 150 };
+    else if (source) position = { x: source.position.x + 340, y: source.position.y };
 
     const node = {
       id,
       type: catalogType,
       position,
-      data: { nodeType: catalogType, label: entry.label, params: entry.params, values: {}, configured: false, output: entry.output },
+      data: { nodeType: catalogType, label: entry.label, params: entry.params, values: {}, configured: false, wrong: isWrong, output: entry.output },
     };
     setNodes((ns) => ns.concat(node));
 
@@ -81,11 +99,44 @@ function EditorInner({ pickable, onGraphChange, nodeSetup, onDecision, correctTy
       setEdges((es) => es.concat(edge));
     }
     setPicker(null);
+
+    // gently pan/zoom to the freshly added node so the learner follows the flow
+    const cx = position.x + (catalogType === 'classify' ? 108 : 45);
+    const cy = position.y + 45;
+    setTimeout(() => { try { rf.setCenter(cx, cy, { zoom: 0.9, duration: 500 }); } catch { /* noop */ } }, 40);
+
+    if (isWrong) {
+      const expectedLabel = (expected || []).map((t) => NODE_CATALOG[t]?.label).filter(Boolean).join(' or ');
+      const sourceLabel = ctx.modelSlot ? `${source ? source.data.label : 'this node'}’s Chat Model port`
+        : ctx.branch ? 'a Switch branch'
+        : source ? source.data.label : 'the start of the flow';
+      if (onWrongPick) onWrongPick(catalogType, id, { sourceLabel, expectedLabel });
+    } else if (onPlaceCorrect) {
+      onPlaceCorrect(catalogType, id);
+    }
   };
 
-  const updateParam = (id, key, value) => {
-    setNodes((ns) => ns.map((n) => (n.id === id ? { ...n, data: { ...n.data, values: { ...n.data.values, [key]: value } } } : n)));
-  };
+  // Inject cue flags so each node can pulse exactly the control the learner should
+  // touch next: its own body (needs setup), its output + (ready for the next step),
+  // the Chat Model + (AI node missing a model), or a Switch branch + (unwired).
+  const branchIds = ['bug_report', 'feature_request', 'urgent_complaint'];
+  const displayNodes = useMemo(
+    () => nodes.map((n) => {
+      const type = n.type;
+      const hasEditable = (nodeSetup?.[type]?.fields?.length || 0) > 0;
+      const hasMainOut = edges.some((e) => e.source === n.id && !e.sourceHandle && e.targetHandle !== 'ai_model');
+      const hasModel = type === 'classify' ? edges.some((e) => e.target === n.id && e.targetHandle === 'ai_model') : undefined;
+      const flowNext = flow?.next?.[type] || [];
+      const needsSetup = !n.data.configured && !n.data.wrong && hasEditable;
+      const modelReady = type === 'classify' ? hasModel : true;
+      const awaitingNext = !n.data.wrong && flowNext.length > 0 && !hasMainOut && modelReady && (hasEditable ? n.data.configured : true);
+      const openBranches = type === 'switch'
+        ? branchIds.filter((b) => !edges.some((e) => e.source === n.id && e.sourceHandle === b))
+        : undefined;
+      return { ...n, data: { ...n.data, hasModel, needsSetup, awaitingNext, openBranches } };
+    }),
+    [nodes, edges, flow, nodeSetup]
+  );
 
   const ndvNode = (() => {
     if (!ndvId) return null;
@@ -108,7 +159,7 @@ function EditorInner({ pickable, onGraphChange, nodeSetup, onDecision, correctTy
     <EditorContext.Provider value={ctxValue}>
       <div style={{ position: 'absolute', inset: 0, background: '#E9ECF2' }}>
         <ReactFlow
-          nodes={nodes}
+          nodes={displayNodes}
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
@@ -128,7 +179,7 @@ function EditorInner({ pickable, onGraphChange, nodeSetup, onDecision, correctTy
               onClick={() => openPicker({ triggerSlot: true })}
               style={{ pointerEvents: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)' }}
             >
-              <span style={{ width: 60, height: 60, borderRadius: 16, border: '2px dashed var(--brand-primary)', color: 'var(--brand-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span className="pulse-ring" style={{ width: 60, height: 60, border: '2px dashed var(--brand-primary)', color: 'var(--brand-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Plus size={26} weight="bold" />
               </span>
               <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--fg-1)' }}>Add first step</span>
@@ -144,7 +195,6 @@ function EditorInner({ pickable, onGraphChange, nodeSetup, onDecision, correctTy
             setup={nodeSetup ? nodeSetup[ndvNode.nodeType] : undefined}
             inputData={ndvIn.data}
             inputLabel={ndvIn.label}
-            onChangeParam={updateParam}
             onDecision={onDecision}
             onComplete={() => completeNode(ndvNode.id)}
             onClose={() => setNdvId(null)}
@@ -153,12 +203,12 @@ function EditorInner({ pickable, onGraphChange, nodeSetup, onDecision, correctTy
       </div>
     </EditorContext.Provider>
   );
-}
+});
 
-export function N8nEditor({ pickable, onGraphChange, nodeSetup, onDecision, correctTypes, onWrongPick }) {
+export const N8nEditor = forwardRef(function N8nEditor(props, ref) {
   return (
     <ReactFlowProvider>
-      <EditorInner pickable={pickable} onGraphChange={onGraphChange} nodeSetup={nodeSetup} onDecision={onDecision} correctTypes={correctTypes} onWrongPick={onWrongPick} />
+      <EditorInner ref={ref} {...props} />
     </ReactFlowProvider>
   );
-}
+});

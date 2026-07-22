@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Handle, Position } from 'reactflow';
-import { Plus, Warning } from '@phosphor-icons/react';
+import { Plus, Warning, Wrench } from '@phosphor-icons/react';
 import { N8nNodeView, variantOf } from './N8nNodeView.jsx';
 import { categoryMeta } from '../nodes/nodeIcons.js';
 import { useEditor } from './EditorContext.js';
@@ -23,17 +23,26 @@ const SWITCH_BRANCHES = [
 
 export function N8nFlowNode({ id, type, data, selected }) {
   const { openPicker, openNdv } = useEditor();
+  const [hover, setHover] = useState(false);
   const variant = variantOf(type);
   const isTrigger = variant === 'trigger';
   const isAi = variant === 'ai';
   const isSwitch = type === 'switch';
+  const needsSetup = data.needsSetup;
 
   return (
-    <div style={{ position: 'relative' }} onClick={() => openNdv(id)}>
+    <div style={{ position: 'relative' }} onClick={() => openNdv(id)} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
       {!isTrigger ? <Handle type="target" position={Position.Left} style={portStyle} /> : null}
       {!isSwitch ? <Handle type="source" position={Position.Right} style={portStyle} /> : null}
 
-      <N8nNodeView type={type} label={data.label} selected={selected} hidePorts hideAiChip />
+      <N8nNodeView type={type} label={data.label} selected={selected || (hover && needsSetup)} pulse={needsSetup} hidePorts hideAiChip />
+
+      {/* "Set me up" label appears on hover; the pulse is the persistent cue */}
+      {needsSetup && hover ? (
+        <div style={{ position: 'absolute', left: '50%', top: -30, transform: 'translateX(-50%)', zIndex: 6, display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap', background: 'var(--brand-primary)', color: '#fff', border: '1px solid var(--brand-primary)', padding: '3px 8px', fontSize: 11, fontWeight: 700, boxShadow: '0 4px 12px rgba(1,24,69,0.14)', pointerEvents: 'none' }}>
+          <Wrench size={12} weight="fill" /> Set me up
+        </div>
+      ) : null}
 
       {/* unconfigured warning (n8n shows a red triangle) */}
       {!data.configured ? (
@@ -49,7 +58,7 @@ export function N8nFlowNode({ id, type, data, selected }) {
             <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 8, position: 'relative' }}>
               <Handle type="source" id={b.id} position={Position.Right} style={{ ...portStyle, position: 'relative', left: 0, top: 0, transform: 'none' }} />
               <span style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--fg-2)', whiteSpace: 'nowrap' }}>{b.label}</span>
-              <button type="button" title={`Add reply for ${b.label}`} onClick={(e) => { e.stopPropagation(); openPicker({ sourceId: id, branch: b.id, branchIndex: i }); }} style={plusBtn({ position: 'relative', right: 'auto', top: 'auto' })}>
+              <button type="button" className={data.openBranches?.includes(b.id) ? 'pulse-plus' : undefined} title={`Add reply for ${b.label}`} onClick={(e) => { e.stopPropagation(); openPicker({ sourceId: id, branch: b.id, branchIndex: i }); }} style={plusBtn({ position: 'relative', right: 'auto', top: 'auto' })}>
                 <Plus size={14} weight="bold" />
               </button>
             </div>
@@ -57,7 +66,7 @@ export function N8nFlowNode({ id, type, data, selected }) {
         </div>
       ) : (
         /* output + : add & connect the next node */
-        <button type="button" title="Add next node" onClick={(e) => { e.stopPropagation(); openPicker({ sourceId: id }); }} style={plusBtn({ right: -46, top: 'calc(50% - 13px)' })}>
+        <button type="button" className={data.awaitingNext ? 'pulse-plus' : undefined} title="Add next node" onClick={(e) => { e.stopPropagation(); openPicker({ sourceId: id }); }} style={plusBtn({ right: -46, top: 'calc(50% - 13px)' })}>
           <Plus size={15} weight="bold" />
         </button>
       )}
@@ -67,6 +76,7 @@ export function N8nFlowNode({ id, type, data, selected }) {
         <div style={{ position: 'absolute', top: 'calc(100% + 26px)', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 20 }}>
           {AI_PORTS.map((p) => {
             const active = p.id === 'chatModel';
+            const needsModel = active && !data.hasModel;
             const color = active ? categoryMeta.model.color : '#9AA2AE';
             return (
               <div key={p.id} style={{ width: 76, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
@@ -78,11 +88,12 @@ export function N8nFlowNode({ id, type, data, selected }) {
                 </span>
                 <button
                   type="button"
+                  className={needsModel ? 'pulse-plus' : undefined}
                   title={active ? 'Attach a Chat Model' : `${p.label} — optional`}
                   onClick={(e) => { e.stopPropagation(); if (active) openPicker({ sourceId: id, modelSlot: true }); }}
-                  style={{ width: 24, height: 24, borderRadius: 5, border: `1.5px solid ${active ? categoryMeta.model.color : 'var(--border-strong)'}`, background: 'var(--surface-0)', color: active ? categoryMeta.model.color : 'var(--fg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: active ? 'pointer' : 'default', opacity: active ? 1 : 0.5 }}
+                  style={{ width: needsModel ? 28 : 24, height: needsModel ? 28 : 24, borderRadius: 5, border: `${needsModel ? 2 : 1.5}px solid ${active ? categoryMeta.model.color : 'var(--border-strong)'}`, background: needsModel ? categoryMeta.model.tint : 'var(--surface-0)', color: active ? categoryMeta.model.color : 'var(--fg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: active ? 'pointer' : 'default', opacity: active ? 1 : 0.5 }}
                 >
-                  <Plus size={13} weight="bold" />
+                  <Plus size={active ? 15 : 13} weight="bold" />
                 </button>
               </div>
             );

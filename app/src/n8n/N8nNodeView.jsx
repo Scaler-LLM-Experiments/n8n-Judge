@@ -21,7 +21,7 @@ export function variantOf(type) {
 
 const BODY = 88;
 
-export function N8nNodeView({ type, label, placeholder, tag, selected, size = BODY, hidePorts, hideAiChip }) {
+export function N8nNodeView({ type, label, placeholder, tag, selected, pulse, size = BODY, hidePorts, hideAiChip }) {
   const cat = typeCategory[type] || 'core';
   const meta = categoryMeta[cat];
   const variant = variantOf(type);
@@ -78,6 +78,11 @@ export function N8nNodeView({ type, label, placeholder, tag, selected, size = BO
             <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--fg-1)', lineHeight: 1.2 }}>{label}</span>
           ) : null}
         </div>
+
+        {/* pulsing "needs setup" ring */}
+        {pulse && !placeholder ? (
+          <div className="pulse-ring" style={{ position: 'absolute', top: 0, left: 0, width: bodyW, height: bodyH, borderRadius: radius, pointerEvents: 'none', zIndex: 1 }} />
+        ) : null}
 
         {/* AI nodes: a Chat Model sub-node port hanging below (suppressed in the
             editor, where the flow node renders the real ports) */}

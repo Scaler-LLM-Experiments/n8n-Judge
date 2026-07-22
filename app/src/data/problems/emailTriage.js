@@ -195,6 +195,15 @@ export const emailTriage = {
     { id: 'urgent', label: 'Switch · Urgent Complaint → Send Reply', match: { sourceType: 'switch', targetType: 'action', branch: 'urgent_complaint' } },
   ],
 
+  // Canonical flow order. Used to detect sequence mistakes: from a given source
+  // (or the model / branch ports) only certain node types are the valid next step.
+  flow: {
+    start: ['trigger'],
+    next: { trigger: ['classify'], classify: ['parse'], parse: ['switch'], switch: [], action: [], 'chat-gemini': [] },
+    branchNext: ['action'],
+    modelNext: ['chat-gemini'],
+  },
+
   // The 3 guided build sub-phases. `coach` is Iris's line on entering the phase.
   buildPhases: [
     { id: 'trigger', label: 'Set your trigger', coach: "Let's build. First — what should start this flow?", nodeTypes: ['trigger'], pickable: ['trigger', 'chat-trigger', 'schedule', 'webhook'] },
@@ -202,87 +211,163 @@ export const emailTriage = {
     { id: 'route', label: 'Route & reply', coach: 'It can read emails now. Last part — route by category and send the right reply.', nodeTypes: ['switch', 'action'], pickable: ['switch', 'action', 'if', 'merge', 'filter', 'slack-message', 'google-docs'] },
   ],
 
-  // Section-gated node setup: each section has clickable right/wrong candidates,
-  // each with a "why". Selecting the correct one confirms the section.
+  // Node setup, field-based. Each node's NDV shows a locked credential plus the
+  // fields the learner must set. Each field is a real select; its `options`
+  // carry the correct value and a per-option "why" Iris uses to explain a
+  // green (correct) or red (wrong) result after the learner hits "Verify setup".
   nodeSetup: {
     trigger: {
-      sections: [
+      credential: 'Gmail — Scaler Workspace',
+      locked: [
+        { label: 'Event', value: 'On new email received' },
+        { label: 'Poll frequency', value: 'Every minute' },
+        { label: 'Include attachments', value: 'No' },
+      ],
+      fields: [
         {
-          id: 'trigger-field',
-          prompt: 'Which field holds the message you’ll actually classify?',
-          kind: 'field',
-          candidates: [
-            { value: 'body', correct: true, why: 'The full text of the email — what you judge intent on.' },
-            { value: 'subject', correct: false, why: 'Just the title. Often too little to tell a bug from a complaint.' },
-            { value: 'from', correct: false, why: 'The sender’s address — identity, not content.' },
-            { value: 'receivedAt', correct: false, why: 'A timestamp. Says nothing about what the email is about.' },
+          key: 'mailbox',
+          label: 'Mailbox to watch',
+          subtitle: 'Which folder new mail is picked up from.',
+          options: [
+            { value: 'inbox', label: 'INBOX', correct: true, why: 'Support mail lands in the inbox — that’s what this flow should watch.' },
+            { value: 'spam', label: 'Spam', correct: false, why: 'Spam is filtered-out junk; real requests won’t be waiting here.' },
+            { value: 'sent', label: 'Sent', correct: false, why: 'That’s mail you sent out, not incoming customer email.' },
+          ],
+        },
+        {
+          key: 'value',
+          label: 'Email field to read',
+          subtitle: 'Which part of each incoming email flows on to the next steps.',
+          options: [
+            { value: 'body', label: 'Body — full message', correct: true, why: 'The full text of the email — what every step downstream judges intent on.' },
+            { value: 'subject', label: 'Subject line', correct: false, why: 'Just the title. Often too little to tell a bug apart from a complaint.' },
+            { value: 'from', label: 'From — sender address', correct: false, why: 'The sender’s address — that’s identity, not the content you classify.' },
           ],
         },
       ],
     },
     classify: {
-      sections: [
+      credential: 'Scaler AI Gateway',
+      locked: [
+        { label: 'System prompt', value: 'Classify this email as Bug Report, Feature Request or Complaint, with an urgency.', kind: 'textarea' },
+        { label: 'Auto-fix format', value: 'On' },
+      ],
+      fields: [
         {
-          id: 'classify-brain',
-          prompt: 'An AI node can’t think on its own. What does it need plugged in?',
-          kind: 'choice',
-          candidates: [
-            { value: 'chatModel', label: 'Chat Model', correct: true, why: 'The language model is the brain — without it the node can’t classify. It’s required.' },
-            { value: 'memory', label: 'Memory', correct: false, why: 'Remembers past turns — useful for chatbots, not one-shot classification.' },
-            { value: 'tool', label: 'Tool', correct: false, why: 'Lets an agent call other systems — not needed just to label an email.' },
-            { value: 'none', label: 'Nothing', correct: false, why: 'It literally won’t run — n8n flags “connect a Chat Model”.' },
+          key: 'text',
+          label: 'Text to classify',
+          subtitle: 'Point the model at the content it should read.',
+          options: [
+            { value: 'body', label: '{{ $json.body }}', correct: true, why: 'The message itself — this is what you classify on.' },
+            { value: 'subject', label: '{{ $json.subject }}', correct: false, why: 'Only the title; the AI would miss most of the signal.' },
+            { value: 'from', label: '{{ $json.from }}', correct: false, why: 'That’s the sender, not the content.' },
           ],
         },
         {
-          id: 'classify-text',
-          prompt: 'Point the AI at the email. Which field should its Text input read?',
-          kind: 'field',
-          candidates: [
-            { value: 'body', correct: true, why: 'The message itself — classify on this.' },
-            { value: 'subject', correct: false, why: 'Only the title; the AI would miss most of the signal.' },
-            { value: 'from', correct: false, why: 'The sender, not the content.' },
+          key: 'output',
+          label: 'How should it return the answer?',
+          subtitle: 'The shape the next nodes can rely on.',
+          options: [
+            { value: 'json', label: 'JSON — { category, urgency }', correct: true, why: 'Structured fields the Parse and Switch steps can read reliably.' },
+            { value: 'paragraph', label: 'A written paragraph', correct: false, why: 'Free text is hard to branch on — you’d be back to square one.' },
+            { value: 'word', label: 'A single word', correct: false, why: 'You’d lose the urgency, and one loose word is brittle to parse.' },
           ],
         },
       ],
     },
+    // The language model plugged into Classify. Nothing to set — it just needs to
+    // be connected — so its NDV is all locked settings and has no Verify step.
+    'chat-gemini': {
+      credential: 'Scaler AI Gateway',
+      locked: [
+        { label: 'Model', value: 'models/gemini-2.5-flash' },
+        { label: 'Temperature', value: '0' },
+        { label: 'Max output tokens', value: '1024' },
+        { label: 'Top P', value: '0.95' },
+        { label: 'Safety settings', value: 'Default' },
+      ],
+    },
     parse: {
-      sections: [
+      locked: [
+        { label: 'Mode', value: 'Parse JSON' },
+        { label: 'On error', value: 'Continue' },
+      ],
+      fields: [
         {
-          id: 'parse-source',
-          prompt: 'The AI handed back one blob of text. Which input do you parse into fields?',
-          kind: 'field',
-          candidates: [
-            { value: 'text', correct: true, why: 'The AI’s raw answer — parse this into category + urgency.' },
-            { value: 'body', correct: false, why: 'That’s the original email, not the AI’s answer.' },
-            { value: 'subject', correct: false, why: 'The email’s title — nothing to parse here.' },
+          key: 'source',
+          label: 'Text to parse',
+          subtitle: 'Which value gets turned into clean, structured fields.',
+          options: [
+            { value: 'text', label: '{{ $json.text }}', correct: true, why: 'The AI’s raw answer — parse this into category + urgency.' },
+            { value: 'body', label: '{{ $json.body }}', correct: false, why: 'That’s the original email, not the AI’s answer.' },
+            { value: 'subject', label: '{{ $json.subject }}', correct: false, why: 'The email’s title — there’s nothing to parse here.' },
+          ],
+        },
+        {
+          key: 'fields',
+          label: 'Fields to pull out',
+          subtitle: 'What Parse should extract into clean values.',
+          options: [
+            { value: 'cat-urg', label: 'category, urgency', correct: true, why: 'Exactly what the Switch and the replies need downstream.' },
+            { value: 'from-subj', label: 'from, subject', correct: false, why: 'Those already exist on the email — not what the AI produced.' },
+            { value: 'body-time', label: 'body, receivedAt', correct: false, why: 'Raw email fields, not the classification result.' },
           ],
         },
       ],
     },
     switch: {
-      sections: [
+      locked: [
+        { label: 'Mode', value: 'Rules — 3 outputs (Bug Report · Feature Request · Urgent Complaint)' },
+      ],
+      fields: [
         {
-          id: 'switch-field',
-          prompt: 'You’ve got category and urgency now. Which one decides the branch?',
-          kind: 'field',
-          candidates: [
-            { value: 'category', correct: true, why: 'The label the AI assigned — Bug / Feature / Complaint. Route on this.' },
-            { value: 'urgency', correct: false, why: 'How urgent, not what type — a secondary signal, not the split.' },
-            { value: 'body', correct: false, why: 'Raw text — the Switch needs a clean, predictable value.' },
+          key: 'routeOn',
+          label: 'Value to route on',
+          subtitle: 'The Switch reads this to decide which branch an email takes.',
+          options: [
+            { value: 'category', label: '{{ $json.category }}', correct: true, why: 'The label the AI assigned — Bug / Feature / Complaint. Route on this.' },
+            { value: 'urgency', label: '{{ $json.urgency }}', correct: false, why: 'How urgent, not what type — a secondary signal, not the split.' },
+            { value: 'body', label: '{{ $json.body }}', correct: false, why: 'Raw text — the Switch needs a clean, predictable value.' },
+          ],
+        },
+        {
+          key: 'fallback',
+          label: 'Emails matching no rule',
+          subtitle: 'What happens to an email that fits none of the three categories.',
+          options: [
+            { value: 'none', label: 'Fall through — no reply sent', correct: true, why: 'With only three branches, anything else silently falls through — that’s the gap the stress test asks about.' },
+            { value: 'first', label: 'Send it down the first branch', correct: false, why: 'That would mislabel unrelated mail as a bug report.' },
+            { value: 'error', label: 'Throw an error', correct: false, why: 'A non-match isn’t an error — the Switch simply has no matching output.' },
           ],
         },
       ],
     },
     action: {
-      sections: [
+      credential: 'Gmail — Scaler Workspace',
+      locked: [
+        { label: 'Operation', value: 'Reply to message' },
+        { label: 'Subject', value: 'Re: your request' },
+        { label: 'Send as', value: 'HTML' },
+      ],
+      fields: [
         {
-          id: 'action-to',
-          prompt: 'The reply has to reach the customer. Which field is the recipient?',
-          kind: 'field',
-          candidates: [
-            { value: 'from', correct: true, why: 'The person who emailed in — the reply goes back to them.' },
-            { value: 'subject', correct: false, why: 'The email’s title, not an address.' },
-            { value: 'to', correct: false, why: 'That was your inbox — replying here emails yourself.' },
+          key: 'to',
+          label: 'Send reply to',
+          subtitle: 'Where the outgoing reply is addressed.',
+          options: [
+            { value: 'from', label: '{{ $json.from }}', correct: true, why: 'The person who emailed in — the reply goes back to them.' },
+            { value: 'to', label: '{{ $json.to }}', correct: false, why: 'That was your own inbox — replying here just emails yourself.' },
+            { value: 'subject', label: '{{ $json.subject }}', correct: false, why: 'The email’s title, not an address.' },
+          ],
+        },
+        {
+          key: 'bodySrc',
+          label: 'What goes in the reply',
+          subtitle: 'Which message the customer actually receives.',
+          options: [
+            { value: 'template', label: 'The category-specific template', correct: true, why: 'Each branch sends the reply matched to that category.' },
+            { value: 'original', label: 'The original email text', correct: false, why: 'That just echoes their own message back to them.' },
+            { value: 'blank', label: 'An empty message', correct: false, why: 'No help to the customer — the whole point is a real reply.' },
           ],
         },
       ],
@@ -345,6 +430,7 @@ export const emailTriage = {
     'if-vs-switch': 'Reached for If where a multi-way Switch was needed',
     'rules-vs-ai': 'Tried rules/code to classify free-text email',
     'search-vs-classify': 'Confused searching the web with classifying the email',
+    'flow-sequence': 'Placed a step out of the correct flow order',
   },
 
   // Sample emails the Run simulation streams through the flow, one after another.
