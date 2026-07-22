@@ -64,8 +64,8 @@ export default function App() {
       { id: 'classify:classify-text', kind: 'field', correct: true, firstTry: true },
       { id: 'switch:switch-field', kind: 'field', correct: true, firstTry: true },
       { id: 'nodePick:chat-trigger', kind: 'nodePick', correct: false, firstTry: false, misconception: 'chat-trigger-is-email' },
-      { id: 'stress:general-question-gap', kind: 'stress', correct: true, firstTry: true },
-      { id: 'stress:why-fixed-path', kind: 'stress', correct: false, firstTry: true },
+      { id: 'stress:general-question-gap', kind: 'stress', correct: true, firstTry: true, chosenLabel: "It doesn't match any of the 3 defined paths, so nothing sends", correctLabel: "It doesn't match any of the 3 defined paths, so nothing sends" },
+      { id: 'stress:why-fixed-path', kind: 'stress', correct: false, firstTry: true, chosenLabel: 'Because n8n does not support branching logic', correctLabel: 'Because the structure is fixed and predictable — the AI only does one classification step, it doesn\'t choose which tools to call' },
     ].forEach((d) => { s = recordDecision(s, d); });
     const g = {
       nodes: [{ id: 't', type: 'trigger' }, { id: 'c', type: 'classify' }, { id: 'm', type: 'chat-gemini' }, { id: 'p', type: 'parse' }, { id: 's', type: 'switch' }, { id: 'ab', type: 'action' }, { id: 'af', type: 'action' }, { id: 'au', type: 'action' }],
@@ -73,7 +73,7 @@ export default function App() {
     };
     const runResult = validateGraph(g, emailTriage);
     const evalOutcome = scoreEval({ 'general-question-gap': 1, 'why-fixed-path': 0 }, emailTriage.evalQuestions);
-    return <div style={{ height: '100vh' }}><ReportScreen problem={emailTriage} grading={s} runResult={runResult} evalOutcome={evalOutcome} /></div>;
+    return <div style={{ height: '100vh' }}><ReportScreen problem={emailTriage} grading={s} runResult={runResult} evalOutcome={evalOutcome} graph={g} /></div>;
   }
   if (typeof window !== 'undefined' && window.location.hash === '#eval-demo') {
     const g = {
@@ -151,7 +151,7 @@ function MainApp() {
       ) : null}
 
       {screen === SCREEN.REPORT ? (
-        <ReportScreen problem={emailTriage} grading={grading} dissection={dissection} runResult={runResult} evalOutcome={evalOutcome} />
+        <ReportScreen problem={emailTriage} grading={grading} dissection={dissection} runResult={runResult} evalOutcome={evalOutcome} graph={builtGraph} />
       ) : null}
     </div>
   );
