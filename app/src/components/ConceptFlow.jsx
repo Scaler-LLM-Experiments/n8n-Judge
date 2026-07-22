@@ -1,57 +1,59 @@
 import React from 'react';
-import { EnvelopeSimple, Brain, ArrowRight, PaperPlaneTilt } from '@phosphor-icons/react';
+import { EnvelopeSimple, Brain, PaperPlaneTilt } from '@phosphor-icons/react';
 
-// Plain-language "story" of the problem — deliberately NOT the n8n node names, so
-// it primes understanding without giving away the dissection answers.
+// A loose, excalidraw-ish sketch of the problem — icons + handwritten labels +
+// hand-drawn arrows, no rigid boxes. Plain-language (not the n8n node names).
 const STEPS = [
-  { icon: EnvelopeSimple, label: 'A new email arrives', color: '#0055FF' },
-  { icon: Brain, label: 'Figure out what it is', color: '#6B4EFF' },
-  { icon: null, label: 'Bug · Feature · Complaint', color: '#ED7700', branch: true },
-  { icon: PaperPlaneTilt, label: 'Send the right reply', color: '#127A54' },
+  { icon: EnvelopeSimple, label: 'a new email\narrives', color: '#0055FF' },
+  { icon: Brain, label: 'figure out\nwhat it is', color: '#6B4EFF' },
+  { icon: null, label: 'bug · feature\n· complaint', color: '#ED7700', dots: ['#ED7700', '#6B4EFF', '#D4380D'] },
+  { icon: PaperPlaneTilt, label: 'send the\nright reply', color: '#127A54' },
 ];
 
-export function ConceptFlow({ compact }) {
-  const box = compact ? 92 : 130;
-  const pad = compact ? '8px 8px' : '12px 12px';
-  const fs = compact ? 10.5 : 12.5;
-  const iconSize = compact ? 15 : 20;
+const sketchFont = "'Caveat', 'Comic Sans MS', cursive";
+
+// a slightly wobbly hand-drawn arrow
+function SketchArrow({ vertical }) {
+  if (vertical) {
+    return (
+      <svg width="30" height="34" viewBox="0 0 30 34" fill="none" style={{ display: 'block' }}>
+        <path d="M15 3 C 12 12, 18 18, 15 27" stroke="#B0B5BD" strokeWidth="2" strokeLinecap="round" />
+        <path d="M10 22 L15 29 L20 22" stroke="#B0B5BD" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      </svg>
+    );
+  }
+  return (
+    <svg width="46" height="26" viewBox="0 0 46 26" fill="none" style={{ display: 'block' }}>
+      <path d="M4 14 C 16 9, 30 18, 40 12" stroke="#B0B5BD" strokeWidth="2" strokeLinecap="round" />
+      <path d="M33 8 L41 12 L35 19" stroke="#B0B5BD" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    </svg>
+  );
+}
+
+export function ConceptFlow({ direction = 'row', size = 'md' }) {
+  const vertical = direction === 'column';
+  const iconSize = size === 'sm' ? 22 : 30;
+  const font = size === 'sm' ? 15 : 19;
 
   return (
-    <div style={{ display: 'flex', alignItems: 'stretch', gap: compact ? 4 : 10, flexWrap: 'nowrap' }}>
+    <div style={{ display: 'flex', flexDirection: vertical ? 'column' : 'row', alignItems: 'center', gap: vertical ? 2 : 4, flexWrap: 'nowrap' }}>
       {STEPS.map((s, i) => (
         <React.Fragment key={i}>
-          <div
-            style={{
-              width: box,
-              flex: 'none',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 6,
-              textAlign: 'center',
-              padding: pad,
-              border: `1px solid var(--border-subtle)`,
-              background: 'var(--surface-1)',
-              borderLeft: `3px solid ${s.color}`,
-            }}
-          >
-            {s.branch ? (
-              <div style={{ display: 'flex', gap: 3 }}>
-                {['#ED7700', '#6B4EFF', '#D4380D'].map((c) => (
-                  <span key={c} style={{ width: 7, height: 7, background: c, borderRadius: '50%' }} />
-                ))}
-              </div>
-            ) : s.icon ? (
-              <s.icon size={iconSize} color={s.color} weight="duotone" />
-            ) : null}
-            <span style={{ fontSize: fs, fontWeight: 600, color: 'var(--fg-1)', lineHeight: 1.3 }}>{s.label}</span>
-          </div>
-          {i < STEPS.length - 1 ? (
-            <div style={{ display: 'flex', alignItems: 'center', color: 'var(--fg-3)' }}>
-              <ArrowRight size={compact ? 12 : 16} weight="bold" />
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, width: vertical ? 150 : 96, textAlign: 'center' }}>
+            <div style={{ height: iconSize + 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {s.dots ? (
+                <div style={{ display: 'flex', gap: 5 }}>
+                  {s.dots.map((c) => (
+                    <span key={c} style={{ width: 10, height: 10, background: c, borderRadius: '50%' }} />
+                  ))}
+                </div>
+              ) : s.icon ? (
+                <s.icon size={iconSize} color={s.color} weight="duotone" />
+              ) : null}
             </div>
-          ) : null}
+            <span style={{ fontFamily: sketchFont, fontSize: font, fontWeight: 600, color: 'var(--fg-1)', lineHeight: 1.15, whiteSpace: 'pre-line' }}>{s.label}</span>
+          </div>
+          {i < STEPS.length - 1 ? <SketchArrow vertical={vertical} /> : null}
         </React.Fragment>
       ))}
     </div>
