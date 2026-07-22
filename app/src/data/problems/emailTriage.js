@@ -195,6 +195,147 @@ export const emailTriage = {
     { id: 'urgent', label: 'Switch · Urgent Complaint → Send Reply', match: { sourceType: 'switch', targetType: 'action', branch: 'urgent_complaint' } },
   ],
 
+  // The 3 guided build sub-phases. `coach` is Iris's line on entering the phase.
+  buildPhases: [
+    { id: 'trigger', label: 'Set your trigger', coach: "Let's build. First — what should start this flow?", nodeTypes: ['trigger'] },
+    { id: 'brain', label: 'Give it a brain', coach: "Trigger's set. Now let's make it read and understand each email.", nodeTypes: ['classify', 'chat-gemini', 'parse'] },
+    { id: 'route', label: 'Route & reply', coach: 'It can read emails now. Last part — route by category and send the right reply.', nodeTypes: ['switch', 'action'] },
+  ],
+
+  // Section-gated node setup: each section has clickable right/wrong candidates,
+  // each with a "why". Selecting the correct one confirms the section.
+  nodeSetup: {
+    trigger: {
+      sections: [
+        {
+          id: 'trigger-field',
+          prompt: 'Which field holds the message you’ll actually classify?',
+          kind: 'field',
+          candidates: [
+            { value: 'body', correct: true, why: 'The full text of the email — what you judge intent on.' },
+            { value: 'subject', correct: false, why: 'Just the title. Often too little to tell a bug from a complaint.' },
+            { value: 'from', correct: false, why: 'The sender’s address — identity, not content.' },
+            { value: 'receivedAt', correct: false, why: 'A timestamp. Says nothing about what the email is about.' },
+          ],
+        },
+      ],
+    },
+    classify: {
+      sections: [
+        {
+          id: 'classify-brain',
+          prompt: 'An AI node can’t think on its own. What does it need plugged in?',
+          kind: 'choice',
+          candidates: [
+            { value: 'chatModel', label: 'Chat Model', correct: true, why: 'The language model is the brain — without it the node can’t classify. It’s required.' },
+            { value: 'memory', label: 'Memory', correct: false, why: 'Remembers past turns — useful for chatbots, not one-shot classification.' },
+            { value: 'tool', label: 'Tool', correct: false, why: 'Lets an agent call other systems — not needed just to label an email.' },
+            { value: 'none', label: 'Nothing', correct: false, why: 'It literally won’t run — n8n flags “connect a Chat Model”.' },
+          ],
+        },
+        {
+          id: 'classify-text',
+          prompt: 'Point the AI at the email. Which field should its Text input read?',
+          kind: 'field',
+          candidates: [
+            { value: 'body', correct: true, why: 'The message itself — classify on this.' },
+            { value: 'subject', correct: false, why: 'Only the title; the AI would miss most of the signal.' },
+            { value: 'from', correct: false, why: 'The sender, not the content.' },
+          ],
+        },
+      ],
+    },
+    parse: {
+      sections: [
+        {
+          id: 'parse-source',
+          prompt: 'The AI handed back one blob of text. Which input do you parse into fields?',
+          kind: 'field',
+          candidates: [
+            { value: 'text', correct: true, why: 'The AI’s raw answer — parse this into category + urgency.' },
+            { value: 'body', correct: false, why: 'That’s the original email, not the AI’s answer.' },
+            { value: 'subject', correct: false, why: 'The email’s title — nothing to parse here.' },
+          ],
+        },
+      ],
+    },
+    switch: {
+      sections: [
+        {
+          id: 'switch-field',
+          prompt: 'You’ve got category and urgency now. Which one decides the branch?',
+          kind: 'field',
+          candidates: [
+            { value: 'category', correct: true, why: 'The label the AI assigned — Bug / Feature / Complaint. Route on this.' },
+            { value: 'urgency', correct: false, why: 'How urgent, not what type — a secondary signal, not the split.' },
+            { value: 'body', correct: false, why: 'Raw text — the Switch needs a clean, predictable value.' },
+          ],
+        },
+      ],
+    },
+    action: {
+      sections: [
+        {
+          id: 'action-to',
+          prompt: 'The reply has to reach the customer. Which field is the recipient?',
+          kind: 'field',
+          candidates: [
+            { value: 'from', correct: true, why: 'The person who emailed in — the reply goes back to them.' },
+            { value: 'subject', correct: false, why: 'The email’s title, not an address.' },
+            { value: 'to', correct: false, why: 'That was your inbox — replying here emails yourself.' },
+          ],
+        },
+      ],
+    },
+  },
+
+  // Misconception probes for plausible wrong drops (types absent here get a light nudge).
+  nodeProbes: {
+    'chat-trigger': {
+      prompt: 'Hmm — why Chat Trigger?',
+      options: [
+        { text: 'Emails and chats both bring in a message', correct: false, misconception: 'chat-trigger-is-email', response: 'Close, but Chat Trigger only listens for chatbot messages, not an inbox. A support inbox needs an email trigger.' },
+        { text: 'Any trigger starts the flow, so it’s fine', correct: false, misconception: 'triggers-interchangeable', response: 'Triggers aren’t interchangeable — each fires on one specific event. You need the one that fires on a new email.' },
+        { text: 'Added it by mistake', correct: true, response: 'No worries — popping it back.' },
+      ],
+    },
+    schedule: {
+      prompt: 'Why a Schedule trigger?',
+      options: [
+        { text: 'It can check the inbox on a timer', correct: false, misconception: 'poll-vs-event', response: 'It can, but that polls on a clock and adds delay. You want to react the instant an email lands — an event trigger.' },
+        { text: 'Added it by mistake', correct: true, response: 'All good — back it goes.' },
+      ],
+    },
+    webhook: {
+      prompt: 'Why a Webhook?',
+      options: [
+        { text: 'Email must arrive over HTTP', correct: false, misconception: 'email-is-http', response: 'A webhook waits for an app to POST to a URL. Gmail doesn’t call your webhook when mail arrives — use the email trigger.' },
+        { text: 'Added it by mistake', correct: true, response: 'No problem — removing it.' },
+      ],
+    },
+    if: {
+      prompt: 'Why If here?',
+      options: [
+        { text: 'It branches, and I need branches', correct: false, misconception: 'if-vs-switch', response: 'If only splits two ways (true/false). You have three categories — that’s what Switch is for.' },
+        { text: 'Added it by mistake', correct: true, response: 'Back to the sidebar.' },
+      ],
+    },
+    code: {
+      prompt: 'Why Code to classify?',
+      options: [
+        { text: 'I can write rules to detect the category', correct: false, misconception: 'rules-vs-ai', response: 'Brittle — emails are free text phrased a thousand ways. Let an AI read it instead.' },
+        { text: 'Added it by mistake', correct: true, response: 'Removing it.' },
+      ],
+    },
+    'web-search': {
+      prompt: 'Why Web Search?',
+      options: [
+        { text: 'To look up what the email means', correct: false, misconception: 'search-vs-classify', response: 'The answer is inside the email itself — you classify it, you don’t search the web for it.' },
+        { text: 'Added it by mistake', correct: true, response: 'Back it goes.' },
+      ],
+    },
+  },
+
   // Sample emails the Run simulation streams through the flow, one after another.
   // `branch` is the Switch handle each should take (null = matches no branch).
   sampleCases: [

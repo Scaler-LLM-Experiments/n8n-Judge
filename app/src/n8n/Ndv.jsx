@@ -24,7 +24,7 @@ export function Ndv({ node, inputData, inputLabel, onChangeParam, onClose }) {
   const requestClose = () => gsap.to(rootRef.current, { yPercent: 100, duration: 0.26, ease: 'power2.in', onComplete: onClose });
 
   return (
-    <div ref={rootRef} style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '66%', background: 'var(--surface-0)', borderTop: '1px solid var(--border-strong)', boxShadow: '0 -14px 40px rgba(1,24,69,0.16)', zIndex: 45, display: 'flex', flexDirection: 'column' }}>
+    <div ref={rootRef} style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '78%', background: 'var(--surface-0)', borderTop: '1px solid var(--border-strong)', boxShadow: '0 -14px 40px rgba(1,24,69,0.16)', zIndex: 45, display: 'flex', flexDirection: 'column' }}>
       {/* header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 16px', borderBottom: '1px solid var(--border-subtle)' }}>
         <span style={{ width: 28, height: 28, borderRadius: 7, background: meta.tint, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
