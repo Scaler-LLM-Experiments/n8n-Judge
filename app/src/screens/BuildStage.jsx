@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { CheckCircle, ArrowRight, Play } from '@phosphor-icons/react';
+import { CheckCircle, XCircle, ArrowRight, Play } from '@phosphor-icons/react';
 import { TopBar } from '../components/TopBar.jsx';
 import { Button } from '../design-system/Button.jsx';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
@@ -18,6 +18,24 @@ export function BuildStage({ problem, onDecision, onComplete }) {
   const timer = useRef(null);
 
   const recordFieldDecision = useCallback((d) => { if (onDecision) onDecision(d); }, [onDecision]);
+  const [probe, setProbe] = useState(null); // { type, data }
+  const [nudge, setNudge] = useState(null); // string
+
+  const handleWrongPick = useCallback((type) => {
+    const p = problem.nodeProbes?.[type];
+    if (p) {
+      setProbe({ type, data: p });
+    } else {
+      const label = problem.nodePalette.find((n) => n.type === type)?.label || 'That node';
+      setNudge(`${label} doesn’t belong in this step. Take another look.`);
+      if (onDecision) onDecision({ id: `nodePick:${type}`, kind: 'nodePick', correct: false, firstTry: false });
+      setTimeout(() => setNudge(null), 2600);
+    }
+  }, [problem, onDecision]);
+
+  const answerProbe = (opt) => {
+    if (onDecision) onDecision({ id: `nodePick:${probe.type}`, kind: 'nodePick', label: probe.data.prompt, correct: !!opt.correct, firstTry: false, misconception: opt.misconception });
+  };
 
   useEffect(() => () => clearTimeout(timer.current), []);
 
@@ -54,7 +72,14 @@ export function BuildStage({ problem, onDecision, onComplete }) {
       <SubStageBar phases={phases} phaseIndex={phaseIndex} complete={complete} />
 
       <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
-        <N8nEditor pickable={phase?.pickable || []} onGraphChange={handleGraph} nodeSetup={problem.nodeSetup} onDecision={recordFieldDecision} />
+        <N8nEditor
+          pickable={phase?.pickable || []}
+          correctTypes={(phase?.nodeTypes || []).filter((t) => t !== 'chat-gemini')}
+          onWrongPick={handleWrongPick}
+          onGraphChange={handleGraph}
+          nodeSetup={problem.nodeSetup}
+          onDecision={recordFieldDecision}
+        />
 
         {/* Iris parked bottom-left while building */}
         {!overlay ? (
@@ -65,6 +90,16 @@ export function BuildStage({ problem, onDecision, onComplete }) {
 
         {/* phase-transition overlay */}
         {overlay ? <PhaseOverlay overlay={overlay} total={phases.length} /> : null}
+
+        {/* wrong-pick probe (plausible confusers) */}
+        {probe ? <ProbeDialog data={probe.data} onAnswer={answerProbe} onClose={() => setProbe(null)} /> : null}
+
+        {/* light nudge (obvious mis-picks) */}
+        {nudge ? (
+          <div style={{ position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)', zIndex: 55, display: 'flex', alignItems: 'center', gap: 8, background: 'var(--status-danger-bg)', border: '1px solid var(--status-danger-border)', color: 'var(--status-danger)', padding: '9px 14px', fontSize: 13, fontWeight: 600, boxShadow: '0 6px 20px rgba(1,24,69,0.12)' }}>
+            <XCircle size={16} weight="fill" /> {nudge}
+          </div>
+        ) : null}
 
         {/* run bar once built */}
         {complete && !overlay ? (
@@ -98,6 +133,48 @@ function SubStageBar({ phases, phaseIndex, complete }) {
           </React.Fragment>
         );
       })}
+    </div>
+  );
+}
+
+function ProbeDialog({ data, onAnswer, onClose }) {
+  const [picked, setPicked] = useState(null);
+  const pick = (opt, i) => {
+    if (picked !== null) return;
+    setPicked(i);
+    onAnswer(opt);
+  };
+  const chosen = picked !== null ? data.options[picked] : null;
+  return (
+    <div style={{ position: 'absolute', inset: 0, zIndex: 60, background: 'rgba(1,24,69,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <div style={{ width: 460, maxWidth: '100%', background: 'var(--surface-0)', border: '1px solid var(--border-strong)', boxShadow: '0 24px 60px rgba(1,24,69,0.3)' }}>
+        <div style={{ display: 'flex', gap: 12, padding: '18px 18px 12px' }}>
+          <div style={{ width: 52, height: 52, flex: 'none' }}>
+            <MascotPlayer clip="shake-no" once={false} onceDone={() => {}} />
+          </div>
+          <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.35, alignSelf: 'center' }}>{data.prompt}</div>
+        </div>
+        <div style={{ padding: '0 18px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {data.options.map((opt, i) => {
+            const isPicked = picked === i;
+            const tone = isPicked ? (opt.correct ? 'var(--brand-primary)' : 'var(--status-danger)') : 'var(--border-subtle)';
+            return (
+              <button key={i} type="button" onClick={() => pick(opt, i)} disabled={picked !== null && !isPicked}
+                style={{ textAlign: 'left', padding: '10px 12px', border: `1px solid ${tone}`, background: isPicked ? (opt.correct ? 'var(--brand-blue-50)' : 'var(--status-danger-bg)') : 'var(--surface-0)', fontSize: 13, fontWeight: 500, color: 'var(--fg-1)', cursor: picked === null ? 'pointer' : 'default', fontFamily: 'var(--font-body)', opacity: picked !== null && !isPicked ? 0.5 : 1 }}>
+                {opt.text}
+              </button>
+            );
+          })}
+        </div>
+        {chosen ? (
+          <div style={{ margin: '0 18px 14px', padding: '11px 13px', background: 'var(--surface-1)', borderLeft: `3px solid ${chosen.correct ? 'var(--brand-primary)' : 'var(--status-danger)'}`, fontSize: 13, lineHeight: 1.5, color: 'var(--fg-2)' }}>
+            {chosen.response}
+          </div>
+        ) : null}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0 18px 16px' }}>
+          <Button variant="primary" size="sm" disabled={picked === null} onClick={onClose}>Got it</Button>
+        </div>
+      </div>
     </div>
   );
 }

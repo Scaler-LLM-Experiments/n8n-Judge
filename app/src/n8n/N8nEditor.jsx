@@ -27,7 +27,7 @@ const defaultEdgeOptions = {
 let idc = 0;
 const nextId = () => `n${(idc += 1)}`;
 
-function EditorInner({ pickable, onGraphChange, nodeSetup, onDecision }) {
+function EditorInner({ pickable, onGraphChange, nodeSetup, onDecision, correctTypes, onWrongPick }) {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
   const [picker, setPicker] = useState(null); // {sourceId, triggerSlot, modelSlot}
@@ -45,8 +45,14 @@ function EditorInner({ pickable, onGraphChange, nodeSetup, onDecision }) {
   const completeNode = useCallback((id) => setNodes((ns) => ns.map((n) => (n.id === id ? { ...n, data: { ...n.data, configured: true } } : n))), []);
 
   const addNode = (catalogType) => {
-    const entry = NODE_CATALOG[catalogType];
     const ctx = picker || {};
+    // Wrong pick for this phase — don't place it; let the parent probe/nudge.
+    if (!ctx.modelSlot && correctTypes && !correctTypes.includes(catalogType)) {
+      setPicker(null);
+      if (onWrongPick) onWrongPick(catalogType);
+      return;
+    }
+    const entry = NODE_CATALOG[catalogType];
     const id = nextId();
     const source = ctx.sourceId ? nodes.find((n) => n.id === ctx.sourceId) : null;
 
@@ -143,10 +149,10 @@ function EditorInner({ pickable, onGraphChange, nodeSetup, onDecision }) {
   );
 }
 
-export function N8nEditor({ pickable, onGraphChange, nodeSetup, onDecision }) {
+export function N8nEditor({ pickable, onGraphChange, nodeSetup, onDecision, correctTypes, onWrongPick }) {
   return (
     <ReactFlowProvider>
-      <EditorInner pickable={pickable} onGraphChange={onGraphChange} nodeSetup={nodeSetup} onDecision={onDecision} />
+      <EditorInner pickable={pickable} onGraphChange={onGraphChange} nodeSetup={nodeSetup} onDecision={onDecision} correctTypes={correctTypes} onWrongPick={onWrongPick} />
     </ReactFlowProvider>
   );
 }
