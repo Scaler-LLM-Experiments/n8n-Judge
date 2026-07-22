@@ -7,21 +7,12 @@ import { ProblemStatementPanel } from '../components/ProblemStatementPanel.jsx';
 import { scoreEval } from '../engine/evalScore.js';
 import { nodeIcons, nodeIconColor, categoryMeta, typeCategory } from '../nodes/nodeIcons.js';
 
-// The flow the learner built, shown as a compact read-only strip.
-const FLOW = [
-  { type: 'trigger', label: 'New Email' },
-  { type: 'classify', label: 'Classify with AI' },
-  { type: 'parse', label: 'Parse Result' },
-  { type: 'switch', label: 'Switch' },
-  { type: 'action', label: 'Send Reply' },
-];
-
-function FlowSummary() {
+function FlowSummary({ steps, caption }) {
   return (
     <div style={{ border: '1px solid var(--border-subtle)', background: 'var(--surface-1)', padding: '16px 18px' }}>
       <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--fg-2)', fontWeight: 700, marginBottom: 12 }}>The agent you built</div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
-        {FLOW.map((n, i) => {
+        {steps.map((n, i) => {
           const Icon = nodeIcons[n.type];
           const cat = typeCategory[n.type] || 'core';
           const color = nodeIconColor[n.type] || categoryMeta[cat].color;
@@ -38,9 +29,7 @@ function FlowSummary() {
           );
         })}
       </div>
-      <div style={{ fontSize: 11.5, color: 'var(--fg-3)', marginTop: 10, lineHeight: 1.5 }}>
-        Gemini Chat Model powers Classify · Switch fans out to 3 replies (Bug Report · Feature Request · Urgent Complaint).
-      </div>
+      {caption ? <div style={{ fontSize: 11.5, color: 'var(--fg-3)', marginTop: 10, lineHeight: 1.5 }}>{caption}</div> : null}
     </div>
   );
 }
@@ -83,7 +72,7 @@ export function EvalScreen({ problem, onSubmit, onDecision }) {
             <div style={{ fontSize: 13.5, color: 'var(--fg-2)', lineHeight: 1.5 }}>Your flow passed the run. Now let’s check you understand how it behaves.</div>
           </div>
 
-          <FlowSummary />
+          {problem.flowSummary ? <FlowSummary steps={problem.flowSummary.steps} caption={problem.flowSummary.caption} /> : null}
 
           <Card style={{ width: '100%' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { checkDrop, currentBuildStepIndex } from './checkDrop.js';
-import { emailTriage } from '../data/problems/emailTriage.js';
+import { emailTriage } from '../data/problems/emailTriage/index.js';
 
 const trigger = emailTriage.nodePalette.find((n) => n.type === 'trigger');
 const chatTrigger = emailTriage.nodePalette.find((n) => n.type === 'chat-trigger');

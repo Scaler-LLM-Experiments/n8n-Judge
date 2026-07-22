@@ -14,15 +14,9 @@ const AI_PORTS = [
   { id: 'tool', label: 'Tool', required: false },
 ];
 
-// Switch fans out to one labelled output per category.
-const SWITCH_BRANCHES = [
-  { id: 'bug_report', label: 'Bug Report' },
-  { id: 'feature_request', label: 'Feature Request' },
-  { id: 'urgent_complaint', label: 'Urgent Complaint' },
-];
-
 export function N8nFlowNode({ id, type, data, selected }) {
-  const { openPicker, openNdv } = useEditor();
+  const { openPicker, openNdv, branches } = useEditor();
+  const SWITCH_BRANCHES = branches || [];
   const [hover, setHover] = useState(false);
   const variant = variantOf(type);
   const isTrigger = variant === 'trigger';

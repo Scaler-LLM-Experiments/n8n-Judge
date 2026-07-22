@@ -15,6 +15,7 @@ import { EditorContext } from './EditorContext.js';
 import { N8nFlowNode } from './N8nFlowNode.jsx';
 import { NodePickerDrawer } from './NodePickerDrawer.jsx';
 import { Ndv } from './Ndv.jsx';
+import { variantOf } from './N8nNodeView.jsx';
 import { NODE_CATALOG } from './catalog.js';
 
 const nodeTypes = Object.fromEntries(Object.keys(NODE_CATALOG).map((t) => [t, N8nFlowNode]));
@@ -58,7 +59,7 @@ function expectedNext(ctx, nodes, flow) {
   return (src && flow.next?.[src.type]) || [];
 }
 
-const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, nodeSetup, onDecision, flow, runActiveId, initialGraph, onWrongPick, onPlaceCorrect }, ref) {
+const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, nodeSetup, onDecision, flow, branches, runActiveId, initialGraph, onWrongPick, onPlaceCorrect }, ref) {
   const [nodes, setNodes] = useState(() => seedNodes(initialGraph));
   const [edges, setEdges] = useState(() => seedEdges(initialGraph));
   const [picker, setPicker] = useState(null); // {sourceId, triggerSlot, modelSlot, branch, branchIndex}
@@ -138,24 +139,25 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
   // Inject cue flags so each node can pulse exactly the control the learner should
   // touch next: its own body (needs setup), its output + (ready for the next step),
   // the Chat Model + (AI node missing a model), or a Switch branch + (unwired).
-  const branchIds = ['bug_report', 'feature_request', 'urgent_complaint'];
+  const branchIds = (branches || []).map((b) => b.id);
   // when a run is active, also light the Chat Model wired to the running Classify
   const activeModelId = useMemo(() => {
     if (!runActiveId) return null;
     const an = nodes.find((n) => n.id === runActiveId);
-    if (an?.type !== 'classify') return null;
+    if (!an || variantOf(an.type) !== 'ai') return null;
     return edges.find((e) => e.target === an.id && e.targetHandle === 'ai_model')?.source || null;
   }, [runActiveId, nodes, edges]);
 
   const displayNodes = useMemo(
     () => nodes.map((n) => {
       const type = n.type;
+      const isAi = variantOf(type) === 'ai';
       const hasEditable = (nodeSetup?.[type]?.fields?.length || 0) > 0;
       const hasMainOut = edges.some((e) => e.source === n.id && !e.sourceHandle && e.targetHandle !== 'ai_model');
-      const hasModel = type === 'classify' ? edges.some((e) => e.target === n.id && e.targetHandle === 'ai_model') : undefined;
+      const hasModel = isAi ? edges.some((e) => e.target === n.id && e.targetHandle === 'ai_model') : undefined;
       const flowNext = flow?.next?.[type] || [];
       const needsSetup = !n.data.configured && !n.data.wrong && hasEditable;
-      const modelReady = type === 'classify' ? hasModel : true;
+      const modelReady = isAi ? hasModel : true;
       const awaitingNext = !n.data.wrong && flowNext.length > 0 && !hasMainOut && modelReady && (hasEditable ? n.data.configured : true);
       const openBranches = type === 'switch'
         ? branchIds.filter((b) => !edges.some((e) => e.source === n.id && e.sourceHandle === b))
@@ -182,7 +184,7 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
     return { data: src?.data.output || null, label: src?.data.label || null };
   })();
 
-  const ctxValue = useMemo(() => ({ openPicker, openNdv }), [openPicker, openNdv]);
+  const ctxValue = useMemo(() => ({ openPicker, openNdv, branches: branches || [] }), [openPicker, openNdv, branches]);
 
   return (
     <EditorContext.Provider value={ctxValue}>

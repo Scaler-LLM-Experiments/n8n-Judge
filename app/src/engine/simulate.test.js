@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { simulateAll, simulateCase } from './simulate.js';
-import { emailTriage } from '../data/problems/emailTriage.js';
+import { emailTriage } from '../data/problems/emailTriage/index.js';
 
 function correctGraph() {
   return {

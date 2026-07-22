@@ -161,8 +161,8 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun }) {
     if (phase.nodeTypes.includes('switch')) {
       const g = graphRef.current;
       const sw = g.nodes.find((n) => n.type === 'switch');
-      branchesOk = !!sw && ['bug_report', 'feature_request', 'urgent_complaint'].every((b) => {
-        const e = g.edges.find((ed) => ed.source === sw.id && ed.sourceHandle === b);
+      branchesOk = !!sw && (problem.branches || []).every(({ id }) => {
+        const e = g.edges.find((ed) => ed.source === sw.id && ed.sourceHandle === id);
         const target = e && g.nodes.find((n) => n.id === e.target);
         return target && target.type === 'action' && target.data?.configured;
       });
@@ -267,6 +267,7 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun }) {
           ref={editorRef}
           pickable={phase?.pickable || []}
           flow={problem.flow}
+          branches={problem.branches}
           initialGraph={devAutoRun ? problem.referenceGraph : undefined}
           runActiveId={activeNodeId}
           onWrongPick={handleWrongPick}

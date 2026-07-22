@@ -1,6 +1,6 @@
 // app/src/App.jsx
 import React, { useState } from 'react';
-import { emailTriage } from './data/problems/emailTriage.js';
+import { resolveProblem } from './data/problems/index.js';
 import { DissectionScreen } from './screens/DissectionScreen.jsx';
 import { BuildStage } from './screens/BuildStage.jsx';
 import { EvalScreen } from './screens/EvalScreen.jsx';
@@ -20,17 +20,18 @@ const SCREEN = {
 };
 
 export default function App() {
+  const problem = resolveProblem();
   if (typeof window !== 'undefined' && window.location.hash === '#playground') {
     return <div style={{ height: '100vh' }}><PlaygroundScreen /></div>;
   }
-  if (typeof window !== 'undefined' && window.location.hash === '#build') {
-    return <div style={{ height: '100vh' }}><BuildPreview /></div>;
+  if (typeof window !== 'undefined' && window.location.hash.startsWith('#build')) {
+    return <div style={{ height: '100vh' }}><BuildPreview problem={problem} /></div>;
   }
-  if (typeof window !== 'undefined' && window.location.hash === '#run-story') {
-    return <div style={{ height: '100vh' }}><BuildPreview devAutoRun /></div>;
+  if (typeof window !== 'undefined' && window.location.hash.startsWith('#run-story')) {
+    return <div style={{ height: '100vh' }}><BuildPreview problem={problem} devAutoRun /></div>;
   }
-  if (typeof window !== 'undefined' && window.location.hash === '#eval-demo') {
-    return <div style={{ height: '100vh' }}><EvalScreen problem={emailTriage} onSubmit={() => {}} onDecision={() => {}} /></div>;
+  if (typeof window !== 'undefined' && window.location.hash.startsWith('#eval-demo')) {
+    return <div style={{ height: '100vh' }}><EvalScreen problem={problem} onSubmit={() => {}} onDecision={() => {}} /></div>;
   }
   if (typeof window !== 'undefined' && window.location.hash === '#run-demo') {
     const g = {
@@ -54,7 +55,7 @@ export default function App() {
         { id: 'e6', source: 's', target: 'au', sourceHandle: 'urgent_complaint' },
       ],
     };
-    const result = { ...simulateAll(g, emailTriage), val: validateGraph(g, emailTriage) };
+    const result = { ...simulateAll(g, problem), val: validateGraph(g, problem) };
     return (
       <div style={{ height: '100vh', position: 'relative', background: '#E9ECF2' }}>
         <RunPanel result={result} onContinue={() => {}} onClose={() => {}} />
@@ -77,16 +78,16 @@ export default function App() {
       nodes: [{ id: 't', type: 'trigger' }, { id: 'c', type: 'classify' }, { id: 'm', type: 'chat-gemini' }, { id: 'p', type: 'parse' }, { id: 's', type: 'switch' }, { id: 'ab', type: 'action' }, { id: 'af', type: 'action' }, { id: 'au', type: 'action' }],
       edges: [{ source: 'm', target: 'c', targetHandle: 'ai_model' }, { source: 't', target: 'c' }, { source: 'c', target: 'p' }, { source: 'p', target: 's' }, { source: 's', target: 'ab', sourceHandle: 'bug_report' }, { source: 's', target: 'af', sourceHandle: 'feature_request' }, { source: 's', target: 'au', sourceHandle: 'urgent_complaint' }],
     };
-    const runResult = validateGraph(g, emailTriage);
-    const evalOutcome = scoreEval({ 'general-question-gap': 1, 'why-fixed-path': 0 }, emailTriage.evalQuestions);
-    return <div style={{ height: '100vh' }}><ReportScreen problem={emailTriage} grading={s} runResult={runResult} evalOutcome={evalOutcome} /></div>;
+    const runResult = validateGraph(g, problem);
+    const evalOutcome = scoreEval({ 'general-question-gap': 1, 'why-fixed-path': 0 }, problem.evalQuestions);
+    return <div style={{ height: '100vh' }}><ReportScreen problem={problem} grading={s} runResult={runResult} evalOutcome={evalOutcome} /></div>;
   }
-  return <MainApp />;
+  return <MainApp problem={problem} />;
 }
 
 // Preview wrapper for the #build / #run-story routes: build → eval → report,
 // so the "Move to Stress Testing" CTA actually advances.
-function BuildPreview({ devAutoRun }) {
+function BuildPreview({ problem, devAutoRun }) {
   const [screen, setScreen] = useState('build');
   const [grading, setGrading] = useState(() => createStore());
   const [runResult, setRunResult] = useState(null);
@@ -94,14 +95,14 @@ function BuildPreview({ devAutoRun }) {
   const record = (d) => setGrading((s) => recordDecision(s, d));
 
   if (screen === 'eval') {
-    return <EvalScreen problem={emailTriage} onDecision={record} onSubmit={(o) => { setEvalOutcome(o); setScreen('report'); }} />;
+    return <EvalScreen problem={problem} onDecision={record} onSubmit={(o) => { setEvalOutcome(o); setScreen('report'); }} />;
   }
   if (screen === 'report') {
-    return <ReportScreen problem={emailTriage} grading={grading} runResult={runResult} evalOutcome={evalOutcome} />;
+    return <ReportScreen problem={problem} grading={grading} runResult={runResult} evalOutcome={evalOutcome} />;
   }
   return (
     <BuildStage
-      problem={emailTriage}
+      problem={problem}
       devAutoRun={devAutoRun}
       onDecision={record}
       onComplete={(r) => { if (r) setRunResult(r); setScreen('eval'); }}
@@ -109,7 +110,7 @@ function BuildPreview({ devAutoRun }) {
   );
 }
 
-function MainApp() {
+function MainApp({ problem }) {
   const [screen, setScreen] = useState(SCREEN.STATEMENT);
   const [dissection, setDissection] = useState(null);
   const [runResult, setRunResult] = useState(null);
@@ -121,7 +122,7 @@ function MainApp() {
     <div style={{ height: '100vh' }}>
       {screen === SCREEN.STATEMENT ? (
         <DissectionScreen
-          problem={emailTriage}
+          problem={problem}
           onDecision={record}
           onComplete={(result) => {
             setDissection(result);
@@ -132,7 +133,7 @@ function MainApp() {
 
       {screen === SCREEN.DASHBOARD ? (
         <BuildStage
-          problem={emailTriage}
+          problem={problem}
           onDecision={record}
           onComplete={(result) => {
             if (result) setRunResult(result);
@@ -143,7 +144,7 @@ function MainApp() {
 
       {screen === SCREEN.EVAL ? (
         <EvalScreen
-          problem={emailTriage}
+          problem={problem}
           onDecision={record}
           onSubmit={(outcome) => {
             setEvalOutcome(outcome);
@@ -153,7 +154,7 @@ function MainApp() {
       ) : null}
 
       {screen === SCREEN.REPORT ? (
-        <ReportScreen problem={emailTriage} grading={grading} dissection={dissection} runResult={runResult} evalOutcome={evalOutcome} />
+        <ReportScreen problem={problem} grading={grading} dissection={dissection} runResult={runResult} evalOutcome={evalOutcome} />
       ) : null}
     </div>
   );

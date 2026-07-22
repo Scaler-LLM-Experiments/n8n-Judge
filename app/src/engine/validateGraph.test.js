@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { validateGraph } from './validateGraph.js';
-import { emailTriage } from '../data/problems/emailTriage.js';
+import { emailTriage } from '../data/problems/emailTriage/index.js';
 
 function buildCorrectGraph() {
   return {

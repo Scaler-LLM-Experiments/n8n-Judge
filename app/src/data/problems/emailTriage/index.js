@@ -195,6 +195,26 @@ export const emailTriage = {
     { id: 'urgent', label: 'Switch · Urgent Complaint → Send Reply', match: { sourceType: 'switch', targetType: 'action', branch: 'urgent_complaint' } },
   ],
 
+  // The Switch's labelled outputs (branches). Drives the branch ports on the
+  // Switch node, the "all branches wired" completion check, and the run.
+  branches: [
+    { id: 'bug_report', label: 'Bug Report' },
+    { id: 'feature_request', label: 'Feature Request' },
+    { id: 'urgent_complaint', label: 'Urgent Complaint' },
+  ],
+
+  // Read-only summary of the built agent, shown atop the Stress Testing stage.
+  flowSummary: {
+    steps: [
+      { type: 'trigger', label: 'New Email' },
+      { type: 'classify', label: 'Classify with AI' },
+      { type: 'parse', label: 'Parse Result' },
+      { type: 'switch', label: 'Switch' },
+      { type: 'action', label: 'Send Reply' },
+    ],
+    caption: 'Gemini Chat Model powers Classify · Switch fans out to 3 replies (Bug Report · Feature Request · Urgent Complaint).',
+  },
+
   // Canonical flow order. Used to detect sequence mistakes: from a given source
   // (or the model / branch ports) only certain node types are the valid next step.
   flow: {

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { scoreEval } from './evalScore.js';
-import { emailTriage } from '../data/problems/emailTriage.js';
+import { emailTriage } from '../data/problems/emailTriage/index.js';
 
 describe('scoreEval', () => {
   it('scores all correct answers as fully correct', () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { emailTriage } from './emailTriage.js';
+import { emailTriage } from './index.js';
 
 describe('emailTriage problem spec', () => {
   it('has 5 test cases and 2 eval questions', () => {
