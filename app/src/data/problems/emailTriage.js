@@ -445,6 +445,7 @@ export const emailTriage = {
   evalQuestions: [
     {
       id: 'general-question-gap',
+      caseId: 'question',
       prompt:
         "A customer email arrives that's just a general question, with no bug/feature/complaint keywords. What happens in this flow?",
       options: [
