@@ -21,7 +21,7 @@ export function variantOf(type) {
 
 const BODY = 88;
 
-export function N8nNodeView({ type, label, placeholder, tag, selected, size = BODY }) {
+export function N8nNodeView({ type, label, placeholder, tag, selected, size = BODY, hidePorts }) {
   const cat = typeCategory[type] || 'core';
   const meta = categoryMeta[cat];
   const variant = variantOf(type);
@@ -44,9 +44,9 @@ export function N8nNodeView({ type, label, placeholder, tag, selected, size = BO
         ) : null}
 
         {/* input port (left) — everything except triggers */}
-        {!isTrigger ? <Port side="left" /> : null}
+        {!hidePorts && !isTrigger ? <Port side="left" /> : null}
         {/* output port (right) */}
-        <Port side="right" />
+        {!hidePorts ? <Port side="right" /> : null}
 
         {/* body */}
         <div

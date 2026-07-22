@@ -5,6 +5,7 @@ import { DissectionScreen } from './screens/DissectionScreen.jsx';
 import { DashboardScreen } from './screens/DashboardScreen.jsx';
 import { EvalScreen } from './screens/EvalScreen.jsx';
 import { ReportScreen } from './screens/ReportScreen.jsx';
+import { PlaygroundScreen } from './screens/PlaygroundScreen.jsx';
 
 const SCREEN = {
   STATEMENT: 'statement',
@@ -14,6 +15,13 @@ const SCREEN = {
 };
 
 export default function App() {
+  if (typeof window !== 'undefined' && window.location.hash === '#playground') {
+    return <div style={{ height: '100vh' }}><PlaygroundScreen /></div>;
+  }
+  return <MainApp />;
+}
+
+function MainApp() {
   const [screen, setScreen] = useState(SCREEN.STATEMENT);
   const [dissection, setDissection] = useState(null);
   const [runResult, setRunResult] = useState(null);
