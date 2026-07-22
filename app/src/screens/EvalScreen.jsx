@@ -23,6 +23,12 @@ const REFERENCE_PATH = [
   { type: 'action', label: 'Send Reply' },
 ];
 
+// The shared, pre-branch stretch of the build — shown as the question's own
+// context before answering. It stops at Switch, before the case-specific
+// outcome, so it grounds the question in the learner's real build without
+// giving away the answer (the outcome only reveals via NodeReplay post-pick).
+const BASE_PATH = REFERENCE_PATH.slice(0, 4);
+
 export function EvalScreen({ problem, graph, onDecision, onSubmit }) {
   const questions = problem.evalQuestions;
   const [index, setIndex] = useState(0);
@@ -80,7 +86,14 @@ export function EvalScreen({ problem, graph, onDecision, onSubmit }) {
           <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--fg-3)', fontWeight: 700, marginBottom: 10 }}>
             Question {index + 1} of {questions.length}
           </div>
-          <div style={{ fontSize: 21, fontWeight: 700, marginBottom: 22, lineHeight: 1.35, maxWidth: 560 }}>{q.prompt}</div>
+          <div style={{ fontSize: 21, fontWeight: 700, marginBottom: 18, lineHeight: 1.35, maxWidth: 560 }}>{q.prompt}</div>
+
+          <div style={{ width: '100%', marginBottom: 22, border: '1px solid var(--border-strong)', background: '#E9ECF2', backgroundImage: 'radial-gradient(#C4CAD4 1px, transparent 1px)', backgroundSize: '16px 16px', padding: '18px' }}>
+            <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--fg-3)', fontWeight: 700, marginBottom: 4 }}>
+              {sampleCase ? 'Your build' : 'The fixed path'}
+            </div>
+            <NodeFlowRow items={sampleCase ? BASE_PATH : REFERENCE_PATH} />
+          </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%' }}>
             {q.options.map((opt, i) => {
@@ -104,18 +117,9 @@ export function EvalScreen({ problem, graph, onDecision, onSubmit }) {
             </div>
           ) : null}
 
-          {answered ? (
+          {answered && replaySteps ? (
             <div style={{ width: '100%', marginTop: 22 }}>
-              {replaySteps ? (
-                <NodeReplay steps={replaySteps} label="Replaying your build — this exact case, on your graph" />
-              ) : (
-                <div style={{ border: '1px solid var(--border-strong)', background: '#E9ECF2', backgroundImage: 'radial-gradient(#C4CAD4 1px, transparent 1px)', backgroundSize: '16px 16px', padding: '18px' }}>
-                  <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--fg-3)', fontWeight: 700, marginBottom: 4 }}>
-                    The fixed path
-                  </div>
-                  <NodeFlowRow items={REFERENCE_PATH} />
-                </div>
-              )}
+              <NodeReplay steps={replaySteps} label="Replaying your build — this exact case, on your graph" />
             </div>
           ) : null}
 
