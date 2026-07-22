@@ -23,8 +23,16 @@ export function DissectionScreen({ problem, onComplete }) {
   const [showNote, setShowNote] = useState(true);
   const [mascotClip, setMascotClip] = useState('hello');
   const advanceTimer = useRef(null);
+  const quizRef = useRef(null);
 
   useEffect(() => () => clearTimeout(advanceTimer.current), []);
+
+  // ease the whole quiz screen in when arriving from the problem beat
+  useEffect(() => {
+    if (phase === 'quiz' && quizRef.current) {
+      gsap.fromTo(quizRef.current, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.45, ease: 'power2.out' });
+    }
+  }, [phase]);
 
   const q = questions[index];
   const pickedOption = picked !== null ? q.options[picked] : null;
@@ -64,7 +72,7 @@ export function DissectionScreen({ problem, onComplete }) {
 
   // ---------- QUIZ ----------
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--surface-0)' }}>
+    <div ref={quizRef} style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--surface-0)' }}>
       <TopBar activeStage="statement" />
       <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '72px 24px 72px' }}>
         <QuizBody
@@ -99,27 +107,46 @@ export function DissectionScreen({ problem, onComplete }) {
 }
 
 function QuizBody({ q, index, total, picked, isCorrect, onPick }) {
+  const rootRef = useRef(null);
   const nodeRef = useRef(null);
   const pickedOption = picked !== null ? q.options[picked] : null;
   const answered = picked !== null;
+
+  // staggered entrance — runs on mount (QuizBody is keyed by index, so this
+  // fires for the first question arriving from the problem beat AND on every
+  // question change).
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.from('[data-q="head"]', { y: 22, opacity: 0, duration: 0.5, ease: 'power3.out' });
+      gsap.from('[data-q="opt"]', { y: 16, opacity: 0, duration: 0.45, stagger: 0.07, delay: 0.12, ease: 'power2.out' });
+      gsap.from('[data-q="canvas"]', { y: 18, opacity: 0, duration: 0.5, delay: 0.24, ease: 'power2.out' });
+    }, rootRef);
+    return () => ctx.revert();
+  }, []);
 
   useEffect(() => {
     if (answered && nodeRef.current) gsap.fromTo(nodeRef.current, { scale: 0.82, y: 8 }, { scale: 1, y: 0, duration: 0.5, ease: 'back.out(2)' });
   }, [picked]);
 
   return (
-    <div style={{ width: '100%', maxWidth: COLUMN, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-      <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--fg-3)', fontWeight: 700, marginBottom: 10 }}>
-        Question {index + 1} of {total}
+    <div ref={rootRef} style={{ width: '100%', maxWidth: COLUMN, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+      <div data-q="head">
+        <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--fg-3)', fontWeight: 700, marginBottom: 10 }}>
+          Question {index + 1} of {total}
+        </div>
+        <div style={{ fontSize: 21, fontWeight: 700, marginBottom: 22, lineHeight: 1.35, maxWidth: 560 }}>{q.prompt}</div>
       </div>
-      <div style={{ fontSize: 21, fontWeight: 700, marginBottom: 22, lineHeight: 1.35, maxWidth: 560 }}>{q.prompt}</div>
 
       {/* option boxes: letter + node icon + label */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, width: '100%' }}>
         {q.options.map((opt, i) => {
           const state = picked === i ? (isCorrect ? 'correct' : 'wrong') : 'idle';
           const dim = answered && isCorrect && picked !== i;
-          return <OptionBox key={i} letter={LETTERS[i]} option={opt} state={state} dim={dim} disabled={answered && isCorrect} onClick={() => onPick(i)} />;
+          return (
+            <div key={i} data-q="opt" style={{ display: 'flex' }}>
+              <OptionBox letter={LETTERS[i]} option={opt} state={state} dim={dim} disabled={answered && isCorrect} onClick={() => onPick(i)} />
+            </div>
+          );
         })}
       </div>
 
@@ -137,7 +164,7 @@ function QuizBody({ q, index, total, picked, isCorrect, onPick }) {
       ) : null}
 
       {/* center node canvas — ghost outline of the node until answered */}
-      <div style={{ width: '100%', marginTop: 22, border: '1px solid var(--border-strong)', background: '#E9ECF2', backgroundImage: 'radial-gradient(#C4CAD4 1px, transparent 1px)', backgroundSize: '16px 16px', padding: '32px 18px 36px', display: 'flex', justifyContent: 'center', minHeight: 168, alignItems: 'center' }}>
+      <div data-q="canvas" style={{ width: '100%', marginTop: 22, border: '1px solid var(--border-strong)', background: '#E9ECF2', backgroundImage: 'radial-gradient(#C4CAD4 1px, transparent 1px)', backgroundSize: '16px 16px', padding: '32px 18px 36px', display: 'flex', justifyContent: 'center', minHeight: 168, alignItems: 'center' }}>
         <div ref={nodeRef}>
           {answered ? (
             <N8nNodeView type={pickedOption.type} label={pickedOption.label} tag={isCorrect ? 'correct' : 'wrong'} />
@@ -171,6 +198,7 @@ function OptionBox({ letter, option, state, dim, disabled, onClick }) {
         background: bg,
         cursor: disabled ? 'default' : 'pointer',
         opacity: dim ? 0.45 : 1,
+        width: '100%',
         textAlign: 'left',
         fontFamily: 'var(--font-body)',
         transition: 'border-color 120ms ease, background 120ms ease, opacity 120ms ease',
