@@ -19,13 +19,13 @@ export const emailTriage = {
         { label: 'Webhook', type: 'webhook' },
       ],
       correctType: 'trigger',
-      explanation:
-        'We need to react the moment a support email lands — that’s an email trigger. A schedule fires on a clock, a webhook waits for an HTTP call, and a chat trigger is for chatbots. None of those watch an inbox.',
+      wrongHint: 'Think about what has to be watching the inbox in real time. Does this one actually do that?',
+      explanation: 'A New Email trigger fires the moment a support email lands — exactly the signal this workflow needs to react to.',
       unlocks: ['trigger'],
     },
     {
       id: 'classify',
-      prompt: 'A raw email just came in. What should read it and decide what kind of email it is?',
+      prompt: 'A raw email just came in. What should read it and work out what kind of email it is?',
       options: [
         { label: 'Classify with AI', type: 'classify' },
         { label: 'If', type: 'if' },
@@ -33,13 +33,13 @@ export const emailTriage = {
         { label: 'Switch', type: 'switch' },
       ],
       correctType: 'classify',
-      explanation:
-        'Emails are messy free text — rigid rules in an If or Code node break instantly. An AI classification node reads the message like a human would and labels it. (It needs a language model plugged in — we’ll wire that up later.)',
+      wrongHint: 'The email is messy, free-form text. Would fixed rules or code reliably tell a bug apart from a complaint?',
+      explanation: 'Classify with AI reads the message the way a person would and labels it — resilient to however the email is phrased. It’ll need a language model plugged in, which you’ll wire up later.',
       unlocks: ['classify', 'chat-gemini'],
     },
     {
       id: 'parse',
-      prompt: 'The AI hands back its answer as one blob of text. What do you do before you can branch on it?',
+      prompt: 'The AI hands its answer back as one blob of text. What comes next, before you can branch on it?',
       options: [
         { label: 'Parse Result', type: 'parse' },
         { label: 'Send it straight to Switch', type: 'switch' },
@@ -47,8 +47,8 @@ export const emailTriage = {
         { label: 'Do nothing', type: 'noop' },
       ],
       correctType: 'parse',
-      explanation:
-        'A Switch routes on a specific field, but right now you only have a text blob. Parse it into clean fields — category and urgency — first, so every node after can read them reliably.',
+      wrongHint: 'Right now it’s just a string of text. Can the next node reliably branch on that as-is?',
+      explanation: 'Parse Result turns the AI’s text into clean fields — category and urgency — so every node after it can read them reliably.',
       unlocks: ['parse'],
     },
     {
@@ -61,8 +61,8 @@ export const emailTriage = {
         { label: 'Filter', type: 'filter' },
       ],
       correctType: 'switch',
-      explanation:
-        'If only splits two ways. Merge combines streams and Filter drops items. The Switch routes a single input to as many outputs as you define — perfect for Bug Report, Feature Request and Urgent Complaint.',
+      wrongHint: 'You need one item to go down three separate paths by rule. Does this node give you that many outputs?',
+      explanation: 'Switch routes a single input to as many labelled outputs as you define — one each for Bug Report, Feature Request and Urgent Complaint.',
       unlocks: ['switch'],
     },
     {
@@ -75,8 +75,8 @@ export const emailTriage = {
         { label: 'Do nothing', type: 'noop' },
       ],
       correctType: 'action',
-      explanation:
-        'The customer emailed in, so they should get an email back. Each branch ends in a Send Reply tailored to that category. Slack or a doc might log it internally, but the customer would hear nothing.',
+      wrongHint: 'The customer reached out over email. Would this option actually get a response back to them?',
+      explanation: 'Send Reply emails the customer back with a message tailored to their category — the whole point of the triage.',
       unlocks: ['action'],
     },
   ],

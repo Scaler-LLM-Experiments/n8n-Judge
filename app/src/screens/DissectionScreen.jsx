@@ -1,12 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
-import { ArrowRight, ArrowClockwise, XCircle, CheckCircle, Microphone } from '@phosphor-icons/react';
+import { ArrowRight, XCircle, CheckCircle, Microphone } from '@phosphor-icons/react';
 import { Button } from '../design-system/Button.jsx';
 import { TopBar } from '../components/TopBar.jsx';
 import { ConceptFlow } from '../components/ConceptFlow.jsx';
 import { ProblemNote } from '../components/ProblemNote.jsx';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
 import { N8nNodeView } from '../n8n/N8nNodeView.jsx';
+import { nodeIcons, nodeIconColor, metaOf } from '../nodes/nodeIcons.js';
+
+const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 
 const LEARNER_NAME = 'Aarav';
 const COLUMN = 620;
@@ -49,11 +52,6 @@ export function DissectionScreen({ problem, onComplete }) {
     }, 1600);
   };
 
-  const retry = () => {
-    setPicked(null);
-    setMascotClip('idle');
-  };
-
   if (phase === 'greet') {
     return <Greet onContinue={() => { setPhase('problem'); }} />;
   }
@@ -66,10 +64,9 @@ export function DissectionScreen({ problem, onComplete }) {
 
   // ---------- QUIZ ----------
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: '#F5F6F8' }}>
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--surface-0)' }}>
       <TopBar activeStage="statement" />
-      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '22px 24px 56px' }}>
-        <TopMascot clip={mascotClip} />
+      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '30px 24px 64px' }}>
         <QuizBody
           key={index}
           q={q}
@@ -78,8 +75,12 @@ export function DissectionScreen({ problem, onComplete }) {
           picked={picked}
           isCorrect={isCorrect}
           onPick={pick}
-          onRetry={retry}
         />
+      </div>
+
+      {/* Iris stays parked bottom-left, reacting */}
+      <div style={{ position: 'fixed', left: 28, bottom: 24, width: 84, height: 84, zIndex: 50, pointerEvents: 'none' }}>
+        <MascotPlayer clip={mascotClip} once={mascotClip !== 'idle'} onceDone={() => {}} />
       </div>
 
       {showNote ? (
@@ -88,7 +89,7 @@ export function DissectionScreen({ problem, onComplete }) {
         <button
           type="button"
           onClick={() => setShowNote(true)}
-          style={{ position: 'fixed', left: 20, bottom: 20, zIndex: 70, display: 'flex', alignItems: 'center', gap: 6, background: '#FEFAE7', border: '1px solid #E8DFA8', boxShadow: '0 6px 18px rgba(1,24,69,0.14)', padding: '8px 12px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font-body)', color: '#8A7B2E' }}
+          style={{ position: 'fixed', right: 20, bottom: 20, zIndex: 70, display: 'flex', alignItems: 'center', gap: 6, background: '#FEFAE7', border: '1px solid #E8DFA8', boxShadow: '0 6px 18px rgba(1,24,69,0.14)', padding: '8px 12px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font-body)', color: '#8A7B2E' }}
         >
           Show the problem
         </button>
@@ -97,26 +98,13 @@ export function DissectionScreen({ problem, onComplete }) {
   );
 }
 
-// mascot that drops in from above, sits centred over the question
-function TopMascot({ clip }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    gsap.from(ref.current, { y: -160, opacity: 0, duration: 0.7, ease: 'power3.out' });
-  }, []);
-  return (
-    <div ref={ref} style={{ width: 78, height: 78, marginBottom: 10 }}>
-      <MascotPlayer clip={clip} once={clip !== 'idle'} onceDone={() => {}} />
-    </div>
-  );
-}
-
-function QuizBody({ q, index, total, picked, isCorrect, onPick, onRetry }) {
+function QuizBody({ q, index, total, picked, isCorrect, onPick }) {
   const nodeRef = useRef(null);
   const pickedOption = picked !== null ? q.options[picked] : null;
   const answered = picked !== null;
 
   useEffect(() => {
-    if (answered && nodeRef.current) gsap.fromTo(nodeRef.current, { scale: 0.8, y: 8 }, { scale: 1, y: 0, duration: 0.5, ease: 'back.out(2)' });
+    if (answered && nodeRef.current) gsap.fromTo(nodeRef.current, { scale: 0.82, y: 8 }, { scale: 1, y: 0, duration: 0.5, ease: 'back.out(2)' });
   }, [picked]);
 
   return (
@@ -126,52 +114,46 @@ function QuizBody({ q, index, total, picked, isCorrect, onPick, onRetry }) {
       </div>
       <div style={{ fontSize: 21, fontWeight: 700, marginBottom: 22, lineHeight: 1.35, maxWidth: 560 }}>{q.prompt}</div>
 
-      {/* option boxes */}
+      {/* option boxes: letter + node icon + label */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, width: '100%' }}>
         {q.options.map((opt, i) => {
           const state = picked === i ? (isCorrect ? 'correct' : 'wrong') : 'idle';
           const dim = answered && isCorrect && picked !== i;
-          return (
-            <OptionBox key={i} option={opt} state={state} dim={dim} disabled={answered && isCorrect} onClick={() => onPick(i)} />
-          );
+          return <OptionBox key={i} letter={LETTERS[i]} option={opt} state={state} dim={dim} disabled={answered && isCorrect} onClick={() => onPick(i)} />;
         })}
       </div>
 
-      {/* dialogue */}
+      {/* nudge on wrong, explanation on correct */}
       {answered ? (
         <div style={{ width: '100%', marginTop: 16, display: 'flex', gap: 10, textAlign: 'left', padding: '13px 15px', border: `1px solid ${isCorrect ? 'var(--brand-blue-100)' : 'var(--status-danger-border)'}`, background: isCorrect ? 'var(--brand-blue-50)' : 'var(--status-danger-bg)' }}>
           {isCorrect ? <CheckCircle size={18} weight="fill" color="var(--brand-primary)" style={{ flex: 'none', marginTop: 1 }} /> : <XCircle size={18} weight="fill" color="var(--status-danger)" style={{ flex: 'none', marginTop: 1 }} />}
           <div>
             <div style={{ fontSize: 13, fontWeight: 700, color: isCorrect ? 'var(--brand-primary)' : 'var(--status-danger)', marginBottom: 3 }}>
-              {isCorrect ? `Right — ${pickedOption.label} it is` : `Not ${pickedOption.label}`}
+              {isCorrect ? `Right — ${pickedOption.label} it is` : `Not ${pickedOption.label} — try again`}
             </div>
-            <div style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--fg-2)' }}>{q.explanation}</div>
+            <div style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--fg-2)' }}>{isCorrect ? q.explanation : q.wrongHint}</div>
           </div>
         </div>
       ) : null}
 
-      {answered && !isCorrect ? (
-        <div style={{ marginTop: 16 }}>
-          <Button variant="outline" icon={<ArrowClockwise size={15} />} onClick={onRetry}>Try another</Button>
-        </div>
-      ) : null}
-
-      {/* center node canvas */}
-      <div style={{ width: '100%', marginTop: 22, border: '1px solid var(--border-strong)', background: '#E9ECF2', backgroundImage: 'radial-gradient(#C4CAD4 1px, transparent 1px)', backgroundSize: '16px 16px', padding: '30px 18px 34px', display: 'flex', justifyContent: 'center', minHeight: 150, alignItems: 'center' }}>
-        {answered ? (
-          <div ref={nodeRef}>
+      {/* center node canvas — ghost outline of the node until answered */}
+      <div style={{ width: '100%', marginTop: 22, border: '1px solid var(--border-strong)', background: '#E9ECF2', backgroundImage: 'radial-gradient(#C4CAD4 1px, transparent 1px)', backgroundSize: '16px 16px', padding: '32px 18px 36px', display: 'flex', justifyContent: 'center', minHeight: 168, alignItems: 'center' }}>
+        <div ref={nodeRef}>
+          {answered ? (
             <N8nNodeView type={pickedOption.type} label={pickedOption.label} tag={isCorrect ? 'correct' : 'wrong'} />
-          </div>
-        ) : (
-          <div style={{ fontSize: 13, color: 'var(--fg-3)' }}>Pick an option — it drops in here as a node.</div>
-        )}
+          ) : (
+            <N8nNodeView type={q.correctType} label="Which node?" placeholder />
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
-function OptionBox({ option, state, dim, disabled, onClick }) {
+function OptionBox({ letter, option, state, dim, disabled, onClick }) {
   const [hover, setHover] = useState(false);
+  const Icon = nodeIcons[option.type];
+  const iconColor = nodeIconColor[option.type] || metaOf(option.type).color;
   const border = state === 'correct' ? 'var(--brand-primary)' : state === 'wrong' ? 'var(--status-danger)' : hover ? 'var(--fg-3)' : 'var(--border-subtle)';
   const bg = state === 'correct' ? 'var(--brand-blue-50)' : state === 'wrong' ? 'var(--status-danger-bg)' : 'var(--surface-0)';
   return (
@@ -184,7 +166,7 @@ function OptionBox({ option, state, dim, disabled, onClick }) {
         display: 'flex',
         alignItems: 'center',
         gap: 12,
-        padding: '14px 16px',
+        padding: '13px 15px',
         border: `1px solid ${border}`,
         background: bg,
         cursor: disabled ? 'default' : 'pointer',
@@ -194,7 +176,13 @@ function OptionBox({ option, state, dim, disabled, onClick }) {
         transition: 'border-color 120ms ease, background 120ms ease, opacity 120ms ease',
       }}
     >
-      <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--fg-1)', flex: 1 }}>{option.label}</span>
+      <span style={{ width: 24, height: 24, flex: 'none', border: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: 'var(--fg-2)' }}>
+        {letter}
+      </span>
+      <span style={{ width: 28, height: 28, flex: 'none', borderRadius: 7, background: 'var(--surface-1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {Icon ? <Icon size={16} color={iconColor} /> : null}
+      </span>
+      <span style={{ fontSize: 14.5, fontWeight: 600, color: 'var(--fg-1)', flex: 1 }}>{option.label}</span>
     </button>
   );
 }
