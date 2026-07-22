@@ -214,7 +214,7 @@ export function BuildStage({ problem, onDecision, onComplete }) {
           </div>
         ) : null}
 
-        {run ? <RunPanel result={run} onContinue={() => onComplete(run.val)} onClose={() => { setRun(null); setStage('complete'); }} /> : null}
+        {run ? <RunPanel result={run} onContinue={() => onComplete({ validation: run.val, graph: graphRef.current })} onClose={() => { setRun(null); setStage('complete'); }} /> : null}
       </div>
 
       <style>{`

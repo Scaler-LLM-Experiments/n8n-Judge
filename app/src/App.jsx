@@ -82,6 +82,7 @@ function MainApp() {
   const [screen, setScreen] = useState(SCREEN.STATEMENT);
   const [dissection, setDissection] = useState(null);
   const [runResult, setRunResult] = useState(null);
+  const [builtGraph, setBuiltGraph] = useState(null);
   const [evalOutcome, setEvalOutcome] = useState(null);
   const [grading, setGrading] = useState(() => createStore());
   const record = (d) => setGrading((s) => recordDecision(s, d));
@@ -104,7 +105,10 @@ function MainApp() {
           problem={emailTriage}
           onDecision={record}
           onComplete={(result) => {
-            if (result) setRunResult(result);
+            if (result) {
+              setRunResult(result.validation);
+              setBuiltGraph(result.graph);
+            }
             setScreen(SCREEN.EVAL);
           }}
         />
@@ -113,6 +117,7 @@ function MainApp() {
       {screen === SCREEN.EVAL ? (
         <EvalScreen
           problem={emailTriage}
+          graph={builtGraph}
           onDecision={record}
           onSubmit={(outcome) => {
             setEvalOutcome(outcome);
