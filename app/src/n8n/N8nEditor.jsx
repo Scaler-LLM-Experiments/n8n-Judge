@@ -58,6 +58,7 @@ function EditorInner({ pickable, onGraphChange, nodeSetup, onDecision, correctTy
 
     let position = { x: 220, y: 180 };
     if (source && ctx.modelSlot) position = { x: source.position.x + 15, y: source.position.y + 170 };
+    else if (source && ctx.branch) position = { x: source.position.x + 300, y: source.position.y + (ctx.branchIndex - 1) * 130 };
     else if (source) position = { x: source.position.x + 260, y: source.position.y };
 
     const node = {
@@ -69,9 +70,14 @@ function EditorInner({ pickable, onGraphChange, nodeSetup, onDecision, correctTy
     setNodes((ns) => ns.concat(node));
 
     if (source) {
-      const edge = ctx.modelSlot
-        ? { id: `e${id}`, source: id, target: source.id, targetHandle: 'ai_model', type: 'smoothstep', animated: true, style: { stroke: '#0E9488', strokeWidth: 1.75, strokeDasharray: '6 4' } }
-        : { id: `e${id}`, source: source.id, target: id };
+      let edge;
+      if (ctx.modelSlot) {
+        edge = { id: `e${id}`, source: id, target: source.id, targetHandle: 'ai_model', type: 'smoothstep', animated: true, style: { stroke: '#0E9488', strokeWidth: 1.75, strokeDasharray: '6 4' } };
+      } else if (ctx.branch) {
+        edge = { id: `e${id}`, source: source.id, sourceHandle: ctx.branch, target: id };
+      } else {
+        edge = { id: `e${id}`, source: source.id, target: id };
+      }
       setEdges((es) => es.concat(edge));
     }
     setPicker(null);

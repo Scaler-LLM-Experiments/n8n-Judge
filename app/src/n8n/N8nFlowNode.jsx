@@ -14,16 +14,24 @@ const AI_PORTS = [
   { id: 'tool', label: 'Tool', required: false },
 ];
 
+// Switch fans out to one labelled output per category.
+const SWITCH_BRANCHES = [
+  { id: 'bug_report', label: 'Bug Report' },
+  { id: 'feature_request', label: 'Feature Request' },
+  { id: 'urgent_complaint', label: 'Urgent Complaint' },
+];
+
 export function N8nFlowNode({ id, type, data, selected }) {
   const { openPicker, openNdv } = useEditor();
   const variant = variantOf(type);
   const isTrigger = variant === 'trigger';
   const isAi = variant === 'ai';
+  const isSwitch = type === 'switch';
 
   return (
     <div style={{ position: 'relative' }} onClick={() => openNdv(id)}>
       {!isTrigger ? <Handle type="target" position={Position.Left} style={portStyle} /> : null}
-      <Handle type="source" position={Position.Right} style={portStyle} />
+      {!isSwitch ? <Handle type="source" position={Position.Right} style={portStyle} /> : null}
 
       <N8nNodeView type={type} label={data.label} selected={selected} hidePorts hideAiChip />
 
@@ -34,10 +42,25 @@ export function N8nFlowNode({ id, type, data, selected }) {
         </div>
       ) : null}
 
-      {/* output + : add & connect the next node */}
-      <button type="button" title="Add next node" onClick={(e) => { e.stopPropagation(); openPicker({ sourceId: id }); }} style={plusBtn({ right: -46, top: 'calc(50% - 13px)' })}>
-        <Plus size={15} weight="bold" />
-      </button>
+      {/* Switch: three labelled branch outputs, each with a + to add & connect a reply */}
+      {isSwitch ? (
+        <div style={{ position: 'absolute', left: '100%', top: 0, bottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 10, paddingLeft: 10 }}>
+          {SWITCH_BRANCHES.map((b, i) => (
+            <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 8, position: 'relative' }}>
+              <Handle type="source" id={b.id} position={Position.Right} style={{ ...portStyle, position: 'relative', left: 0, top: 0, transform: 'none' }} />
+              <span style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--fg-2)', whiteSpace: 'nowrap' }}>{b.label}</span>
+              <button type="button" title={`Add reply for ${b.label}`} onClick={(e) => { e.stopPropagation(); openPicker({ sourceId: id, branch: b.id, branchIndex: i }); }} style={plusBtn({ position: 'relative', right: 'auto', top: 'auto' })}>
+                <Plus size={14} weight="bold" />
+              </button>
+            </div>
+          ))}
+        </div>
+      ) : (
+        /* output + : add & connect the next node */
+        <button type="button" title="Add next node" onClick={(e) => { e.stopPropagation(); openPicker({ sourceId: id }); }} style={plusBtn({ right: -46, top: 'calc(50% - 13px)' })}>
+          <Plus size={15} weight="bold" />
+        </button>
+      )}
 
       {/* AI cluster: Chat Model* / Memory / Tool sub-node ports, well below the label */}
       {isAi ? (

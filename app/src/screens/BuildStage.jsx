@@ -1,9 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { CheckCircle, XCircle, ArrowRight, Play } from '@phosphor-icons/react';
+import { CheckCircle, XCircle, ArrowRight, Play, EnvelopeSimpleOpen, Sparkle, BracketsCurly, ArrowsSplit, PaperPlaneTilt } from '@phosphor-icons/react';
 import { TopBar } from '../components/TopBar.jsx';
 import { Button } from '../design-system/Button.jsx';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
 import { N8nEditor } from '../n8n/N8nEditor.jsx';
+import { validateGraph } from '../engine/validateGraph.js';
+import { simulateAll } from '../engine/simulate.js';
+
+const STEP_ICON = { email: EnvelopeSimpleOpen, trigger: EnvelopeSimpleOpen, classify: Sparkle, parse: BracketsCurly, switch: ArrowsSplit, action: PaperPlaneTilt, dead: XCircle };
 
 // The Build stage: the n8n editor, driven through the problem's 3 build phases.
 // Each phase's picker is scoped to that phase; completing a phase (all its node
@@ -39,8 +43,24 @@ export function BuildStage({ problem, onDecision, onComplete }) {
 
   useEffect(() => () => clearTimeout(timer.current), []);
 
+  const [run, setRun] = useState(null); // { cases, success, val }
+  const graphRef = useRef({ nodes: [], edges: [] });
+
   const phase = phases[phaseIndex];
-  const handleGraph = useCallback((nodes) => setPlaced(nodes.map((n) => n.type)), []);
+  const handleGraph = useCallback((nodes, edges) => {
+    setPlaced(nodes.map((n) => n.type));
+    graphRef.current = {
+      nodes: nodes.map((n) => ({ id: n.id, type: n.type, data: n.data })),
+      edges: edges.map((e) => ({ id: e.id, source: e.source, target: e.target, sourceHandle: e.sourceHandle, targetHandle: e.targetHandle })),
+    };
+  }, []);
+
+  const startRun = () => {
+    const g = graphRef.current;
+    const { cases, success } = simulateAll(g, problem);
+    const val = validateGraph(g, problem);
+    setRun({ cases, success, val });
+  };
 
   useEffect(() => {
     if (advancing.current || complete) return;
@@ -102,14 +122,15 @@ export function BuildStage({ problem, onDecision, onComplete }) {
         ) : null}
 
         {/* run bar once built */}
-        {complete && !overlay ? (
+        {complete && !overlay && !run ? (
           <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 35, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, padding: '14px 16px', background: 'var(--surface-0)', borderTop: '1px solid var(--border-strong)' }}>
             <span style={{ fontSize: 13.5, color: 'var(--fg-2)' }}>Flow built — run it on the sample emails.</span>
-            <Button variant="primary" iconRight={<ArrowRight size={15} />} icon={<Play size={15} weight="fill" />} onClick={onComplete}>
-              Run &amp; continue
-            </Button>
+            <Button variant="primary" icon={<Play size={15} weight="fill" />} onClick={startRun}>Run</Button>
           </div>
         ) : null}
+
+        {/* run simulation */}
+        {run ? <RunPanel result={run} onContinue={() => onComplete(run.val)} onClose={() => setRun(null)} /> : null}
       </div>
     </div>
   );
@@ -133,6 +154,83 @@ function SubStageBar({ phases, phaseIndex, complete }) {
           </React.Fragment>
         );
       })}
+    </div>
+  );
+}
+
+export function RunPanel({ result, onContinue, onClose }) {
+  const { cases, success } = result;
+  const [ci, setCi] = useState(0);
+  const [revealed, setRevealed] = useState(0);
+  const [finished, setFinished] = useState(false);
+  const timers = useRef([]);
+
+  useEffect(() => {
+    const frames = [];
+    cases.forEach((res, i) => {
+      frames.push({ type: 'case', i });
+      res.steps.forEach((_, si) => frames.push({ type: 'step', si }));
+    });
+    frames.push({ type: 'end' });
+    let t = 300;
+    frames.forEach((f) => {
+      timers.current.push(setTimeout(() => {
+        if (f.type === 'case') { setCi(f.i); setRevealed(0); }
+        else if (f.type === 'step') setRevealed((r) => r + 1);
+        else setFinished(true);
+      }, t));
+      t += f.type === 'case' ? 520 : f.type === 'end' ? 0 : 820;
+    });
+    return () => timers.current.forEach(clearTimeout);
+  }, [cases]);
+
+  const active = cases[ci];
+
+  return (
+    <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '52%', zIndex: 55, background: 'var(--surface-0)', borderTop: '1px solid var(--border-strong)', boxShadow: '0 -14px 40px rgba(1,24,69,0.16)', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 16px', borderBottom: '1px solid var(--border-subtle)' }}>
+        <span style={{ fontSize: 13.5, fontWeight: 700 }}>Running your automation</span>
+        <div style={{ display: 'flex', gap: 6, flex: 1, flexWrap: 'wrap' }}>
+          {cases.map((res, i) => {
+            const shown = finished || i < ci || (i === ci && revealed > 0);
+            const isActive = i === ci && !finished;
+            return (
+              <span key={res.case.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, padding: '3px 8px', border: '1px solid var(--border-subtle)', background: isActive ? 'var(--brand-blue-50)' : 'var(--surface-1)', color: 'var(--fg-2)', fontWeight: isActive ? 700 : 500 }}>
+                {shown && (finished || i < ci) ? (res.delivered ? <CheckCircle size={12} weight="fill" color="var(--brand-primary)" /> : <XCircle size={12} weight="fill" color={res.case.branch ? 'var(--status-danger)' : 'var(--fg-3)'} />) : null}
+                {res.case.reply || 'General question'}
+              </span>
+            );
+          })}
+        </div>
+        {finished ? (
+          success ? <Button variant="primary" size="sm" iconRight={<ArrowRight size={14} />} onClick={onContinue}>Move to Stress Testing</Button>
+                  : <Button variant="outline" size="sm" onClick={onClose}>Back to editing</Button>
+        ) : <button type="button" onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--fg-3)', fontSize: 12, cursor: 'pointer' }}>Stop</button>}
+      </div>
+
+      <div style={{ padding: '12px 16px', overflowY: 'auto' }}>
+        {finished ? (
+          <div style={{ fontSize: 13, fontWeight: 600, color: success ? 'var(--brand-primary)' : 'var(--fg-1)', marginBottom: 10 }}>
+            {success ? 'Every categorised email reached the right reply. The general question intentionally goes unanswered — notice that gap.' : 'Some emails didn’t reach a reply. Close and finish wiring the flow.'}
+          </div>
+        ) : (
+          <div style={{ fontSize: 12.5, color: 'var(--fg-2)', marginBottom: 10 }}>
+            <span style={{ fontWeight: 700, color: 'var(--fg-1)' }}>Email {ci + 1}:</span> {active?.case.subject}
+          </div>
+        )}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+          {(active?.steps || []).slice(0, finished ? undefined : Math.max(1, revealed)).map((s, i) => {
+            const Icon = STEP_ICON[s.iconType] || Sparkle;
+            const color = s.status === 'dead' ? 'var(--status-danger)' : s.status === 'done' ? 'var(--brand-primary)' : 'var(--fg-2)';
+            return (
+              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 9, fontSize: 12.5, color: 'var(--fg-1)' }}>
+                <Icon size={16} weight="fill" color={color} style={{ flex: 'none', marginTop: 1 }} />
+                <span>{s.text}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
