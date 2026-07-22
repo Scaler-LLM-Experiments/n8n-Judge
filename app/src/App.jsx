@@ -6,6 +6,7 @@ import { BuildStage } from './screens/BuildStage.jsx';
 import { EvalScreen } from './screens/EvalScreen.jsx';
 import { ReportScreen } from './screens/ReportScreen.jsx';
 import { PlaygroundScreen } from './screens/PlaygroundScreen.jsx';
+import { createStore, recordDecision } from './engine/grading.js';
 
 const SCREEN = {
   STATEMENT: 'statement',
@@ -29,6 +30,8 @@ function MainApp() {
   const [dissection, setDissection] = useState(null);
   const [runResult, setRunResult] = useState(null);
   const [evalOutcome, setEvalOutcome] = useState(null);
+  const [grading, setGrading] = useState(() => createStore());
+  const record = (d) => setGrading((s) => recordDecision(s, d));
 
   return (
     <div style={{ height: '100vh' }}>
@@ -45,6 +48,7 @@ function MainApp() {
       {screen === SCREEN.DASHBOARD ? (
         <BuildStage
           problem={emailTriage}
+          onDecision={record}
           onComplete={(result) => {
             if (result) setRunResult(result);
             setScreen(SCREEN.EVAL);

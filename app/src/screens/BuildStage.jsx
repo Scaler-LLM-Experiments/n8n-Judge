@@ -8,7 +8,7 @@ import { N8nEditor } from '../n8n/N8nEditor.jsx';
 // The Build stage: the n8n editor, driven through the problem's 3 build phases.
 // Each phase's picker is scoped to that phase; completing a phase (all its node
 // types placed) triggers a mascot-narrated overlay that lifts into the next.
-export function BuildStage({ problem, onComplete }) {
+export function BuildStage({ problem, onDecision, onComplete }) {
   const phases = problem.buildPhases;
   const [phaseIndex, setPhaseIndex] = useState(0);
   const [placed, setPlaced] = useState([]);
@@ -16,6 +16,8 @@ export function BuildStage({ problem, onComplete }) {
   const [complete, setComplete] = useState(false);
   const advancing = useRef(false);
   const timer = useRef(null);
+
+  const recordFieldDecision = useCallback((d) => { if (onDecision) onDecision(d); }, [onDecision]);
 
   useEffect(() => () => clearTimeout(timer.current), []);
 
@@ -52,7 +54,7 @@ export function BuildStage({ problem, onComplete }) {
       <SubStageBar phases={phases} phaseIndex={phaseIndex} complete={complete} />
 
       <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
-        <N8nEditor pickable={phase?.pickable || []} onGraphChange={handleGraph} />
+        <N8nEditor pickable={phase?.pickable || []} onGraphChange={handleGraph} nodeSetup={problem.nodeSetup} onDecision={recordFieldDecision} />
 
         {/* Iris parked bottom-left while building */}
         {!overlay ? (

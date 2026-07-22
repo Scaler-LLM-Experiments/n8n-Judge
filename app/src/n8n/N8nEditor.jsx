@@ -27,7 +27,7 @@ const defaultEdgeOptions = {
 let idc = 0;
 const nextId = () => `n${(idc += 1)}`;
 
-function EditorInner({ pickable, onGraphChange }) {
+function EditorInner({ pickable, onGraphChange, nodeSetup, onDecision }) {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
   const [picker, setPicker] = useState(null); // {sourceId, triggerSlot, modelSlot}
@@ -41,10 +41,8 @@ function EditorInner({ pickable, onGraphChange }) {
   const onEdgesChange = useCallback((c) => setEdges((e) => applyEdgeChanges(c, e)), []);
 
   const openPicker = useCallback((ctx) => setPicker(ctx), []);
-  const openNdv = useCallback((id) => {
-    setNdvId(id);
-    setNodes((ns) => ns.map((n) => (n.id === id ? { ...n, data: { ...n.data, configured: true } } : n)));
-  }, []);
+  const openNdv = useCallback((id) => setNdvId(id), []);
+  const completeNode = useCallback((id) => setNodes((ns) => ns.map((n) => (n.id === id ? { ...n, data: { ...n.data, configured: true } } : n))), []);
 
   const addNode = (catalogType) => {
     const entry = NODE_CATALOG[catalogType];
@@ -127,16 +125,28 @@ function EditorInner({ pickable, onGraphChange }) {
         ) : null}
 
         {picker ? <NodePickerDrawer context={picker} options={pickable} onPick={addNode} onClose={() => setPicker(null)} /> : null}
-        {ndvNode ? <Ndv node={ndvNode} inputData={ndvIn.data} inputLabel={ndvIn.label} onChangeParam={updateParam} onClose={() => setNdvId(null)} /> : null}
+        {ndvNode ? (
+          <Ndv
+            key={ndvNode.id}
+            node={ndvNode}
+            setup={nodeSetup ? nodeSetup[ndvNode.nodeType] : undefined}
+            inputData={ndvIn.data}
+            inputLabel={ndvIn.label}
+            onChangeParam={updateParam}
+            onDecision={onDecision}
+            onComplete={() => completeNode(ndvNode.id)}
+            onClose={() => setNdvId(null)}
+          />
+        ) : null}
       </div>
     </EditorContext.Provider>
   );
 }
 
-export function N8nEditor({ pickable, onGraphChange }) {
+export function N8nEditor({ pickable, onGraphChange, nodeSetup, onDecision }) {
   return (
     <ReactFlowProvider>
-      <EditorInner pickable={pickable} onGraphChange={onGraphChange} />
+      <EditorInner pickable={pickable} onGraphChange={onGraphChange} nodeSetup={nodeSetup} onDecision={onDecision} />
     </ReactFlowProvider>
   );
 }
