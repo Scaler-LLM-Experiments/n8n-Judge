@@ -31,11 +31,11 @@ export function N8nFlowNode({ id, type, data, selected }) {
   const needsSetup = data.needsSetup;
 
   return (
-    <div style={{ position: 'relative' }} onClick={() => openNdv(id)} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
+    <div style={{ position: 'relative', opacity: data.dimmed ? 0.3 : 1, transition: 'opacity 0.35s ease' }} onClick={() => openNdv(id)} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
       {!isTrigger ? <Handle type="target" position={Position.Left} style={portStyle} /> : null}
       {!isSwitch ? <Handle type="source" position={Position.Right} style={portStyle} /> : null}
 
-      <N8nNodeView type={type} label={data.label} selected={selected || (hover && needsSetup)} pulse={needsSetup} hidePorts hideAiChip />
+      <N8nNodeView type={type} label={data.label} selected={selected || (hover && needsSetup)} pulse={needsSetup} running={data.running} errorPulse={data.wrong} hidePorts hideAiChip />
 
       {/* "Set me up" label appears on hover; the pulse is the persistent cue */}
       {needsSetup && hover ? (

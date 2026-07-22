@@ -28,6 +28,25 @@ const defaultEdgeOptions = {
 let idc = 0;
 const nextId = () => `n${(idc += 1)}`;
 
+// Build editor node/edge state from a problem's referenceGraph (used to seed a
+// finished flow, e.g. the #run-story preview).
+function seedNodes(ig) {
+  if (!ig) return [];
+  return ig.nodes.map((n) => {
+    const entry = NODE_CATALOG[n.type] || {};
+    return { id: n.id, type: n.type, position: n.position, data: { nodeType: n.type, label: entry.label, params: entry.params, values: {}, configured: true, wrong: false, output: entry.output } };
+  });
+}
+function seedEdges(ig) {
+  if (!ig) return [];
+  return ig.edges.map((e, i) => {
+    const base = { id: `seed-e${i}`, source: e.source, target: e.target };
+    if (e.targetHandle === 'ai_model') return { ...base, targetHandle: 'ai_model', type: 'smoothstep', animated: true, style: { stroke: '#0E9488', strokeWidth: 1.75, strokeDasharray: '6 4' } };
+    if (e.branch) return { ...base, sourceHandle: e.branch };
+    return base;
+  });
+}
+
 // Which node types may validly follow the current add-context, per the problem's
 // canonical flow. Anything else is a sequence mistake.
 function expectedNext(ctx, nodes, flow) {
@@ -39,9 +58,9 @@ function expectedNext(ctx, nodes, flow) {
   return (src && flow.next?.[src.type]) || [];
 }
 
-const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, nodeSetup, onDecision, flow, onWrongPick, onPlaceCorrect }, ref) {
-  const [nodes, setNodes] = useState([]);
-  const [edges, setEdges] = useState([]);
+const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, nodeSetup, onDecision, flow, runActiveId, initialGraph, onWrongPick, onPlaceCorrect }, ref) {
+  const [nodes, setNodes] = useState(() => seedNodes(initialGraph));
+  const [edges, setEdges] = useState(() => seedEdges(initialGraph));
   const [picker, setPicker] = useState(null); // {sourceId, triggerSlot, modelSlot, branch, branchIndex}
   const [ndvId, setNdvId] = useState(null);
   const rf = useReactFlow();
@@ -63,7 +82,7 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
     setNdvId((cur) => (cur === id ? null : cur));
   }, []);
 
-  useImperativeHandle(ref, () => ({ removeNode }), [removeNode]);
+  useImperativeHandle(ref, () => ({ removeNode, fitAll: () => { try { rf.fitView({ padding: 0.22, duration: 450 }); } catch { /* noop */ } } }), [removeNode, rf]);
 
   const addNode = (catalogType) => {
     const ctx = picker || {};
@@ -103,7 +122,7 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
     // gently pan/zoom to the freshly added node so the learner follows the flow
     const cx = position.x + (catalogType === 'classify' ? 108 : 45);
     const cy = position.y + 45;
-    setTimeout(() => { try { rf.setCenter(cx, cy, { zoom: 0.9, duration: 500 }); } catch { /* noop */ } }, 40);
+    setTimeout(() => { try { rf.setCenter(cx, cy, { zoom: 1.3, duration: 500 }); } catch { /* noop */ } }, 40);
 
     if (isWrong) {
       const expectedLabel = (expected || []).map((t) => NODE_CATALOG[t]?.label).filter(Boolean).join(' or ');
@@ -120,6 +139,14 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
   // touch next: its own body (needs setup), its output + (ready for the next step),
   // the Chat Model + (AI node missing a model), or a Switch branch + (unwired).
   const branchIds = ['bug_report', 'feature_request', 'urgent_complaint'];
+  // when a run is active, also light the Chat Model wired to the running Classify
+  const activeModelId = useMemo(() => {
+    if (!runActiveId) return null;
+    const an = nodes.find((n) => n.id === runActiveId);
+    if (an?.type !== 'classify') return null;
+    return edges.find((e) => e.target === an.id && e.targetHandle === 'ai_model')?.source || null;
+  }, [runActiveId, nodes, edges]);
+
   const displayNodes = useMemo(
     () => nodes.map((n) => {
       const type = n.type;
@@ -133,9 +160,11 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
       const openBranches = type === 'switch'
         ? branchIds.filter((b) => !edges.some((e) => e.source === n.id && e.sourceHandle === b))
         : undefined;
-      return { ...n, data: { ...n.data, hasModel, needsSetup, awaitingNext, openBranches } };
+      const running = !!runActiveId && (n.id === runActiveId || n.id === activeModelId);
+      const dimmed = !!runActiveId && !running;
+      return { ...n, data: { ...n.data, hasModel, needsSetup, awaitingNext, openBranches, running, dimmed } };
     }),
-    [nodes, edges, flow, nodeSetup]
+    [nodes, edges, flow, nodeSetup, runActiveId, activeModelId]
   );
 
   const ndvNode = (() => {
@@ -212,3 +241,5 @@ export const N8nEditor = forwardRef(function N8nEditor(props, ref) {
     </ReactFlowProvider>
   );
 });
+
+export default N8nEditor;

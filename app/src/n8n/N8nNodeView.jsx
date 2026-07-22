@@ -21,7 +21,7 @@ export function variantOf(type) {
 
 const BODY = 88;
 
-export function N8nNodeView({ type, label, placeholder, tag, selected, pulse, size = BODY, hidePorts, hideAiChip }) {
+export function N8nNodeView({ type, label, placeholder, tag, selected, pulse, running, errorPulse, size = BODY, hidePorts, hideAiChip }) {
   const cat = typeCategory[type] || 'core';
   const meta = categoryMeta[cat];
   const variant = variantOf(type);
@@ -32,7 +32,7 @@ export function N8nNodeView({ type, label, placeholder, tag, selected, pulse, si
   const wide = variant === 'ai'; // AI root nodes are wide, with the label inside
   const radius = isTrigger ? `${size / 2}px 18px 18px ${size / 2}px` : '18px';
 
-  const borderColor = placeholder ? 'var(--border-strong)' : selected ? meta.color : '#C9CED6';
+  const borderColor = placeholder ? 'var(--border-strong)' : errorPulse ? 'var(--status-danger)' : selected ? meta.color : '#C9CED6';
   const bodyW = wide ? 216 : size;
   const bodyH = wide ? 84 : size;
 
@@ -80,8 +80,16 @@ export function N8nNodeView({ type, label, placeholder, tag, selected, pulse, si
         </div>
 
         {/* pulsing "needs setup" ring */}
-        {pulse && !placeholder ? (
+        {pulse && !placeholder && !running ? (
           <div className="pulse-ring" style={{ position: 'absolute', top: 0, left: 0, width: bodyW, height: bodyH, borderRadius: radius, pointerEvents: 'none', zIndex: 1 }} />
+        ) : null}
+        {/* run highlight — the node currently executing lights up */}
+        {running && !placeholder ? (
+          <div className="run-glow" style={{ position: 'absolute', top: 0, left: 0, width: bodyW, height: bodyH, borderRadius: radius, pointerEvents: 'none', zIndex: 1 }} />
+        ) : null}
+        {/* red pulse on a wrong pick (while Iris probes it) */}
+        {errorPulse && !placeholder ? (
+          <div className="pulse-error" style={{ position: 'absolute', top: 0, left: 0, width: bodyW, height: bodyH, borderRadius: radius, pointerEvents: 'none', zIndex: 1 }} />
         ) : null}
 
         {/* AI nodes: a Chat Model sub-node port hanging below (suppressed in the

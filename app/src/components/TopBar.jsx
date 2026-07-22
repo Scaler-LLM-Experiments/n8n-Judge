@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, Question, ArrowCounterClockwise, Play } from '@phosphor-icons/react';
+import { Check, Question, ArrowCounterClockwise, ArrowClockwise, Play, FileText, Sparkle } from '@phosphor-icons/react';
 
 const STAGES = [
   { id: 'statement', label: 'Understand' },
@@ -32,7 +32,7 @@ function IconButton({ icon: Icon, title, onClick, primary, dataTour }) {
   );
 }
 
-export function TopBar({ activeStage, onShowProblemStatement, onReset, onRun }) {
+export function TopBar({ activeStage, onShowProblemStatement, onReset, onRun, onProblemDoc, onAskAI, onRedo }) {
   const activeIndex = STAGES.findIndex((s) => s.id === activeStage);
 
   return (
@@ -91,10 +91,17 @@ export function TopBar({ activeStage, onShowProblemStatement, onReset, onRun }) 
         })}
       </div>
 
-      <div style={{ display: 'flex', gap: 8, justifySelf: 'end' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifySelf: 'end' }}>
+        {onAskAI ? (
+          <button type="button" onClick={onAskAI} title="Ask AI" style={{ display: 'flex', alignItems: 'center', gap: 6, height: 34, padding: '0 12px', border: '1px solid var(--brand-primary)', background: 'var(--brand-blue-50, rgba(0,85,255,0.06))', color: 'var(--brand-primary)', fontWeight: 700, fontSize: 12.5, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
+            <Sparkle size={15} weight="fill" /> Ask AI
+          </button>
+        ) : null}
+        {onProblemDoc ? <IconButton icon={FileText} title="Problem statement" onClick={onProblemDoc} /> : null}
         {onShowProblemStatement ? <IconButton icon={Question} title="Problem statement" onClick={onShowProblemStatement} dataTour="problem" /> : null}
         {onReset ? <IconButton icon={ArrowCounterClockwise} title="Reset" onClick={onReset} /> : null}
         {onRun ? <IconButton icon={Play} title="Run" onClick={onRun} primary dataTour="run" /> : null}
+        {onRedo ? <IconButton icon={ArrowClockwise} title="Start over" onClick={onRedo} /> : null}
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from
 import gsap from 'gsap';
 import { CheckCircle, XCircle, ArrowRight, Play, Sparkle, CircleNotch, DotsSixVertical, EnvelopeSimpleOpen, BracketsCurly, ArrowsSplit, PaperPlaneTilt } from '@phosphor-icons/react';
 import { TopBar } from '../components/TopBar.jsx';
+import { ProblemStatementPanel } from '../components/ProblemStatementPanel.jsx';
 import { Button } from '../design-system/Button.jsx';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
 import { Confetti } from '../components/Confetti.jsx';
@@ -27,23 +28,31 @@ function sequenceProbe(meta) {
   };
 }
 
-export function BuildStage({ problem, onDecision, onComplete }) {
+export function BuildStage({ problem, onDecision, onComplete, devAutoRun }) {
   const phases = problem.buildPhases;
 
   const [phaseIndex, setPhaseIndex] = useState(0);
-  const [stage, setStage] = useState('building'); // building | clearing | complete | running
-  const [showSpotlight, setShowSpotlight] = useState(true);
+  const [stage, setStage] = useState(devAutoRun ? 'preview' : 'building'); // preview | building | clearing | complete | running
+  const [showSpotlight, setShowSpotlight] = useState(!devAutoRun);
   const [nodesState, setNodesState] = useState([]); // { id, type, configured, wrong }
   const [probe, setProbe] = useState(null); // { type, nodeId, data, anchor }
   const [nudge, setNudge] = useState(null);
   const [clearInfo, setClearInfo] = useState(null);
-  const [run, setRun] = useState(null);
+  const [run, setRun] = useState(null); // { cases, success, val }
+  const [runPos, setRunPos] = useState({ ci: 0, si: 0 }); // current case/step
+  const [runFinished, setRunFinished] = useState(false);
+  const [showProblem, setShowProblem] = useState(false);
+  const [editorKey, setEditorKey] = useState(0);
+  const [irisSay, setIrisSay] = useState(null); // chat bubble to the right of parked Iris
 
   const editorRef = useRef(null);
   const canvasRef = useRef(null);
+  const noteRef = useRef(null);
   const graphRef = useRef({ nodes: [], edges: [] });
   const advancing = useRef(false);
   const nudgeTimer = useRef(null);
+  const sayTimer = useRef(null);
+  const runTimers = useRef([]);
 
   const phase = phases[phaseIndex];
 
@@ -85,16 +94,28 @@ export function BuildStage({ problem, onDecision, onComplete }) {
   }, []);
 
   const flashNudge = (msg) => { clearTimeout(nudgeTimer.current); setNudge(msg); nudgeTimer.current = setTimeout(() => setNudge(null), 3200); };
+  const saysIris = (msg) => { clearTimeout(sayTimer.current); setIrisSay(msg); sayTimer.current = setTimeout(() => setIrisSay(null), 4200); };
 
   const dismissSpotlight = () => { setShowSpotlight((s) => { if (s) parkCorner(); return false; }); };
 
+  const handleRedo = () => {
+    clearTimeout(nudgeTimer.current); clearTimeout(sayTimer.current); runTimers.current.forEach(clearTimeout); runTimers.current = [];
+    advancing.current = false;
+    setProbe(null); setNudge(null); setIrisSay(null); setClearInfo(null); setRun(null); setRunFinished(false);
+    setNodesState([]); setPhaseIndex(0); setStage('building'); setShowSpotlight(true); setMascotVisible(false);
+    setEditorKey((k) => k + 1); // remount the editor → empty canvas
+  };
+
   const handleWrongPick = useCallback((type, nodeId, meta) => {
+    setIrisSay(null);
     const authored = problem.nodeProbes[type];
     setProbe({ type, nodeId, data: authored || sequenceProbe(meta || {}), anchor: null });
   }, [problem]);
 
   const handlePlaceCorrect = useCallback(() => {
-    flashNudge('Good pick — now click the pulsing node to set it up.');
+    setIrisSay('Nice pick! Now click the glowing node to set it up.');
+    clearTimeout(sayTimer.current);
+    sayTimer.current = setTimeout(() => setIrisSay(null), 4200);
   }, []);
 
   // once a probed node is on screen (and any auto-focus has settled), travel Iris
@@ -134,7 +155,19 @@ export function BuildStage({ problem, onDecision, onComplete }) {
     const allPlaced = phase.nodeTypes.every((t) => placedSet.has(t));
     const needConfig = nodesState.filter((n) => !n.wrong && phase.nodeTypes.includes(n.type) && (problem.nodeSetup?.[n.type]?.fields?.length > 0));
     const allConfigured = needConfig.length === 0 || needConfig.every((n) => n.configured);
-    if (!allPlaced || !allConfigured) return;
+
+    // a Switch phase isn't done until every branch is wired to a configured reply
+    let branchesOk = true;
+    if (phase.nodeTypes.includes('switch')) {
+      const g = graphRef.current;
+      const sw = g.nodes.find((n) => n.type === 'switch');
+      branchesOk = !!sw && ['bug_report', 'feature_request', 'urgent_complaint'].every((b) => {
+        const e = g.edges.find((ed) => ed.source === sw.id && ed.sourceHandle === b);
+        const target = e && g.nodes.find((n) => n.id === e.target);
+        return target && target.type === 'action' && target.data?.configured;
+      });
+    }
+    if (!allPlaced || !allConfigured || !branchesOk) return;
 
     advancing.current = true;
     setMascotVisible(false); // the clear overlay carries its own celebratory Iris
@@ -161,21 +194,81 @@ export function BuildStage({ problem, onDecision, onComplete }) {
     const g = graphRef.current;
     const { cases, success } = simulateAll(g, problem);
     const val = validateGraph(g, problem);
+    setMascotVisible(false); setIrisSay(null);
+    editorRef.current?.fitAll?.();
     setRun({ cases, success, val });
+    setRunPos({ ci: 0, si: 0 });
+    setRunFinished(false);
     setStage('running');
   };
 
-  useEffect(() => () => clearTimeout(nudgeTimer.current), []);
+  const stopRun = () => {
+    runTimers.current.forEach(clearTimeout); runTimers.current = [];
+    setRun(null); setRunFinished(false); setStage('complete');
+  };
+
+  // drive the run: step through every case's steps on a timeline
+  useEffect(() => {
+    if (!run) return;
+    runTimers.current.forEach(clearTimeout); runTimers.current = [];
+    const seq = [];
+    run.cases.forEach((res, ci) => res.steps.forEach((_, si) => seq.push({ ci, si })));
+    let t = 900; let prevCi = 0;
+    seq.forEach((f, idx) => {
+      if (idx > 0) t += f.ci !== prevCi ? 2400 : 2000; // ~2s per node so it's readable
+      prevCi = f.ci;
+      runTimers.current.push(setTimeout(() => setRunPos(f), t));
+    });
+    runTimers.current.push(setTimeout(() => setRunFinished(true), t + 1800));
+    return () => { runTimers.current.forEach(clearTimeout); runTimers.current = []; };
+  }, [run]);
+
+  // the node the current step runs on (falls back to the trigger for the intro step)
+  const triggerId = graphRef.current.nodes.find((n) => n.type === 'trigger')?.id || null;
+  const activeStep = run && stage === 'running' ? run.cases[runPos.ci]?.steps?.[runPos.si] : null;
+  const activeNodeId = run && stage === 'running' && !runFinished ? (activeStep?.nodeId || triggerId) : null;
+
+  // travel the sticky note to the left of the active node
+  useEffect(() => {
+    if (!activeNodeId || !noteRef.current) return;
+    const t = setTimeout(() => {
+      const r = rectOf(activeNodeId);
+      if (!r || !noteRef.current) return;
+      const w = 224;
+      let x = r.left - w - 20;
+      if (x < 12) x = Math.min(r.left + r.width + 20, r.cw - w - 12);
+      const y = Math.min(Math.max(12, r.top + r.height / 2 - 48), r.ch - 130);
+      gsap.to(noteRef.current, { left: x, top: y, duration: 0.5, ease: 'power3.inOut' });
+    }, 30);
+    return () => clearTimeout(t);
+  }, [activeNodeId]);
+
+  useEffect(() => () => { clearTimeout(nudgeTimer.current); clearTimeout(sayTimer.current); runTimers.current.forEach(clearTimeout); }, []);
+
+  // dev preview: seed the finished flow and auto-run it (#run-story)
+  useEffect(() => {
+    if (!devAutoRun) return;
+    const t = setTimeout(() => startRun(), 800);
+    return () => clearTimeout(t);
+  }, [devAutoRun]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--surface-0)' }}>
-      <TopBar activeStage="dashboard" />
+      <TopBar
+        activeStage="dashboard"
+        onProblemDoc={() => setShowProblem(true)}
+        onAskAI={() => flashNudge('Ask Iris is coming soon ✨')}
+        onRedo={handleRedo}
+      />
 
       <div ref={canvasRef} onPointerDownCapture={dismissSpotlight} style={{ flex: 1, position: 'relative', minHeight: 0 }}>
         <N8nEditor
+          key={editorKey}
           ref={editorRef}
           pickable={phase?.pickable || []}
           flow={problem.flow}
+          initialGraph={devAutoRun ? problem.referenceGraph : undefined}
+          runActiveId={activeNodeId}
           onWrongPick={handleWrongPick}
           onPlaceCorrect={handlePlaceCorrect}
           onGraphChange={handleGraph}
@@ -190,8 +283,16 @@ export function BuildStage({ problem, onDecision, onComplete }) {
           </div>
         </div>
 
+        {/* Iris "talking" — chat bubble to the right of the parked mascot */}
+        {irisSay && mascotVisible && !probe ? (
+          <div className="fade-in" style={{ position: 'absolute', left: 100, bottom: 40, maxWidth: 260, zIndex: 31, background: 'var(--surface-0)', border: '1px solid var(--border-strong)', borderLeft: '3px solid var(--brand-primary)', boxShadow: '0 10px 26px rgba(1,24,69,0.16)', padding: '10px 13px' }}>
+            <span style={{ position: 'absolute', left: -8, bottom: 16, width: 0, height: 0, borderTop: '7px solid transparent', borderBottom: '7px solid transparent', borderRight: '8px solid var(--surface-0)' }} />
+            <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--fg-1)', lineHeight: 1.5 }}>{irisSay}</div>
+          </div>
+        ) : null}
+
         {/* first-stage spotlight on the + */}
-        {showSpotlight && phaseIndex === 0 && nodesState.length === 0 ? <SpotlightIntro coach={phase.coach} /> : null}
+        {showSpotlight && phaseIndex === 0 && nodesState.length === 0 ? <SpotlightIntro /> : null}
 
         {/* wrong-pick floating MCQ */}
         {probe && probe.anchor ? <FloatingProbe probe={probe} onAnswer={answerProbe} onClose={closeProbe} /> : null}
@@ -214,7 +315,26 @@ export function BuildStage({ problem, onDecision, onComplete }) {
           </div>
         ) : null}
 
-        {run ? <RunPanel result={run} onContinue={() => onComplete(run.val)} onClose={() => { setRun(null); setStage('complete'); }} /> : null}
+        {/* run: numbered stepper (top) + traveling sticky note over the live canvas */}
+        {run ? (
+          <>
+            <RunStepper run={run} runPos={runPos} finished={runFinished} onStop={stopRun} />
+            {activeStep && !runFinished ? (
+              <div ref={noteRef} className="fade-in" style={{ position: 'absolute', left: 40, top: 300, width: 224, zIndex: 44, pointerEvents: 'none' }}>
+                <RunNote step={activeStep} caseInfo={run.cases[runPos.ci].case} />
+              </div>
+            ) : null}
+            {runFinished && run.success ? <RunCelebration onContinue={() => onComplete(run.val)} /> : null}
+            {runFinished && !run.success ? (
+              <div className="fade-in" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 46, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, padding: '14px 16px', background: 'var(--surface-0)', borderTop: '1px solid var(--border-strong)' }}>
+                <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--fg-1)' }}>Some emails never reached a reply. Head back and finish wiring the flow.</span>
+                <Button variant="outline" size="sm" onClick={stopRun}>Back to editing</Button>
+              </div>
+            ) : null}
+          </>
+        ) : null}
+
+        {showProblem ? <ProblemStatementPanel problem={problem} side onClose={() => setShowProblem(false)} /> : null}
       </div>
 
       <style>{`
@@ -223,6 +343,10 @@ export function BuildStage({ problem, onDecision, onComplete }) {
         @keyframes fadein { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes runstep { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes runglow { 0%,100% { box-shadow: 0 0 0 3px rgba(0,85,255,0.4), 0 0 18px rgba(0,85,255,0.35); } 50% { box-shadow: 0 0 0 5px rgba(0,85,255,0.18), 0 0 30px rgba(0,85,255,0.55); } }
+        @keyframes pulseerror { 0% { box-shadow: 0 0 0 0 rgba(225,29,42,0.5); } 70% { box-shadow: 0 0 0 11px rgba(225,29,42,0); } 100% { box-shadow: 0 0 0 0 rgba(225,29,42,0); } }
+        .run-glow { animation: runglow 0.85s ease-in-out infinite; }
+        .pulse-error { animation: pulseerror 1.4s ease-out infinite; }
         .pulse-ring { animation: pulsering 1.8s ease-out infinite; }
         .pulse-plus { animation: pulsering 1.5s ease-out infinite; }
         .pulse-field { animation: pulsering 2s ease-out infinite; }
@@ -234,23 +358,23 @@ export function BuildStage({ problem, onDecision, onComplete }) {
   );
 }
 
-// Canvas stays visible; everything dims except a spotlight over the + , with Iris.
-function SpotlightIntro({ coach }) {
+// Canvas stays visible; everything dims except a spotlight over the + . A big
+// Iris + heading + description sit below it.
+function SpotlightIntro() {
   const ref = useRef(null);
+  const stack = useRef(null);
   useLayoutEffect(() => {
     if (ref.current) gsap.fromTo(ref.current, { opacity: 0 }, { opacity: 1, duration: 0.5, ease: 'power2.out' });
+    if (stack.current) gsap.fromTo(stack.current.children, { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, stagger: 0.1, ease: 'power3.out', delay: 0.15 });
   }, []);
   return (
-    <div ref={ref} style={{ position: 'absolute', inset: 0, zIndex: 38, pointerEvents: 'none', background: 'radial-gradient(circle at 50% 46%, rgba(6,20,50,0) 96px, rgba(6,20,50,0.35) 190px, rgba(6,20,50,0.6) 60%)' }}>
-      <div style={{ position: 'absolute', left: '50%', top: '60%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: 12, maxWidth: 460 }}>
-        <div style={{ width: 66, height: 66, flex: 'none' }}>
+    <div ref={ref} style={{ position: 'absolute', inset: 0, zIndex: 38, pointerEvents: 'none', background: 'radial-gradient(circle at 50% 50%, rgba(20,30,55,0) 120px, rgba(20,30,55,0.10) 260px, rgba(20,30,55,0.26) 100%)' }}>
+      <div ref={stack} style={{ position: 'absolute', left: '50%', top: '13%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, textAlign: 'center', maxWidth: 440 }}>
+        <div style={{ width: 84, height: 84 }}>
           <MascotPlayer clip="presenting" once={false} onceDone={() => {}} />
         </div>
-        <div style={{ position: 'relative', background: 'var(--surface-0)', border: '1px solid var(--border-strong)', borderLeft: '3px solid var(--brand-primary)', boxShadow: '0 12px 30px rgba(1,24,69,0.22)', padding: '11px 14px' }}>
-          <span style={{ position: 'absolute', left: -8, top: 20, width: 0, height: 0, borderTop: '7px solid transparent', borderBottom: '7px solid transparent', borderRight: '8px solid var(--surface-0)' }} />
-          <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--fg-1)', marginBottom: 3 }}>Click the glowing <span style={{ color: 'var(--brand-primary)' }}>+</span> to start</div>
-          <div style={{ fontSize: 12.5, color: 'var(--fg-2)', lineHeight: 1.45 }}>{coach}</div>
-        </div>
+        <div style={{ fontFamily: 'var(--font-headline)', fontSize: 26, fontWeight: 600, color: 'var(--fg-1)', textShadow: '0 1px 10px rgba(255,255,255,0.7)' }}>Let’s build your agent</div>
+        <div style={{ fontSize: 14, color: 'var(--fg-1)', fontWeight: 500, lineHeight: 1.55, textShadow: '0 1px 8px rgba(255,255,255,0.7)' }}>Click the glowing <span style={{ color: 'var(--brand-primary)', fontWeight: 700 }}>+</span> below to get started.</div>
       </div>
     </div>
   );
@@ -265,10 +389,10 @@ function StageClearOverlay({ info, onContinue }) {
   }, []);
   const last = !info.next;
   return (
-    <div ref={ref} style={{ position: 'absolute', inset: 0, zIndex: 58, background: 'var(--surface-0)', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 32, overflow: 'hidden' }}>
+    <div ref={ref} style={{ position: 'absolute', inset: 0, zIndex: 58, background: 'rgba(233,236,242,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 32, overflow: 'hidden' }}>
       <Confetti />
-      <div ref={stack} style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, maxWidth: 480 }}>
-        <div style={{ position: 'relative', width: 116, height: 116 }}>
+      <div ref={stack} style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, maxWidth: 400, background: 'var(--surface-0)', border: '1px solid var(--border-strong)', boxShadow: '0 24px 70px rgba(1,24,69,0.22)', padding: '30px 34px' }}>
+        <div style={{ position: 'relative', width: 104, height: 104 }}>
           <div style={{ position: 'absolute', inset: -14, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,85,255,0.22), rgba(0,85,255,0) 70%)', animation: 'irispulse 1.8s ease-in-out infinite' }} />
           <div style={{ position: 'relative', width: '100%', height: '100%' }}>
             <MascotPlayer clip="celebrate" once={false} onceDone={() => {}} />
@@ -277,7 +401,7 @@ function StageClearOverlay({ info, onContinue }) {
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--status-success)' }}>
           <CheckCircle size={15} weight="fill" /> {info.cleared} — done
         </div>
-        <div style={{ fontFamily: 'var(--font-headline)', fontSize: 24, fontWeight: 600, color: 'var(--fg-1)', lineHeight: 1.35 }}>
+        <div style={{ fontFamily: 'var(--font-headline)', fontSize: 21, fontWeight: 600, color: 'var(--fg-1)', lineHeight: 1.35 }}>
           {last ? 'Your agent is complete.' : info.next.coach}
         </div>
         <Button variant="primary" size="lg" iconRight={<ArrowRight size={16} />} onClick={onContinue} style={{ marginTop: 2 }}>
@@ -358,7 +482,79 @@ function FloatingProbe({ probe, onAnswer, onClose }) {
   );
 }
 
-export function RunPanel({ result, onContinue, onClose }) {
+const RUN_TYPE = { email: 'trigger', trigger: 'trigger', classify: 'classify', parse: 'parse', switch: 'switch', action: 'action' };
+
+// Celebration when every test case passes — confetti + Iris, then on to stage 3.
+function RunCelebration({ onContinue }) {
+  const ref = useRef(null);
+  const stack = useRef(null);
+  useLayoutEffect(() => {
+    if (ref.current) gsap.fromTo(ref.current, { opacity: 0 }, { opacity: 1, duration: 0.35, ease: 'power2.out' });
+    if (stack.current) gsap.fromTo(stack.current.children, { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, stagger: 0.1, ease: 'power3.out', delay: 0.12 });
+  }, []);
+  return (
+    <div ref={ref} style={{ position: 'absolute', inset: 0, zIndex: 58, background: 'rgba(233,236,242,0.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 32, overflow: 'hidden' }}>
+      <Confetti count={120} />
+      <div ref={stack} style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, maxWidth: 440, background: 'var(--surface-0)', border: '1px solid var(--border-strong)', boxShadow: '0 24px 70px rgba(1,24,69,0.22)', padding: '30px 36px' }}>
+        <div style={{ position: 'relative', width: 108, height: 108 }}>
+          <div style={{ position: 'absolute', inset: -14, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,85,255,0.22), rgba(0,85,255,0) 70%)', animation: 'irispulse 1.8s ease-in-out infinite' }} />
+          <div style={{ position: 'relative', width: '100%', height: '100%' }}><MascotPlayer clip="celebrate" once={false} onceDone={() => {}} /></div>
+        </div>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--status-success)' }}>
+          <CheckCircle size={15} weight="fill" /> All test cases passed
+        </div>
+        <div style={{ fontFamily: 'var(--font-headline)', fontSize: 22, fontWeight: 600, color: 'var(--fg-1)', lineHeight: 1.35 }}>Your agent handled every email correctly.</div>
+        <div style={{ fontSize: 13.5, color: 'var(--fg-2)', lineHeight: 1.5 }}>Now let’s stress-test how well you understand what it does.</div>
+        <Button variant="primary" size="lg" iconRight={<ArrowRight size={16} />} onClick={onContinue} style={{ marginTop: 2 }}>Move to Stress Testing</Button>
+      </div>
+    </div>
+  );
+}
+
+// Numbered test-case stepper shown below the nav during a run.
+function RunStepper({ run, runPos, finished, onStop }) {
+  const cases = run.cases;
+  const reply = finished ? null : (cases[runPos.ci].case.reply || 'General question');
+  return (
+    <div style={{ position: 'absolute', top: 14, left: '50%', transform: 'translateX(-50%)', zIndex: 44, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 9 }}>
+      <div style={{ display: 'flex', alignItems: 'center', background: 'var(--surface-0)', border: '1px solid var(--border-strong)', boxShadow: '0 6px 20px rgba(1,24,69,0.12)', padding: '8px 14px' }}>
+        {cases.map((res, i) => {
+          const done = finished || i < runPos.ci;
+          const active = !finished && i === runPos.ci;
+          const bg = active ? 'var(--brand-primary)' : done ? (res.delivered ? 'var(--status-success)' : 'var(--status-danger)') : 'var(--n-200)';
+          const color = active || done ? '#fff' : 'var(--fg-3)';
+          return (
+            <React.Fragment key={i}>
+              {i > 0 ? <div style={{ width: 22, height: 2, background: 'var(--border-subtle)' }} /> : null}
+              <span title={`Test case ${i + 1}`} style={{ width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, background: bg, color, boxShadow: active ? '0 0 0 4px var(--brand-blue-50)' : 'none', transition: 'background 0.3s ease' }}>
+                {done ? (res.delivered ? <CheckCircle size={15} weight="fill" /> : <XCircle size={15} weight="fill" />) : i + 1}
+              </span>
+            </React.Fragment>
+          );
+        })}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 12.5, fontWeight: 600, color: 'var(--fg-2)' }}>
+        {finished ? 'Run complete' : <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}><CircleNotch size={14} weight="bold" color="var(--brand-primary)" className="spin" /> Test case {runPos.ci + 1} · {reply} running…</span>}
+        {!finished ? <button type="button" onClick={onStop} style={{ background: 'none', border: 'none', color: 'var(--fg-3)', fontSize: 12, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>Stop</button> : null}
+      </div>
+    </div>
+  );
+}
+
+// Sticky note that travels beside the running node, narrating what's happening.
+function RunNote({ step, caseInfo }) {
+  const dead = step.status === 'dead';
+  const accent = dead ? 'var(--status-danger)' : step.status === 'done' ? 'var(--status-success)' : 'var(--brand-primary)';
+  return (
+    <div style={{ position: 'relative', background: '#FEF7E0', border: '1px solid #E7D699', borderLeft: `3px solid ${accent}`, boxShadow: '0 14px 32px rgba(1,24,69,0.2)', padding: '11px 13px' }}>
+      <span style={{ position: 'absolute', right: -8, top: 24, width: 0, height: 0, borderTop: '7px solid transparent', borderBottom: '7px solid transparent', borderLeft: '8px solid #FEF7E0' }} />
+      <div style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: accent, marginBottom: 4 }}>{caseInfo.reply || 'General question'}</div>
+      <div style={{ fontSize: 12.5, lineHeight: 1.5, color: 'var(--fg-1)' }}>{step.text}</div>
+    </div>
+  );
+}
+
+export function RunPanel({ result, onActiveStep, onContinue, onClose }) {
   const { cases, success } = result;
   const [ci, setCi] = useState(0);
   const [revealed, setRevealed] = useState(0);
@@ -390,6 +586,14 @@ export function RunPanel({ result, onContinue, onClose }) {
   }, [cases]);
 
   const active = cases[ci];
+
+  // light up the node the current step is running on
+  useEffect(() => {
+    if (!onActiveStep) return;
+    if (finished) { onActiveStep(null); return; }
+    const s = (active?.steps || [])[Math.max(0, revealed - 1)];
+    onActiveStep(s ? (RUN_TYPE[s.iconType] || null) : null);
+  }, [ci, revealed, finished, active, onActiveStep]);
 
   return (
     <div ref={rootRef} style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '42%', zIndex: 55, background: 'var(--surface-0)', borderTop: '1px solid var(--border-strong)', boxShadow: '0 -14px 40px rgba(1,24,69,0.16)', display: 'flex', flexDirection: 'column' }}>

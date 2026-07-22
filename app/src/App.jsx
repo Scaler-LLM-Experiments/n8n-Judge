@@ -24,7 +24,13 @@ export default function App() {
     return <div style={{ height: '100vh' }}><PlaygroundScreen /></div>;
   }
   if (typeof window !== 'undefined' && window.location.hash === '#build') {
-    return <div style={{ height: '100vh' }}><BuildStage problem={emailTriage} onComplete={() => {}} /></div>;
+    return <div style={{ height: '100vh' }}><BuildPreview /></div>;
+  }
+  if (typeof window !== 'undefined' && window.location.hash === '#run-story') {
+    return <div style={{ height: '100vh' }}><BuildPreview devAutoRun /></div>;
+  }
+  if (typeof window !== 'undefined' && window.location.hash === '#eval-demo') {
+    return <div style={{ height: '100vh' }}><EvalScreen problem={emailTriage} onSubmit={() => {}} onDecision={() => {}} /></div>;
   }
   if (typeof window !== 'undefined' && window.location.hash === '#run-demo') {
     const g = {
@@ -76,6 +82,31 @@ export default function App() {
     return <div style={{ height: '100vh' }}><ReportScreen problem={emailTriage} grading={s} runResult={runResult} evalOutcome={evalOutcome} /></div>;
   }
   return <MainApp />;
+}
+
+// Preview wrapper for the #build / #run-story routes: build → eval → report,
+// so the "Move to Stress Testing" CTA actually advances.
+function BuildPreview({ devAutoRun }) {
+  const [screen, setScreen] = useState('build');
+  const [grading, setGrading] = useState(() => createStore());
+  const [runResult, setRunResult] = useState(null);
+  const [evalOutcome, setEvalOutcome] = useState(null);
+  const record = (d) => setGrading((s) => recordDecision(s, d));
+
+  if (screen === 'eval') {
+    return <EvalScreen problem={emailTriage} onDecision={record} onSubmit={(o) => { setEvalOutcome(o); setScreen('report'); }} />;
+  }
+  if (screen === 'report') {
+    return <ReportScreen problem={emailTriage} grading={grading} runResult={runResult} evalOutcome={evalOutcome} />;
+  }
+  return (
+    <BuildStage
+      problem={emailTriage}
+      devAutoRun={devAutoRun}
+      onDecision={record}
+      onComplete={(r) => { if (r) setRunResult(r); setScreen('eval'); }}
+    />
+  );
 }
 
 function MainApp() {

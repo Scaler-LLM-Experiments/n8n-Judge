@@ -69,8 +69,8 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
   const finishAndClose = () => { if (done && onComplete) onComplete(); requestClose(); };
 
   return (
-    <div ref={rootRef} onMouseDown={(e) => { if (e.target === e.currentTarget) finishAndClose(); }} style={{ position: 'absolute', inset: 0, zIndex: 45, background: 'rgba(6,20,50,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '3vh 2vw' }}>
-    <div ref={panelRef} style={{ width: '86%', height: '86%', maxWidth: 1180, background: 'var(--surface-0)', border: '1px solid var(--border-strong)', boxShadow: '0 30px 80px rgba(1,24,69,0.35)', display: 'flex', flexDirection: 'column' }}>
+    <div ref={rootRef} onMouseDown={(e) => { if (e.target === e.currentTarget) finishAndClose(); }} style={{ position: 'absolute', inset: 0, zIndex: 45, background: 'rgba(6,20,50,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2vh 1.5vw' }}>
+    <div ref={panelRef} style={{ width: '95%', height: '95%', maxWidth: 1480, background: 'var(--surface-0)', border: '1px solid var(--border-strong)', boxShadow: '0 30px 80px rgba(1,24,69,0.35)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 16px', borderBottom: '1px solid var(--border-subtle)' }}>
         <span style={{ width: 28, height: 28, background: meta.tint, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {Icon ? <Icon size={16} color={iconColor} /> : null}
@@ -93,8 +93,8 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
           )}
         </Pane>
 
-        <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, borderLeft: '1px solid var(--border-subtle)', borderRight: '1px solid var(--border-subtle)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 18, padding: '0 16px', borderBottom: '1px solid var(--border-subtle)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0, borderLeft: '1px solid var(--border-subtle)', borderRight: '1px solid var(--border-subtle)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 18, padding: '0 16px', borderBottom: '1px solid var(--border-subtle)', flex: 'none' }}>
             <Tab active={tab === 'params'} onClick={() => setTab('params')}>Parameters</Tab>
             <span title="Nothing to change here for this task" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '11px 0', fontSize: 12.5, fontWeight: 600, color: 'var(--fg-3)', opacity: 0.55, cursor: 'not-allowed' }}>
               <Lock size={11} weight="fill" /> Settings
@@ -111,7 +111,7 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
               )}
             </div>
           </div>
-          <div style={{ flex: 1, overflowY: 'auto', padding: 16 }}>
+          <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '16px 16px 32px' }}>
             <FieldForm
               setup={setup}
               fields={fields}
