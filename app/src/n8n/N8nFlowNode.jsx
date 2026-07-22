@@ -24,7 +24,6 @@ export function N8nFlowNode({ id, type, data, selected }) {
     <div style={{ position: 'relative' }} onClick={() => openNdv(id)}>
       {!isTrigger ? <Handle type="target" position={Position.Left} style={portStyle} /> : null}
       <Handle type="source" position={Position.Right} style={portStyle} />
-      {isAi ? <Handle type="target" id="ai_model" position={Position.Bottom} style={{ ...portStyle, left: '17%', borderColor: categoryMeta.model.color, borderStyle: 'dashed' }} /> : null}
 
       <N8nNodeView type={type} label={data.label} selected={selected} hidePorts hideAiChip />
 
@@ -40,23 +39,25 @@ export function N8nFlowNode({ id, type, data, selected }) {
         <Plus size={15} weight="bold" />
       </button>
 
-      {/* AI cluster: Chat Model* / Memory / Tool sub-node ports */}
+      {/* AI cluster: Chat Model* / Memory / Tool sub-node ports, well below the label */}
       {isAi ? (
-        <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0, display: 'flex', justifyContent: 'space-around' }}>
+        <div style={{ position: 'absolute', top: 'calc(100% + 26px)', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 20 }}>
           {AI_PORTS.map((p) => {
             const active = p.id === 'chatModel';
-            const color = active ? categoryMeta.model.color : 'var(--fg-3)';
+            const color = active ? categoryMeta.model.color : '#9AA2AE';
             return (
-              <div key={p.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                <span style={{ width: 11, height: 11, transform: 'rotate(45deg)', border: `2px solid ${color}`, background: 'var(--surface-0)' }} />
-                <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--fg-2)', whiteSpace: 'nowrap' }}>
+              <div key={p.id} style={{ width: 76, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                <span style={{ position: 'relative', width: 13, height: 13, transform: 'rotate(45deg)', border: `2px solid ${color}`, background: 'var(--surface-0)' }}>
+                  {active ? <Handle type="target" id="ai_model" position={Position.Top} style={{ width: 15, height: 15, top: '50%', left: '50%', transform: 'translate(-50%,-50%) rotate(-45deg)', background: 'transparent', border: 'none' }} /> : null}
+                </span>
+                <span style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--fg-2)', whiteSpace: 'nowrap', textAlign: 'center' }}>
                   {p.label}{p.required ? <span style={{ color: 'var(--status-danger)' }}> *</span> : null}
                 </span>
                 <button
                   type="button"
                   title={active ? 'Attach a Chat Model' : `${p.label} — optional`}
                   onClick={(e) => { e.stopPropagation(); if (active) openPicker({ sourceId: id, modelSlot: true }); }}
-                  style={{ width: 22, height: 22, borderRadius: 5, border: `1.5px solid ${active ? categoryMeta.model.color : 'var(--border-strong)'}`, background: 'var(--surface-0)', color: active ? categoryMeta.model.color : 'var(--fg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: active ? 'pointer' : 'default', opacity: active ? 1 : 0.5 }}
+                  style={{ width: 24, height: 24, borderRadius: 5, border: `1.5px solid ${active ? categoryMeta.model.color : 'var(--border-strong)'}`, background: 'var(--surface-0)', color: active ? categoryMeta.model.color : 'var(--fg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: active ? 'pointer' : 'default', opacity: active ? 1 : 0.5 }}
                 >
                   <Plus size={13} weight="bold" />
                 </button>

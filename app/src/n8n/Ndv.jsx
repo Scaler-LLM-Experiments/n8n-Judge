@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
-import { X, LockSimple, CaretDown, Flask, ArrowSquareOut, Lightning } from '@phosphor-icons/react';
+import { X, LockSimple, CaretDown, Check, ArrowSquareOut, Lightning } from '@phosphor-icons/react';
 import { nodeIcons, nodeIconColor, metaOf } from '../nodes/nodeIcons.js';
 import { variantOf } from './N8nNodeView.jsx';
 import { Switch } from '../design-system/Switch.jsx';
@@ -55,8 +55,8 @@ export function Ndv({ node, inputData, inputLabel, onChangeParam, onClose }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 18, padding: '0 16px', borderBottom: '1px solid var(--border-subtle)' }}>
             <Tab active={tab === 'params'} onClick={() => setTab('params')}>Parameters</Tab>
             <Tab active={tab === 'settings'} onClick={() => setTab('settings')}>Settings</Tab>
-            <button type="button" style={{ marginLeft: 'auto', margin: '8px 0 8px auto', display: 'flex', alignItems: 'center', gap: 6, background: 'var(--brand-primary)', color: '#fff', border: 'none', padding: '7px 13px', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
-              <Flask size={14} weight="fill" /> {isTrigger ? 'Test this trigger' : 'Test step'}
+            <button type="button" onClick={requestClose} style={{ marginLeft: 'auto', margin: '8px 0 8px auto', display: 'flex', alignItems: 'center', gap: 6, background: 'var(--brand-primary)', color: '#fff', border: 'none', padding: '7px 13px', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
+              <Check size={14} weight="bold" /> Complete setup
             </button>
           </div>
           <div style={{ flex: 1, overflowY: 'auto', padding: 16 }}>
