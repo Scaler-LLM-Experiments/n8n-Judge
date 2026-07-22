@@ -4,72 +4,79 @@ export const emailTriage = {
   statement:
     "Your inbox is full of mixed feedback. Build a flow that watches for new emails, uses AI to classify each one (Bug Report / Feature Request / Complaint), and routes urgent complaints differently from everything else — each path sends the right reply.",
 
-  // Front-of-flow: dissect the problem. Each correct answer unlocks node(s) for
-  // the builder. Learner must answer each correctly (with retry) to proceed.
+  // Front-of-flow: Iris interrogates the learner to dissect the problem. Each
+  // question is a NODE/APP pick — options map to real node types, and the chosen
+  // node drops onto the canvas (tagged right/wrong). Correct answers unlock the
+  // node for the builder. Must answer correctly (with retry) to advance.
   dissection: [
     {
       id: 'trigger',
-      prompt: 'What event should kick this workflow off?',
+      prompt: 'Let’s start at the very top. Which app should kick this workflow off?',
       options: [
-        'When a new email arrives in the inbox',
-        'On a fixed schedule, every hour',
-        'When someone opens a chat window',
-        'Only when you run it manually',
+        { label: 'New Email', type: 'trigger' },
+        { label: 'Chat Trigger', type: 'chat-trigger' },
+        { label: 'Schedule', type: 'schedule' },
+        { label: 'Webhook', type: 'webhook' },
       ],
-      correctIndex: 0,
+      correctType: 'trigger',
       explanation:
-        'The job is to react to incoming support emails, so the flow should start the moment a new email lands. That is an event trigger — a New Email trigger — not a schedule or a manual run.',
+        'We need to react the moment a support email lands — that’s an email trigger. A schedule fires on a clock, a webhook waits for an HTTP call, and a chat trigger is for chatbots. None of those watch an inbox.',
       unlocks: ['trigger'],
     },
     {
       id: 'classify',
-      prompt: 'How should the flow decide what kind of email each one is?',
+      prompt: 'A raw email just came in. What should read it and decide what kind of email it is?',
       options: [
-        'Use an AI model to read and classify it',
-        'Check the sender’s email domain',
-        'Ask the customer to pick a category',
-        'Assign a category at random',
+        { label: 'Classify with AI', type: 'classify' },
+        { label: 'If', type: 'if' },
+        { label: 'Code', type: 'code' },
+        { label: 'Switch', type: 'switch' },
       ],
-      correctIndex: 0,
+      correctType: 'classify',
       explanation:
-        'Emails are free-form text, so rules on the domain won’t work and you can’t make the customer do it. An AI classification step reads the message and labels it — that’s the Classify with AI node, which needs a language model plugged in.',
+        'Emails are messy free text — rigid rules in an If or Code node break instantly. An AI classification node reads the message like a human would and labels it. (It needs a language model plugged in — we’ll wire that up later.)',
       unlocks: ['classify', 'chat-gemini'],
     },
     {
       id: 'parse',
-      prompt: 'The AI returns its answer as a line of text. What do you need before you can branch on it?',
+      prompt: 'The AI hands back its answer as one blob of text. What do you do before you can branch on it?',
       options: [
-        'Parse it into structured fields (category, urgency)',
-        'Send the text straight to the Switch',
-        'Nothing — text works everywhere',
-        'Email the raw text to yourself',
+        { label: 'Parse Result', type: 'parse' },
+        { label: 'Send it straight to Switch', type: 'switch' },
+        { label: 'Send Reply now', type: 'action' },
+        { label: 'Do nothing', type: 'noop' },
       ],
-      correctIndex: 0,
+      correctType: 'parse',
       explanation:
-        'The Switch node routes on a specific field, but the AI hands back a blob of text. You first parse it into clean fields — category and urgency — so later nodes can read them reliably.',
+        'A Switch routes on a specific field, but right now you only have a text blob. Parse it into clean fields — category and urgency — first, so every node after can read them reliably.',
       unlocks: ['parse'],
     },
     {
       id: 'switch',
-      prompt: 'You have three categories that each need different handling. Which node sends one input down multiple paths by rules?',
-      options: ['Switch', 'If', 'Merge', 'Filter'],
-      correctIndex: 0,
+      prompt: 'Three categories, three different replies. Which node sends one input down several paths by rule?',
+      options: [
+        { label: 'Switch', type: 'switch' },
+        { label: 'If', type: 'if' },
+        { label: 'Merge', type: 'merge' },
+        { label: 'Filter', type: 'filter' },
+      ],
+      correctType: 'switch',
       explanation:
-        'If only splits two ways (true/false). Merge combines streams and Filter drops items. The Switch node routes a single input to any number of outputs based on rules — exactly what three categories need.',
+        'If only splits two ways. Merge combines streams and Filter drops items. The Switch routes a single input to as many outputs as you define — perfect for Bug Report, Feature Request and Urgent Complaint.',
       unlocks: ['switch'],
     },
     {
       id: 'action',
-      prompt: 'What should happen at the end of each category’s path?',
+      prompt: 'Last decision. At the end of each branch, what actually responds to the customer?',
       options: [
-        'Send a reply email tailored to that category',
-        'Delete the incoming email',
-        'Do nothing and stop',
-        'Write it to a spreadsheet only',
+        { label: 'Send Reply', type: 'action' },
+        { label: 'Slack — Send Message', type: 'slack-message' },
+        { label: 'Google Docs', type: 'google-docs' },
+        { label: 'Do nothing', type: 'noop' },
       ],
-      correctIndex: 0,
+      correctType: 'action',
       explanation:
-        'The whole point is to respond appropriately. Each branch ends in a Send Reply action so the customer actually hears back — with a message that fits their category.',
+        'The customer emailed in, so they should get an email back. Each branch ends in a Send Reply tailored to that category. Slack or a doc might log it internally, but the customer would hear nothing.',
       unlocks: ['action'],
     },
   ],

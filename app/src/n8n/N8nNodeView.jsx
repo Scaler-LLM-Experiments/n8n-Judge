@@ -83,7 +83,7 @@ export function N8nNodeView({ type, label, placeholder, tag, selected, size = BO
         {/* result tag */}
         {tag ? (
           <div style={{ position: 'absolute', top: -10, right: -10, zIndex: 3 }}>
-            {tag === 'correct' ? <CheckCircle size={22} weight="fill" color="var(--status-success)" /> : <XCircle size={22} weight="fill" color="var(--status-danger)" />}
+            {tag === 'correct' ? <CheckCircle size={22} weight="fill" color="var(--brand-primary)" /> : <XCircle size={22} weight="fill" color="var(--status-danger)" />}
           </div>
         ) : null}
       </div>

@@ -1,27 +1,36 @@
 import React, { useRef, useState } from 'react';
-import { X, DotsSixVertical, Note } from '@phosphor-icons/react';
+import { X, DotsSixVertical, CaretDown, CaretRight } from '@phosphor-icons/react';
 import { ConceptFlow } from './ConceptFlow.jsx';
 
-// A draggable "sticky" reference card. Starts top-left, can be dragged anywhere,
-// and hidden. Shows the plain-language conceptual flow + the problem statement.
+// Faint-yellow "sticky note" reference card. Draggable (header) and resizable
+// (corner). The flow diagram is tucked into a collapsible dropdown so the note
+// stays small on tight screens.
 export function ProblemNote({ problem, onHide }) {
-  const [pos, setPos] = useState({ x: 20, y: 92 });
-  const drag = useRef(null);
+  const [pos, setPos] = useState({ x: 24, y: 96 });
+  const [size, setSize] = useState({ w: 300, h: 260 });
+  const [showDiagram, setShowDiagram] = useState(false);
+  const mode = useRef(null);
+  const start = useRef(null);
 
-  const onPointerDown = (e) => {
-    drag.current = { sx: e.clientX, sy: e.clientY, ox: pos.x, oy: pos.y };
-    window.addEventListener('pointermove', onPointerMove);
-    window.addEventListener('pointerup', onPointerUp);
+  const begin = (kind) => (e) => {
+    mode.current = kind;
+    start.current = { mx: e.clientX, my: e.clientY, ...pos, ...size };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', end);
   };
-  const onPointerMove = (e) => {
-    const d = drag.current;
-    if (!d) return;
-    setPos({ x: Math.max(4, d.ox + e.clientX - d.sx), y: Math.max(64, d.oy + e.clientY - d.sy) });
+  const onMove = (e) => {
+    const s = start.current;
+    if (!s) return;
+    if (mode.current === 'drag') {
+      setPos({ x: Math.max(4, s.x + e.clientX - s.mx), y: Math.max(60, s.y + e.clientY - s.my) });
+    } else {
+      setSize({ w: Math.max(240, s.w + e.clientX - s.mx), h: Math.max(150, s.h + e.clientY - s.my) });
+    }
   };
-  const onPointerUp = () => {
-    drag.current = null;
-    window.removeEventListener('pointermove', onPointerMove);
-    window.removeEventListener('pointerup', onPointerUp);
+  const end = () => {
+    mode.current = null;
+    window.removeEventListener('pointermove', onMove);
+    window.removeEventListener('pointerup', end);
   };
 
   return (
@@ -30,29 +39,50 @@ export function ProblemNote({ problem, onHide }) {
         position: 'fixed',
         left: pos.x,
         top: pos.y,
-        width: 300,
+        width: size.w,
+        height: size.h,
         zIndex: 70,
-        background: 'var(--surface-0)',
-        border: '1px solid var(--border-strong)',
-        boxShadow: '0 12px 32px rgba(1,24,69,0.18)',
+        background: '#FEFAE7',
+        border: '1px solid #E8DFA8',
+        boxShadow: '0 14px 34px rgba(1,24,69,0.16)',
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
       <div
-        onPointerDown={onPointerDown}
-        style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 10px', borderBottom: '1px solid var(--border-subtle)', background: 'var(--surface-1)', cursor: 'grab', userSelect: 'none' }}
+        onPointerDown={begin('drag')}
+        style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 10px', borderBottom: '1px solid #EAE1AE', cursor: 'grab', userSelect: 'none', flex: 'none' }}
       >
-        <DotsSixVertical size={15} color="var(--fg-3)" />
-        <Note size={14} weight="fill" color="var(--brand-primary)" />
-        <span style={{ fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--fg-2)' }}>The problem</span>
-        <button type="button" onClick={onHide} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--fg-3)' }}>
+        <DotsSixVertical size={15} color="#B8A94E" />
+        <span style={{ fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#8A7B2E' }}>The problem</span>
+        <button type="button" onClick={onHide} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#8A7B2E', display: 'flex' }}>
           <X size={14} />
         </button>
       </div>
-      <div style={{ padding: 14 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>{problem.title}</div>
-        <ConceptFlow compact />
-        <div style={{ fontSize: 12.5, lineHeight: 1.55, color: 'var(--fg-2)', marginTop: 12 }}>{problem.statement}</div>
+
+      <div style={{ padding: 14, overflowY: 'auto', flex: 1 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, color: 'var(--fg-1)' }}>{problem.title}</div>
+        <div style={{ fontSize: 12.5, lineHeight: 1.55, color: 'var(--fg-2)' }}>{problem.statement}</div>
+
+        <button
+          type="button"
+          onClick={() => setShowDiagram((s) => !s)}
+          style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 700, color: '#8A7B2E', padding: 0 }}
+        >
+          {showDiagram ? <CaretDown size={13} /> : <CaretRight size={13} />} Flow diagram
+        </button>
+        {showDiagram ? (
+          <div style={{ marginTop: 12, display: 'flex', justifyContent: 'center' }}>
+            <ConceptFlow direction="column" size="sm" />
+          </div>
+        ) : null}
       </div>
+
+      {/* resize handle */}
+      <div
+        onPointerDown={begin('resize')}
+        style={{ position: 'absolute', right: 0, bottom: 0, width: 16, height: 16, cursor: 'nwse-resize', background: 'linear-gradient(135deg, transparent 50%, #D9CE84 50%)' }}
+      />
     </div>
   );
 }

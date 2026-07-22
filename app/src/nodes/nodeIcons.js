@@ -1,4 +1,4 @@
-import { Sparkle, BracketsCurly, ArrowsSplit, ChatCircle, Lightning, Plug, FlowArrow, Brain, SlackLogo } from '@phosphor-icons/react';
+import { Sparkle, BracketsCurly, ArrowsSplit, ChatCircle, Lightning, Plug, FlowArrow, Brain, SlackLogo, Clock, Code, GitBranch, ArrowsMerge, FunnelSimple, Prohibit, Broadcast } from '@phosphor-icons/react';
 import { SiGmail, SiGooglegemini, SiNotion, SiGooglecalendar, SiGoogledocs, SiGoogle } from 'react-icons/si';
 
 // Per-category visual identity. Kept deliberately calm: the loud colour in the
@@ -32,6 +32,14 @@ export const nodeIcons = {
   'notion-page': SiNotion,
   'web-search': SiGoogle,
   'google-docs': SiGoogledocs,
+  // display-only nodes used as quiz answer options
+  schedule: Clock,
+  webhook: Broadcast,
+  code: Code,
+  if: GitBranch,
+  merge: ArrowsMerge,
+  filter: FunnelSimple,
+  noop: Prohibit,
 };
 
 // Brand colour overrides for the glyph (falls back to the category colour).
@@ -60,6 +68,13 @@ export const typeCategory = {
   'calendar-event': 'action',
   'notion-page': 'action',
   'google-docs': 'action',
+  schedule: 'trigger',
+  webhook: 'trigger',
+  code: 'core',
+  if: 'core',
+  merge: 'core',
+  filter: 'core',
+  noop: 'core',
 };
 
 export function categoryOf(type) {
