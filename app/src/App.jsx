@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { emailTriage } from './data/problems/emailTriage.js';
 import { DissectionScreen } from './screens/DissectionScreen.jsx';
-import { DashboardScreen } from './screens/DashboardScreen.jsx';
+import { BuildStage } from './screens/BuildStage.jsx';
 import { EvalScreen } from './screens/EvalScreen.jsx';
 import { ReportScreen } from './screens/ReportScreen.jsx';
 import { PlaygroundScreen } from './screens/PlaygroundScreen.jsx';
@@ -17,6 +17,9 @@ const SCREEN = {
 export default function App() {
   if (typeof window !== 'undefined' && window.location.hash === '#playground') {
     return <div style={{ height: '100vh' }}><PlaygroundScreen /></div>;
+  }
+  if (typeof window !== 'undefined' && window.location.hash === '#build') {
+    return <div style={{ height: '100vh' }}><BuildStage problem={emailTriage} onComplete={() => {}} /></div>;
   }
   return <MainApp />;
 }
@@ -40,10 +43,10 @@ function MainApp() {
       ) : null}
 
       {screen === SCREEN.DASHBOARD ? (
-        <DashboardScreen
+        <BuildStage
           problem={emailTriage}
-          onAllTestsPassed={(result) => {
-            setRunResult(result);
+          onComplete={(result) => {
+            if (result) setRunResult(result);
             setScreen(SCREEN.EVAL);
           }}
         />

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import ReactFlow, {
   Background,
   BackgroundVariant,
@@ -27,11 +27,15 @@ const defaultEdgeOptions = {
 let idc = 0;
 const nextId = () => `n${(idc += 1)}`;
 
-function EditorInner() {
+function EditorInner({ pickable, onGraphChange }) {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
   const [picker, setPicker] = useState(null); // {sourceId, triggerSlot, modelSlot}
   const [ndvId, setNdvId] = useState(null);
+
+  useEffect(() => {
+    if (onGraphChange) onGraphChange(nodes, edges);
+  }, [nodes, edges, onGraphChange]);
 
   const onNodesChange = useCallback((c) => setNodes((n) => applyNodeChanges(c, n)), []);
   const onEdgesChange = useCallback((c) => setEdges((e) => applyEdgeChanges(c, e)), []);
@@ -122,17 +126,17 @@ function EditorInner() {
           </div>
         ) : null}
 
-        {picker ? <NodePickerDrawer context={picker} onPick={addNode} onClose={() => setPicker(null)} /> : null}
+        {picker ? <NodePickerDrawer context={picker} options={pickable} onPick={addNode} onClose={() => setPicker(null)} /> : null}
         {ndvNode ? <Ndv node={ndvNode} inputData={ndvIn.data} inputLabel={ndvIn.label} onChangeParam={updateParam} onClose={() => setNdvId(null)} /> : null}
       </div>
     </EditorContext.Provider>
   );
 }
 
-export function N8nEditor() {
+export function N8nEditor({ pickable, onGraphChange }) {
   return (
     <ReactFlowProvider>
-      <EditorInner />
+      <EditorInner pickable={pickable} onGraphChange={onGraphChange} />
     </ReactFlowProvider>
   );
 }

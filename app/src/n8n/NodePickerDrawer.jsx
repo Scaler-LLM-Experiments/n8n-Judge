@@ -4,9 +4,10 @@ import { X, MagnifyingGlass } from '@phosphor-icons/react';
 import { NODE_CATALOG, TRIGGER_OPTIONS, NODE_OPTIONS } from './catalog.js';
 import { nodeIcons, nodeIconColor, categoryMeta, categoryOrder, typeCategory, CHIP_BG } from '../nodes/nodeIcons.js';
 
-// Right-side "add node" drawer. Lists the options for the current slot (trigger
-// vs regular vs model), searchable and grouped by category.
-export function NodePickerDrawer({ context, onPick, onClose }) {
+// Right-side "add node" drawer. Lists the options for the current slot, searchable
+// and grouped by category. `options` (when passed) scopes the menu to the current
+// build phase; otherwise falls back to the full trigger/node lists.
+export function NodePickerDrawer({ context, options, onPick, onClose }) {
   const [query, setQuery] = useState('');
   const rootRef = useRef(null);
 
@@ -21,10 +22,10 @@ export function NodePickerDrawer({ context, onPick, onClose }) {
     types = ['chat-gemini'];
     title = 'Choose a language model';
   } else if (context.triggerSlot) {
-    types = TRIGGER_OPTIONS;
+    types = options || TRIGGER_OPTIONS;
     title = 'What should trigger this workflow?';
   } else {
-    types = NODE_OPTIONS;
+    types = options || NODE_OPTIONS;
     title = 'Add the next step';
   }
 
