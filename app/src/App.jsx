@@ -58,14 +58,14 @@ export default function App() {
   if (typeof window !== 'undefined' && window.location.hash === '#report-demo') {
     let s = createStore();
     [
-      { id: 'dissection:trigger', kind: 'dissection', correct: true, firstTry: true },
-      { id: 'dissection:classify', kind: 'dissection', correct: true, firstTry: false },
-      { id: 'classify:classify-brain', kind: 'field', correct: true, firstTry: false },
-      { id: 'classify:classify-text', kind: 'field', correct: true, firstTry: true },
-      { id: 'switch:switch-field', kind: 'field', correct: true, firstTry: true },
-      { id: 'nodePick:chat-trigger', kind: 'nodePick', correct: false, firstTry: false, misconception: 'chat-trigger-is-email' },
-      { id: 'stress:general-question-gap', kind: 'stress', correct: true, firstTry: true, chosenLabel: "It doesn't match any of the 3 defined paths, so nothing sends", correctLabel: "It doesn't match any of the 3 defined paths, so nothing sends" },
-      { id: 'stress:why-fixed-path', kind: 'stress', correct: false, firstTry: true, chosenLabel: 'Because n8n does not support branching logic', correctLabel: 'Because the structure is fixed and predictable — the AI only does one classification step, it doesn\'t choose which tools to call' },
+      { id: 'dissection:trigger', kind: 'dissection', label: 'What starts this flow?', correct: true, firstTry: true },
+      { id: 'dissection:classify', kind: 'dissection', label: 'What turns raw email text into a category?', correct: true, firstTry: true },
+      { id: 'classify:classify-brain', kind: 'field', label: 'Model', correct: true, firstTry: false },
+      { id: 'classify:classify-text', kind: 'field', label: 'Text to classify', correct: true, firstTry: true },
+      { id: 'switch:switch-field', kind: 'field', label: 'Field to route on', correct: true, firstTry: true },
+      { id: 'nodePick:chat-trigger', kind: 'nodePick', label: 'Hmm — why Chat Trigger?', correct: false, firstTry: false, misconception: 'chat-trigger-is-email' },
+      { id: 'stress:general-question-gap', kind: 'stress', label: "A customer email arrives that's just a general question, with no bug/feature/complaint keywords. What happens in this flow?", correct: true, firstTry: true, chosenLabel: "It doesn't match any of the 3 defined paths, so nothing sends", correctLabel: "It doesn't match any of the 3 defined paths, so nothing sends" },
+      { id: 'stress:why-fixed-path', kind: 'stress', label: 'Why is this modeled as a fixed-path classifier rather than a full autonomous agent choosing tools?', correct: false, firstTry: true, chosenLabel: 'Because n8n does not support branching logic', correctLabel: 'Because the structure is fixed and predictable — the AI only does one classification step, it doesn\'t choose which tools to call' },
     ].forEach((d) => { s = recordDecision(s, d); });
     const g = {
       nodes: [{ id: 't', type: 'trigger' }, { id: 'c', type: 'classify' }, { id: 'm', type: 'chat-gemini' }, { id: 'p', type: 'parse' }, { id: 's', type: 'switch' }, { id: 'ab', type: 'action' }, { id: 'af', type: 'action' }, { id: 'au', type: 'action' }],

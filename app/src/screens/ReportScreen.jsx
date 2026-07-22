@@ -162,11 +162,14 @@ function DecisionRow({ decision, problem, graph }) {
   const [open, setOpen] = useState(false);
   const sampleCase = decision.kind === 'stress' ? findSampleCase(problem, decision.id) : null;
   const replaySteps = open && sampleCase && graph ? simulateCase(graph, sampleCase).steps : null;
+  // Stress rows lead with the correct answer (what the review is actually
+  // about) rather than repeating the full question prompt already seen in Eval.
+  const rowLabel = decision.kind === 'stress' ? (decision.correctLabel || decision.label) : decision.label;
 
   return (
     <Card interactive padding={13} onClick={() => setOpen((o) => !o)} style={{ cursor: 'pointer' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span style={{ flex: 1, fontSize: 13, color: 'var(--fg-1)' }}>{decision.label}</span>
+        <span style={{ flex: 1, fontSize: 13, color: 'var(--fg-1)' }}>{rowLabel}</span>
         <Badge tone={decision.correct ? 'success' : 'danger'}>{decision.correct ? 'Correct' : 'Incorrect'}</Badge>
         {open ? <CaretUp size={14} color="var(--fg-3)" /> : <CaretDown size={14} color="var(--fg-3)" />}
       </div>
