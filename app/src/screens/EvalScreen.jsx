@@ -45,8 +45,15 @@ export function EvalScreen({ problem, graph, onDecision, onSubmit }) {
   const sampleCase = q.caseId ? problem.sampleCases.find((c) => c.id === q.caseId) : null;
   const replaySteps = answered && sampleCase && graph ? simulateCase(graph, sampleCase).steps : null;
 
+  // staggered entrance — same pattern as DissectionScreen's QuizBody: head,
+  // then options, then the canvas, each easing in in turn on every question.
   useEffect(() => {
-    if (quizRef.current) gsap.fromTo(quizRef.current, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.45, ease: 'power2.out' });
+    const ctx = gsap.context(() => {
+      gsap.from('[data-q="head"]', { y: 22, opacity: 0, duration: 0.5, ease: 'power3.out' });
+      gsap.from('[data-q="opt"]', { y: 16, opacity: 0, duration: 0.45, stagger: 0.07, delay: 0.12, ease: 'power2.out' });
+      gsap.from('[data-q="canvas"]', { y: 18, opacity: 0, duration: 0.5, delay: 0.24, ease: 'power2.out' });
+    }, quizRef);
+    return () => ctx.revert();
   }, [index]);
 
   const pick = (i) => {
@@ -83,12 +90,14 @@ export function EvalScreen({ problem, graph, onDecision, onSubmit }) {
       <TopBar activeStage="eval" onShowProblemStatement={() => setShowStatement(true)} />
       <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '72px 24px 72px' }}>
         <div key={index} ref={quizRef} style={{ width: '100%', maxWidth: COLUMN, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-          <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--fg-3)', fontWeight: 700, marginBottom: 10 }}>
-            Question {index + 1} of {questions.length}
+          <div data-q="head">
+            <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--fg-3)', fontWeight: 700, marginBottom: 10 }}>
+              Question {index + 1} of {questions.length}
+            </div>
+            <div style={{ fontSize: 21, fontWeight: 700, marginBottom: 18, lineHeight: 1.35, maxWidth: 560 }}>{q.prompt}</div>
           </div>
-          <div style={{ fontSize: 21, fontWeight: 700, marginBottom: 18, lineHeight: 1.35, maxWidth: 560 }}>{q.prompt}</div>
 
-          <div style={{ width: '100%', marginBottom: 22, border: '1px solid var(--border-strong)', background: '#E9ECF2', backgroundImage: 'radial-gradient(#C4CAD4 1px, transparent 1px)', backgroundSize: '16px 16px', padding: '18px' }}>
+          <div data-q="canvas" style={{ width: '100%', marginBottom: 22, border: '1px solid var(--border-strong)', background: '#E9ECF2', backgroundImage: 'radial-gradient(#C4CAD4 1px, transparent 1px)', backgroundSize: '16px 16px', padding: '18px' }}>
             <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--fg-3)', fontWeight: 700, marginBottom: 4 }}>
               {sampleCase ? 'Your build' : 'The fixed path'}
             </div>
@@ -100,7 +109,9 @@ export function EvalScreen({ problem, graph, onDecision, onSubmit }) {
               const state = picked === i ? (isCorrect ? 'correct' : 'wrong') : 'idle';
               const dim = answered && picked !== i;
               return (
-                <OptionRow key={i} letter={LETTERS[i]} label={opt} state={state} dim={dim} disabled={answered} onClick={() => pick(i)} />
+                <div key={i} data-q="opt">
+                  <OptionRow letter={LETTERS[i]} label={opt} state={state} dim={dim} disabled={answered} onClick={() => pick(i)} />
+                </div>
               );
             })}
           </div>

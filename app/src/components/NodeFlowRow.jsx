@@ -1,18 +1,29 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
+import gsap from 'gsap';
 import { N8nNodeView } from '../n8n/N8nNodeView.jsx';
 
 // A compact horizontal row of real node visuals (the exact same N8nNodeView
-// used on the Build Node canvas — same body, icon, ports) connected by edges
-// styled to match the canvas exactly: same dotted background, same
-// stroke color/weight, same closed-arrow marker (see N8nEditor.jsx's
-// `defaultEdgeOptions` and its `Background` props — this mirrors both).
+// used on the Build Node canvas and in DissectionScreen's Understand quiz —
+// same body, icon, ports). The container matches Understand's canvas exactly
+// (background, dot pattern, padding — see DissectionScreen.jsx's QuizBody),
+// and the most-recently-revealed node pops in with the same spring used
+// there (`scale 0.82 -> 1, back.out(2)`) rather than appearing instantly.
 //
 // `items`: [{ type, label, tag?, active?, dead? }]
 // - `dead` renders a broken red connector + an X instead of a node box —
 //   nothing exists at that point in the graph (e.g. an unwired branch).
-// - `active` highlights the node as the one currently being narrated.
+// - `active` is the node currently being narrated — it gets the spring pop
+//   and a selected highlight.
 // - `tag` is passed straight through to N8nNodeView ('correct' | 'wrong').
 export function NodeFlowRow({ items }) {
+  const nodeRefs = useRef([]);
+
+  useEffect(() => {
+    const activeIndex = items.findIndex((it) => it.active);
+    const el = nodeRefs.current[activeIndex >= 0 ? activeIndex : items.length - 1];
+    if (el) gsap.fromTo(el, { scale: 0.82, y: 8, opacity: 0 }, { scale: 1, y: 0, opacity: 1, duration: 0.5, ease: 'back.out(2)' });
+  }, [items]);
+
   return (
     <div
       style={{
@@ -22,17 +33,17 @@ export function NodeFlowRow({ items }) {
         overflowX: 'auto',
         padding: '20px 14px',
         background: '#E9ECF2',
-        backgroundImage: 'radial-gradient(#C4CAD4 1.5px, transparent 1.5px)',
-        backgroundSize: '18px 18px',
+        backgroundImage: 'radial-gradient(#C4CAD4 1px, transparent 1px)',
+        backgroundSize: '16px 16px',
       }}
     >
       {items.map((item, i) => (
         <React.Fragment key={i}>
           {i > 0 ? <Connector dead={item.dead} /> : null}
           {item.dead ? (
-            <DeadEnd />
+            <DeadEnd innerRef={(el) => (nodeRefs.current[i] = el)} />
           ) : (
-            <div style={{ flex: 'none' }}>
+            <div ref={(el) => (nodeRefs.current[i] = el)} style={{ flex: 'none' }}>
               <N8nNodeView type={item.type} label={item.label} tag={item.tag} selected={item.active} size={44} hideAiChip />
             </div>
           )}
@@ -42,9 +53,9 @@ export function NodeFlowRow({ items }) {
   );
 }
 
-function DeadEnd() {
+function DeadEnd({ innerRef }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, flex: 'none', width: 44 }}>
+    <div ref={innerRef} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, flex: 'none', width: 44 }}>
       <div style={{ width: 44, height: 44, border: '1.5px dashed #C9CED6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--status-danger)', fontSize: 20, fontWeight: 700 }}>
         ✕
       </div>
