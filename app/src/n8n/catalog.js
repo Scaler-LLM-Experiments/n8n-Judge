@@ -7,6 +7,7 @@ export const NODE_CATALOG = {
     type: 'trigger',
     label: 'New Email',
     subtitle: 'Gmail Trigger',
+    description: 'Runs the flow the moment a new email arrives in the inbox',
     category: 'trigger',
     params: [
       { key: 'cred', label: 'Credential', value: 'Scaler API — connected', locked: true },
@@ -22,8 +23,9 @@ export const NODE_CATALOG = {
   },
   'chat-trigger': {
     type: 'chat-trigger',
-    label: 'Chat Trigger',
-    subtitle: 'On chat message',
+    label: 'On chat message',
+    subtitle: 'Chat Trigger',
+    description: 'Runs the flow when a user sends a chat message. For AI chatbots.',
     category: 'trigger',
     params: [{ key: 'mode', label: 'Mode', value: 'Chat', kind: 'select' }],
     output: { message: 'hello?', sessionId: 'abc123' },
@@ -90,8 +92,9 @@ export const NODE_CATALOG = {
   },
   'slack-message': { type: 'slack-message', label: 'Slack — Send Message', subtitle: 'Slack', category: 'action', params: [{ key: 'channel', label: 'Channel', value: '#support', kind: 'select' }], output: { ok: true } },
   'google-docs': { type: 'google-docs', label: 'Google Docs', subtitle: 'Create document', category: 'action', params: [{ key: 'doc', label: 'Document', value: 'Ticket log', kind: 'select' }], output: { ok: true } },
-  webhook: { type: 'webhook', label: 'Webhook', subtitle: 'On HTTP request', category: 'trigger', params: [{ key: 'path', label: 'Path', value: '/hook', kind: 'text' }], output: {} },
-  schedule: { type: 'schedule', label: 'Schedule', subtitle: 'On a timer', category: 'trigger', params: [{ key: 'every', label: 'Every', value: '1 hour', kind: 'select' }], output: {} },
+  webhook: { type: 'webhook', label: 'On webhook call', subtitle: 'Webhook', description: 'Runs the flow when it receives an HTTP request', category: 'trigger', params: [{ key: 'path', label: 'Path', value: '/hook', kind: 'text' }], output: {} },
+  schedule: { type: 'schedule', label: 'On a schedule', subtitle: 'Schedule Trigger', description: 'Runs the flow every day, hour, or custom interval', category: 'trigger', params: [{ key: 'every', label: 'Every', value: '1 hour', kind: 'select' }], output: {} },
+  manual: { type: 'manual', label: 'Trigger manually', subtitle: 'Manual Trigger', description: 'Runs the flow when you click Execute. Good for testing.', category: 'trigger', params: [], output: {} },
   code: { type: 'code', label: 'Code', subtitle: 'Run JavaScript', category: 'core', params: [{ key: 'js', label: 'Code', value: 'return items;', kind: 'textarea' }], output: {} },
   if: { type: 'if', label: 'If', subtitle: 'True / false', category: 'core', params: [{ key: 'cond', label: 'Condition', value: '', kind: 'text' }], output: {} },
 };

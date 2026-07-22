@@ -66,7 +66,7 @@ export function NodePickerDrawer({ context, onPick, onClose }) {
                     </span>
                     <span style={{ minWidth: 0 }}>
                       <span style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--fg-1)' }}>{n.label}</span>
-                      <span style={{ display: 'block', fontSize: 11.5, color: 'var(--fg-3)' }}>{n.subtitle}</span>
+                      <span style={{ display: 'block', fontSize: 11.5, color: 'var(--fg-3)', lineHeight: 1.4 }}>{n.description || n.subtitle}</span>
                     </span>
                   </button>
                 );

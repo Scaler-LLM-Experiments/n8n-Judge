@@ -1,16 +1,19 @@
 import React from 'react';
 import { Handle, Position } from 'reactflow';
-import { Plus, Gear } from '@phosphor-icons/react';
-import { N8nNodeView } from './N8nNodeView.jsx';
-import { variantOf } from './N8nNodeView.jsx';
+import { Plus, Warning } from '@phosphor-icons/react';
+import { N8nNodeView, variantOf } from './N8nNodeView.jsx';
 import { categoryMeta } from '../nodes/nodeIcons.js';
 import { useEditor } from './EditorContext.js';
 
 const portStyle = { width: 12, height: 12, background: 'var(--surface-0)', border: '2px solid #9AA2AE' };
 
-// A canvas node: the n8n visual, real react-flow handles, a "Set me up" tag when
-// unconfigured, an output "+" to add-and-connect the next node, and (for AI
-// nodes) a bottom "+" to attach a Chat Model.
+// Sub-node ports shown under an AI/cluster root node (n8n convention).
+const AI_PORTS = [
+  { id: 'chatModel', label: 'Chat Model', required: true },
+  { id: 'memory', label: 'Memory', required: false },
+  { id: 'tool', label: 'Tool', required: false },
+];
+
 export function N8nFlowNode({ id, type, data, selected }) {
   const { openPicker, openNdv } = useEditor();
   const variant = variantOf(type);
@@ -21,37 +24,46 @@ export function N8nFlowNode({ id, type, data, selected }) {
     <div style={{ position: 'relative' }} onClick={() => openNdv(id)}>
       {!isTrigger ? <Handle type="target" position={Position.Left} style={portStyle} /> : null}
       <Handle type="source" position={Position.Right} style={portStyle} />
-      {isAi ? <Handle type="target" id="ai_model" position={Position.Bottom} style={{ ...portStyle, borderColor: categoryMeta.model.color, borderStyle: 'dashed' }} /> : null}
+      {isAi ? <Handle type="target" id="ai_model" position={Position.Bottom} style={{ ...portStyle, left: '30%', borderColor: categoryMeta.model.color, borderStyle: 'dashed' }} /> : null}
 
       <N8nNodeView type={type} label={data.label} selected={selected} hidePorts />
 
-      {/* Set me up tag */}
+      {/* unconfigured warning (n8n shows a red triangle) */}
       {!data.configured ? (
-        <div className="judge-pulse" style={{ position: 'absolute', top: -12, right: 4, display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--brand-primary)', color: 'var(--fg-on-brand)', fontSize: 10.5, fontWeight: 700, padding: '3px 8px', borderRadius: 999, whiteSpace: 'nowrap', pointerEvents: 'none' }}>
-          <Gear size={11} weight="fill" /> Set me up
+        <div title="This node needs setting up" style={{ position: 'absolute', right: 8, bottom: 30, zIndex: 4, background: 'var(--surface-0)', borderRadius: 4, lineHeight: 0 }}>
+          <Warning size={20} weight="fill" color="var(--status-danger)" />
         </div>
       ) : null}
 
       {/* output + : add & connect the next node */}
-      <button
-        type="button"
-        title="Add next node"
-        onClick={(e) => { e.stopPropagation(); openPicker({ sourceId: id }); }}
-        style={plusBtn({ right: -46, top: 'calc(50% - 13px)' })}
-      >
+      <button type="button" title="Add next node" onClick={(e) => { e.stopPropagation(); openPicker({ sourceId: id }); }} style={plusBtn({ right: -46, top: 'calc(50% - 13px)' })}>
         <Plus size={15} weight="bold" />
       </button>
 
-      {/* AI: attach a chat model below */}
+      {/* AI cluster: Chat Model* / Memory / Tool sub-node ports */}
       {isAi ? (
-        <button
-          type="button"
-          title="Attach a Chat Model"
-          onClick={(e) => { e.stopPropagation(); openPicker({ sourceId: id, modelSlot: true }); }}
-          style={{ ...plusBtn({ left: 'calc(50% - 13px)', top: 'calc(100% + 10px)' }), borderColor: categoryMeta.model.color, color: categoryMeta.model.color }}
-        >
-          <Plus size={15} weight="bold" />
-        </button>
+        <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0, display: 'flex', justifyContent: 'space-around' }}>
+          {AI_PORTS.map((p) => {
+            const active = p.id === 'chatModel';
+            const color = active ? categoryMeta.model.color : 'var(--fg-3)';
+            return (
+              <div key={p.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                <span style={{ width: 11, height: 11, transform: 'rotate(45deg)', border: `2px solid ${color}`, background: 'var(--surface-0)' }} />
+                <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--fg-2)', whiteSpace: 'nowrap' }}>
+                  {p.label}{p.required ? <span style={{ color: 'var(--status-danger)' }}> *</span> : null}
+                </span>
+                <button
+                  type="button"
+                  title={active ? 'Attach a Chat Model' : `${p.label} — optional`}
+                  onClick={(e) => { e.stopPropagation(); if (active) openPicker({ sourceId: id, modelSlot: true }); }}
+                  style={{ width: 22, height: 22, borderRadius: 5, border: `1.5px solid ${active ? categoryMeta.model.color : 'var(--border-strong)'}`, background: 'var(--surface-0)', color: active ? categoryMeta.model.color : 'var(--fg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: active ? 'pointer' : 'default', opacity: active ? 1 : 0.5 }}
+                >
+                  <Plus size={13} weight="bold" />
+                </button>
+              </div>
+            );
+          })}
+        </div>
       ) : null}
     </div>
   );

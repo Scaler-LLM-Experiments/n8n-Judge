@@ -80,12 +80,12 @@ function EditorInner() {
     return { id: n.id, nodeType: n.data.nodeType, label: n.data.label, params: n.data.params, values: n.data.values, output: n.data.output };
   })();
 
-  const ndvInput = (() => {
-    if (!ndvId) return null;
+  const ndvIn = (() => {
+    if (!ndvId) return { data: null, label: null };
     const inEdge = edges.find((e) => e.target === ndvId && e.targetHandle !== 'ai_model');
-    if (!inEdge) return null;
+    if (!inEdge) return { data: null, label: null };
     const src = nodes.find((n) => n.id === inEdge.source);
-    return src?.data.output || null;
+    return { data: src?.data.output || null, label: src?.data.label || null };
   })();
 
   const ctxValue = useMemo(() => ({ openPicker, openNdv }), [openPicker, openNdv]);
@@ -123,7 +123,7 @@ function EditorInner() {
         ) : null}
 
         {picker ? <NodePickerDrawer context={picker} onPick={addNode} onClose={() => setPicker(null)} /> : null}
-        {ndvNode ? <Ndv node={ndvNode} inputData={ndvInput} onChangeParam={updateParam} onClose={() => setNdvId(null)} /> : null}
+        {ndvNode ? <Ndv node={ndvNode} inputData={ndvIn.data} inputLabel={ndvIn.label} onChangeParam={updateParam} onClose={() => setNdvId(null)} /> : null}
       </div>
     </EditorContext.Provider>
   );
