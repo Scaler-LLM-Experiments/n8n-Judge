@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { EnvelopeSimpleOpen, Sparkle, BracketsCurly, ArrowsSplit, PaperPlaneTilt, XCircle } from '@phosphor-icons/react';
+import { NodeFlowRow } from './NodeFlowRow.jsx';
 
 const STEP_ICON = {
   email: EnvelopeSimpleOpen,
@@ -10,6 +11,47 @@ const STEP_ICON = {
   action: PaperPlaneTilt,
   dead: XCircle,
 };
+
+// iconType -> the real node type/label shown in the actual-nodes row above
+// the narration. 'email' isn't a graph node (it's the incoming message), so
+// it's skipped when building that row.
+const NODE_META = {
+  trigger: { type: 'trigger', label: 'New Email' },
+  classify: { type: 'classify', label: 'Classify with AI' },
+  parse: { type: 'parse', label: 'Parse Result' },
+  switch: { type: 'switch', label: 'Switch' },
+  action: { type: 'action', label: 'Send Reply' },
+};
+
+// A 'dead' step sometimes IS a real node that exists in the graph — e.g. the
+// Switch step when nothing matches, or Classify when no model is attached —
+// simulate.js folds "this node ran" and "then it dead-ended" into one step
+// (no separate 'ok' entry precedes it). Detect that from the text so the row
+// still shows the real node (tagged wrong) instead of skipping straight to a
+// bare "nothing here" marker.
+function deadNodeMeta(text) {
+  if (text.startsWith('Switch:')) return NODE_META.switch;
+  if (text.startsWith('Classify with AI has no Chat Model')) return NODE_META.classify;
+  return null;
+}
+
+function nodeRowItems(steps) {
+  const items = [];
+  steps.forEach((s, i) => {
+    if (s.iconType === 'email') return;
+    const active = i === steps.length - 1;
+    if (s.iconType === 'dead') {
+      const meta = deadNodeMeta(s.text);
+      if (meta) items.push({ ...meta, active, tag: 'wrong' });
+      else items.push({ dead: true });
+      return;
+    }
+    const meta = NODE_META[s.iconType];
+    if (!meta) return;
+    items.push({ ...meta, active, tag: s.status === 'done' ? 'correct' : undefined });
+  });
+  return items;
+}
 
 // Reveals `steps` (from engine/simulate.js's simulateCase) one at a time on a
 // timer, inside the same dotted-grid canvas style used elsewhere in the app.
@@ -45,7 +87,8 @@ export function NodeReplay({ steps, label }) {
         <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--brand-primary)' }} />
         {label}
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+      <NodeFlowRow items={nodeRowItems(steps.slice(0, revealed))} />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginTop: 10 }}>
         {steps.slice(0, revealed).map((s, i) => {
           const Icon = STEP_ICON[s.iconType] || Sparkle;
           const color = s.status === 'dead' ? 'var(--status-danger)' : s.status === 'done' ? 'var(--brand-primary)' : 'var(--fg-2)';

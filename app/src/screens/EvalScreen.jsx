@@ -4,7 +4,7 @@ import gsap from 'gsap';
 import { Button } from '../design-system/Button.jsx';
 import { TopBar } from '../components/TopBar.jsx';
 import { ProblemStatementPanel } from '../components/ProblemStatementPanel.jsx';
-import { ConceptFlow } from '../components/ConceptFlow.jsx';
+import { NodeFlowRow } from '../components/NodeFlowRow.jsx';
 import { NodeReplay } from '../components/NodeReplay.jsx';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
 import { simulateCase } from '../engine/simulate.js';
@@ -12,6 +12,16 @@ import { scoreEval } from '../engine/evalScore.js';
 
 const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 const COLUMN = 620;
+
+// The fixed reference path, shown as real connected nodes for questions with
+// no matching sample case to replay (e.g. a design-reasoning question).
+const REFERENCE_PATH = [
+  { type: 'trigger', label: 'New Email' },
+  { type: 'classify', label: 'Classify with AI' },
+  { type: 'parse', label: 'Parse Result' },
+  { type: 'switch', label: 'Switch' },
+  { type: 'action', label: 'Send Reply' },
+];
 
 export function EvalScreen({ problem, graph, onDecision, onSubmit }) {
   const questions = problem.evalQuestions;
@@ -99,11 +109,11 @@ export function EvalScreen({ problem, graph, onDecision, onSubmit }) {
               {replaySteps ? (
                 <NodeReplay steps={replaySteps} label="Replaying your build — this exact case, on your graph" />
               ) : (
-                <div style={{ border: '1px solid var(--border-strong)', background: '#E9ECF2', backgroundImage: 'radial-gradient(#C4CAD4 1px, transparent 1px)', backgroundSize: '16px 16px', padding: '22px 18px' }}>
-                  <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--fg-3)', fontWeight: 700, marginBottom: 12 }}>
-                    The shape of it
+                <div style={{ border: '1px solid var(--border-strong)', background: '#E9ECF2', backgroundImage: 'radial-gradient(#C4CAD4 1px, transparent 1px)', backgroundSize: '16px 16px', padding: '18px' }}>
+                  <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--fg-3)', fontWeight: 700, marginBottom: 4 }}>
+                    The fixed path
                   </div>
-                  <ConceptFlow direction="row" size="sm" />
+                  <NodeFlowRow items={REFERENCE_PATH} />
                 </div>
               )}
             </div>
