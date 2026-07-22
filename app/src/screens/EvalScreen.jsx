@@ -7,7 +7,7 @@ import { TopBar } from '../components/TopBar.jsx';
 import { ProblemStatementPanel } from '../components/ProblemStatementPanel.jsx';
 import { scoreEval } from '../engine/evalScore.js';
 
-export function EvalScreen({ problem, onSubmit }) {
+export function EvalScreen({ problem, onSubmit, onDecision }) {
   const [answers, setAnswers] = useState({});
   const [showStatement, setShowStatement] = useState(false);
 
@@ -17,6 +17,7 @@ export function EvalScreen({ problem, onSubmit }) {
     const numericAnswers = {};
     for (const q of problem.evalQuestions) {
       numericAnswers[q.id] = Number(answers[q.id]);
+      if (onDecision) onDecision({ id: `stress:${q.id}`, kind: 'stress', label: q.prompt, correct: Number(answers[q.id]) === q.correctIndex, firstTry: true });
     }
     onSubmit(scoreEval(numericAnswers, problem.evalQuestions));
   };

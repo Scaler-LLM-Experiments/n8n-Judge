@@ -336,6 +336,17 @@ export const emailTriage = {
     },
   },
 
+  // Readable labels for misconception codes recorded during the run.
+  misconceptionLabels: {
+    'chat-trigger-is-email': 'Treated a chat trigger as an email trigger',
+    'triggers-interchangeable': 'Assumed any trigger can start the flow',
+    'poll-vs-event': 'Chose a scheduled poll instead of an event trigger',
+    'email-is-http': 'Confused a webhook with receiving email',
+    'if-vs-switch': 'Reached for If where a multi-way Switch was needed',
+    'rules-vs-ai': 'Tried rules/code to classify free-text email',
+    'search-vs-classify': 'Confused searching the web with classifying the email',
+  },
+
   // Sample emails the Run simulation streams through the flow, one after another.
   // `branch` is the Switch handle each should take (null = matches no branch).
   sampleCases: [

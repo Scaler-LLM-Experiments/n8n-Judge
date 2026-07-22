@@ -14,7 +14,7 @@ const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 const LEARNER_NAME = 'Aarav';
 const COLUMN = 620;
 
-export function DissectionScreen({ problem, onComplete }) {
+export function DissectionScreen({ problem, onComplete, onDecision }) {
   const questions = problem.dissection;
   const [phase, setPhase] = useState('greet'); // greet | problem | quiz | done
   const [index, setIndex] = useState(0);
@@ -67,7 +67,11 @@ export function DissectionScreen({ problem, onComplete }) {
     return <ProblemBeat problem={problem} onContinue={() => { setPhase('quiz'); setMascotClip('idle'); }} />;
   }
   if (phase === 'done') {
-    return <Done problem={problem} unlockedTypes={unlockedTypes} onFinish={() => onComplete({ attempts, unlockedTypes })} />;
+    const finishDissection = () => {
+      questions.forEach((x, i) => onDecision && onDecision({ id: `dissection:${x.id}`, kind: 'dissection', label: x.prompt, correct: true, firstTry: attempts[i] === 0 }));
+      onComplete({ attempts, unlockedTypes });
+    };
+    return <Done problem={problem} unlockedTypes={unlockedTypes} onFinish={finishDissection} />;
   }
 
   // ---------- QUIZ ----------

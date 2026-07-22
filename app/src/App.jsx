@@ -10,6 +10,7 @@ import { createStore, recordDecision } from './engine/grading.js';
 import { RunPanel } from './screens/BuildStage.jsx';
 import { simulateAll } from './engine/simulate.js';
 import { validateGraph } from './engine/validateGraph.js';
+import { scoreEval } from './engine/evalScore.js';
 
 const SCREEN = {
   STATEMENT: 'statement',
@@ -54,6 +55,26 @@ export default function App() {
       </div>
     );
   }
+  if (typeof window !== 'undefined' && window.location.hash === '#report-demo') {
+    let s = createStore();
+    [
+      { id: 'dissection:trigger', kind: 'dissection', correct: true, firstTry: true },
+      { id: 'dissection:classify', kind: 'dissection', correct: true, firstTry: false },
+      { id: 'classify:classify-brain', kind: 'field', correct: true, firstTry: false },
+      { id: 'classify:classify-text', kind: 'field', correct: true, firstTry: true },
+      { id: 'switch:switch-field', kind: 'field', correct: true, firstTry: true },
+      { id: 'nodePick:chat-trigger', kind: 'nodePick', correct: false, firstTry: false, misconception: 'chat-trigger-is-email' },
+      { id: 'stress:general-question-gap', kind: 'stress', correct: true, firstTry: true },
+      { id: 'stress:why-fixed-path', kind: 'stress', correct: false, firstTry: true },
+    ].forEach((d) => { s = recordDecision(s, d); });
+    const g = {
+      nodes: [{ id: 't', type: 'trigger' }, { id: 'c', type: 'classify' }, { id: 'm', type: 'chat-gemini' }, { id: 'p', type: 'parse' }, { id: 's', type: 'switch' }, { id: 'ab', type: 'action' }, { id: 'af', type: 'action' }, { id: 'au', type: 'action' }],
+      edges: [{ source: 'm', target: 'c', targetHandle: 'ai_model' }, { source: 't', target: 'c' }, { source: 'c', target: 'p' }, { source: 'p', target: 's' }, { source: 's', target: 'ab', sourceHandle: 'bug_report' }, { source: 's', target: 'af', sourceHandle: 'feature_request' }, { source: 's', target: 'au', sourceHandle: 'urgent_complaint' }],
+    };
+    const runResult = validateGraph(g, emailTriage);
+    const evalOutcome = scoreEval({ 'general-question-gap': 1, 'why-fixed-path': 0 }, emailTriage.evalQuestions);
+    return <div style={{ height: '100vh' }}><ReportScreen problem={emailTriage} grading={s} runResult={runResult} evalOutcome={evalOutcome} /></div>;
+  }
   return <MainApp />;
 }
 
@@ -70,6 +91,7 @@ function MainApp() {
       {screen === SCREEN.STATEMENT ? (
         <DissectionScreen
           problem={emailTriage}
+          onDecision={record}
           onComplete={(result) => {
             setDissection(result);
             setScreen(SCREEN.DASHBOARD);
@@ -91,6 +113,7 @@ function MainApp() {
       {screen === SCREEN.EVAL ? (
         <EvalScreen
           problem={emailTriage}
+          onDecision={record}
           onSubmit={(outcome) => {
             setEvalOutcome(outcome);
             setScreen(SCREEN.REPORT);
@@ -99,7 +122,7 @@ function MainApp() {
       ) : null}
 
       {screen === SCREEN.REPORT ? (
-        <ReportScreen problem={emailTriage} dissection={dissection} runResult={runResult} evalOutcome={evalOutcome} />
+        <ReportScreen problem={emailTriage} grading={grading} dissection={dissection} runResult={runResult} evalOutcome={evalOutcome} />
       ) : null}
     </div>
   );
