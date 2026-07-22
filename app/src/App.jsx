@@ -75,6 +75,30 @@ export default function App() {
     const evalOutcome = scoreEval({ 'general-question-gap': 1, 'why-fixed-path': 0 }, emailTriage.evalQuestions);
     return <div style={{ height: '100vh' }}><ReportScreen problem={emailTriage} grading={s} runResult={runResult} evalOutcome={evalOutcome} /></div>;
   }
+  if (typeof window !== 'undefined' && window.location.hash === '#eval-demo') {
+    const g = {
+      nodes: [
+        { id: 't', type: 'trigger', data: { label: 'New Email' } },
+        { id: 'c', type: 'classify', data: { label: 'Classify with AI' } },
+        { id: 'm', type: 'chat-gemini', data: { label: 'Gemini Chat Model' } },
+        { id: 'p', type: 'parse', data: { label: 'Parse Result' } },
+        { id: 's', type: 'switch', data: { label: 'Switch' } },
+        { id: 'ab', type: 'action', data: { label: 'Send Reply' } },
+        { id: 'af', type: 'action', data: { label: 'Send Reply' } },
+        { id: 'au', type: 'action', data: { label: 'Send Reply' } },
+      ],
+      edges: [
+        { id: 'em', source: 'm', target: 'c', targetHandle: 'ai_model' },
+        { id: 'e1', source: 't', target: 'c' },
+        { id: 'e2', source: 'c', target: 'p' },
+        { id: 'e3', source: 'p', target: 's' },
+        { id: 'e4', source: 's', target: 'ab', sourceHandle: 'bug_report' },
+        { id: 'e5', source: 's', target: 'af', sourceHandle: 'feature_request' },
+        { id: 'e6', source: 's', target: 'au', sourceHandle: 'urgent_complaint' },
+      ],
+    };
+    return <div style={{ height: '100vh' }}><EvalScreen problem={emailTriage} graph={g} onDecision={() => {}} onSubmit={() => {}} /></div>;
+  }
   return <MainApp />;
 }
 
