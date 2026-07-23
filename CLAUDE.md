@@ -4,65 +4,72 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-"Judge" is a standalone, frontend-only React prototype of a node-based workflow **assessment** tool. A learner is given an automation problem (an n8n-style "Email Triage" flow), builds the workflow by dragging nodes onto a React Flow canvas and wiring them, runs it against sample cases, then answers concept-check questions. There is **no backend, auth, or persistence** — the whole thing is a single-session state machine in the browser.
+"Judge" is a standalone, **frontend-only** React prototype where a learner builds an n8n-style AI-agent workflow instead of writing code, runs it against sample cases, then answers concept-check questions. There is **no backend, auth, or persistence** — the whole thing is a single-session state machine in the browser.
 
-The actual app lives in [app/](app/). The repo root also holds source material that was copied into the app: [syntax-design-system/](syntax-design-system/) (the "Syntax by Scaler" design system) and [iris-mascot-kit/](iris-mascot-kit/) (the Lottie mascot). [class_08_building_agents_n8n_zapier.py](class_08_building_agents_n8n_zapier.py) is the course curriculum the one problem is grounded in.
+It is **multi-problem**: a home page lists challenges, and each launches its own journey — **Home → Understand → Build → Stress Testing → Result**. Two problems ship (`email-triage`, `lead-triage`); adding more is a data-only task (see "Problem-as-data" below).
+
+The app lives in [app/](app/). The repo root also holds source material copied into the app: [syntax-design-system/](syntax-design-system/) and [iris-mascot-kit/](iris-mascot-kit/) (the Lottie mascot, "Iris"). [class_08_building_agents_n8n_zapier.py](class_08_building_agents_n8n_zapier.py) is the course the first problem is grounded in.
 
 ## Commands
 
-All commands run from the [app/](app/) directory (not the repo root):
+All app commands run from [app/](app/), not the repo root:
 
 ```bash
 cd app
 npm install
-npm run dev       # Vite dev server
+npm run dev       # Vite dev server (localhost:5173)
 npm run build     # production build to app/dist
 npm run test      # vitest run (all unit tests, one-shot)
 ```
 
-Run a single test file: `npx vitest run src/engine/validateGraph.test.js`
-Watch mode: `npx vitest` (omit `run`).
+- Single test file: `npx vitest run src/engine/validateGraph.test.js`
+- Watch mode: `npx vitest` (omit `run`)
+- Only the pure engine/data logic is unit-tested (`*.test.js` colocated in `src/engine/` and `src/data/problems/*/`). React components are not tested.
 
-Only the pure engine/data logic is unit-tested (`*.test.js` colocated in `src/engine/` and `src/data/problems/`). React components are not tested.
+**Visual verification** (there is no Playwright MCP): `app/scripts/shoot-*.mjs` drive **system Chrome** via `playwright-core` (`channel: 'chrome'`, headless) against the dev server, screenshotting the dev hash routes below.
+
+**Dev routes** (isolate a screen; all honor `?problem=<id>`): `#build`, `#run-story` (auto-runs a finished flow), `#eval-demo`, `#report-demo`, `#run-demo`, `#playground`.
 
 ## Architecture
 
-### Screen state machine
-[app/src/App.jsx](app/src/App.jsx) is the entire router: a `useState` cycles through four screens — `STATEMENT → DASHBOARD → EVAL → REPORT`. Each screen is a component in [app/src/screens/](app/src/screens/) and receives the problem plus callbacks that advance the machine and pass forward `runResult` / `evalOutcome`. The Dashboard only advances to Eval once the built graph passes all test cases.
+### Entry & routing — [app/src/App.jsx](app/src/App.jsx)
+`resolveProblem()` reads `?problem=<id>` (default `email-triage`). The default route renders `Landing` (home ⇄ journey); `MainApp` is the real four-screen state machine (`STATEMENT → DASHBOARD → EVAL → REPORT`); `BuildPreview` is the same journey minus the intro, used by dev routes. A grading store is threaded through every screen via a `record` callback.
 
-### Problem-as-data (the key pattern)
-Everything specific to a challenge lives in **one plain data object** — [app/src/data/problems/emailTriage.js](app/src/data/problems/emailTriage.js) — and is threaded through the whole app as the `problem` prop. To add or change a challenge you edit this object, not the engine or UI. It defines:
-- `nodePalette` — the draggable nodes, each tagged with a `category` and an `isDistractor` flag (distractors are wrong-answer nodes that must never *break* validation, only be rejected on drop).
-- `referenceGraph` — the canonical correct solution (nodes + edges).
-- `testCases` — **structural** checks only (required node types, required edges, branch handles). No data execution. Consumed by `validateGraph`.
-- `buildSteps` — an ordered, gated build sequence; the palette only unlocks the current step's `categories`.
-- `connectionGuide` — the wiring checklist shown after all nodes are placed. Reuses the same edge-match shape as `testCases`.
-- `sampleCases` — emails the Run simulation streams through the graph; `branch` is the Switch handle each should take (`null` = matches nothing, an intentional gap).
-- `evalQuestions` — MCQs with `correctIndex` + `explanation`.
+### Problem-as-data + registry (the key pattern)
+Everything specific to a challenge lives in **one plain data object** — `app/src/data/problems/<id>/index.js` — threaded through the app as the `problem` prop. Register it in [app/src/data/problems/index.js](app/src/data/problems/index.js) (`problems` map, `getProblem`, `resolveProblem`, `defaultProblem`, `problemList`). To add or change a challenge you edit data, **not** the engine or UI — see [docs/adding-a-problem.md](docs/adding-a-problem.md) for the full field reference.
 
-### Engine (pure functions, all unit-tested) — [app/src/engine/](app/src/engine/)
-These take `(studentGraph, problem)` and are the assessment brain. `studentGraph` is a normalized `{ nodes, edges }` derived from React Flow state (see `studentGraph` useMemo in DashboardScreen).
-- `validateGraph.js` — runs `testCases` against the built graph; returns `{ allPassed, results }`. This gates progression to Eval.
-- `checkDrop.js` — decides if a node may be dropped given the current build step (right category? not out-of-step? distractor?) and computes `isStepComplete` (a node counts only once it's been placed **and** opened — `data.seen`).
-- `connections.js` — which `connectionGuide` links are wired yet, for the checklist UI.
-- `simulate.js` — walks each `sampleCase` through the learner's *actual* wiring and emits a narrative step list, surfacing gaps (no model connected, unwired branch, unmatched category) as dead-ends rather than pass/fail. `success` = every categorized email was delivered.
-- `evalScore.js` — scores `evalQuestions` answers.
+Key fields: `branches` (Switch outputs), `flow` (sequence rules: `start`/`next`/`branchNext`/`modelNext`), `flowSummary` (Stress-Testing strip), `buildPhases` (guided build sub-stages), `nodeSetup` (per-node NDV: `credential` + disabled `locked[]` + editable `fields[]` whose `options` carry `{value,label,correct,why}`), `nodeProbes` (misconception MCQs), `sampleCases` (Run inputs; `branch:null` = intentional fall-through), `dissection`, `testCases`, `evalQuestions`, and optional `simulation` (run-narration overrides).
 
-Note: `validateGraph.js` and `connections.js` each carry a near-identical `edgeMatches` helper matching edges by `sourceType`/`sourceCategory`/`targetType`/`branch` (→ `sourceHandle`)/`targetHandle`. Keep them in sync when changing edge-match semantics.
+**What's generic vs. coupled:** all of the above is data-only, *provided the problem reuses the canonical node vocabulary* in [app/src/n8n/catalog.js](app/src/n8n/catalog.js) — a trigger, an **AI node** (category `ai`, needs a Chat Model), an optional parse, a **switch** with branches, and **action** replies. A genuinely different node vocabulary/topology requires editing `catalog.js` and the walk in `engine/simulate.js` — the one remaining coupling.
 
-### Canvas — [app/src/screens/DashboardScreen.jsx](app/src/screens/DashboardScreen.jsx)
-The most complex file. Uses `reactflow` v11 with custom node components registered in [app/src/nodes/nodeTypes.js](app/src/nodes/nodeTypes.js) (note several palette types map to the same shared component). Handles drag-drop placement, the step-gated palette, the AI-model sub-node connection (the dashed `ai_model` target handle on Classify — a distinct edge style), the Run simulation animation (timed frames decorating nodes/edges), the mascot coach, and the guided [Tour](app/src/components/Tour.jsx). Mascot lives in [app/src/mascot/](app/src/mascot/) (Lottie via `@lottiefiles/dotlottie-react`).
+### The journey screens — [app/src/screens/](app/src/screens/)
+- `HomeScreen` — challenge cards from `problemList`.
+- `DissectionScreen` (Understand) — Iris-narrated node-pick quiz that drops nodes onto a canvas.
+- **`BuildStage` (Build) — the most complex file.** A "storytelling board": one traveling Iris mascot (GSAP), a spotlight intro on the first `+`, guided `buildPhases`, wrong-pick handling (node is placed with a red pulse, Iris travels to it, a **draggable floating MCQ** probes, then it's removed), the **NDV** opened as a centered modal, and the **Run animation** (numbered test-case stepper below the nav; a traveling sticky note narrating each step ~2s/node; the active node highlighted while the rest dim; an all-pass confetti celebration). Phase completion requires all phase node-types placed **and** configured, and for the Switch phase, **all `branches` wired to configured replies**.
+- `EvalScreen` (Stress Testing) — a read-only `flowSummary` strip + `evalQuestions`, one at a time.
+- `ReportScreen` (Result) — an Understanding score (first-try-correct), per-area breakdown, surfaced misconceptions.
 
-## Design system conventions (non-negotiable)
+### n8n editor layer — [app/src/n8n/](app/src/n8n/)
+Built from scratch (not n8n's assets), on `reactflow` v11.
+- `N8nEditor` — `forwardRef` exposing an imperative handle (`removeNode`, `fitAll`); `initialGraph` seeds a finished flow (used by `#run-story`); a `displayNodes` memo injects per-node cue flags (`needsSetup`, `awaitingNext`, `hasModel`, `openBranches`, `running`, `dimmed`) that drive pulses/highlights. `EditorContext` provides `openPicker`/`openNdv`/`branches`.
+- `N8nFlowNode` / `N8nNodeView` — the flow node + its pure visual (`variantOf(type)` classifies trigger/ai/model/action; props `pulse`/`running`/`errorPulse`). The **AI node is identified by `variantOf === 'ai'`** and **Switch branches come from `problem.branches`** via context — neither is hardcoded.
+- `Ndv` — the node-detail modal: real **field editing** (highlighted required fields + disabled `locked` context fields), a **Verify** step marking each field green/red, per-field Iris chat-bubble explanations; closing = completing once all green (no separate "Complete" button). It is **not** an MCQ.
+- `catalog.js` (node library), `NodePickerDrawer`.
 
-Styling follows `syntax-design-system/SKILL.md`. When writing any UI:
-- **Zero `border-radius`** anywhere — everything is square-cornered.
-- Primary blue is `#0055FF`, referenced as `var(--brand-primary)`. Use the CSS custom properties from `colors_and_type.css` (`--surface-*`, `--fg-*`, `--border-*`, `--status-*`), not raw hex, for new UI.
-- Hairline **1px** borders on cards; **no decorative gradients**.
-- Plus Jakarta Sans for UI text; Clash Grotesk is reserved for headline-scale type only.
+### Engine (pure functions, unit-tested) — [app/src/engine/](app/src/engine/)
+Take `(studentGraph, problem)`. `validateGraph` (structural test cases; gates the Run), `checkDrop`, `connections`, `simulate` (walks each `sampleCase` through the actual wiring → narrative steps carrying `nodeId`s; narration is templated, with `problem.simulation` overriding `DEFAULT_NARRATION`), `evalScore`, `grading` (`createStore`/`recordDecision`/`understandingScore`/`countsByKind`/`misconceptionsHit`). `validateGraph.js` and `connections.js` each carry a near-identical `edgeMatches` helper — keep them in sync.
 
-Styles are inline-style-heavy in components, reading from these CSS variables. Reusable primitives (`Button`, `Card`, `Badge`, `Alert`, `RadioGroup`, `Switch`) live in [app/src/design-system/](app/src/design-system/) and were copied from the root `syntax-design-system/`.
+### Legacy — do not edit for the current flow
+A pre-rewrite dashboard still sits in the tree but is unused: `screens/DashboardScreen.jsx`, `screens/ProblemStatementScreen.jsx`, and the hand-rolled node components in `app/src/nodes/*.jsx` (`ActionNode`, `ChatModelNode`, `ClassifyNode`, `ProcessNode`, `TriggerNode`, `SwitchNode`, `NodeCard`, `nodeTypes.js`). The live canvas is the `n8n/` layer. **Exception:** `nodes/nodeIcons.js` (icons/colors/`typeCategory`) is live and shared.
+
+## Design system conventions
+
+Follows `syntax-design-system/SKILL.md`, styled inline via CSS custom properties (`--brand-primary` `#0055FF`, `--surface-*`, `--fg-*`, `--border-*`, `--status-*` — not raw hex). Zero `border-radius` on app chrome; 1px hairline borders; no decorative gradients; Plus Jakarta Sans for UI, Clash Grotesk for headlines. **Exception:** the n8n node *bodies* (`N8nNodeView`) intentionally use rounded corners for n8n fidelity. Reusable primitives (`Button`, `Card`, `Badge`, `Alert`, `RadioGroup`, `Switch`) live in [app/src/design-system/](app/src/design-system/).
+
+## Deployment
+
+Deployed on Railway via a **root [Dockerfile](Dockerfile)** (the repo root is not the app root): it builds `app/` and serves the bundle with `vite preview` bound to `$PORT` (`preview.allowedHosts` is set in `app/vite.config.js`). Keep the Railway service **Root Directory at the repo root** so the Dockerfile is used. `app/railway.json` is a Nixpacks fallback for when Root Directory is set to `app`.
 
 ## Reference docs
 
-[docs/superpowers/](docs/superpowers/) holds the design spec and implementation plan this prototype was built from — useful when extending the app to understand the intended scope and the "one problem, structural-checks-only, no backend" constraints.
+[docs/adding-a-problem.md](docs/adding-a-problem.md) — how to add a challenge as data. [docs/](docs/) also holds the original design/spec material.
