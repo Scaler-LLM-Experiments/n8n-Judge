@@ -69,7 +69,7 @@ export function ReportScreen({ problem, grading, dissection, runResult, evalOutc
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
       <TopBar activeStage="report" onShowProblemStatement={() => setShowStatement(true)} />
-      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', justifyContent: 'center', padding: 24 }}>
+      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: 24 }}>
         <Card style={{ maxWidth: 640, width: '100%' }}>
           <div style={{ fontSize: 12, textTransform: 'uppercase', color: 'var(--fg-2)', marginBottom: 8 }}>
             Result
