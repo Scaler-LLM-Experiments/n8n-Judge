@@ -88,7 +88,7 @@ export function EvalScreen({ problem, graph, onDecision, onSubmit }) {
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
       <TopBar activeStage="eval" onShowProblemStatement={() => setShowStatement(true)} />
-      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '72px 24px 72px' }}>
+      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: answered ? '72px 24px 110px' : '72px 24px 72px' }}>
         <div key={index} ref={quizRef} style={{ width: '100%', maxWidth: COLUMN, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
           <div data-q="head">
             <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--fg-3)', fontWeight: 700, marginBottom: 10 }}>
@@ -134,17 +134,20 @@ export function EvalScreen({ problem, graph, onDecision, onSubmit }) {
             </div>
           ) : null}
 
-          {answered ? (
-            <div style={{ marginTop: 26 }}>
-              <Button variant="primary" size="lg" iconRight={<ArrowRight size={16} />} onClick={advance}>
-                {index + 1 < questions.length ? 'Continue' : 'See Report'}
-              </Button>
-            </div>
-          ) : null}
         </div>
       </div>
 
-      <div style={{ position: 'fixed', left: 28, bottom: 24, width: 84, height: 84, zIndex: 50, pointerEvents: 'none' }}>
+      {/* Fixed footer for the advance action — never gets pushed off-screen by
+          a tall question (node canvas + explanation + full replay reveal). */}
+      {answered ? (
+        <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 40, display: 'flex', justifyContent: 'center', padding: '16px 24px', background: 'var(--surface-0)', borderTop: '1px solid var(--border-subtle)' }}>
+          <Button variant="primary" size="lg" iconRight={<ArrowRight size={16} />} onClick={advance}>
+            {index + 1 < questions.length ? 'Continue' : 'See Report'}
+          </Button>
+        </div>
+      ) : null}
+
+      <div style={{ position: 'fixed', left: 28, bottom: answered ? 96 : 24, width: 84, height: 84, zIndex: 50, pointerEvents: 'none', transition: 'bottom 0.2s ease' }}>
         <MascotPlayer clip={mascotClip} once={mascotClip !== 'idle'} onceDone={() => {}} />
       </div>
 
