@@ -99,7 +99,56 @@ export default function App() {
     };
     return <div style={{ height: '100vh' }}><EvalScreen problem={emailTriage} graph={g} onDecision={() => {}} onSubmit={() => {}} /></div>;
   }
+  if (typeof window !== 'undefined' && window.location.hash === '#eval-to-report-demo') {
+    return <div style={{ height: '100vh' }}><EvalToReportDemo /></div>;
+  }
   return <MainApp />;
+}
+
+// Debug-only route: wires EvalScreen's onSubmit to a REAL screen transition
+// (unlike #eval-demo, whose onSubmit is a no-op) so the Stress Testing ->
+// Result click can be tested without replaying Understand + Build Node.
+function EvalToReportDemo() {
+  const [screen, setScreen] = useState('eval');
+  const [evalOutcome, setEvalOutcome] = useState(null);
+  const [grading, setGrading] = useState(() => createStore());
+  const record = (d) => setGrading((s) => recordDecision(s, d));
+  const g = {
+    nodes: [
+      { id: 't', type: 'trigger', data: { label: 'New Email' } },
+      { id: 'c', type: 'classify', data: { label: 'Classify with AI' } },
+      { id: 'm', type: 'chat-gemini', data: { label: 'Gemini Chat Model' } },
+      { id: 'p', type: 'parse', data: { label: 'Parse Result' } },
+      { id: 's', type: 'switch', data: { label: 'Switch' } },
+      { id: 'ab', type: 'action', data: { label: 'Send Reply' } },
+      { id: 'af', type: 'action', data: { label: 'Send Reply' } },
+      { id: 'au', type: 'action', data: { label: 'Send Reply' } },
+    ],
+    edges: [
+      { id: 'em', source: 'm', target: 'c', targetHandle: 'ai_model' },
+      { id: 'e1', source: 't', target: 'c' },
+      { id: 'e2', source: 'c', target: 'p' },
+      { id: 'e3', source: 'p', target: 's' },
+      { id: 'e4', source: 's', target: 'ab', sourceHandle: 'bug_report' },
+      { id: 'e5', source: 's', target: 'af', sourceHandle: 'feature_request' },
+      { id: 'e6', source: 's', target: 'au', sourceHandle: 'urgent_complaint' },
+    ],
+  };
+  if (screen === 'eval') {
+    return (
+      <EvalScreen
+        problem={emailTriage}
+        graph={g}
+        onDecision={record}
+        onSubmit={(outcome) => {
+          setEvalOutcome(outcome);
+          setScreen('report');
+        }}
+      />
+    );
+  }
+  const runResult = validateGraph(g, emailTriage);
+  return <ReportScreen problem={emailTriage} grading={grading} dissection={null} runResult={runResult} evalOutcome={evalOutcome} graph={g} />;
 }
 
 function MainApp() {
