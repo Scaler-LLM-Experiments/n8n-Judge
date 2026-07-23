@@ -325,7 +325,7 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun }) {
                 <RunNote step={activeStep} caseInfo={run.cases[runPos.ci].case} />
               </div>
             ) : null}
-            {runFinished && run.success ? <RunCelebration onContinue={() => onComplete(run.val)} /> : null}
+            {runFinished && run.success ? <RunCelebration onContinue={() => onComplete({ validation: run.val, graph: graphRef.current })} /> : null}
             {runFinished && !run.success ? (
               <div className="fade-in" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 46, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, padding: '14px 16px', background: 'var(--surface-0)', borderTop: '1px solid var(--border-strong)' }}>
                 <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--fg-1)' }}>Some emails never reached a reply. Head back and finish wiring the flow.</span>
@@ -335,12 +335,12 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun }) {
           </>
         ) : null}
 
-        {showProblem ? <ProblemStatementPanel problem={problem} side onClose={() => setShowProblem(false)} /> : null}
+        {showProblem ? <ProblemStatementPanel problem={problem} sticky onClose={() => setShowProblem(false)} /> : null}
       </div>
 
       <style>{`
         @keyframes irispulse { 0%,100% { transform: scale(1); opacity: 0.85; } 50% { transform: scale(1.14); opacity: 1; } }
-        @keyframes pulsering { 0% { box-shadow: 0 0 0 0 rgba(0,85,255,0.45); } 70% { box-shadow: 0 0 0 10px rgba(0,85,255,0); } 100% { box-shadow: 0 0 0 0 rgba(0,85,255,0); } }
+        @keyframes pulsering { 0% { box-shadow: 0 0 0 0 rgba(0,85,255,0.38), 0 0 9px 1px rgba(0,85,255,0.22); } 70% { box-shadow: 0 0 0 11px rgba(0,85,255,0), 0 0 9px 1px rgba(0,85,255,0); } 100% { box-shadow: 0 0 0 0 rgba(0,85,255,0), 0 0 9px 1px rgba(0,85,255,0); } }
         @keyframes fadein { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes runstep { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -348,8 +348,8 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun }) {
         @keyframes pulseerror { 0% { box-shadow: 0 0 0 0 rgba(225,29,42,0.5); } 70% { box-shadow: 0 0 0 11px rgba(225,29,42,0); } 100% { box-shadow: 0 0 0 0 rgba(225,29,42,0); } }
         .run-glow { animation: runglow 0.85s ease-in-out infinite; }
         .pulse-error { animation: pulseerror 1.4s ease-out infinite; }
-        .pulse-ring { animation: pulsering 1.8s ease-out infinite; }
-        .pulse-plus { animation: pulsering 1.5s ease-out infinite; }
+        .pulse-ring { animation: pulsering 1.9s ease-out infinite; }
+        .pulse-plus { animation: pulsering 1.7s ease-out infinite; }
         .pulse-field { animation: pulsering 2s ease-out infinite; }
         .fade-in { animation: fadein 0.3s ease-out; }
         .run-step { animation: runstep 0.32s ease-out; }

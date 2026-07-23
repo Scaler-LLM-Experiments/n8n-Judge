@@ -2,6 +2,7 @@ import React from 'react';
 import { ArrowRight, EnvelopeSimpleOpen, UsersThree, Robot } from '@phosphor-icons/react';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
 import { Button } from '../design-system/Button.jsx';
+import scalerLogo from '../assets/brand/scaler-logo.svg';
 
 // A Phosphor icon per problem (falls back to a generic agent icon).
 const ICONS = { 'email-triage': EnvelopeSimpleOpen, 'lead-triage': UsersThree };
@@ -11,9 +12,8 @@ export function HomeScreen({ problems, onSelect }) {
   return (
     <div style={{ height: '100%', overflowY: 'auto', background: 'var(--surface-0)' }}>
       {/* brand bar */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '16px 24px' }}>
-        <span style={{ width: 18, height: 18, background: 'var(--brand-primary)', display: 'inline-block' }} />
-        <span style={{ fontWeight: 800, fontSize: 15, color: 'var(--brand-primary)' }}>Scaler</span>
+      <div style={{ display: 'flex', alignItems: 'center', padding: '16px 24px' }}>
+        <img src={scalerLogo} alt="Scaler" style={{ height: 22, width: 'auto', display: 'block' }} />
       </div>
 
       <div style={{ maxWidth: 940, margin: '0 auto', padding: '12px 24px 64px' }}>

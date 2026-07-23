@@ -1,5 +1,16 @@
-import { Sparkle, BracketsCurly, ArrowsSplit, ChatCircle, Lightning, Plug, FlowArrow, Brain, SlackLogo, Clock, Code, GitBranch, ArrowsMerge, FunnelSimple, Prohibit, Broadcast } from '@phosphor-icons/react';
-import { SiGmail, SiGooglegemini, SiNotion, SiGooglecalendar, SiGoogledocs, SiGoogle } from 'react-icons/si';
+import React from 'react';
+import { Sparkle, BracketsCurly, ArrowsSplit, ChatCircle, Lightning, Plug, FlowArrow, Brain, Clock, Code, GitBranch, ArrowsMerge, FunnelSimple, Prohibit, Broadcast } from '@phosphor-icons/react';
+
+// Real, full-color app icons (favicons / product branding), background stripped
+// with ImageMagick. Preferred over abstract glyphs for any node that maps to a
+// real product — see nodeImageIcons below.
+import gmailIcon from '../assets/node-icons/gmail.png';
+import geminiIcon from '../assets/node-icons/gemini.png';
+import slackIcon from '../assets/node-icons/slack.png';
+import notionIcon from '../assets/node-icons/notion.png';
+import calendarIcon from '../assets/node-icons/calendar.png';
+import docsIcon from '../assets/node-icons/docs.png';
+import googleIcon from '../assets/node-icons/google.png';
 
 // Per-category visual identity. Kept deliberately calm: the loud colour in the
 // UI comes from the real brand logos, so category accents are muted and the node
@@ -17,21 +28,27 @@ export const categoryMeta = {
 // Palette display order for the categories.
 export const categoryOrder = ['trigger', 'ai', 'model', 'core', 'action'];
 
-// The icon shown on each concrete node — real brand logos for integrations,
-// abstract Phosphor glyphs for core/AI nodes (mirrors how n8n itself mixes them).
+// Real full-color product icons, keyed by node type. These take priority over
+// the abstract glyphs below: any node that represents a real app renders its
+// actual icon (see NodeIcon).
+export const nodeImageIcons = {
+  trigger: gmailIcon, // Gmail Trigger
+  action: gmailIcon, // Gmail — Send
+  'chat-gemini': geminiIcon,
+  'slack-message': slackIcon,
+  'calendar-event': calendarIcon,
+  'notion-page': notionIcon,
+  'web-search': googleIcon,
+  'google-docs': docsIcon,
+};
+
+// The glyph shown on nodes with no real-app icon — abstract Phosphor glyphs for
+// n8n core/AI nodes (mirrors how n8n itself mixes real logos with core glyphs).
 export const nodeIcons = {
-  trigger: SiGmail,
   'chat-trigger': ChatCircle,
   classify: Sparkle,
-  'chat-gemini': SiGooglegemini,
   parse: BracketsCurly,
   switch: ArrowsSplit,
-  action: SiGmail,
-  'slack-message': SlackLogo,
-  'calendar-event': SiGooglecalendar,
-  'notion-page': SiNotion,
-  'web-search': SiGoogle,
-  'google-docs': SiGoogledocs,
   // display-only nodes used as quiz answer options
   schedule: Clock,
   webhook: Broadcast,
@@ -42,17 +59,32 @@ export const nodeIcons = {
   noop: Prohibit,
 };
 
-// Brand colour overrides for the glyph (falls back to the category colour).
-export const nodeIconColor = {
-  trigger: '#EA4335',
-  'chat-gemini': '#8E75B2',
-  action: '#EA4335',
-  'slack-message': '#611F69',
-  'calendar-event': '#4285F4',
-  'notion-page': '#111111',
-  'web-search': '#4285F4',
-  'google-docs': '#4285F4',
-};
+// Colour override for a glyph node (falls back to the category colour). Nodes
+// backed by a real image icon carry their own colour and are not listed here.
+export const nodeIconColor = {};
+
+// Unified node-icon renderer: a real product image when one exists, otherwise
+// the category/Phosphor glyph. `size` is the pixel box; images are contained
+// within it so their own padding/aspect is preserved. Written with
+// createElement (no JSX) so this stays a plain .js module.
+export function NodeIcon({ type, size = 24, color, style }) {
+  const img = nodeImageIcons[type];
+  if (img) {
+    return React.createElement('img', {
+      src: img,
+      alt: '',
+      draggable: false,
+      style: { width: size, height: size, objectFit: 'contain', display: 'block', ...style },
+    });
+  }
+  const Glyph = nodeIcons[type];
+  if (!Glyph) return null;
+  return React.createElement(Glyph, {
+    size,
+    color: color || nodeIconColor[type] || metaOf(type).color,
+    style,
+  });
+}
 
 // Which category each node type belongs to (canvas nodes only carry their type).
 export const typeCategory = {

@@ -1,132 +1,195 @@
-import React, { useState } from 'react';
-import { CheckCircle, XCircle, ArrowRight, CaretRight } from '@phosphor-icons/react';
-import { Card } from '../design-system/Card.jsx';
+import React, { useEffect, useRef, useState } from 'react';
+import { ArrowRight, CheckCircle, XCircle } from '@phosphor-icons/react';
+import gsap from 'gsap';
 import { Button } from '../design-system/Button.jsx';
 import { TopBar } from '../components/TopBar.jsx';
 import { ProblemStatementPanel } from '../components/ProblemStatementPanel.jsx';
+import { NodeFlowRow } from '../components/NodeFlowRow.jsx';
+import { NodeReplay } from '../components/NodeReplay.jsx';
+import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
+import { simulateCase } from '../engine/simulate.js';
 import { scoreEval } from '../engine/evalScore.js';
-import { nodeIcons, nodeIconColor, categoryMeta, typeCategory } from '../nodes/nodeIcons.js';
 
-function FlowSummary({ steps, caption }) {
-  return (
-    <div style={{ border: '1px solid var(--border-subtle)', background: 'var(--surface-1)', padding: '16px 18px' }}>
-      <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--fg-2)', fontWeight: 700, marginBottom: 12 }}>The agent you built</div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
-        {steps.map((n, i) => {
-          const Icon = nodeIcons[n.type];
-          const cat = typeCategory[n.type] || 'core';
-          const color = nodeIconColor[n.type] || categoryMeta[cat].color;
-          return (
-            <React.Fragment key={n.type}>
-              {i > 0 ? <CaretRight size={14} color="var(--fg-3)" style={{ flex: 'none' }} /> : null}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '6px 10px', border: '1px solid var(--border-subtle)', background: 'var(--surface-0)' }}>
-                <span style={{ width: 24, height: 24, flex: 'none', background: categoryMeta[cat].tint, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {Icon ? <Icon size={14} color={color} /> : null}
-                </span>
-                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--fg-1)', whiteSpace: 'nowrap' }}>{n.label}</span>
-              </div>
-            </React.Fragment>
-          );
-        })}
-      </div>
-      {caption ? <div style={{ fontSize: 11.5, color: 'var(--fg-3)', marginTop: 10, lineHeight: 1.5 }}>{caption}</div> : null}
-    </div>
-  );
-}
+const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
+const GRID_WIDTH = 1040;
 
-export function EvalScreen({ problem, onSubmit, onDecision }) {
+// The fixed reference path, shown as real connected nodes for questions with
+// no matching sample case to replay (e.g. a design-reasoning question).
+const REFERENCE_PATH = [
+  { type: 'trigger', label: 'New Email' },
+  { type: 'classify', label: 'Classify with AI' },
+  { type: 'parse', label: 'Parse Result' },
+  { type: 'switch', label: 'Switch' },
+  { type: 'action', label: 'Send Reply' },
+];
+
+// The shared, pre-branch stretch of the build — shown as the question's own
+// context before answering. It stops at Switch, before the case-specific
+// outcome, so it grounds the question in the learner's real build without
+// giving away the answer (the outcome only reveals via NodeReplay post-pick).
+const BASE_PATH = REFERENCE_PATH.slice(0, 4);
+
+export function EvalScreen({ problem, graph, onDecision, onSubmit }) {
   const questions = problem.evalQuestions;
-  const [qi, setQi] = useState(0);
-  const [answers, setAnswers] = useState({}); // { [id]: index }
+  const [index, setIndex] = useState(0);
+  const [picked, setPicked] = useState(null);
+  const [answers, setAnswers] = useState({});
+  const [mascotClip, setMascotClip] = useState('idle');
   const [showStatement, setShowStatement] = useState(false);
+  const quizRef = useRef(null);
 
-  const q = questions[qi];
-  const picked = answers[q.id];
-  const answered = picked !== undefined;
-  const correct = answered && picked === q.correctIndex;
-  const isLast = qi === questions.length - 1;
+  const q = questions[index];
+  const answered = picked !== null;
+  const isCorrect = answered && picked === q.correctIndex;
+
+  const sampleCase = q.caseId ? problem.sampleCases.find((c) => c.id === q.caseId) : null;
+  const replaySteps = answered && sampleCase && graph ? simulateCase(graph, sampleCase).steps : null;
+
+  // staggered entrance — same pattern as DissectionScreen's QuizBody: head,
+  // then options, then the canvas, each easing in in turn on every question.
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.from('[data-q="head"]', { y: 22, opacity: 0, duration: 0.5, ease: 'power3.out' });
+      gsap.from('[data-q="opt"]', { y: 16, opacity: 0, duration: 0.45, stagger: 0.07, delay: 0.12, ease: 'power2.out' });
+      gsap.from('[data-q="canvas"]', { x: -18, opacity: 0, duration: 0.5, delay: 0.12, ease: 'power2.out' });
+    }, quizRef);
+    return () => ctx.revert();
+  }, [index]);
 
   const pick = (i) => {
     if (answered) return;
+    const correct = i === q.correctIndex;
+    setPicked(i);
+    setMascotClip(correct ? 'correct' : 'shake-no');
     setAnswers((a) => ({ ...a, [q.id]: i }));
+    if (onDecision) {
+      onDecision({
+        id: `stress:${q.id}`,
+        kind: 'stress',
+        label: q.prompt,
+        correct,
+        firstTry: true,
+        chosenLabel: q.options[i],
+        correctLabel: q.options[q.correctIndex],
+      });
+    }
   };
 
-  const next = () => {
-    if (!isLast) { setQi((i) => i + 1); return; }
-    // finish: grade + record
-    const numeric = {};
-    for (const question of questions) {
-      numeric[question.id] = Number(answers[question.id]);
-      if (onDecision) onDecision({ id: `stress:${question.id}`, kind: 'stress', label: question.prompt, correct: Number(answers[question.id]) === question.correctIndex, firstTry: true });
+  const advance = () => {
+    if (index + 1 < questions.length) {
+      setIndex(index + 1);
+      setPicked(null);
+      setMascotClip('idle');
+    } else {
+      onSubmit(scoreEval(answers, questions));
     }
-    onSubmit(scoreEval(numeric, questions));
   };
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
       <TopBar activeStage="eval" onShowProblemStatement={() => setShowStatement(true)} />
-      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', justifyContent: 'center', padding: 24 }}>
-        <div style={{ width: '100%', maxWidth: 680, display: 'flex', flexDirection: 'column', gap: 18 }}>
-          <div>
-            <div style={{ fontSize: 12, textTransform: 'uppercase', color: 'var(--fg-2)', fontWeight: 700, letterSpacing: '0.04em', marginBottom: 4 }}>Stress Testing</div>
-            <div style={{ fontSize: 13.5, color: 'var(--fg-2)', lineHeight: 1.5 }}>Your flow passed the run. Now let’s check you understand how it behaves.</div>
+      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain', display: 'flex', justifyContent: 'center', padding: answered ? '56px 24px 130px' : '56px 24px 56px' }}>
+        <div key={index} ref={quizRef} style={{ width: '100%', maxWidth: GRID_WIDTH }}>
+          <div data-q="head" style={{ textAlign: 'center', marginBottom: 28 }}>
+            <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--fg-3)', fontWeight: 700, marginBottom: 10 }}>
+              Question {index + 1} of {questions.length}
+            </div>
+            <div style={{ fontSize: 21, fontWeight: 700, lineHeight: 1.35, maxWidth: 640, margin: '0 auto' }}>{q.prompt}</div>
           </div>
 
-          {problem.flowSummary ? <FlowSummary steps={problem.flowSummary.steps} caption={problem.flowSummary.caption} /> : null}
-
-          <Card style={{ width: '100%' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-              <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--brand-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Question {qi + 1} of {questions.length}</span>
-              <div style={{ display: 'flex', gap: 5 }}>
-                {questions.map((qq, i) => (
-                  <span key={qq.id} style={{ width: 22, height: 6, background: i < qi || (i === qi && answered) ? 'var(--brand-primary)' : 'var(--n-200)' }} />
-                ))}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 32, alignItems: 'start' }}>
+            {/* LEFT COLUMN: the node canvas, live replay, and (once answered) the explanation */}
+            <div data-q="canvas">
+              <div style={{ border: '1px solid var(--border-strong)', background: '#E9ECF2', backgroundImage: 'radial-gradient(#C4CAD4 1px, transparent 1px)', backgroundSize: '16px 16px', padding: '18px' }}>
+                <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--fg-3)', fontWeight: 700, marginBottom: 4 }}>
+                  {sampleCase ? 'Your build' : 'The fixed path'}
+                </div>
+                <NodeFlowRow items={sampleCase ? BASE_PATH : REFERENCE_PATH} />
               </div>
+
+              {answered && replaySteps ? (
+                <div style={{ marginTop: 16, border: `2px solid ${isCorrect ? 'var(--status-success)' : 'var(--status-danger)'}`, boxShadow: `0 0 0 3px ${isCorrect ? 'var(--status-success-bg)' : 'var(--status-danger-bg)'}` }}>
+                  <div style={{ padding: '9px 15px', background: isCorrect ? 'var(--status-success)' : 'var(--status-danger)', color: '#fff', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    {isCorrect ? 'What actually happens — this is the answer' : 'Not what you picked — here’s what actually happens'}
+                  </div>
+                  <NodeReplay steps={replaySteps} label="Replaying your build — this exact case, on your graph" />
+                </div>
+              ) : null}
+
+              {answered ? (
+                <div style={{ marginTop: 16, display: 'flex', gap: 10, textAlign: 'left', padding: '13px 15px', border: `1px solid ${isCorrect ? 'var(--status-success-border)' : 'var(--status-danger-border)'}`, background: isCorrect ? 'var(--status-success-bg)' : 'var(--status-danger-bg)' }}>
+                  {isCorrect ? <CheckCircle size={18} weight="fill" color="var(--status-success)" style={{ flex: 'none', marginTop: 1 }} /> : <XCircle size={18} weight="fill" color="var(--status-danger)" style={{ flex: 'none', marginTop: 1 }} />}
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: isCorrect ? 'var(--status-success)' : 'var(--status-danger)', marginBottom: 3 }}>
+                      {isCorrect ? 'Correct' : `Not quite — the answer is "${q.options[q.correctIndex]}"`}
+                    </div>
+                    <div style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--fg-2)' }}>{q.explanation}</div>
+                  </div>
+                </div>
+              ) : null}
             </div>
 
-            <div style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.4, marginBottom: 16 }}>{q.prompt}</div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-              {q.options.map((option, i) => {
-                const isChosen = picked === i;
-                const isRight = i === q.correctIndex;
-                const tone = !answered ? 'var(--border-subtle)' : isRight ? 'var(--status-success)' : isChosen ? 'var(--status-danger)' : 'var(--border-subtle)';
-                const bg = !answered ? 'var(--surface-0)' : isRight ? 'var(--status-success-bg)' : isChosen ? 'var(--status-danger-bg)' : 'var(--surface-0)';
+            {/* RIGHT COLUMN: the question's options */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {q.options.map((opt, i) => {
+                const state = picked === i ? (isCorrect ? 'correct' : 'wrong') : 'idle';
+                const dim = answered && picked !== i;
                 return (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => pick(i)}
-                    disabled={answered}
-                    style={{ display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', padding: '12px 14px', border: `1px solid ${tone}`, background: bg, cursor: answered ? 'default' : 'pointer', fontFamily: 'var(--font-body)', opacity: answered && !isRight && !isChosen ? 0.55 : 1 }}
-                  >
-                    <span style={{ width: 26, height: 26, flex: 'none', borderRadius: '50%', border: `1.5px solid ${answered && (isRight || isChosen) ? tone : 'var(--border-strong)'}`, background: answered && (isRight || isChosen) ? tone : 'transparent', color: answered && (isRight || isChosen) ? '#fff' : 'var(--fg-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700 }}>
-                      {answered && isRight ? <CheckCircle size={15} weight="fill" /> : answered && isChosen ? <XCircle size={15} weight="fill" /> : String.fromCharCode(65 + i)}
-                    </span>
-                    <span style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--fg-1)', lineHeight: 1.4 }}>{option}</span>
-                  </button>
+                  <div key={i} data-q="opt">
+                    <OptionRow letter={LETTERS[i]} label={opt} state={state} dim={dim} disabled={answered} onClick={() => pick(i)} />
+                  </div>
                 );
               })}
             </div>
-
-            {answered ? (
-              <div className="fade-in" style={{ marginTop: 14, padding: '12px 14px', background: 'var(--surface-1)', borderLeft: `3px solid ${correct ? 'var(--status-success)' : 'var(--status-danger)'}` }}>
-                <div style={{ fontSize: 12.5, fontWeight: 700, color: correct ? 'var(--status-success)' : 'var(--status-danger)', marginBottom: 4 }}>
-                  {correct ? 'Correct' : `Not quite — the answer is “${q.options[q.correctIndex]}”`}
-                </div>
-                <div style={{ fontSize: 12.5, lineHeight: 1.55, color: 'var(--fg-2)' }}>{q.explanation}</div>
-              </div>
-            ) : null}
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 18 }}>
-              <Button variant="primary" iconRight={<ArrowRight size={15} />} disabled={!answered} onClick={next}>
-                {isLast ? 'See my results' : 'Next question'}
-              </Button>
-            </div>
-          </Card>
+          </div>
         </div>
       </div>
-      {showStatement ? <ProblemStatementPanel problem={problem} side onClose={() => setShowStatement(false)} /> : null}
+
+      {/* Fixed footer for the advance action — never gets pushed off-screen by
+          a tall question (node canvas + explanation + full replay reveal). */}
+      {answered ? (
+        <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 40, display: 'flex', justifyContent: 'center', padding: '16px 24px', background: 'var(--surface-0)', borderTop: '1px solid var(--border-subtle)' }}>
+          <Button variant="primary" size="lg" iconRight={<ArrowRight size={16} />} onClick={advance}>
+            {index + 1 < questions.length ? 'Continue' : 'See Report'}
+          </Button>
+        </div>
+      ) : null}
+
+      <div style={{ position: 'fixed', left: 28, bottom: answered ? 96 : 24, width: 84, height: 84, zIndex: 50, pointerEvents: 'none', transition: 'bottom 0.2s ease' }}>
+        <MascotPlayer clip={mascotClip} once={mascotClip !== 'idle'} onceDone={() => {}} />
+      </div>
+
+      {showStatement && problem ? <ProblemStatementPanel problem={problem} onClose={() => setShowStatement(false)} /> : null}
     </div>
+  );
+}
+
+function OptionRow({ letter, label, state, dim, disabled, onClick }) {
+  const border = state === 'correct' ? 'var(--status-success)' : state === 'wrong' ? 'var(--status-danger)' : 'var(--border-subtle)';
+  const bg = state === 'correct' ? 'var(--status-success-bg)' : state === 'wrong' ? 'var(--status-danger-bg)' : 'var(--surface-0)';
+  return (
+    <button
+      type="button"
+      onClick={disabled ? undefined : onClick}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        padding: '13px 15px',
+        border: `1px solid ${border}`,
+        background: bg,
+        cursor: disabled ? 'default' : 'pointer',
+        opacity: dim ? 0.45 : 1,
+        width: '100%',
+        textAlign: 'left',
+        fontFamily: 'var(--font-body)',
+        transition: 'border-color 120ms ease, background 120ms ease, opacity 120ms ease',
+      }}
+    >
+      <span style={{ width: 24, height: 24, flex: 'none', border: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: 'var(--fg-2)' }}>
+        {letter}
+      </span>
+      <span style={{ fontSize: 14.5, fontWeight: 600, color: 'var(--fg-1)', flex: 1 }}>{label}</span>
+    </button>
   );
 }

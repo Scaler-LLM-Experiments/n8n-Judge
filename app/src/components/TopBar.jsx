@@ -1,5 +1,9 @@
-import React from 'react';
-import { Check, Question, ArrowCounterClockwise, ArrowClockwise, Play, FileText, Sparkle } from '@phosphor-icons/react';
+import React, { useState } from 'react';
+import { Check, Question, ArrowCounterClockwise, ArrowClockwise, Play, FileText } from '@phosphor-icons/react';
+import scalerLogo from '../assets/brand/scaler-logo.svg';
+import { GlossaryDrawer } from './GlossaryDrawer.jsx';
+import { AskAiDrawer } from './AskAiDrawer.jsx';
+import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
 
 const STAGES = [
   { id: 'statement', label: 'Understand' },
@@ -34,6 +38,8 @@ function IconButton({ icon: Icon, title, onClick, primary, dataTour }) {
 
 export function TopBar({ activeStage, onShowProblemStatement, onReset, onRun, onProblemDoc, onAskAI, onRedo }) {
   const activeIndex = STAGES.findIndex((s) => s.id === activeStage);
+  const [glossaryOpen, setGlossaryOpen] = useState(false);
+  const [askOpen, setAskOpen] = useState(false);
 
   return (
     <div
@@ -46,9 +52,8 @@ export function TopBar({ activeStage, onShowProblemStatement, onReset, onRun, on
         background: 'var(--surface-0)',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, fontSize: 15, color: 'var(--brand-primary)' }}>
-        <span style={{ width: 18, height: 18, background: 'var(--brand-primary)', display: 'inline-block' }} />
-        Scaler
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        <img src={scalerLogo} alt="Scaler" style={{ height: 22, width: 'auto', display: 'block' }} />
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', justifySelf: 'center' }}>
@@ -92,17 +97,20 @@ export function TopBar({ activeStage, onShowProblemStatement, onReset, onRun, on
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifySelf: 'end' }}>
-        {onAskAI ? (
-          <button type="button" onClick={onAskAI} title="Ask AI" style={{ display: 'flex', alignItems: 'center', gap: 6, height: 34, padding: '0 12px', border: '1px solid var(--brand-primary)', background: 'var(--brand-blue-50, rgba(0,85,255,0.06))', color: 'var(--brand-primary)', fontWeight: 700, fontSize: 12.5, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
-            <Sparkle size={15} weight="fill" /> Ask AI
-          </button>
-        ) : null}
+        <button type="button" onClick={() => setAskOpen(true)} title="Ask Iris" style={{ display: 'flex', alignItems: 'center', gap: 7, height: 34, padding: '0 12px 0 8px', border: '1px solid var(--brand-primary)', background: 'var(--brand-blue-50, rgba(0,85,255,0.06))', color: 'var(--brand-primary)', fontWeight: 700, fontSize: 12.5, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
+          <span style={{ width: 22, height: 22, flex: 'none' }}><MascotPlayer clip="idle" once={false} onceDone={() => {}} /></span>
+          Ask AI
+        </button>
         {onProblemDoc ? <IconButton icon={FileText} title="Problem statement" onClick={onProblemDoc} /> : null}
-        {onShowProblemStatement ? <IconButton icon={Question} title="Problem statement" onClick={onShowProblemStatement} dataTour="problem" /> : null}
+        {onShowProblemStatement ? <IconButton icon={FileText} title="Problem statement" onClick={onShowProblemStatement} dataTour="problem" /> : null}
+        <IconButton icon={Question} title="Node glossary" onClick={() => setGlossaryOpen(true)} />
         {onReset ? <IconButton icon={ArrowCounterClockwise} title="Reset" onClick={onReset} /> : null}
         {onRun ? <IconButton icon={Play} title="Run" onClick={onRun} primary dataTour="run" /> : null}
         {onRedo ? <IconButton icon={ArrowClockwise} title="Start over" onClick={onRedo} /> : null}
       </div>
+
+      {glossaryOpen ? <GlossaryDrawer onClose={() => setGlossaryOpen(false)} /> : null}
+      {askOpen ? <AskAiDrawer onClose={() => setAskOpen(false)} /> : null}
     </div>
   );
 }

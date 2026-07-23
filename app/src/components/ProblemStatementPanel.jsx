@@ -1,17 +1,47 @@
 import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
-import { X, CheckCircle } from '@phosphor-icons/react';
+import { X, CheckCircle, DotsSixVertical } from '@phosphor-icons/react';
 import { Card } from '../design-system/Card.jsx';
+import { ConceptFlow } from './ConceptFlow.jsx';
 
-// Problem statement. Default: centered modal. `side`: a large right-hand drawer
-// (used in the Build stage via the nav File icon).
-export function ProblemStatementPanel({ problem, onClose, side }) {
+// Problem statement. Default: centered modal. `side`: a large right-hand drawer.
+// `sticky`: a right-hand drawer styled as the "problem" sticky note, fully
+// expanded with the flow diagram (used in the Build stage via the nav icon).
+export function ProblemStatementPanel({ problem, onClose, side, sticky }) {
   const panelRef = useRef(null);
   useEffect(() => {
     if (!panelRef.current) return;
-    if (side) gsap.fromTo(panelRef.current, { xPercent: 100 }, { xPercent: 0, duration: 0.32, ease: 'power3.out' });
+    if (side || sticky) gsap.fromTo(panelRef.current, { xPercent: 100 }, { xPercent: 0, duration: 0.32, ease: 'power3.out' });
     else gsap.fromTo(panelRef.current, { scale: 0.96, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: 'power3.out' });
-  }, [side]);
+  }, [side, sticky]);
+
+  if (sticky) {
+    return (
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(1,24,69,0.35)', zIndex: 60, display: 'flex', justifyContent: 'flex-end' }} onClick={onClose}>
+        <div
+          ref={panelRef}
+          onClick={(e) => e.stopPropagation()}
+          style={{ width: 440, maxWidth: '92%', height: '100%', background: '#FEFAE7', borderLeft: '1px solid #E8DFA8', boxShadow: '-16px 0 46px rgba(1,24,69,0.18)', display: 'flex', flexDirection: 'column' }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '12px 16px', borderBottom: '1px solid #EAE1AE', flex: 'none' }}>
+            <DotsSixVertical size={16} color="#B8A94E" />
+            <span style={{ fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#8A7B2E' }}>The problem</span>
+            <button type="button" onClick={onClose} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#8A7B2E', display: 'flex' }}>
+              <X size={16} />
+            </button>
+          </div>
+          <div style={{ padding: '18px 20px 28px', overflowY: 'auto' }}>
+            <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 10, color: 'var(--fg-1)' }}>{problem.title}</div>
+            <div style={{ fontSize: 13.5, lineHeight: 1.6, color: 'var(--fg-2)' }}>{problem.statement}</div>
+            <div style={{ marginTop: 22, marginBottom: 6, fontSize: 12, fontWeight: 700, color: '#8A7B2E', display: 'flex', alignItems: 'center', gap: 6 }}>Flow diagram</div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: 8 }}>
+              <ConceptFlow direction="column" size="md" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const body = (
     <>

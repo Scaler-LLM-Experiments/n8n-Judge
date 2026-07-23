@@ -1,6 +1,6 @@
 import React from 'react';
 import { Lightning, CheckCircle, XCircle } from '@phosphor-icons/react';
-import { nodeIcons, nodeIconColor, categoryMeta, typeCategory } from '../nodes/nodeIcons.js';
+import { NodeIcon, categoryMeta, typeCategory } from '../nodes/nodeIcons.js';
 
 // ---------------------------------------------------------------------------
 // Reusable n8n-style node visual, built from scratch (not n8n's assets).
@@ -25,8 +25,6 @@ export function N8nNodeView({ type, label, placeholder, tag, selected, pulse, ru
   const cat = typeCategory[type] || 'core';
   const meta = categoryMeta[cat];
   const variant = variantOf(type);
-  const Icon = nodeIcons[type];
-  const color = nodeIconColor[type] || meta.color;
 
   const isTrigger = variant === 'trigger';
   const wide = variant === 'ai'; // AI root nodes are wide, with the label inside
@@ -71,17 +69,18 @@ export function N8nNodeView({ type, label, placeholder, tag, selected, pulse, ru
         >
           {placeholder ? (
             <span style={{ fontSize: 34, fontWeight: 700, color: 'var(--fg-3)' }}>?</span>
-          ) : Icon ? (
-            <Icon size={wide ? 32 : 38} color={color} />
-          ) : null}
+          ) : (
+            <NodeIcon type={type} size={wide ? 32 : 38} />
+          )}
           {wide && !placeholder ? (
             <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--fg-1)', lineHeight: 1.2 }}>{label}</span>
           ) : null}
         </div>
 
-        {/* pulsing "needs setup" ring */}
+        {/* pulsing "needs setup" ring — overlaid exactly on the body (same box &
+            radius) so its corners line up with the node's, plus the animated glow */}
         {pulse && !placeholder && !running ? (
-          <div className="pulse-ring" style={{ position: 'absolute', top: 0, left: 0, width: bodyW, height: bodyH, borderRadius: radius, pointerEvents: 'none', zIndex: 1 }} />
+          <div className="pulse-ring" style={{ position: 'absolute', top: 0, left: 0, width: bodyW, height: bodyH, borderRadius: radius, border: '1.5px solid rgba(0,85,255,0.8)', boxSizing: 'border-box', pointerEvents: 'none', zIndex: 1 }} />
         ) : null}
         {/* run highlight — the node currently executing lights up */}
         {running && !placeholder ? (

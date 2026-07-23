@@ -5,12 +5,24 @@ import { ConceptFlow } from './ConceptFlow.jsx';
 // Faint-yellow "sticky note" reference card. Draggable (header) and resizable
 // (corner). The flow diagram is tucked into a collapsible dropdown so the note
 // stays small on tight screens.
+const COMPACT = { w: 300, h: 260 };
+const EXPANDED = { w: 384, h: 560 };
+
 export function ProblemNote({ problem, onHide }) {
   const [pos, setPos] = useState({ x: 24, y: 96 });
-  const [size, setSize] = useState({ w: 300, h: 260 });
+  const [size, setSize] = useState(COMPACT);
   const [showDiagram, setShowDiagram] = useState(false);
   const mode = useRef(null);
   const start = useRef(null);
+
+  // Toggling the flow diagram grows/shrinks the whole note so the full sketch
+  // has room to breathe.
+  const toggleDiagram = () =>
+    setShowDiagram((s) => {
+      const next = !s;
+      setSize(next ? EXPANDED : COMPACT);
+      return next;
+    });
 
   const begin = (kind) => (e) => {
     mode.current = kind;
@@ -66,14 +78,14 @@ export function ProblemNote({ problem, onHide }) {
 
         <button
           type="button"
-          onClick={() => setShowDiagram((s) => !s)}
+          onClick={toggleDiagram}
           style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 700, color: '#8A7B2E', padding: 0 }}
         >
           {showDiagram ? <CaretDown size={13} /> : <CaretRight size={13} />} Flow diagram
         </button>
         {showDiagram ? (
-          <div style={{ marginTop: 12, display: 'flex', justifyContent: 'center' }}>
-            <ConceptFlow direction="column" size="sm" />
+          <div style={{ marginTop: 14, display: 'flex', justifyContent: 'center' }}>
+            <ConceptFlow direction="column" size="md" />
           </div>
         ) : null}
       </div>

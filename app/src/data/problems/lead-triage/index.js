@@ -466,6 +466,7 @@ export const leadTriage = {
   evalQuestions: [
     {
       id: 'support-question-gap',
+      caseId: 'support',
       prompt:
         'An email arrives from an existing customer asking for help with a broken login — no demo, pricing, or fit signal at all. What happens in this flow?',
       options: [

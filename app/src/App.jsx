@@ -20,6 +20,30 @@ const SCREEN = {
   REPORT: 'report',
 };
 
+// A finished reference flow, used by the dev demo routes so the Stress Testing
+// and Report screens have a real graph to replay sample cases against.
+const DEMO_GRAPH = {
+  nodes: [
+    { id: 't', type: 'trigger', data: { label: 'New Email' } },
+    { id: 'c', type: 'classify', data: { label: 'Classify with AI' } },
+    { id: 'm', type: 'chat-gemini', data: { label: 'Gemini Chat Model' } },
+    { id: 'p', type: 'parse', data: { label: 'Parse Result' } },
+    { id: 's', type: 'switch', data: { label: 'Switch' } },
+    { id: 'ab', type: 'action', data: { label: 'Send Reply' } },
+    { id: 'af', type: 'action', data: { label: 'Send Reply' } },
+    { id: 'au', type: 'action', data: { label: 'Send Reply' } },
+  ],
+  edges: [
+    { id: 'em', source: 'm', target: 'c', targetHandle: 'ai_model' },
+    { id: 'e1', source: 't', target: 'c' },
+    { id: 'e2', source: 'c', target: 'p' },
+    { id: 'e3', source: 'p', target: 's' },
+    { id: 'e4', source: 's', target: 'ab', sourceHandle: 'bug_report' },
+    { id: 'e5', source: 's', target: 'af', sourceHandle: 'feature_request' },
+    { id: 'e6', source: 's', target: 'au', sourceHandle: 'urgent_complaint' },
+  ],
+};
+
 export default function App() {
   const problem = resolveProblem();
   if (typeof window !== 'undefined' && window.location.hash === '#playground') {
@@ -32,30 +56,10 @@ export default function App() {
     return <div style={{ height: '100vh' }}><BuildPreview problem={problem} devAutoRun /></div>;
   }
   if (typeof window !== 'undefined' && window.location.hash.startsWith('#eval-demo')) {
-    return <div style={{ height: '100vh' }}><EvalScreen problem={problem} onSubmit={() => {}} onDecision={() => {}} /></div>;
+    return <div style={{ height: '100vh' }}><EvalScreen problem={problem} graph={DEMO_GRAPH} onSubmit={() => {}} onDecision={() => {}} /></div>;
   }
   if (typeof window !== 'undefined' && window.location.hash === '#run-demo') {
-    const g = {
-      nodes: [
-        { id: 't', type: 'trigger', data: { label: 'New Email' } },
-        { id: 'c', type: 'classify', data: { label: 'Classify with AI' } },
-        { id: 'm', type: 'chat-gemini', data: { label: 'Gemini Chat Model' } },
-        { id: 'p', type: 'parse', data: { label: 'Parse Result' } },
-        { id: 's', type: 'switch', data: { label: 'Switch' } },
-        { id: 'ab', type: 'action', data: { label: 'Send Reply' } },
-        { id: 'af', type: 'action', data: { label: 'Send Reply' } },
-        { id: 'au', type: 'action', data: { label: 'Send Reply' } },
-      ],
-      edges: [
-        { id: 'em', source: 'm', target: 'c', targetHandle: 'ai_model' },
-        { id: 'e1', source: 't', target: 'c' },
-        { id: 'e2', source: 'c', target: 'p' },
-        { id: 'e3', source: 'p', target: 's' },
-        { id: 'e4', source: 's', target: 'ab', sourceHandle: 'bug_report' },
-        { id: 'e5', source: 's', target: 'af', sourceHandle: 'feature_request' },
-        { id: 'e6', source: 's', target: 'au', sourceHandle: 'urgent_complaint' },
-      ],
-    };
+    const g = DEMO_GRAPH;
     const result = { ...simulateAll(g, problem), val: validateGraph(g, problem) };
     return (
       <div style={{ height: '100vh', position: 'relative', background: '#E9ECF2' }}>
@@ -75,13 +79,10 @@ export default function App() {
       { id: 'stress:general-question-gap', kind: 'stress', correct: true, firstTry: true },
       { id: 'stress:why-fixed-path', kind: 'stress', correct: false, firstTry: true },
     ].forEach((d) => { s = recordDecision(s, d); });
-    const g = {
-      nodes: [{ id: 't', type: 'trigger' }, { id: 'c', type: 'classify' }, { id: 'm', type: 'chat-gemini' }, { id: 'p', type: 'parse' }, { id: 's', type: 'switch' }, { id: 'ab', type: 'action' }, { id: 'af', type: 'action' }, { id: 'au', type: 'action' }],
-      edges: [{ source: 'm', target: 'c', targetHandle: 'ai_model' }, { source: 't', target: 'c' }, { source: 'c', target: 'p' }, { source: 'p', target: 's' }, { source: 's', target: 'ab', sourceHandle: 'bug_report' }, { source: 's', target: 'af', sourceHandle: 'feature_request' }, { source: 's', target: 'au', sourceHandle: 'urgent_complaint' }],
-    };
+    const g = DEMO_GRAPH;
     const runResult = validateGraph(g, problem);
     const evalOutcome = scoreEval({ 'general-question-gap': 1, 'why-fixed-path': 0 }, problem.evalQuestions);
-    return <div style={{ height: '100vh' }}><ReportScreen problem={problem} grading={s} runResult={runResult} evalOutcome={evalOutcome} /></div>;
+    return <div style={{ height: '100vh' }}><ReportScreen problem={problem} grading={s} runResult={runResult} evalOutcome={evalOutcome} graph={g} /></div>;
   }
   return <Landing />;
 }
@@ -99,21 +100,22 @@ function BuildPreview({ problem, devAutoRun }) {
   const [screen, setScreen] = useState('build');
   const [grading, setGrading] = useState(() => createStore());
   const [runResult, setRunResult] = useState(null);
+  const [builtGraph, setBuiltGraph] = useState(null);
   const [evalOutcome, setEvalOutcome] = useState(null);
   const record = (d) => setGrading((s) => recordDecision(s, d));
 
   if (screen === 'eval') {
-    return <EvalScreen problem={problem} onDecision={record} onSubmit={(o) => { setEvalOutcome(o); setScreen('report'); }} />;
+    return <EvalScreen problem={problem} graph={builtGraph} onDecision={record} onSubmit={(o) => { setEvalOutcome(o); setScreen('report'); }} />;
   }
   if (screen === 'report') {
-    return <ReportScreen problem={problem} grading={grading} runResult={runResult} evalOutcome={evalOutcome} />;
+    return <ReportScreen problem={problem} grading={grading} runResult={runResult} evalOutcome={evalOutcome} graph={builtGraph} />;
   }
   return (
     <BuildStage
       problem={problem}
       devAutoRun={devAutoRun}
       onDecision={record}
-      onComplete={(r) => { if (r) setRunResult(r); setScreen('eval'); }}
+      onComplete={(r) => { if (r) { setRunResult(r.validation); setBuiltGraph(r.graph); } setScreen('eval'); }}
     />
   );
 }
@@ -122,6 +124,7 @@ function MainApp({ problem }) {
   const [screen, setScreen] = useState(SCREEN.STATEMENT);
   const [dissection, setDissection] = useState(null);
   const [runResult, setRunResult] = useState(null);
+  const [builtGraph, setBuiltGraph] = useState(null);
   const [evalOutcome, setEvalOutcome] = useState(null);
   const [grading, setGrading] = useState(() => createStore());
   const record = (d) => setGrading((s) => recordDecision(s, d));
@@ -144,7 +147,10 @@ function MainApp({ problem }) {
           problem={problem}
           onDecision={record}
           onComplete={(result) => {
-            if (result) setRunResult(result);
+            if (result) {
+              setRunResult(result.validation);
+              setBuiltGraph(result.graph);
+            }
             setScreen(SCREEN.EVAL);
           }}
         />
@@ -153,6 +159,7 @@ function MainApp({ problem }) {
       {screen === SCREEN.EVAL ? (
         <EvalScreen
           problem={problem}
+          graph={builtGraph}
           onDecision={record}
           onSubmit={(outcome) => {
             setEvalOutcome(outcome);
@@ -162,7 +169,7 @@ function MainApp({ problem }) {
       ) : null}
 
       {screen === SCREEN.REPORT ? (
-        <ReportScreen problem={problem} grading={grading} dissection={dissection} runResult={runResult} evalOutcome={evalOutcome} />
+        <ReportScreen problem={problem} grading={grading} dissection={dissection} runResult={runResult} evalOutcome={evalOutcome} graph={builtGraph} />
       ) : null}
     </div>
   );

@@ -7,7 +7,7 @@ import { ConceptFlow } from '../components/ConceptFlow.jsx';
 import { ProblemNote } from '../components/ProblemNote.jsx';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
 import { N8nNodeView } from '../n8n/N8nNodeView.jsx';
-import { nodeIcons, nodeIconColor, metaOf } from '../nodes/nodeIcons.js';
+import { NodeIcon } from '../nodes/nodeIcons.js';
 
 const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 
@@ -39,6 +39,18 @@ export function DissectionScreen({ problem, onComplete, onDecision }) {
   const isCorrect = pickedOption ? pickedOption.type === q.correctType : false;
   const unlockedTypes = [...new Set(questions.flatMap((x) => x.unlocks))];
 
+  // advance to the next question (or finish) — driven by the per-question
+  // Continue button, so the learner reads the explanation at their own pace
+  const advance = () => {
+    if (index + 1 < questions.length) {
+      setIndex(index + 1);
+      setPicked(null);
+      setMascotClip('idle');
+    } else {
+      setPhase('done');
+    }
+  };
+
   const pick = (i) => {
     if (picked !== null && isCorrect) return; // locked after correct
     const opt = q.options[i];
@@ -47,17 +59,7 @@ export function DissectionScreen({ problem, onComplete, onDecision }) {
     setMascotClip(correct ? 'correct' : 'shake-no');
     if (!correct) {
       setAttempts((a) => a.map((v, k) => (k === index ? v + 1 : v)));
-      return;
     }
-    advanceTimer.current = setTimeout(() => {
-      if (index + 1 < questions.length) {
-        setIndex(index + 1);
-        setPicked(null);
-        setMascotClip('idle');
-      } else {
-        setPhase('done');
-      }
-    }, 1600);
   };
 
   if (phase === 'greet') {
@@ -87,6 +89,7 @@ export function DissectionScreen({ problem, onComplete, onDecision }) {
           picked={picked}
           isCorrect={isCorrect}
           onPick={pick}
+          onContinue={advance}
         />
       </div>
 
@@ -110,11 +113,12 @@ export function DissectionScreen({ problem, onComplete, onDecision }) {
   );
 }
 
-function QuizBody({ q, index, total, picked, isCorrect, onPick }) {
+function QuizBody({ q, index, total, picked, isCorrect, onPick, onContinue }) {
   const rootRef = useRef(null);
   const nodeRef = useRef(null);
   const pickedOption = picked !== null ? q.options[picked] : null;
   const answered = picked !== null;
+  const isLast = index + 1 >= total;
 
   // staggered entrance — runs on mount (QuizBody is keyed by index, so this
   // fires for the first question arriving from the problem beat AND on every
@@ -177,14 +181,21 @@ function QuizBody({ q, index, total, picked, isCorrect, onPick }) {
           )}
         </div>
       </div>
+
+      {/* per-question Continue — below the node box, once the pick is correct */}
+      {answered && isCorrect ? (
+        <div style={{ marginTop: 22 }}>
+          <Button variant="outline" size="lg" iconRight={<ArrowRight size={16} />} onClick={onContinue}>
+            {isLast ? 'Finish — see my toolkit' : 'Continue'}
+          </Button>
+        </div>
+      ) : null}
     </div>
   );
 }
 
 function OptionBox({ letter, option, state, dim, disabled, onClick }) {
   const [hover, setHover] = useState(false);
-  const Icon = nodeIcons[option.type];
-  const iconColor = nodeIconColor[option.type] || metaOf(option.type).color;
   const border = state === 'correct' ? 'var(--brand-primary)' : state === 'wrong' ? 'var(--status-danger)' : hover ? 'var(--fg-3)' : 'var(--border-subtle)';
   const bg = state === 'correct' ? 'var(--brand-blue-50)' : state === 'wrong' ? 'var(--status-danger-bg)' : 'var(--surface-0)';
   return (
@@ -212,7 +223,7 @@ function OptionBox({ letter, option, state, dim, disabled, onClick }) {
         {letter}
       </span>
       <span style={{ width: 28, height: 28, flex: 'none', borderRadius: 7, background: 'var(--surface-1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {Icon ? <Icon size={16} color={iconColor} /> : null}
+        <NodeIcon type={option.type} size={16} />
       </span>
       <span style={{ fontSize: 14.5, fontWeight: 600, color: 'var(--fg-1)', flex: 1 }}>{option.label}</span>
     </button>

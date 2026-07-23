@@ -1,6 +1,9 @@
-import { DotLottie } from '@lottiefiles/dotlottie-web';
+import { setWasmUrl } from '@lottiefiles/dotlottie-react';
 import wasmUrl from '@lottiefiles/dotlottie-web/dotlottie-player.wasm?url';
 
-// Serve our own copy of the renderer WASM through the bundler instead of fetching
-// it from a CDN at runtime. Import this module before creating any DotLottie instance.
-DotLottie.setWasmUrl(wasmUrl);
+// Point the dotLottie renderer at the WASM bundled by Vite, instead of the
+// default node_modules path (which 404s) or the unpkg CDN fallback (blocked
+// offline). Must use the standalone setWasmUrl the React wrapper reads — the
+// DotLottie.setWasmUrl static does NOT affect DotLottieReact instances.
+// Import this module before creating any player.
+setWasmUrl(wasmUrl);

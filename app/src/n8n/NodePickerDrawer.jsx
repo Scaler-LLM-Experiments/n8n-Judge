@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { X, MagnifyingGlass } from '@phosphor-icons/react';
 import { NODE_CATALOG, TRIGGER_OPTIONS, NODE_OPTIONS } from './catalog.js';
-import { nodeIcons, nodeIconColor, categoryMeta, categoryOrder, typeCategory, CHIP_BG } from '../nodes/nodeIcons.js';
+import { NodeIcon, categoryMeta, categoryOrder, typeCategory, CHIP_BG } from '../nodes/nodeIcons.js';
 
 // Right-side "add node" drawer. Lists the options for the current slot, searchable
 // and grouped by category. `options` (when passed) scopes the menu to the current
@@ -58,8 +58,6 @@ export function NodePickerDrawer({ context, options, onPick, onClose }) {
             <div key={cat} style={{ marginBottom: 14 }}>
               <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.05em', color: meta.color, fontWeight: 700, marginBottom: 6 }}>{meta.label}</div>
               {catItems.map((n) => {
-                const Icon = nodeIcons[n.type];
-                const color = nodeIconColor[n.type] || meta.color;
                 return (
                   <button
                     key={n.type}
@@ -70,7 +68,7 @@ export function NodePickerDrawer({ context, options, onPick, onClose }) {
                     onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border-subtle)'; e.currentTarget.style.background = 'var(--surface-0)'; }}
                   >
                     <span style={{ width: 30, height: 30, flex: 'none', borderRadius: 7, background: CHIP_BG, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {Icon ? <Icon size={17} color={color} /> : null}
+                      <NodeIcon type={n.type} size={17} />
                     </span>
                     <span style={{ minWidth: 0 }}>
                       <span style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--fg-1)' }}>{n.label}</span>
