@@ -47,6 +47,7 @@ export const nodeImageIcons = {
 export const nodeIcons = {
   'chat-trigger': ChatCircle,
   classify: Sparkle,
+  summarize: Sparkle,
   parse: BracketsCurly,
   switch: ArrowsSplit,
   // display-only nodes used as quiz answer options
@@ -91,6 +92,7 @@ export const typeCategory = {
   trigger: 'trigger',
   'chat-trigger': 'trigger',
   classify: 'ai',
+  summarize: 'ai',
   'chat-gemini': 'model',
   parse: 'core',
   switch: 'core',

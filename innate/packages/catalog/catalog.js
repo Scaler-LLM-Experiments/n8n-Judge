@@ -42,6 +42,18 @@ export const NODE_CATALOG = {
     ],
     output: { text: '{"category":"COMPLAINT","urgency":"HIGH"}' },
   },
+  summarize: {
+    type: 'summarize',
+    label: 'Summarize with AI',
+    subtitle: 'Basic LLM Chain',
+    category: 'ai',
+    needsModel: true,
+    params: [
+      { key: 'system', label: 'System Message', value: 'Summarize the call transcript into a short paragraph, then a bulleted list of action items with owners.', kind: 'textarea' },
+      { key: 'text', label: 'Text', value: '', kind: 'text', mappable: true, placeholder: 'Drag the transcript field →' },
+    ],
+    output: { text: 'Summary: The customer asked about billing…\nAction items:\n- Refund the duplicate charge (Priya)\n- Follow up in 2 days (Sam)' },
+  },
   'chat-gemini': {
     type: 'chat-gemini',
     label: 'Gemini Chat Model',
@@ -101,7 +113,7 @@ export const NODE_CATALOG = {
 
 // What the picker offers, grouped, for trigger vs. regular slots.
 export const TRIGGER_OPTIONS = ['trigger', 'chat-trigger', 'schedule', 'webhook'];
-export const NODE_OPTIONS = ['classify', 'parse', 'switch', 'action', 'code', 'if', 'slack-message', 'google-docs'];
+export const NODE_OPTIONS = ['classify', 'summarize', 'parse', 'switch', 'action', 'code', 'if', 'slack-message', 'google-docs'];
 
 export function catalogEntry(type) {
   return NODE_CATALOG[type];

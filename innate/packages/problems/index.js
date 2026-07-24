@@ -4,10 +4,12 @@
 // problem object, then register it here.
 import { emailTriage } from './email-triage/index.js';
 import { leadTriage } from './lead-triage/index.js';
+import { meetingNotes } from './meeting-notes/index.js';
 
 export const problems = {
   [emailTriage.id]: emailTriage,
   [leadTriage.id]: leadTriage,
+  [meetingNotes.id]: meetingNotes,
 };
 
 export const problemList = Object.values(problems);
