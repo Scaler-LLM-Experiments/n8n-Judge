@@ -1,0 +1,523 @@
+/* =========================================================
+   Syntax by Scaler — Colors & Type tokens
+   ========================================================= */
+
+/* Plus Jakarta Sans + Archivo via Google Fonts fallback */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,500&family=Archivo:wght@400;600;700;800&display=swap');
+
+@font-face {
+  font-family: 'Clash Grotesk';
+  src: url('./fonts/ClashGrotesk-Variable.ttf') format('truetype-variations');
+  font-weight: 200 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* -------- Brand Colors -------- */
+  --brand-primary: #0055FF;           /* PRIMARY — bright, canonical brand blue */
+  --brand-primary-alt: #004CE5;       /* supporting fill (slightly deeper) */
+  --brand-primary-strong: #083CA0;    /* heavy buttons / strong blue blocks / hover */
+  --brand-navy: #011845;              /* darkest brand color */
+  --brand-navy-2: #011A53;           /* Navy step */
+  --brand-navy-3: #0B1529;           /* Near-black navy */
+
+  /* Blue tints — used for soft hero panels, chip backgrounds */
+  --brand-blue-50:  #EBF8FF;
+  --brand-blue-100: #E6F0FF;
+  --brand-blue-200: #E9F1FF;
+  --brand-blue-300: #E3F1FF;
+
+  /* Accents observed in visual direction */
+  --accent-gold:    #E8B017;         /* Mustard-gold accent */
+  --accent-lime:    #C4FF00;         /* Lime — used inside radial gradient stars */
+  --accent-teal:    rgba(0, 225, 173, 0.5);
+  --accent-violet:  #8000FF;
+  --accent-violet-2: rgba(119, 81, 255, 0.5);
+  --accent-orange:  #ED7700;
+
+  /* -------- Neutrals -------- */
+  --n-0:   #FFFFFF;
+  --n-50:  #FAFAFA;
+  --n-100: #F5F5F5;
+  --n-150: #F6F6F6;
+  --n-200: #E4E4E4;
+  --n-300: #D1D1D1;
+  --n-400: #AAAAAA;
+  --n-500: #696969;
+  --n-600: #616161;
+  --n-700: #404040;
+  --n-800: #262626;
+  --n-850: #212121;
+  --n-900: #171717;
+  --n-950: #121212;
+  --n-ink: #000B1F;
+
+  /* Borders */
+  --border-subtle: #E4E4E4;
+  --border-muted:  #E5E7EB;
+  --border-strong: #D1D1D1;
+
+  /* -------- Semantic foreground -------- */
+  --fg-1: #121212;   /* primary ink */
+  --fg-2: #212121;   /* body */
+  --fg-3: #616161;   /* meta / helper */
+  --fg-4: #AAAAAA;   /* placeholder / captions on dark */
+  --fg-inverse: #FFFFFF;
+  --fg-on-brand: #FFFFFF;
+  --fg-link: var(--brand-primary);
+  --fg-link-hover: var(--brand-primary-strong);
+
+  /* -------- Semantic surface -------- */
+  --surface-0: #FFFFFF;
+  --surface-1: #FAFAFA;
+  --surface-2: #F5F5F5;
+  --surface-soft-blue: #E9F1FF;
+  --surface-brand: var(--brand-primary);
+  --surface-deep: var(--brand-navy);
+  --surface-overlay: var(--brand-navy);  /* floating dark surface — toasts, tooltips */
+
+  /* -------- Shadows (flat, subtle) -------- */
+  --shadow-xs: 0 1px 2px 0 rgba(26,26,26,0.05);
+  --shadow-sm: 0 1px 2px 0 rgba(0,11,31,0.06), 0 1px 1px 0 rgba(0,11,31,0.04);
+  --shadow-md: 0 8px 24px -8px rgba(1,24,69,0.10), 0 2px 6px -2px rgba(1,24,69,0.06);
+  --shadow-lg: 0 24px 48px -12px rgba(1,24,69,0.18);
+
+  /* -------- Radii --------
+     BRAND RULE: no rounded corners anywhere. Ever. The only value is 0.
+     Kept as a token so components can reference it consistently.          */
+  --radius-0: 0px;
+
+  /* -------- Spacing (4pt base) -------- */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-7: 32px;
+  --sp-8: 40px;
+  --sp-9: 48px;
+  --sp-10: 64px;
+  --sp-11: 80px;
+  --sp-12: 120px;
+
+  /* -------- Type families --------
+     RULE: Clash Grotesk handles ALL headline + poster type (H1–H3, hero display,
+     wordmark-weight statements at 80–120px). Use weight 500–600 for standard
+     headlines; weight 700 for poster moments.
+     Everything else — body, UI, labels, eyebrows, stats, captions, buttons —
+     is Plus Jakarta Sans.                                                    */
+  --font-headline: "Clash Grotesk", "Plus Jakarta Sans", sans-serif;
+  --font-poster: "Clash Grotesk", "Plus Jakarta Sans", sans-serif;
+  --font-body: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* legacy aliases — do not use in new code */
+  --font-display: var(--font-headline);
+  --font-display-heavy: var(--font-poster);
+
+  /* -------- Type scale (px / line-height / weight) -------- */
+  --t-hero-size:    120px;
+  --t-hero-lh:      1.0; /* @kind other */
+  --t-hero-weight:  700;
+  --t-hero-family:  var(--font-display-heavy);
+
+  --t-display-size: 80px;
+  --t-display-lh:   1.0; /* @kind other */
+  --t-display-weight: 700;
+  --t-display-family: var(--font-display-heavy);
+
+  /* H1–H3 are HEADLINES → Clash Grotesk.
+     H4+ are section labels / subheads → Plus Jakarta Sans. */
+  --t-h1-size: 56px;   --t-h1-lh: 1.0; /* @kind other */  --t-h1-weight: 500;  --t-h1-family: var(--font-headline);
+  --t-h2-size: 40px;   --t-h2-lh: 1.05; /* @kind other */ --t-h2-weight: 500;  --t-h2-family: var(--font-headline);
+  --t-h3-size: 32px;   --t-h3-lh: 1.1; /* @kind other */  --t-h3-weight: 500;  --t-h3-family: var(--font-headline);
+  --t-h4-size: 24px;   --t-h4-lh: 1.2; /* @kind other */  --t-h4-weight: 600;  --t-h4-family: var(--font-body);
+  --t-h5-size: 20px;   --t-h5-lh: 1.2; /* @kind other */  --t-h5-weight: 700;  --t-h5-family: var(--font-body);
+  --t-h6-size: 18px;   --t-h6-lh: 1.35; /* @kind other */ --t-h6-weight: 600;  --t-h6-family: var(--font-body);
+
+  --t-body-lg-size: 18px; --t-body-lg-lh: 1.55; /* @kind other */
+  --t-body-size:    16px; --t-body-lh:    1.55; /* @kind other */
+  --t-body-sm-size: 14px; --t-body-sm-lh: 1.45; /* @kind other */
+  --t-caption-size: 12px; --t-caption-lh: 1.5; /* @kind other */
+
+  --t-eyebrow-size: 14px; --t-eyebrow-lh: 20px;
+  --t-eyebrow-tracking: 0.12em;  /* wide, uppercase or title case */
+
+  --t-kbd-size: 12px;
+}
+
+/* ---------- Element defaults ---------- */
+html, body {
+  font-family: var(--font-body);
+  color: var(--fg-1);
+  background: var(--surface-0);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, .t-h1 {
+  font-family: var(--t-h1-family);
+  font-size: var(--t-h1-size);
+  line-height: var(--t-h1-lh);
+  font-weight: var(--t-h1-weight);
+  color: var(--fg-1);
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+h2, .t-h2 {
+  font-family: var(--t-h2-family);
+  font-size: var(--t-h2-size);
+  line-height: var(--t-h2-lh);
+  font-weight: var(--t-h2-weight);
+  color: var(--fg-1);
+  margin: 0;
+}
+
+h3, .t-h3 {
+  font-family: var(--t-h3-family);
+  font-size: var(--t-h3-size);
+  line-height: var(--t-h3-lh);
+  font-weight: var(--t-h3-weight);
+  color: var(--fg-1);
+  margin: 0;
+}
+
+h4, .t-h4 {
+  font-family: var(--t-h4-family);
+  font-size: var(--t-h4-size);
+  line-height: var(--t-h4-lh);
+  font-weight: var(--t-h4-weight);
+  letter-spacing: -0.01em;
+  color: var(--fg-1);
+  margin: 0;
+}
+
+h5, .t-h5 {
+  font-family: var(--font-body);
+  font-size: var(--t-h5-size);
+  line-height: var(--t-h5-lh);
+  font-weight: var(--t-h5-weight);
+  letter-spacing: -0.03em;
+  color: var(--brand-navy);
+  margin: 0;
+}
+
+.t-hero {
+  font-family: var(--t-hero-family);
+  font-size: var(--t-hero-size);
+  line-height: var(--t-hero-lh);
+  font-weight: var(--t-hero-weight);
+  letter-spacing: -0.01em;
+  color: var(--fg-1);
+}
+
+.t-display {
+  font-family: var(--t-display-family);
+  font-size: var(--t-display-size);
+  line-height: var(--t-display-lh);
+  font-weight: var(--t-display-weight);
+  color: var(--fg-1);
+}
+
+p, .t-body {
+  font-family: var(--font-body);
+  font-size: var(--t-body-size);
+  line-height: var(--t-body-lh);
+  color: var(--fg-2);
+  margin: 0;
+}
+
+.t-body-lg { font-size: var(--t-body-lg-size); line-height: var(--t-body-lg-lh); }
+.t-body-sm { font-size: var(--t-body-sm-size); line-height: var(--t-body-sm-lh); color: var(--fg-2); }
+.t-caption { font-size: var(--t-caption-size); line-height: var(--t-caption-lh); color: var(--fg-3); }
+
+.t-eyebrow {
+  font-family: var(--font-body);
+  font-size: var(--t-eyebrow-size);
+  line-height: var(--t-eyebrow-lh);
+  letter-spacing: var(--t-eyebrow-tracking);
+  color: var(--brand-primary);
+  font-weight: 500;
+}
+
+code, kbd, .t-mono {
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+a {
+  color: var(--fg-link);
+  text-decoration: none;
+  transition: color 120ms ease;
+}
+a:hover { color: var(--fg-link-hover); }
+
+/* ---------- Buttons (no rounded corners) ---------- */
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 36px;
+  padding: 8px 16px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease, box-shadow 140ms ease, transform 120ms ease;
+  border-radius: 0;
+  white-space: nowrap;
+  /* Scale from the middle — hover grows a hair, press shrinks. Never a Y-nudge. */
+  transform-origin: center center;
+  /* one shared outline-on-hover token: 2px ring offset by 2px of the surface color */
+  --btn-ring: 0 0 0 2px var(--brand-primary);
+}
+.btn:hover { transform: scale(1.02); }
+.btn:active { transform: scale(0.94); }
+.btn:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 2px; }
+
+/* ---- Primary ---- 
+   Resting: brand blue. Hover: brighter fill + 2px outline ring. */
+.btn--primary {
+  background: var(--brand-primary);
+  color: var(--fg-on-brand);
+  box-shadow: var(--shadow-xs);
+}
+.btn--primary:hover {
+  background: #1F6BFF;                  /* brighter step up from #0055FF */
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--brand-primary);
+}
+
+/* ---- Outline ----
+   Resting: white with blue border. Hover: light blue fill + thicker outline. */
+.btn--outline {
+  background: var(--n-0);
+  color: var(--brand-primary);
+  border-color: var(--brand-primary);
+  box-shadow: var(--shadow-xs);
+}
+.btn--outline:hover {
+  background: var(--brand-blue-50);
+  color: #0040C2;
+  box-shadow: 0 0 0 2px var(--brand-primary);
+}
+
+/* ---- Ghost ----
+   Resting: transparent. Hover: soft blue tint + subtle blue outline. */
+.btn--ghost {
+  background: transparent;
+  color: var(--fg-1);
+}
+.btn--ghost:hover {
+  background: var(--brand-blue-50);
+  color: var(--brand-primary);
+  box-shadow: inset 0 0 0 1px var(--brand-primary);
+}
+
+/* ---- Black ----
+   Near-black solid for high-contrast / brand-neutral CTAs. */
+.btn--black {
+  background: var(--n-950);
+  color: var(--fg-inverse);
+  box-shadow: var(--shadow-xs);
+}
+.btn--black:hover {
+  background: #2A2A2A;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--n-950);
+}
+
+/* ---- Link ----
+   Inline text link. No box, no fill — underline appears on hover. */
+.btn--link {
+  background: transparent;
+  color: var(--brand-primary);
+  height: auto;
+  padding: 0;
+  gap: 6px;
+  box-shadow: none;
+}
+.btn--link:hover {
+  color: #0040C2;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  box-shadow: none;
+  transform: none;   /* a text link doesn't grow/shrink */
+}
+.btn--link:active { transform: none; }
+
+/* Full size scale — xs/sm for dashboards + dense UI, lg/xl for hero CTAs. */
+.btn--xs  { height: 28px; padding: 0 10px; font-size: 13px; }
+.btn--sm  { height: 32px; padding: 0 12px; font-size: 13px; }
+.btn--lg  { height: 56px; padding: 16px 28px; font-size: 16px; }
+.btn--xl  { height: 80px; padding: 30px 49px; font-size: 20px; }
+
+/* =========================================================
+   PHASE 2 EXTENSIONS — Dashboard / LMS surface tokens
+   Added on top of the marketing-system foundation. Nothing
+   above this line was changed; everything below is additive.
+   ========================================================= */
+
+:root {
+  /* -------- Status colors -------- */
+  --status-success:        #1F9D55;
+  --status-success-bg:     #E8F6EE;
+  --status-success-border: #B7E2C7;
+
+  --status-warning:        #C97A0E;
+  --status-warning-bg:     #FFF4E0;
+  --status-warning-border: #F2D49A;
+
+  --status-danger:         #D62B2B;
+  --status-danger-bg:      #FDECEC;
+  --status-danger-border:  #F2B5B5;
+
+  --status-info:           #0055FF;     /* alias of brand for now */
+  --status-info-bg:        #E6F0FF;
+  --status-info-border:    #BAD4FF;
+
+  /* -------- Density scale (control heights) --------
+     Marketing uses lg/xl. Dashboard adds compact + base.   */
+  --ctrl-xs: 24px;   /* tag / chip */
+  --ctrl-sm: 28px;   /* dense table action */
+  --ctrl-md: 32px;   /* dashboard default */
+  --ctrl-base: 36px; /* button base (existing) */
+  --ctrl-lg: 48px;   /* input default (existing) */
+  --ctrl-xl: 56px;   /* hero CTA */
+
+  /* -------- Sidebar / chrome dimensions -------- */
+  --sidebar-w: 248px;
+  --sidebar-w-collapsed: 64px;
+  --topbar-h: 56px;
+  --rail-w: 56px;
+
+  /* -------- Z-index stack -------- */
+  --z-base:     0; /* @kind other */
+  --z-sticky:   100; /* @kind other */
+  --z-nav:      200; /* @kind other */
+  --z-dropdown: 1000; /* @kind other */
+  --z-overlay:  1500; /* @kind other */
+  --z-drawer:   1600; /* @kind other */
+  --z-modal:    1700; /* @kind other */
+  --z-toast:    1900; /* @kind other */
+  --z-tooltip:  2000; /* @kind other */
+
+  /* -------- Motion tokens --------
+     Durations + easings are intentionally small in number.
+     Use the same six everywhere so the product feels coherent. */
+  --dur-1: 80ms; /* @kind other */     /* press / state flip */
+  --dur-2: 120ms; /* @kind other */    /* hover, color */
+  --dur-3: 180ms; /* @kind other */    /* tooltip, small panel */
+  --dur-4: 240ms; /* @kind other */    /* modal, drawer */
+  --dur-5: 360ms; /* @kind other */    /* page swap */
+  --dur-6: 600ms; /* @kind other */    /* progress fill, milestone */
+
+  /* All easings sit in the same expo.out family — slow to start,
+     long settle. The brand reads premium and unhurried; we never
+     overshoot, snap, or accelerate sharply. Three curves, all
+     decelerating; difference is only how dramatic the easing is. */
+
+  /* Standard — the everyday default. Hover, color, small motion. */
+  --ease-standard: cubic-bezier(0.22, 1.00, 0.36, 1.00); /* @kind other */
+  /* Entrance — dramatic settle. Modals, drawers, big reveals. */
+  --ease-entrance: cubic-bezier(0.16, 1.00, 0.30, 1.00); /* @kind other */
+  /* Soft — nearly linear with a gentle tail. Progress, scrubs,
+     scrolls, anything continuous where motion shouldn't draw the eye. */
+  --ease-soft:     cubic-bezier(0.45, 0.05, 0.55, 0.95); /* @kind other */
+
+  /* GSAP equivalents (documented):
+       --ease-standard  → "power3.out"
+       --ease-entrance  → "expo.out"
+       --ease-soft      → "sine.inOut"                                  */
+
+  /* -------- Focus ring — single token, used everywhere -------- */
+  --focus-ring: 0 0 0 2px var(--brand-primary);
+  --focus-ring-offset: 0 0 0 2px var(--surface-0), 0 0 0 4px var(--brand-primary);
+}
+
+/* =========================================================
+   DARK MODE
+   Activated by `data-theme="dark"` on <html> or any ancestor.
+   Brand blue stays the same hue but opens up slightly so it
+   reads on dark surfaces. Backgrounds are deep cool navy,
+   never warm gray.
+   ========================================================= */
+
+[data-theme="dark"] {
+  /* surface ladder, deepest at 0 */
+  --surface-0: #0A1124;     /* page background */
+  --surface-1: #0F182F;     /* card / panel */
+  --surface-2: #16213E;     /* raised panel, hover */
+  --surface-3: #1E2C4D;     /* selected row, active tab */
+  --surface-soft-blue: #16213E;
+  --surface-deep: #050913;
+  --surface-overlay: #1E2C4D;   /* raised so it reads as elevated on the dark page */
+
+  /* foreground ladder */
+  --fg-1: #F5F7FB;
+  --fg-2: #C9D2E3;
+  --fg-3: #8794AE;
+  --fg-4: #5A6884;
+  --fg-inverse: #0A1124;
+
+  /* borders */
+  --border-subtle: rgba(255,255,255,0.08);
+  --border-muted:  rgba(255,255,255,0.06);
+  --border-strong: rgba(255,255,255,0.16);
+
+  /* brand on dark — slightly brighter so contrast holds */
+  --brand-primary:        #3D82FF;
+  --brand-primary-alt:    #5A98FF;
+  --brand-primary-strong: #82B0FF;
+
+  /* status colors on dark — bg becomes alpha tint of the hue */
+  --status-success-bg:     rgba(31, 157, 85, 0.16);
+  --status-success-border: rgba(31, 157, 85, 0.35);
+  --status-warning-bg:     rgba(201, 122, 14, 0.16);
+  --status-warning-border: rgba(201, 122, 14, 0.40);
+  --status-danger-bg:      rgba(214, 43, 43, 0.16);
+  --status-danger-border:  rgba(214, 43, 43, 0.40);
+  --status-info-bg:        rgba(61, 130, 255, 0.16);
+  --status-info-border:    rgba(61, 130, 255, 0.40);
+
+  /* shadows — wider, softer, no warm cast */
+  --shadow-xs: 0 1px 2px 0 rgba(0,0,0,0.40);
+  --shadow-sm: 0 2px 4px 0 rgba(0,0,0,0.35);
+  --shadow-md: 0 8px 24px -8px rgba(0,0,0,0.50), 0 2px 6px -2px rgba(0,0,0,0.35);
+  --shadow-lg: 0 24px 48px -12px rgba(0,0,0,0.60);
+
+  /* ---- Dark-mode remaps for the soft-tint + neutral ramps ----
+     These scales are not semantic surfaces, so the light values
+     (pale blue, light gray) would otherwise leak into dark UI as
+     bright islands. Remap them to translucent brand-blue + a dark
+     neutral ramp so hovers, selected states, chips, tracks and
+     skeletons adapt automatically. */
+  --brand-blue-50:  rgba(61, 130, 255, 0.10);
+  --brand-blue-100: rgba(61, 130, 255, 0.18);
+  --brand-blue-200: rgba(61, 130, 255, 0.12);
+  --brand-blue-300: rgba(61, 130, 255, 0.14);
+
+  --n-50:  #0F182F;
+  --n-100: #1B2742;   /* chip / neutral badge background */
+  --n-150: #16213E;   /* skeleton base */
+  --n-200: #22325A;   /* skeleton shimmer highlight (lighter) */
+  --n-300: #45526E;   /* tracks, inactive glyphs, muted day text */
+}
+
+/* Accept either `data-theme` or class on body for convenience */
+body[data-theme="dark"], .theme-dark { color-scheme: dark; }
+[data-theme="dark"] { color-scheme: dark; }
+[data-theme="light"] { color-scheme: light; }
+
+/* Respect reduced motion across the system. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-1: 0ms; /* @kind other */ --dur-2: 0ms; /* @kind other */ --dur-3: 0ms; /* @kind other */
+    --dur-4: 0ms; /* @kind other */ --dur-5: 0ms; /* @kind other */ --dur-6: 0ms; /* @kind other */
+  }
+}
