@@ -1,0 +1,20 @@
+/* app/src/index.css */
+@import './design-system/colors_and_type.css';
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&display=swap');
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+@keyframes judgePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 85, 255, 0.45); }
+  50% { box-shadow: 0 0 0 7px rgba(0, 85, 255, 0); }
+}
+.judge-pulse {
+  animation: judgePulse 1.5s ease-out infinite;
+}
