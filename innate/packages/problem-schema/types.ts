@@ -66,6 +66,7 @@ export const testCaseSchema = z.object({
   }),
 });
 
+// A router's labelled outputs. Empty for problems with no routing node.
 export const branchSchema = z.object({ id: z.string().min(1), label: z.string().min(1) });
 
 export const flowSummarySchema = z.object({
@@ -76,8 +77,10 @@ export const flowSummarySchema = z.object({
 export const flowSchema = z.object({
   start: z.array(z.string()).min(1),
   next: z.record(z.string(), z.array(z.string())),
-  branchNext: z.array(z.string()).min(1),
-  modelNext: z.array(z.string()).min(1),
+  // Optional: only problems with a router need branchNext; only problems with an
+  // AI node that takes a Chat Model need modelNext. Topology is not assumed.
+  branchNext: z.array(z.string()).optional(),
+  modelNext: z.array(z.string()).optional(),
 });
 
 export const buildPhaseSchema = z.object({
@@ -155,7 +158,8 @@ export const problemSchema = z
     nodePalette: z.array(paletteNodeSchema).min(2),
     referenceGraph: referenceGraphSchema,
     testCases: z.array(testCaseSchema).min(1),
-    branches: z.array(branchSchema).min(2),
+    branches: z.array(branchSchema), // may be empty for non-routing problems
+
     flowSummary: flowSummarySchema,
     flow: flowSchema,
     buildPhases: z.array(buildPhaseSchema).min(1),

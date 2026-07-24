@@ -56,4 +56,67 @@ describe('simulate', () => {
     expect(success).toBe(false);
     expect(cases.find((r) => r.case.id === 'urgent').delivered).toBe(false);
   });
+
+  // --- Generalized (non-canonical) topologies — proving the walk is metadata-driven.
+
+  it('handles a linear flow with no router (trigger → ai(+model) → action)', () => {
+    const graph = {
+      nodes: [
+        { id: 't', type: 'trigger', data: { label: 'New Email' } },
+        { id: 'c', type: 'classify', data: { label: 'Classify' } },
+        { id: 'm', type: 'chat-gemini', data: { label: 'Model' } },
+        { id: 'a', type: 'action', data: { label: 'Send Reply' } },
+      ],
+      edges: [
+        { id: 'em', source: 'm', target: 'c', targetHandle: 'ai_model' },
+        { id: 'e1', source: 't', target: 'c' },
+        { id: 'e2', source: 'c', target: 'a' },
+      ],
+    };
+    const c = { id: 'x', from: 'a@b.co', subject: 'hi', category: 'ANY', urgency: 'LOW', branch: null, reply: null };
+    const { delivered, steps } = simulateCase(graph, c);
+    expect(delivered).toBe(true);
+    expect(steps.some((s) => s.status === 'dead')).toBe(false);
+  });
+
+  it('routes through a multi-node branch (switch → passthrough → action)', () => {
+    const graph = {
+      nodes: [
+        { id: 't', type: 'trigger', data: {} },
+        { id: 'c', type: 'classify', data: {} },
+        { id: 'm', type: 'chat-gemini', data: {} },
+        { id: 's', type: 'switch', data: {} },
+        { id: 'p2', type: 'parse', data: { label: 'Prep reply' } },
+        { id: 'a', type: 'action', data: { label: 'Send' } },
+      ],
+      edges: [
+        { id: 'em', source: 'm', target: 'c', targetHandle: 'ai_model' },
+        { id: 'e1', source: 't', target: 'c' },
+        { id: 'e2', source: 'c', target: 's' },
+        { id: 'e3', source: 's', target: 'p2', sourceHandle: 'bug_report' },
+        { id: 'e4', source: 'p2', target: 'a' },
+      ],
+    };
+    const bug = emailTriage.sampleCases.find((x) => x.id === 'bug');
+    const { delivered } = simulateCase(graph, bug);
+    expect(delivered).toBe(true); // old hard-coded walk required switch→action directly
+  });
+
+  it('still requires a Chat Model on an AI node in a linear flow', () => {
+    const graph = {
+      nodes: [
+        { id: 't', type: 'trigger', data: {} },
+        { id: 'c', type: 'classify', data: {} },
+        { id: 'a', type: 'action', data: {} },
+      ],
+      edges: [
+        { id: 'e1', source: 't', target: 'c' },
+        { id: 'e2', source: 'c', target: 'a' },
+      ],
+    };
+    const c = { id: 'x', from: 'a@b.co', subject: 'hi', category: 'ANY', urgency: 'LOW', branch: null, reply: null };
+    const { delivered, steps } = simulateCase(graph, c);
+    expect(delivered).toBe(false);
+    expect(steps.some((s) => s.status === 'dead')).toBe(true);
+  });
 });

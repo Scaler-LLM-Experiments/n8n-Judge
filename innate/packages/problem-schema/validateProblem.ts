@@ -13,11 +13,11 @@ export interface ValidateProblemResult {
   problem?: Problem;
 }
 
-// The categories every problem must cover, in canonical walk order. The engine's
-// simulate.js walk is hardcoded to trigger → ai(+model) → parse → switch → action,
-// so until it is generalized we reject problems that deviate (plan risk #1).
-const CANONICAL_REQUIRED_TYPES = ['parse', 'switch'] as const;
-const CANONICAL_REQUIRED_CATEGORIES = ['trigger', 'ai', 'model', 'action'] as const;
+// The engine walk (engine/simulate.js) is metadata-driven, so topology is NOT
+// assumed to be a fixed chain. A problem is structurally valid when it can start
+// (a trigger) and can finish (an action/terminal); routing and AI-model rules
+// are enforced only when the problem actually uses those roles (see below).
+const STRUCTURAL_REQUIRED_CATEGORIES = ['trigger', 'action'] as const;
 
 export function validateProblem(input: unknown): ValidateProblemResult {
   const issues: ProblemIssue[] = [];
@@ -53,8 +53,8 @@ export function validateProblem(input: unknown): ValidateProblemResult {
     ...p.flow.start,
     ...Object.keys(p.flow.next),
     ...Object.values(p.flow.next).flat(),
-    ...p.flow.branchNext,
-    ...p.flow.modelNext,
+    ...(p.flow.branchNext ?? []),
+    ...(p.flow.modelNext ?? []),
     ...p.dissection.flatMap((d) => [d.correctType, ...d.unlocks]),
     ...p.flowSummary.steps.map((s) => s.type),
   ]);
@@ -79,19 +79,29 @@ export function validateProblem(input: unknown): ValidateProblemResult {
   }
   // Dissection option types are quiz answers, never rendered as nodes — no check.
 
-  // --- Canonical topology coverage (until engine/simulate.js is generalized).
+  // --- Generic topology structure (engine walk is metadata-driven).
   const requiredCategories = new Set(
     [...requiredTypes].map((t) => paletteByType.get(t)?.category).filter(Boolean)
   );
-  for (const cat of CANONICAL_REQUIRED_CATEGORIES) {
+  for (const cat of STRUCTURAL_REQUIRED_CATEGORIES) {
     if (!requiredCategories.has(cat)) {
-      err('nodePalette', `Palette must require at least one "${cat}"-category node (canonical topology)`);
+      err('nodePalette', `Palette must require at least one "${cat}"-category node (a flow needs to start and finish)`);
     }
   }
-  for (const t of CANONICAL_REQUIRED_TYPES) {
-    if (!requiredTypes.has(t)) {
-      err('nodePalette', `Palette must require the "${t}" node (canonical topology)`);
-    }
+  // Role-conditional rules — only enforced when the problem uses that role.
+  // (a) An AI node that needs a Chat Model requires a 'model'-category node.
+  const needsModel = [...requiredTypes].some((t) => NODE_CATALOG[t]?.needsModel);
+  if (needsModel && !requiredCategories.has('model')) {
+    err('nodePalette', 'An AI node needs a Chat Model — palette must require a "model"-category node');
+  }
+  // (b) A routing node (catalog entry declares branches) needs ≥2 declared branches.
+  const hasRouter = [...requiredTypes].some((t) => (NODE_CATALOG[t]?.branches?.length ?? 0) > 0);
+  if (hasRouter && p.branches.length < 2) {
+    err('branches', 'A routing node needs at least 2 declared branches');
+  }
+  // (c) Conversely, declared branches imply a routing node should exist.
+  if (p.branches.length > 0 && !hasRouter) {
+    warn('branches', 'Branches are declared but no required node routes on them');
   }
 
   // --- Palette must include at least one distractor (wrong-pick probes need bait).

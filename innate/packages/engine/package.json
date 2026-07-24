@@ -7,5 +7,8 @@
   "exports": {
     ".": "./index.js",
     "./*": "./*"
+  },
+  "dependencies": {
+    "@judge/catalog": "*"
   }
 }

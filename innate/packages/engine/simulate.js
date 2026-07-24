@@ -1,10 +1,18 @@
-// Walks one sample email through the student's actual wiring and produces an
+// Walks one sample case through the student's actual wiring and produces an
 // ordered list of narrative steps. Reveals gaps (no model, unwired branch,
-// unmatched category) as dead-ends rather than pass/fail rows.
+// unmatched route) as dead-ends rather than pass/fail rows.
+//
+// The walk is METADATA-DRIVEN, not hard-coded to a fixed chain. Each node's
+// role is resolved from the catalog (@judge/catalog): trigger / ai / router /
+// action / passthrough. This lets a problem use any topology — a linear
+// trigger → ai → action, a router with multi-node branches, multiple actions,
+// alternative trigger/ai/action node types — as long as each node declares its
+// role via catalog metadata (`category`, `needsModel`, `branches`).
 //
 // Narration is templated: a problem may override any line via `problem.simulation`
 // (placeholders like {from}, {category}, {label}, {reply} are filled per step).
-// The walk assumes the canonical role types trigger → ai → parse → switch → action.
+
+import { NODE_CATALOG } from '@judge/catalog';
 
 const DEFAULT_NARRATION = {
   onNew: 'New email from {from} — "{subject}"',
@@ -24,8 +32,22 @@ const DEFAULT_NARRATION = {
 
 const fill = (tpl, ctx) => String(tpl).replace(/\{(\w+)\}/g, (_, k) => (ctx[k] ?? ''));
 
+const meta = (type) => NODE_CATALOG[type] || {};
+
+// Resolve a node's structural role from catalog metadata (never from a
+// hard-coded type string), so new node vocabularies work as pure data.
+export function roleOf(type) {
+  const m = meta(type);
+  if (m.category === 'trigger') return 'trigger';
+  if (m.category === 'action') return 'action';
+  if (m.category === 'ai') return 'ai';
+  if (Array.isArray(m.branches) && m.branches.length > 0) return 'router';
+  return 'passthrough'; // core (parse, code, …); 'model' sub-nodes never enter the main walk
+}
+
+// Main-flow out-edges: exclude AI sub-node connectors (ai_model, ai_tool, …).
 function mainOut(graph, id) {
-  return graph.edges.filter((e) => e.source === id && e.targetHandle !== 'ai_model');
+  return graph.edges.filter((e) => e.source === id && !String(e.targetHandle || '').startsWith('ai_'));
 }
 
 export function simulateCase(graph, c, sim = {}) {
@@ -34,8 +56,9 @@ export function simulateCase(graph, c, sim = {}) {
   const nodeById = (id) => graph.nodes.find((n) => n.id === id);
   const ctx = (extra) => ({ from: c.from, subject: c.subject, category: c.category, urgency: c.urgency, reply: c.reply, ...extra });
 
-  const trigger = graph.nodes.find((n) => n.type === 'trigger');
   steps.push({ iconType: 'email', status: 'ok', text: fill(t.onNew, ctx()) });
+
+  const trigger = graph.nodes.find((n) => roleOf(n.type) === 'trigger');
   if (!trigger) {
     steps.push({ iconType: 'dead', status: 'dead', text: fill(t.noTrigger, ctx()) });
     return { steps, delivered: false };
@@ -48,19 +71,20 @@ export function simulateCase(graph, c, sim = {}) {
     if (visited.has(current.id)) break;
     visited.add(current.id);
     const label = current.data?.label || current.type;
+    const role = roleOf(current.type);
 
-    if (current.type === 'trigger') {
-      steps.push({ nodeId: current.id, iconType: 'trigger', status: 'ok', text: fill(t.trigger, ctx({ label })) });
-    } else if (current.type === 'classify') {
-      const hasModel = graph.edges.some((e) => e.target === current.id && e.targetHandle === 'ai_model');
-      if (!hasModel) {
-        steps.push({ nodeId: current.id, iconType: 'dead', status: 'dead', text: fill(t.aiNoModel, ctx({ label })) });
-        return { steps, delivered: false };
+    if (role === 'trigger') {
+      steps.push({ nodeId: current.id, iconType: current.type, status: 'ok', text: fill(t.trigger, ctx({ label })) });
+    } else if (role === 'ai') {
+      if (meta(current.type).needsModel) {
+        const hasModel = graph.edges.some((e) => e.target === current.id && e.targetHandle === 'ai_model');
+        if (!hasModel) {
+          steps.push({ nodeId: current.id, iconType: 'dead', status: 'dead', text: fill(t.aiNoModel, ctx({ label })) });
+          return { steps, delivered: false };
+        }
       }
-      steps.push({ nodeId: current.id, iconType: 'classify', status: 'ok', text: fill(t.aiRead, ctx({ label })) });
-    } else if (current.type === 'parse') {
-      steps.push({ nodeId: current.id, iconType: 'parse', status: 'ok', text: fill(t.parse, ctx({ label })) });
-    } else if (current.type === 'switch') {
+      steps.push({ nodeId: current.id, iconType: current.type, status: 'ok', text: fill(t.aiRead, ctx({ label })) });
+    } else if (role === 'router') {
       if (!c.branch) {
         steps.push({ nodeId: current.id, iconType: 'dead', status: 'dead', text: fill(t.switchNoMatch, ctx({ label })) });
         return { steps, delivered: false };
@@ -70,17 +94,20 @@ export function simulateCase(graph, c, sim = {}) {
         steps.push({ nodeId: current.id, iconType: 'dead', status: 'dead', text: fill(t.switchUnwired, ctx({ label })) });
         return { steps, delivered: false };
       }
+      steps.push({ nodeId: current.id, edgeId: branchEdge.id, iconType: current.type, status: 'ok', text: fill(t.switchTake, ctx({ label })) });
       const target = nodeById(branchEdge.target);
-      steps.push({ nodeId: current.id, edgeId: branchEdge.id, iconType: 'switch', status: 'ok', text: fill(t.switchTake, ctx({ label })) });
-      if (!target || target.type !== 'action') {
+      if (!target) {
         steps.push({ iconType: 'dead', status: 'dead', text: fill(t.branchNoAction, ctx()) });
         return { steps, delivered: false };
       }
-      steps.push({ nodeId: target.id, iconType: 'action', status: 'done', text: fill(t.actionSend, ctx({ targetLabel: target.data?.label || 'Send Reply' })) });
+      current = target; // continue the generic walk down the chosen branch
+      continue;
+    } else if (role === 'action') {
+      steps.push({ nodeId: current.id, iconType: current.type, status: 'done', text: fill(t.actionSend, ctx({ targetLabel: label })) });
       return { steps, delivered: true };
-    } else if (current.type === 'action') {
-      steps.push({ nodeId: current.id, iconType: 'action', status: 'done', text: fill(t.action, ctx({ label })) });
-      return { steps, delivered: true };
+    } else {
+      // passthrough (core nodes like parse/code)
+      steps.push({ nodeId: current.id, iconType: current.type, status: 'ok', text: fill(t.parse, ctx({ label })) });
     }
 
     const next = mainOut(graph, current.id)[0];
@@ -97,8 +124,11 @@ export function simulateCase(graph, c, sim = {}) {
 export function simulateAll(graph, problem) {
   const sim = problem.simulation || {};
   const cases = problem.sampleCases.map((c) => ({ case: c, ...simulateCase(graph, c, sim) }));
-  // Success = every categorised email (one with a defined branch) is delivered.
-  const required = cases.filter((r) => r.case.branch);
+  // Success = every case that is expected to deliver, delivers. Router problems
+  // mark intentional fall-through with branch:null (not required); problems
+  // without routing expect every case to deliver.
+  const withBranch = cases.filter((r) => r.case.branch !== null && r.case.branch !== undefined);
+  const required = withBranch.length ? withBranch : cases;
   const success = required.length > 0 && required.every((r) => r.delivered);
   return { cases, success };
 }

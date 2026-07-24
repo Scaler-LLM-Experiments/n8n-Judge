@@ -58,13 +58,27 @@ describe('validateProblem', () => {
     expect(asRequired.valid).toBe(false);
   });
 
-  it('rejects a palette missing the switch node (canonical topology)', () => {
+  it('no longer enforces a canonical switch node — a de-routed palette is structurally valid', () => {
     const p = base();
     p.nodePalette = p.nodePalette.filter((n: { type: string }) => n.type !== 'switch');
-    // remove other references so only the topology error fires meaningfully
     const result = validateProblem(p);
-    expect(result.valid).toBe(false);
-    expect(result.issues.some((i) => i.message.includes('"switch"'))).toBe(true);
+    const errors = result.issues.filter((i) => i.level === 'error');
+    expect(errors, JSON.stringify(errors, null, 2)).toHaveLength(0);
+    expect(result.valid).toBe(true);
+  });
+
+  it('still requires a trigger and an action (a flow must start and finish)', () => {
+    const noTrigger = base();
+    noTrigger.nodePalette = noTrigger.nodePalette.filter((n: { category: string }) => n.category !== 'trigger');
+    const r1 = validateProblem(noTrigger);
+    expect(r1.valid).toBe(false);
+    expect(r1.issues.some((i) => i.message.includes('trigger'))).toBe(true);
+
+    const noAction = base();
+    noAction.nodePalette = noAction.nodePalette.filter((n: { category: string }) => n.category !== 'action');
+    const r2 = validateProblem(noAction);
+    expect(r2.valid).toBe(false);
+    expect(r2.issues.some((i) => i.message.includes('action'))).toBe(true);
   });
 
   it('rejects a sample case pointing at an undeclared branch', () => {
