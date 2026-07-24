@@ -1,0 +1,129 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Date & time" subtitle="Calendar with range + slot picker" viewport="720x460" --><html><head><meta charset="utf-8"><title>Date & time</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; align-items:flex-start; }
+  .panel { border:1px solid #ECECEC; padding:14px; display:flex; flex-direction:column; gap:10px; }
+  .panel h4 {
+    margin:0; font-family:var(--font-body); font-size:11px;
+    letter-spacing:0.04em; text-transform:uppercase; color:#616161;
+  }
+
+  /* Calendar */
+  .cal-h {
+    display:flex; align-items:center; justify-content:space-between;
+    font-family:var(--font-body); font-size:14px; font-weight:600; color:#0C0C0C;
+  }
+  .cal-h .nav {
+    width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center;
+    cursor:pointer; color:#616161;
+  }
+  .cal-h .nav:hover { color:#0055FF; }
+  .cal-grid { display:grid; grid-template-columns:repeat(7, 1fr); gap:2px; }
+  .cal-grid .dow {
+    font-family:var(--font-body); font-size:10px; letter-spacing:0.04em;
+    text-align:center; padding:6px 0; color:#AAAAAA; text-transform:uppercase;
+  }
+  .cal-grid .d {
+    aspect-ratio:1; display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-body); font-size:12px; color:#262626;
+    cursor:pointer;
+    transition: background 120ms ease, color 120ms ease;
+  }
+  .cal-grid .d:hover { background:#EBF8FF; color:#0055FF; }
+  .cal-grid .d.muted { color:#D1D1D1; }
+  .cal-grid .d.today { color:#0055FF; font-weight:600; }
+  .cal-grid .d.selected { background:#0055FF; color:#fff; }
+  .cal-grid .d.in-range { background:#E6F0FF; color:#003BB5; }
+
+  /* Time slot picker */
+  .day-h {
+    font-family:var(--font-body); font-size:13px; font-weight:600; color:#0C0C0C;
+    margin-bottom:4px;
+  }
+  .day-sub { font-family:var(--font-body); font-size:11px; color:#616161; }
+  .slots { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; }
+  .slot {
+    height:36px; display:inline-flex; align-items:center; justify-content:center;
+    background:#fff; border:1px solid #D1D1D1; cursor:pointer;
+    font-family:var(--font-body); font-size:12px; color:#262626;
+    transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+  }
+  .slot:hover { background:#EBF8FF; color:#0055FF; border-color:#0055FF; }
+  .slot.is-selected { background:#0055FF; color:#fff; border-color:#0055FF; }
+  .slot.is-disabled { color:#D1D1D1; cursor:not-allowed; background:#FAFAFA; }
+  .slot.is-disabled:hover { background:#FAFAFA; color:#D1D1D1; border-color:#D1D1D1; }
+
+  .legend { display:flex; gap:14px; font-family:var(--font-body); font-size:11px; color:#616161; }
+  .legend .sw { display:inline-block; width:10px; height:10px; vertical-align:middle; margin-right:6px; }
+
+  .field { display:flex; flex-direction:column; gap:6px; }
+  .field label { font-family:var(--font-body); font-size:12px; font-weight:600; color:#0C0C0C; }
+  .field input {
+    font-family:var(--font-body); font-size:13px; color:#262626;
+    height:40px; padding:0 12px; background:#fff; border:1px solid #D1D1D1;
+  }
+</style></head>
+<body class="card">
+<div class="grid">
+
+  <!-- Date input + calendar -->
+  <div class="panel">
+    <h4>Date picker</h4>
+    <div class="field">
+      <label>Start date</label>
+      <input value="Mar 18, 2025">
+    </div>
+    <div class="cal-h">
+      <span class="nav">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M15 18l-6-6 6-6"/></svg>
+      </span>
+      March 2025
+      <span class="nav">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M9 6l6 6-6 6"/></svg>
+      </span>
+    </div>
+    <div class="cal-grid">
+      <span class="dow">M</span><span class="dow">T</span><span class="dow">W</span><span class="dow">T</span><span class="dow">F</span><span class="dow">S</span><span class="dow">S</span>
+      <span class="d muted">24</span><span class="d muted">25</span><span class="d muted">26</span><span class="d muted">27</span><span class="d muted">28</span><span class="d">1</span><span class="d">2</span>
+      <span class="d">3</span><span class="d">4</span><span class="d">5</span><span class="d">6</span><span class="d">7</span><span class="d">8</span><span class="d">9</span>
+      <span class="d">10</span><span class="d">11</span><span class="d">12</span><span class="d">13</span><span class="d">14</span><span class="d">15</span><span class="d">16</span>
+      <span class="d">17</span><span class="d selected">18</span><span class="d in-range">19</span><span class="d in-range">20</span><span class="d in-range">21</span><span class="d in-range">22</span><span class="d in-range">23</span>
+      <span class="d in-range">24</span><span class="d selected">25</span><span class="d today">26</span><span class="d">27</span><span class="d">28</span><span class="d">29</span><span class="d">30</span>
+      <span class="d">31</span><span class="d muted">1</span><span class="d muted">2</span><span class="d muted">3</span><span class="d muted">4</span><span class="d muted">5</span><span class="d muted">6</span>
+    </div>
+    <div class="legend">
+      <span><span class="sw" style="background:#0055FF"></span>Selected range</span>
+      <span><span class="sw" style="background:#E6F0FF; border:1px solid #BAD4FF"></span>In range</span>
+    </div>
+  </div>
+
+  <!-- Time slot picker -->
+  <div class="panel">
+    <h4>Mentor session · time slots</h4>
+    <div>
+      <div class="day-h">Wednesday, March 26</div>
+      <div class="day-sub">Aman P. · System design · 30 min</div>
+    </div>
+    <div class="slots">
+      <div class="slot is-disabled">9:00 AM</div>
+      <div class="slot is-disabled">9:30 AM</div>
+      <div class="slot">10:00 AM</div>
+      <div class="slot">10:30 AM</div>
+      <div class="slot">11:00 AM</div>
+      <div class="slot is-disabled">11:30 AM</div>
+      <div class="slot">2:00 PM</div>
+      <div class="slot is-selected">2:30 PM</div>
+      <div class="slot">3:00 PM</div>
+      <div class="slot">6:00 PM</div>
+      <div class="slot">6:30 PM</div>
+      <div class="slot">7:00 PM</div>
+    </div>
+    <div class="legend">
+      <span><span class="sw" style="background:#0055FF"></span>Selected</span>
+      <span><span class="sw" style="background:#FAFAFA; border:1px solid #D1D1D1"></span>Unavailable</span>
+    </div>
+  </div>
+
+</div>
+</body></html>

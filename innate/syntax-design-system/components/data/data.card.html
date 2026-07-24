@@ -1,0 +1,53 @@
+<!-- @dsCard group="Components" name="Data — Table" subtitle="Sortable, selectable data table with rich cells" viewport="760x440" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Table component</title>
+<link rel="stylesheet" href="../../styles.css" />
+<style>
+  html, body { margin: 0; background: #fff; }
+  body { padding: 24px; font-family: var(--font-body); color: var(--fg-1); }
+  .bar { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; }
+  .bar .lbl { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg-4); }
+  .bar .sel { font-size: 12px; color: var(--fg-3); }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+  const { Table, Badge } = window.SyntaxByScalerDesignSystem_6a7054;
+  const data = [
+    { id: 1, name: 'Priya Nair', program: 'AI/ML', progress: 68, status: 'Active' },
+    { id: 2, name: 'Mohit Kumar', program: 'Backend', progress: 92, status: 'Active' },
+    { id: 3, name: 'Anjali Rao', program: 'Systems Design', progress: 41, status: 'Paused' },
+    { id: 4, name: 'Rohan Mehta', program: 'AI/ML', progress: 100, status: 'Completed' },
+    { id: 5, name: 'Sara Iqbal', program: 'Data Science', progress: 23, status: 'Active' },
+  ];
+  const toneFor = (s) => s === 'Completed' ? 'info' : s === 'Paused' ? 'warning' : 'success';
+  function Demo() {
+    const [sel, setSel] = React.useState([2]);
+    const cols = [
+      { key: 'name', header: 'Learner', sortable: true, render: (r) => <span style={{ fontWeight: 600, color: 'var(--fg-1)' }}>{r.name}</span> },
+      { key: 'program', header: 'Program', sortable: true },
+      { key: 'progress', header: 'Progress', align: 'right', sortable: true, nowrap: true, render: (r) => `${r.progress}%` },
+      { key: 'status', header: 'Status', render: (r) => <Badge tone={toneFor(r.status)}>{r.status}</Badge> },
+    ];
+    return (
+      <div>
+        <div className="bar">
+          <span className="lbl">Cohort roster</span>
+          <span className="sel">{sel.length} selected</span>
+        </div>
+        <Table columns={cols} data={data} rowKey="id" selectable selected={sel} onSelectChange={setSel} />
+      </div>
+    );
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(<Demo />);
+</script>
+</body>
+</html>

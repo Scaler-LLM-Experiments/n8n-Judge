@@ -1,0 +1,85 @@
+<!doctype html>
+<!-- @dsCard group="LMS Patterns" name="Lesson row" subtitle="Date · title · Live/Assignments/Practice stat columns (icon→label on hover) · live countdown" viewport="760x340" -->
+<html><head><meta charset="utf-8"><title>Lesson row</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body.card { width: 760px; }
+  :root{ --ease-out-quart:cubic-bezier(.25,1,.5,1); --success:var(--status-success); }
+  .lessons{ display:flex; flex-direction:column; }
+  .lesson{
+    display:flex; align-items:center; gap:16px; padding:16px 8px;
+    border-bottom:1px solid var(--border-subtle); font-family:var(--font-body);
+    cursor:pointer; transform-origin:center center;
+    outline:1.5px solid transparent; outline-offset:-1.5px;
+    transition:transform .22s var(--ease-out-quart), outline-color .2s ease, background .2s ease;
+  }
+  .lesson:last-child{ border-bottom:0; }
+  .lesson:hover{ transform:scale(1.02); background:#fff; outline-color:var(--brand-primary); border-bottom-color:transparent; position:relative; z-index:3; }
+  .lesson:active{ transform:scale(.97); transition-duration:.1s; }
+
+  .lesson__date{ width:42px; flex:none; text-align:center; border:1px solid var(--border-subtle); }
+  .lesson__date .mon{ display:block; font-size:9px; font-weight:600; letter-spacing:1px; color:var(--fg-3); padding:4px 0 2px; }
+  .lesson__date .day{ display:block; font-size:15px; font-weight:700; color:var(--fg-1); padding-bottom:4px; }
+
+  .lesson__title{ flex:1; display:flex; align-items:center; gap:12px; flex-wrap:wrap; font-size:14px; font-weight:600; color:var(--fg-1); }
+  .lesson__timer{
+    display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:var(--brand-primary);
+    background:var(--brand-blue-50); border:1px solid rgba(0,85,255,.28); padding:3px 9px; white-space:nowrap;
+  }
+  .lesson__count{ font-variant-numeric:tabular-nums; font-weight:700; letter-spacing:.4px; min-width:42px; display:inline-block; }
+
+  .lesson__stats{ display:flex; align-items:center; }
+  .stat-col{ width:118px; display:flex; flex-direction:column; gap:6px; padding:0 18px; }
+  .stat-col + .stat-col{ border-left:1px solid var(--border-subtle); }
+  .stat-col__head{ display:flex; align-items:center; min-height:16px; }
+  .stat-col__icon{ display:inline-flex; color:#9aa0a8; }
+  .stat-col__label{ display:none; align-items:center; gap:5px; font-size:13px; color:var(--fg-3); }
+  .lesson:hover .stat-col__icon{ display:none; }
+  .lesson:hover .stat-col__label{ display:flex; }
+  .stat-col__value{ display:flex; align-items:center; gap:5px; font-size:14px; font-weight:600; color:var(--success); }
+  .stat-col__value--todo{ color:#b4b9c0; }
+  .lesson__chev{ flex:none; color:#b5b5b5; display:flex; align-items:center; padding-left:6px; }
+
+  .lesson--active{ background:#f4f8ff; }
+  .lesson--active .lesson__date{ border-color:var(--brand-primary); background:var(--brand-primary); }
+  .lesson--active .lesson__date .mon{ color:#cfe0ff; } .lesson--active .lesson__date .day{ color:#fff; }
+  .lesson--active .lesson__title{ color:var(--brand-primary); }
+  .lesson--active .lesson__chev{ color:var(--brand-primary); }
+  .label{ font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#AAAAAA; margin:0 0 8px 8px; font-family:var(--font-body); }
+</style></head>
+<body class="card">
+  <div class="label">Hover a row to reveal stat labels</div>
+  <div class="lessons" id="rows"></div>
+<script>
+  var CHEV = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>';
+  var IC = {
+    live:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 13 5.2 3a1 1 0 0 0 1.5-.9V8.9a1 1 0 0 0-1.5-.9L16 11"/><rect width="14" height="12" x="2" y="6" rx="0"/></svg>',
+    assign:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="0"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>',
+    practice:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6"/><path d="m8 6-6 6 6 6"/></svg>',
+    timer:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3 2 6"/><path d="m22 6-3-3"/></svg>'
+  };
+  function col(icon,label,val,done){
+    return '<div class="stat-col"><span class="stat-col__head"><span class="stat-col__icon">'+icon+'</span><span class="stat-col__label">'+label+'</span></span>'+
+      (done?'<span class="stat-col__value">'+val+'</span>':'<span class="stat-col__value stat-col__value--todo">—</span>')+'</div>';
+  }
+  var DATA = [
+    { mon:'JUL', day:10, title:'2. Heaps: build & heapify', live:'98%', assign:'9/10', third:'8/8', done:true },
+    { mon:'JUL', day:14, title:'3. Top-K problems with a priority queue', active:true },
+    { mon:'JUL', day:17, title:'4. Median in a data stream', done:false },
+  ];
+  document.getElementById('rows').innerHTML = DATA.map(function(l){
+    var timer = l.active ? '<span class="lesson__timer">'+IC.timer+'Starts in <span class="lesson__count" data-countdown>25:00</span></span>' : '';
+    return '<div class="lesson '+(l.active?'lesson--active':'')+'">'+
+      '<div class="lesson__date"><span class="mon">'+l.mon+'</span><span class="day">'+l.day+'</span></div>'+
+      '<div class="lesson__title"><span>'+l.title+'</span>'+timer+'</div>'+
+      '<div class="lesson__stats">'+col(IC.live,'Live Class',l.live,l.done)+col(IC.assign,'Assignments',l.assign,l.done)+col(IC.practice,'Practice',l.third,l.done)+'</div>'+
+      '<span class="lesson__chev">'+CHEV+'</span></div>';
+  }).join('');
+  (function(){
+    var el=document.querySelector('[data-countdown]'); if(!el) return;
+    var pad=function(n){return String(n).padStart(2,'0');}, total=25*60*1000, t0=performance.now();
+    function r(){ var ms=Math.max(0,total-(performance.now()-t0)); el.textContent=pad(Math.floor(ms/60000))+':'+pad(Math.floor(ms%60000/1000)); if(ms<=0) clearInterval(id); }
+    var id=setInterval(r,1000); r();
+  })();
+</script>
+</body></html>

@@ -1,0 +1,39 @@
+/* Preview card shell — used by every DS card */
+@import url('../colors_and_type.css');
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #ffffff;
+}
+
+body.card {
+  width: 700px;
+  box-sizing: border-box;
+  padding: 20px 24px;
+  font-family: var(--font-body);
+  color: var(--fg-1);
+  overflow: hidden;
+}
+
+.row { display: flex; align-items: center; gap: 16px; }
+.col { display: flex; flex-direction: column; gap: 8px; }
+.grow { flex: 1; }
+
+.mono { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); }
+.meta { font-size: 11px; color: var(--fg-3); font-family: var(--font-body); letter-spacing: 0.02em; }
+.label { font-size: 11px; color: var(--fg-3); font-family: var(--font-body); }
+
+.swatch {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+.swatch .chip {
+  height: 64px;
+  width: 100%;
+  border: 1px solid rgba(0,11,31,0.08);
+}
+.swatch .name { font-size: 12px; font-weight: 500; color: var(--fg-1); }
+.swatch .hex  { font-family: var(--font-mono); font-size: 10px; color: var(--fg-3); }

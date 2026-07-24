@@ -40,7 +40,7 @@ Everything specific to a challenge lives in **one plain data object** — `app/s
 
 Key fields: `branches` (Switch outputs), `flow` (sequence rules: `start`/`next`/`branchNext`/`modelNext`), `flowSummary` (Stress-Testing strip), `buildPhases` (guided build sub-stages), `nodeSetup` (per-node NDV: `credential` + disabled `locked[]` + editable `fields[]` whose `options` carry `{value,label,correct,why}`), `nodeProbes` (misconception MCQs), `sampleCases` (Run inputs; `branch:null` = intentional fall-through), `dissection`, `testCases`, `evalQuestions`, and optional `simulation` (run-narration overrides).
 
-**What's generic vs. coupled:** all of the above is data-only, *provided the problem reuses the canonical node vocabulary* in [app/src/n8n/catalog.js](app/src/n8n/catalog.js) — a trigger, an **AI node** (category `ai`, needs a Chat Model), an optional parse, a **switch** with branches, and **action** replies. A genuinely different node vocabulary/topology requires editing `catalog.js` and the walk in `engine/simulate.js` — the one remaining coupling.
+**What's generic vs. coupled:** all of the above is data-only. Topology is **metadata-driven, not hard-coded**: `engine/simulate.js` resolves each node's role (trigger / ai / router / action / passthrough) from catalog metadata (`category`, `needsModel`, `branches`) and walks the graph generically — so linear flows, routers whose branches pass through several nodes, multiple actions, and alternative trigger/ai/action node *types* all work as pure data. Adding a genuinely new node type still means adding its entry to `catalog.js` (the node vocabulary), but no engine/UI edits: `validateProblem()` enforces only generic structure (must start at a trigger, finish at an action; AI-model and routing rules apply only when those roles are used), and the editor's `expectedNext` is driven entirely by `problem.flow`.
 
 ### The journey screens — [app/src/screens/](app/src/screens/)
 - `HomeScreen` — challenge cards from `problemList`.
@@ -56,11 +56,8 @@ Built from scratch (not n8n's assets), on `reactflow` v11.
 - `Ndv` — the node-detail modal: real **field editing** (highlighted required fields + disabled `locked` context fields), a **Verify** step marking each field green/red, per-field Iris chat-bubble explanations; closing = completing once all green (no separate "Complete" button). It is **not** an MCQ.
 - `catalog.js` (node library), `NodePickerDrawer`.
 
-### Shared cross-screen UI — [app/src/components/](app/src/components/)
-Live components reused across the journey, all wired via `TopBar` or the screens: `TopBar` (the persistent top bar, hosting the `GlossaryDrawer` and `AskAiDrawer` slide-overs), `ProblemStatementPanel`, `NodeReplay`, `ConceptFlow`, `Confetti`, `Tour`, `ProblemNote`, and the node-list helpers (`NodePalette`, `NodeFlowRow`, `NodeDetailView`).
-
 ### Engine (pure functions, unit-tested) — [app/src/engine/](app/src/engine/)
-Take `(studentGraph, problem)`. `validateGraph` (structural test cases; gates the Run), `checkDrop`, `connections`, `simulate` (walks each `sampleCase` through the actual wiring → narrative steps carrying `nodeId`s; narration is templated, with `problem.simulation` overriding `DEFAULT_NARRATION`), `evalScore`, `grading` (a Zustand-backed store: `createStore`/`recordDecision`/`understandingScore`/`countsByKind`/`misconceptionsHit`). `validateGraph.js` and `connections.js` each carry a near-identical `edgeMatches` helper — keep them in sync.
+Take `(studentGraph, problem)`. `validateGraph` (structural test cases; gates the Run), `checkDrop`, `connections`, `simulate` (walks each `sampleCase` through the actual wiring → narrative steps carrying `nodeId`s; narration is templated, with `problem.simulation` overriding `DEFAULT_NARRATION`), `evalScore`, `grading` (`createStore`/`recordDecision`/`understandingScore`/`countsByKind`/`misconceptionsHit`). `validateGraph.js` and `connections.js` each carry a near-identical `edgeMatches` helper — keep them in sync.
 
 ### Legacy — do not edit for the current flow
 A pre-rewrite dashboard still sits in the tree but is unused: `screens/DashboardScreen.jsx`, `screens/ProblemStatementScreen.jsx`, and the hand-rolled node components in `app/src/nodes/*.jsx` (`ActionNode`, `ChatModelNode`, `ClassifyNode`, `ProcessNode`, `TriggerNode`, `SwitchNode`, `NodeCard`, `nodeTypes.js`). The live canvas is the `n8n/` layer. **Exception:** `nodes/nodeIcons.js` (icons/colors/`typeCategory`) is live and shared.
@@ -71,7 +68,7 @@ Follows `syntax-design-system/SKILL.md`, styled inline via CSS custom properties
 
 ## Deployment
 
-Deployed on Railway via a **root [Dockerfile](Dockerfile)** (the repo root is not the app root): it builds `app/` and serves the bundle with `vite preview` bound to `$PORT` (`preview.allowedHosts` is set in `app/vite.config.js`). Keep the Railway service **Root Directory at the repo root** so the Dockerfile is used. `app/railway.json` is a Nixpacks fallback for when Root Directory is set to `app`. The container serve command is `npm start` (`vite preview --host 0.0.0.0 --port ${PORT:-4173}`).
+Deployed on Railway via a **root [Dockerfile](Dockerfile)** (the repo root is not the app root): it builds `app/` and serves the bundle with `vite preview` bound to `$PORT` (`preview.allowedHosts` is set in `app/vite.config.js`). Keep the Railway service **Root Directory at the repo root** so the Dockerfile is used. `app/railway.json` is a Nixpacks fallback for when Root Directory is set to `app`.
 
 ## Reference docs
 

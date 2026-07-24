@@ -1,0 +1,136 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Form layouts" subtitle="Fields, fieldset, search, textarea, upload" viewport="720x720" --><html><head><meta charset="utf-8"><title>Form layouts</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .stack { display:flex; flex-direction:column; gap:24px; }
+  .grp-title { font-family:var(--font-body); font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:#AAAAAA; margin-bottom:10px; }
+
+  .field { display:flex; flex-direction:column; gap:6px; }
+  .field label {
+    font-family:var(--font-body); font-size:12px; font-weight:600; color:#0C0C0C;
+    display:flex; justify-content:space-between; align-items:baseline;
+  }
+  .field label .opt { font-weight:400; color:#AAAAAA; font-size:11px; }
+  .field input,
+  .field textarea,
+  .field select {
+    font-family:var(--font-body); font-size:13px; color:#262626;
+    height:40px; padding:0 12px;
+    background:#fff; border:1px solid #D1D1D1; outline:none;
+    transition: border-color 120ms ease, box-shadow 120ms ease;
+  }
+  .field textarea { height:auto; padding:10px 12px; min-height:80px; resize:vertical; }
+  .field input:focus, .field textarea:focus, .field select:focus {
+    border-color:#0055FF; box-shadow:0 0 0 1px #0055FF;
+  }
+  .field .help { font-family:var(--font-body); font-size:11px; color:#616161; }
+  .field.is-error input { border-color:#D62B2B; }
+  .field.is-error .help { color:#8B1B1B; }
+  .field.is-error .help::before { content:"⚠ "; }
+
+  /* Affixes (search etc.) */
+  .ifx { display:flex; align-items:center; height:40px; border:1px solid #D1D1D1; background:#fff; }
+  .ifx:focus-within { border-color:#0055FF; box-shadow:0 0 0 1px #0055FF; }
+  .ifx .pre, .ifx .post {
+    width:36px; height:100%; display:inline-flex; align-items:center; justify-content:center;
+    color:#616161;
+  }
+  .ifx input { flex:1; height:100%; border:0; padding:0; outline:none;
+    font-family:var(--font-body); font-size:13px; color:#262626; background:transparent; }
+  .ifx .post.kbd {
+    padding:0 8px; width:auto;
+    font-family:var(--font-mono); font-size:10px; color:#AAAAAA;
+  }
+
+  /* Two col layout */
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .three-col { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+
+  /* File upload — dashed dropzone */
+  .drop {
+    border:1.5px dashed #D1D1D1; background:#FAFAFA;
+    padding:24px 16px; display:flex; flex-direction:column; align-items:center; gap:8px;
+    text-align:center;
+    transition: border-color 160ms ease, background 160ms ease;
+  }
+  .drop:hover { border-color:#0055FF; background:#EBF8FF; }
+  .drop .ic { color:#0055FF; }
+  .drop .t { font-family:var(--font-body); font-size:13px; font-weight:500; color:#0C0C0C; }
+  .drop .s { font-family:var(--font-body); font-size:11px; color:#616161; }
+  .drop .browse { color:#0055FF; cursor:pointer; }
+
+  /* Fieldset */
+  fieldset {
+    border:1px solid #ECECEC; padding:16px; margin:0;
+    display:flex; flex-direction:column; gap:14px;
+  }
+  fieldset > legend {
+    font-family:var(--font-body); font-size:10px;
+    letter-spacing:0.18em; text-transform:uppercase; color:#616161;
+    padding:0 6px;
+  }
+</style></head>
+<body class="card">
+<div class="stack">
+
+  <fieldset>
+    <legend>Personal details</legend>
+    <div class="two-col">
+      <div class="field">
+        <label>Full name</label>
+        <input value="Sudhanva Acharya">
+        <span class="help">As it appears on your government ID.</span>
+      </div>
+      <div class="field">
+        <label>Email <span class="opt">work email preferred</span></label>
+        <input value="sudhanva@example.com">
+      </div>
+      <div class="field is-error">
+        <label>Phone</label>
+        <input value="+91 99">
+        <span class="help">Phone number must be 10 digits.</span>
+      </div>
+      <div class="field">
+        <label>Country</label>
+        <select>
+          <option>India</option><option>United States</option><option>United Kingdom</option>
+        </select>
+      </div>
+    </div>
+  </fieldset>
+
+  <div>
+    <div class="grp-title">Search field · with affixes</div>
+    <div class="ifx" style="max-width:420px">
+      <span class="pre">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg>
+      </span>
+      <input placeholder="Search lessons, mentors, problems…">
+      <span class="post kbd">⌘K</span>
+    </div>
+  </div>
+
+  <div>
+    <div class="grp-title">Textarea</div>
+    <div class="field" style="max-width:560px">
+      <label>Why do you want to join Scaler? <span class="opt">200 chars</span></label>
+      <textarea>I'm a backend engineer with 3 years at a Series B startup, looking to deepen my system design fundamentals before targeting senior roles.</textarea>
+    </div>
+  </div>
+
+  <div>
+    <div class="grp-title">File upload</div>
+    <div class="drop" style="max-width:560px">
+      <div class="ic">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square">
+          <path d="M12 4v12"/><path d="M6 10l6-6 6 6"/>
+          <path d="M4 20h16"/>
+        </svg>
+      </div>
+      <div class="t">Drop your resume here, or <span class="browse">browse</span></div>
+      <div class="s">PDF or DOCX · up to 10 MB</div>
+    </div>
+  </div>
+
+</div>
+</body></html>

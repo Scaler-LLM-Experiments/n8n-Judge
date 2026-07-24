@@ -1,0 +1,61 @@
+<!-- @dsCard group="Components" name="Forms — Input, Textarea, Select, Radio, Checkbox, Switch, Slider" subtitle="Sharp-cornered form primitives with brand focus ring" viewport="720x640" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Form components</title>
+<link rel="stylesheet" href="../../styles.css" />
+<style>
+  html, body { margin: 0; background: #fff; }
+  body { padding: 24px; font-family: var(--font-body); color: var(--fg-1); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 28px; max-width: 640px; }
+  .stack { display: flex; flex-direction: column; gap: 14px; }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+  const { Input, Textarea, Select, Checkbox, Switch, RadioGroup, Slider, Field } = window.SyntaxByScalerDesignSystem_6a7054;
+  function Demo() {
+    const [agree, setAgree] = React.useState(true);
+    const [dark, setDark] = React.useState(false);
+    const [exp, setExp] = React.useState('mid');
+    const [budget, setBudget] = React.useState(2);
+    return (
+      <div>
+        <div className="grid">
+          <Input label="Work email" type="email" hint="We’ll send your application link here." defaultValue="you@company.com" />
+          <Input label="Phone" error="Enter a 10-digit number." defaultValue="98" />
+          <Select label="Program" options={[
+            { value: 'aiml', label: 'AI/ML' },
+            { value: 'be', label: 'Backend' },
+            { value: 'sys', label: 'Systems Design' },
+          ]} />
+          <div className="stack" style={{ justifyContent: 'flex-end' }}>
+            <Checkbox checked={agree} onChange={setAgree} label="Send me cohort updates" />
+            <Checkbox checked={false} onChange={() => {}} label="I’m a working professional" />
+            <Switch checked={dark} onChange={setDark} label="Dark mode" />
+          </div>
+        </div>
+        <div className="grid" style={{ marginTop: 24, alignItems: 'start' }}>
+          <Textarea label="Why this program?" rows={3} hint="A sentence or two is plenty." defaultValue="I want to build production AI systems." />
+          <RadioGroup label="Experience" value={exp} onChange={setExp} options={[
+            { value: 'jr', label: '0–2 years' },
+            { value: 'mid', label: '3–5 years' },
+            { value: 'sr', label: '6+ years' },
+          ]} />
+          <Field label="Monthly budget" hint="Drag to set a range.">
+            <Slider value={budget} min={1} max={5} onChange={setBudget} showValue format={(v) => `₹${v}0k`} />
+          </Field>
+        </div>
+      </div>
+    );
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(<Demo />);
+</script>
+</body>
+</html>

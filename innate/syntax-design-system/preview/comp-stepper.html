@@ -1,0 +1,149 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Stepper" subtitle="Horizontal flow + vertical checkout" viewport="720x540" --><html><head><meta charset="utf-8"><title>Stepper</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .stack { display:flex; flex-direction:column; gap:28px; }
+  .grp-title { font-family:var(--font-body); font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:#AAAAAA; margin-bottom:14px; }
+
+  /* Horizontal — numbered with connector */
+  .stepper-h { display:flex; align-items:flex-start; }
+  .stepper-h .step {
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:8px;
+    position:relative;
+  }
+  .stepper-h .step + .step::before {
+    content:""; position:absolute; left:calc(-50% + 18px); right:calc(50% + 18px); top:14px;
+    height:2px; background:#E4E4E4;
+  }
+  .stepper-h .step.done + .step::before,
+  .stepper-h .step.current + .step.done::before { background:#0055FF; }
+  .stepper-h .step.done.current::before { background:#0055FF; }
+  /* Cleaner: color connector if previous is done */
+  .stepper-h .step.done::after {
+    content:""; position:absolute; left:50%; right:calc(-50% + 18px); top:14px;
+    height:2px; background:#0055FF;
+  }
+  .stepper-h .step.done:last-child::after { display:none; }
+
+  .stepper-h .dot {
+    width:30px; height:30px; display:inline-flex; align-items:center; justify-content:center;
+    background:#fff; border:2px solid #D1D1D1;
+    font-family:var(--font-body); font-size:12px; font-weight:600; color:#AAAAAA;
+    position:relative; z-index:1;
+  }
+  .stepper-h .step.done .dot { background:#0055FF; border-color:#0055FF; color:#fff; }
+  .stepper-h .step.current .dot {
+    background:#fff; border-color:#0055FF; color:#0055FF;
+    box-shadow: 0 0 0 4px rgba(0,85,255,0.12);
+  }
+  .stepper-h .lbl {
+    font-family:var(--font-body); font-size:12px; font-weight:500; color:#262626; text-align:center;
+  }
+  .stepper-h .step.current .lbl { color:#0C0C0C; font-weight:600; }
+  .stepper-h .step:not(.done):not(.current) .lbl { color:#AAAAAA; font-weight:400; }
+  .stepper-h .sub {
+    font-family:var(--font-body); font-size:11px; color:#616161; text-align:center;
+  }
+
+  /* Vertical — left-aligned with rule */
+  .stepper-v { display:flex; flex-direction:column; }
+  .stepper-v .step {
+    display:grid; grid-template-columns:30px 1fr; gap:14px;
+    padding:12px 0; position:relative;
+  }
+  .stepper-v .step + .step::before {
+    content:""; position:absolute; left:14px; top:-12px; height:24px; width:2px; background:#E4E4E4;
+  }
+  .stepper-v .step.done + .step::before { background:#0055FF; }
+  .stepper-v .dot {
+    width:30px; height:30px; display:inline-flex; align-items:center; justify-content:center;
+    background:#fff; border:2px solid #D1D1D1;
+    font-family:var(--font-body); font-size:12px; font-weight:600; color:#AAAAAA;
+  }
+  .stepper-v .step.done .dot { background:#0055FF; border-color:#0055FF; color:#fff; }
+  .stepper-v .step.current .dot {
+    background:#fff; border-color:#0055FF; color:#0055FF;
+    box-shadow: 0 0 0 4px rgba(0,85,255,0.12);
+  }
+  .stepper-v .lbl { font-family:var(--font-body); font-size:13px; font-weight:600; color:#0C0C0C; }
+  .stepper-v .step:not(.done):not(.current) .lbl { color:#AAAAAA; font-weight:500; }
+  .stepper-v .sub { font-family:var(--font-body); font-size:12px; color:#616161; margin-top:2px; }
+</style></head>
+<body class="card">
+<div class="stack">
+
+  <div>
+    <div class="grp-title">Horizontal · application flow</div>
+    <div class="stepper-h">
+      <div class="step done">
+        <div class="dot">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square"><path d="M5 12l5 5 9-11"/></svg>
+        </div>
+        <div class="lbl">Eligibility</div>
+        <div class="sub">Verified</div>
+      </div>
+      <div class="step done">
+        <div class="dot">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square"><path d="M5 12l5 5 9-11"/></svg>
+        </div>
+        <div class="lbl">Profile</div>
+        <div class="sub">Completed</div>
+      </div>
+      <div class="step current">
+        <div class="dot">3</div>
+        <div class="lbl">Aptitude test</div>
+        <div class="sub">In progress</div>
+      </div>
+      <div class="step">
+        <div class="dot">4</div>
+        <div class="lbl">Interview</div>
+        <div class="sub">Locked</div>
+      </div>
+      <div class="step">
+        <div class="dot">5</div>
+        <div class="lbl">Enrollment</div>
+        <div class="sub">Locked</div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="grp-title">Vertical · checkout</div>
+    <div class="stepper-v" style="max-width:380px">
+      <div class="step done">
+        <div class="dot">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square"><path d="M5 12l5 5 9-11"/></svg>
+        </div>
+        <div>
+          <div class="lbl">Choose your program</div>
+          <div class="sub">SE Mastery · Cohort 18 · Apr 2025</div>
+        </div>
+      </div>
+      <div class="step done">
+        <div class="dot">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square"><path d="M5 12l5 5 9-11"/></svg>
+        </div>
+        <div>
+          <div class="lbl">Billing details</div>
+          <div class="sub">EMI · 18 months · ₹14,500/mo</div>
+        </div>
+      </div>
+      <div class="step current">
+        <div class="dot">3</div>
+        <div>
+          <div class="lbl">Payment</div>
+          <div class="sub">Choose UPI, card, or net banking</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="dot">4</div>
+        <div>
+          <div class="lbl">Confirm</div>
+          <div class="sub">Review and submit</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body></html>

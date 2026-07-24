@@ -1,0 +1,78 @@
+<!doctype html>
+<!-- @dsCard group="LMS Patterns" name="Task card" subtitle="Read · current quiz (blue ring + Pre-Read badge) · locked — grow-on-hover, press-shrink" viewport="760x420" -->
+<html><head><meta charset="utf-8"><title>Task card</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body.card { width: 760px; }
+  :root{ --ease-out-quart:cubic-bezier(.25,1,.5,1); }
+  .stack{ display:flex; flex-direction:column; gap:16px; }
+  .label{ font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#AAAAAA; margin:0 0 -4px 2px; font-family:var(--font-body); }
+
+  .task-card{
+    display:flex; align-items:stretch; gap:16px; padding:20px 16px;
+    background:#fff; border:1px solid var(--border-subtle); font-family:var(--font-body);
+    cursor:pointer; transform-origin:center center;
+    outline:1.5px solid transparent; outline-offset:-1.5px;
+    transition:transform .22s var(--ease-out-quart), outline-color .2s ease;
+  }
+  .task-card:not(.is-locked):hover{ transform:scale(1.008); outline-color:var(--brand-primary); }
+  .task-card:not(.is-locked):active{ transform:scale(.992); transition-duration:.1s; }
+  .task-card.is-current{ border:2px solid var(--brand-primary); }
+  .task-card.is-locked{ background:#fbfbfc; cursor:not-allowed; }
+
+  .tc-thumb{ position:relative; flex:none; width:80px; height:80px; display:flex; align-items:center; justify-content:center; background:#eef0f4; color:#9aa0a8; overflow:hidden; }
+  .tc-thumb--current{ background:var(--brand-blue-50); color:var(--brand-primary); }
+  .tc-thumb--locked{ color:#aeb3bb; }
+  .tc-badge{ position:absolute; left:0; right:0; bottom:0; background:var(--brand-primary); color:#fff; font-size:12px; font-weight:600; text-align:center; padding:3px 6px; }
+
+  .tc-main{ flex:1; min-width:0; display:flex; flex-direction:column; justify-content:center; gap:14px; }
+  .tc-text{ display:flex; flex-direction:column; gap:8px; }
+  .tc-title{ margin:0; font-size:16px; font-weight:700; color:var(--fg-1); }
+  .tc-desc{ margin:0; font-size:12px; color:var(--fg-3); }
+  .task-card.is-locked .tc-title, .task-card.is-locked .tc-desc{ color:#aeb3bb; }
+  .tc-tags{ display:flex; gap:8px; flex-wrap:wrap; }
+  .tc-tag{ display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:500; color:var(--fg-3); background:#f5f5f5; padding:3px 8px; }
+  .tc-ava{ width:16px; height:16px; object-fit:cover; border-radius:50%; }
+
+  .tc-actions{ flex:none; display:flex; align-items:center; }
+  .btn{ display:inline-flex; align-items:center; gap:7px; font-size:14px; font-weight:600; padding:9px 15px; font-family:var(--font-body);
+    transition:transform .15s var(--ease-out-quart), background .15s ease; }
+  .btn--primary{ color:#fff; background:var(--brand-primary); border:1px solid var(--brand-primary); }
+  .btn--primary:hover{ transform:scale(1.02); } .btn--primary:active{ transform:scale(.96); }
+  .btn--outline{ color:var(--brand-primary); background:transparent; border:1px solid var(--brand-primary); }
+  .btn--outline:hover{ transform:scale(1.02); background:var(--brand-blue-50); } .btn--outline:active{ transform:scale(.96); }
+  .btn[disabled]{ color:#aeb3bb; border-color:var(--border-subtle); background:transparent; cursor:not-allowed; }
+  .ur{ width:16px; height:16px; }
+</style></head>
+<body class="card">
+<div class="stack">
+  <div class="label">Read · current quiz · locked</div>
+
+  <article class="task-card">
+    <div class="tc-thumb"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg></div>
+    <div class="tc-main">
+      <div class="tc-text"><h3 class="tc-title">Sliding window — core patterns</h3><p class="tc-desc">Covers the core concepts with worked examples and a short practice set at the end.</p></div>
+      <div class="tc-tags"><span class="tc-tag">10 Min Read</span><span class="tc-tag">6 Quizzes</span><span class="tc-tag"><img class="tc-ava" src="https://i.pravatar.cc/40?img=15" alt="">By Anshuman Singh</span></div>
+    </div>
+    <div class="tc-actions"><button class="btn btn--outline">Start Reading <svg class="ur" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg></button></div>
+  </article>
+
+  <article class="task-card is-current">
+    <div class="tc-thumb tc-thumb--current"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg><span class="tc-badge">Pre-Read</span></div>
+    <div class="tc-main">
+      <div class="tc-text"><h3 class="tc-title">Heaps & priority queues</h3><p class="tc-desc">A quick check to personalise your plan and surface where to focus next.</p></div>
+      <div class="tc-tags"><span class="tc-tag">5 Questions</span><span class="tc-tag">2 mins</span><span class="tc-tag"><img class="tc-ava" src="https://i.pravatar.cc/40?img=15" alt="">By Anshuman Singh</span></div>
+    </div>
+    <div class="tc-actions"><button class="btn btn--primary">Start Quiz <svg class="ur" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg></button></div>
+  </article>
+
+  <article class="task-card is-locked">
+    <div class="tc-thumb tc-thumb--locked"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="0"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+    <div class="tc-main">
+      <div class="tc-text"><h3 class="tc-title">Select your Mentor</h3><p class="tc-desc">Your mentor will be helping you throughout your Scaler journey.</p></div>
+      <div class="tc-tags"><span class="tc-tag">Unlocks after pre-read</span></div>
+    </div>
+    <div class="tc-actions"><button class="btn btn--outline" disabled>Select your Mentor <svg class="ur" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg></button></div>
+  </article>
+</div>
+</body></html>

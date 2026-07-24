@@ -1,0 +1,63 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Colors — Accents" subtitle="Lime, teal, violet, orange, gold — gradient fills only, never flat or as text" viewport="700x560" --><html><head><meta charset="utf-8"><title>Accent Colors</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body.card { width: 700px; }
+  .lead { font-size: 12px; line-height: 1.5; color: var(--fg-3); margin: 0 0 16px; }
+  .lead b { color: var(--fg-1); }
+  .inks { display: flex; gap: 10px; margin-bottom: 22px; }
+  .ink { flex: 1; }
+  .ink .chip { height: 40px; width: 100%; border: 1px solid rgba(0,11,31,0.08); }
+  .ink .name { font-size: 11px; font-weight: 500; color: var(--fg-1); margin-top: 6px; }
+  .ink .hex { font-family: var(--font-mono); font-size: 10px; color: var(--fg-4); }
+
+  .sec { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg-4); margin: 0 0 12px; font-weight: 600; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .grad { display: flex; flex-direction: column; }
+  .grad .fill { height: 86px; border: 1px solid rgba(0,11,31,0.06); display: flex; align-items: flex-end; padding: 10px; box-sizing: border-box; }
+  .grad .fill .gname { font-family: var(--font-body); font-size: 12px; font-weight: 600; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+  .grad .css { font-family: var(--font-mono); font-size: 9.5px; color: var(--fg-4); margin-top: 7px; line-height: 1.35; }
+</style></head>
+<body class="card">
+  <p class="lead">
+    Accents are <b>decorative gradient fills only</b> — never flat blocks, never coloured text.
+    As text on white most fail WCAG AA contrast; blended into a gradient they read as
+    energy, not information. Always pair with white or dark ink on top.
+  </p>
+
+  <div class="inks">
+    <div class="ink"><div class="chip" style="background:#E8B017"></div><div class="name">Gold</div><div class="hex">#E8B017</div></div>
+    <div class="ink"><div class="chip" style="background:#C4FF00"></div><div class="name">Lime</div><div class="hex">#C4FF00</div></div>
+    <div class="ink"><div class="chip" style="background:#00E1AD"></div><div class="name">Teal</div><div class="hex">#00E1AD</div></div>
+    <div class="ink"><div class="chip" style="background:#8000FF"></div><div class="name">Violet</div><div class="hex">#8000FF</div></div>
+    <div class="ink"><div class="chip" style="background:#ED7700"></div><div class="name">Orange</div><div class="hex">#ED7700</div></div>
+  </div>
+
+  <p class="sec">Approved gradients</p>
+  <div class="grid">
+    <div class="grad">
+      <div class="fill" style="background:linear-gradient(120deg,#8000FF 0%,#0055FF 55%,#00E1AD 100%)"><span class="gname">Aurora</span></div>
+      <div class="css">violet → blue → teal<br>120deg #8000FF · #0055FF · #00E1AD</div>
+    </div>
+    <div class="grad">
+      <div class="fill" style="background:linear-gradient(120deg,#0055FF 0%,#8000FF 100%)"><span class="gname">Ultraviolet</span></div>
+      <div class="css">blue → violet<br>120deg #0055FF · #8000FF</div>
+    </div>
+    <div class="grad">
+      <div class="fill" style="background:linear-gradient(120deg,#E8B017 0%,#ED7700 100%)"><span class="gname">Sunrise</span></div>
+      <div class="css">gold → orange<br>120deg #E8B017 · #ED7700</div>
+    </div>
+    <div class="grad">
+      <div class="fill" style="background:linear-gradient(120deg,#C4FF00 0%,#00E1AD 100%)"><span class="gname">Citrus</span></div>
+      <div class="css">lime → teal<br>120deg #C4FF00 · #00E1AD</div>
+    </div>
+    <div class="grad">
+      <div class="fill" style="background:linear-gradient(120deg,#ED7700 0%,#8000FF 100%)"><span class="gname">Ember</span></div>
+      <div class="css">orange → violet<br>120deg #ED7700 · #8000FF</div>
+    </div>
+    <div class="grad">
+      <div class="fill" style="background:linear-gradient(135deg,#011845 0%,#0055FF 60%,#8000FF 100%)"><span class="gname">Deep space</span></div>
+      <div class="css">navy → blue → violet<br>135deg #011845 · #0055FF · #8000FF</div>
+    </div>
+  </div>
+</body></html>

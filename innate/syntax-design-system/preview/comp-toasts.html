@@ -1,0 +1,70 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Toasts" subtitle="Bottom-right anchor, status rule" viewport="720x360" --><html><head><meta charset="utf-8"><title>Toasts</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .stage {
+    position:relative; height:280px; border:1px solid #E4E4E4;
+    background:repeating-linear-gradient(45deg, #FAFAFA, #FAFAFA 8px, #F4F4F4 8px, #F4F4F4 16px);
+    overflow:hidden;
+  }
+  .stack-t { position:absolute; right:16px; bottom:16px; display:flex; flex-direction:column; gap:8px; }
+  .toast {
+    display:flex; gap:10px; align-items:flex-start;
+    padding:12px 14px; min-width:280px; max-width:320px;
+    background:#fff; border:1px solid #E4E4E4;
+    box-shadow:0 18px 36px -10px rgba(1,24,69,0.30);
+    animation: slide-in 400ms cubic-bezier(0.16,1.00,0.30,1.00);
+    position:relative;
+  }
+  .toast::before {
+    content:""; position:absolute; left:0; top:0; bottom:0; width:3px;
+  }
+  .toast.success::before { background:#1F9D55; }
+  .toast.warning::before { background:#C97A0E; }
+  .toast.danger::before  { background:#D62B2B; }
+  .toast.info::before    { background:#0055FF; }
+
+  .toast .t { font-family:var(--font-body); font-size:13px; font-weight:600; color:#121212; line-height:1.3; }
+  .toast .d { font-family:var(--font-body); font-size:12px; color:#616161; margin-top:2px; line-height:1.4; }
+  .toast .icon {
+    width:20px; height:20px; flex:none; display:inline-flex; align-items:center; justify-content:center;
+    color:#fff; font-family:var(--font-body); font-weight:700; font-size:12px;
+  }
+  .toast.success .icon { background:#1F9D55; }
+  .toast.warning .icon { background:#C97A0E; }
+  .toast.danger  .icon { background:#D62B2B; }
+  .toast.info    .icon { background:#0055FF; }
+
+  @keyframes slide-in {
+    from { opacity:0; transform: translateY(12px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+</style></head>
+<body class="card">
+<div class="meta" style="margin-bottom:14px"><strong>Bottom-right anchor.</strong> 3px left rule denotes status. Slide-in 400ms expo.out.</div>
+<div class="stage">
+  <div class="stack-t">
+    <div class="toast success">
+      <span class="icon">✓</span>
+      <div>
+        <div class="t">Lesson complete</div>
+        <div class="d">You earned 25 XP · 8 of 12 done</div>
+      </div>
+    </div>
+    <div class="toast warning">
+      <span class="icon">!</span>
+      <div>
+        <div class="t">Assignment due in 2 days</div>
+        <div class="d">React · State management deep-dive</div>
+      </div>
+    </div>
+    <div class="toast info">
+      <span class="icon">i</span>
+      <div>
+        <div class="t">Mentor session scheduled</div>
+        <div class="d">Tomorrow at 6:30 PM IST · Aman P.</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

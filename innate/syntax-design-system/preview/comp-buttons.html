@@ -1,0 +1,94 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Buttons — Variants, Sizes, States" subtitle="Primary, Black, Outline, Ghost, Link + xs→xl sizes; hover grows / press shrinks from center" viewport="700x500" --><html><head><meta charset="utf-8"><title>Buttons</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .card .btn {
+    transition: background-color 140ms ease, color 140ms ease,
+                border-color 140ms ease, box-shadow 180ms ease,
+                transform 120ms cubic-bezier(.2,.8,.2,1);
+    transform-origin: center center;
+  }
+  .card .btn:hover { transform: scale(1.02); }
+  .card .btn:active { transform: scale(0.94); }
+
+  .btn.is-hover-primary {
+    background: #1F6BFF !important; color: #fff !important;
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px #0055FF, 0 10px 20px -8px rgba(0,85,255,.55) !important;
+    transform: scale(1.02) !important;
+  }
+  .btn.is-hover-black {
+    background: #2A2A2A !important; color: #fff !important;
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px #121212, 0 10px 20px -8px rgba(0,0,0,.4) !important;
+    transform: scale(1.02) !important;
+  }
+  .btn.is-hover-outline {
+    background: #EBF8FF !important; color: #0040C2 !important;
+    border-color: #0055FF !important;
+    box-shadow: 0 0 0 2px #0055FF, 0 8px 16px -8px rgba(0,85,255,.35) !important;
+    transform: scale(1.02) !important;
+  }
+  .btn.is-hover-ghost {
+    background: #EBF8FF !important; color: #0055FF !important;
+    box-shadow: inset 0 0 0 1px #0055FF, 0 6px 14px -8px rgba(0,85,255,.35) !important;
+    transform: scale(1.02) !important;
+  }
+  /* simulated pressed state for the spec row */
+  .btn.is-press { transform: scale(0.94) !important; }
+  .col-btn { display:flex; flex-direction:column; align-items:flex-start; gap:6px; }
+  .state { font-size:10px; letter-spacing:0.12em; color:#AAAAAA; text-transform:uppercase; font-family:var(--font-body); }
+  .block { margin-bottom: 22px; }
+  .block-h { font-size:10px; letter-spacing:0.14em; color:#AAAAAA; text-transform:uppercase; margin-bottom:12px; }
+</style>
+</head>
+<body class="card">
+<div class="block">
+  <div class="block-h">Variants · rest + hover</div>
+  <div class="row" style="gap:22px; align-items:flex-start; flex-wrap:wrap">
+    <div class="col-btn">
+      <span class="state">Primary</span>
+      <button class="btn btn--primary">Apply now</button>
+      <button class="btn btn--primary is-hover-primary">Apply now</button>
+    </div>
+    <div class="col-btn">
+      <span class="state">Black</span>
+      <button class="btn btn--black">Get started</button>
+      <button class="btn btn--black is-hover-black">Get started</button>
+    </div>
+    <div class="col-btn">
+      <span class="state">Outline</span>
+      <button class="btn btn--outline">Login</button>
+      <button class="btn btn--outline is-hover-outline">Login</button>
+    </div>
+    <div class="col-btn">
+      <span class="state">Ghost</span>
+      <button class="btn btn--ghost">Learn more</button>
+      <button class="btn btn--ghost is-hover-ghost">Learn more</button>
+    </div>
+    <div class="col-btn">
+      <span class="state">Link</span>
+      <button class="btn btn--link">View syllabus</button>
+      <button class="btn btn--link" style="color:#0040C2;text-decoration:underline;text-underline-offset:3px">View syllabus</button>
+    </div>
+  </div>
+</div>
+
+<div class="block">
+  <div class="block-h">State · rest · hover (grow) · pressed (shrink) — from center</div>
+  <div class="row" style="gap:22px; align-items:flex-start; flex-wrap:wrap">
+    <div class="col-btn"><span class="state">Rest</span><button class="btn btn--primary">Apply now</button></div>
+    <div class="col-btn"><span class="state">Hover</span><button class="btn btn--primary is-hover-primary">Apply now</button></div>
+    <div class="col-btn"><span class="state">Pressed</span><button class="btn btn--primary is-press">Apply now</button></div>
+  </div>
+</div>
+
+<div class="block" style="margin-bottom:0">
+  <div class="block-h">Size scale · xs → xl</div>
+  <div class="row" style="gap:16px; align-items:flex-end; flex-wrap:wrap">
+    <div class="col-btn"><span class="state">xs · 28</span><button class="btn btn--primary btn--xs">Button</button></div>
+    <div class="col-btn"><span class="state">sm · 32</span><button class="btn btn--primary btn--sm">Button</button></div>
+    <div class="col-btn"><span class="state">md · 36</span><button class="btn btn--primary">Button</button></div>
+    <div class="col-btn"><span class="state">lg · 56</span><button class="btn btn--primary btn--lg">Button</button></div>
+    <div class="col-btn"><span class="state">xl · 80</span><button class="btn btn--primary btn--xl">Button</button></div>
+  </div>
+</div>
+</body></html>

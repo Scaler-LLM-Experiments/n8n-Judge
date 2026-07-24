@@ -1,0 +1,68 @@
+<!doctype html>
+<!-- Classic React LMS dashboard + code editor (previous version). Not registered as a DS card; reachable via the "Switch to old view" link in the current kit. -->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Scaler — Learner platform</title>
+<meta name="viewport" content="width=1280" />
+<link rel="icon" href="../../assets/companion-mascot.svg" />
+<link rel="stylesheet" href="kit.css" />
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body class="lms">
+<div id="root"></div>
+
+<script type="text/babel" src="Icons.jsx"></script>
+<script type="text/babel" src="Chrome.jsx"></script>
+<script type="text/babel" src="StatRail.jsx"></script>
+<script type="text/babel" src="DailyPlan.jsx"></script>
+<script type="text/babel" src="AllModules.jsx"></script>
+<script type="text/babel" src="CodeEditor.jsx"></script>
+
+<script type="text/babel">
+  function App() {
+    const [screen, setScreen] = React.useState('dashboard'); // 'dashboard' | 'editor'
+    const [view, setView] = React.useState('daily');         // 'daily' | 'modules'
+    const open = () => setScreen('editor');
+
+    if (screen === 'editor') return <CodeEditor onBack={() => setScreen('dashboard')} />;
+
+    return (
+      <div className="shell">
+        <TopNav />
+        <div className="shell__body">
+          <IconRail active={view === 'daily' ? 'plan' : 'modules'} onNavigate={(id) => {
+            if (id === 'plan') setView('daily');
+            if (id === 'modules') setView('modules');
+          }} />
+          <div className="main">
+            <div className="canvas">
+              <div className="col-main">
+                <div className="hello">
+                  <img src={window.LMS_MASCOT} alt="" />
+                  <div>
+                    <div className="hi">Hi Aarav</div>
+                    <h1>Good to see you back</h1>
+                  </div>
+                </div>
+                {view === 'daily' ? <DailyPlan onOpen={open} /> : <AllModules onOpen={open} />}
+              </div>
+              <div className="col-rail">
+                <StatRail />
+              </div>
+            </div>
+          </div>
+        </div>
+        <PlanToggle view={view} onChange={setView} />
+        <div className="scroll-top" onClick={() => document.querySelector('.main').scrollTo({ top: 0, behavior: 'smooth' })}>
+          <span style={{ display: 'inline-flex' }}>{window.Icon ? <window.Icon name="arrow-up" size={18} /> : '↑'}</span>
+        </div>
+      </div>
+    );
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

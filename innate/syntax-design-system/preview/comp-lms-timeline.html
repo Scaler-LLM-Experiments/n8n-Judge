@@ -1,0 +1,92 @@
+<!doctype html>
+<!-- @dsCard group="LMS Patterns" name="Daily Plan timeline" subtitle="Dated to-do timeline with a live 'Now' flag that tracks the real clock and glides between slots" viewport="760x560" -->
+<html><head><meta charset="utf-8"><title>Daily Plan timeline</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body.card { width: 760px; }
+  :root{ --ease-out-quart:cubic-bezier(.25,1,.5,1); }
+  .todo__header{
+    display:flex; align-items:center; justify-content:space-between; height:52px; padding:0 22px;
+    background:var(--brand-primary); color:#fff; font-family:var(--font-body);
+  }
+  .todo__title{ font-size:16px; font-weight:600; } .todo__title strong{ font-weight:800; }
+  .todo__meta{ display:flex; align-items:center; gap:14px; }
+  .todo__meta .m{ display:flex; align-items:center; gap:6px; font-size:12px; font-weight:500; color:#dbe7ff; }
+  .todo__meta .sep{ width:1px; height:20px; background:#ffffff44; }
+
+  .todo__timeline{ padding-top:24px; position:relative; }
+  .tl-row{ display:grid; grid-template-columns:84px 16px 1fr; gap:16px; }
+  .tl-time{ text-align:right; font-family:var(--font-headline); font-size:17px; font-weight:500; letter-spacing:-.4px; line-height:1; color:#3a3a3a; padding-top:22px; }
+  .tl-time span{ display:block; font-family:var(--font-body); font-size:10px; font-weight:600; color:var(--fg-3); margin-top:3px; }
+  .tl-row.is-current .tl-time, .tl-row.is-current .tl-time span{ color:var(--brand-primary); }
+  .tl-rail{ position:relative; }
+  .tl-rail::before{ content:""; position:absolute; left:50%; top:0; bottom:-16px; width:2px; transform:translateX(-50%); background:var(--border-subtle); }
+  .tl-row:last-child .tl-rail::before{ bottom:auto; height:30px; }
+  .tl-dot{ position:absolute; left:50%; top:28px; transform:translate(-50%,-50%); width:8px; height:8px; background:#c4c9d0; }
+  .tl-row.is-current .tl-dot{ display:none; }
+  .tl-body{ position:relative; padding-bottom:16px; min-width:0; }
+
+  .tc{ display:flex; align-items:center; gap:14px; padding:16px; background:#fff; border:1px solid var(--border-subtle); font-family:var(--font-body); }
+  .tc.is-current{ border:2px solid var(--brand-primary); }
+  .tc.is-locked{ background:#fbfbfc; }
+  .tc__thumb{ width:56px; height:56px; flex:none; display:flex; align-items:center; justify-content:center; background:#eef0f4; color:#9aa0a8; }
+  .tc.is-current .tc__thumb{ background:var(--brand-blue-50); color:var(--brand-primary); }
+  .tc__main{ flex:1; min-width:0; }
+  .tc__t{ margin:0; font-size:15px; font-weight:700; color:var(--fg-1); }
+  .tc.is-locked .tc__t{ color:#aeb3bb; }
+  .tc__d{ margin:4px 0 0; font-size:12px; color:var(--fg-3); }
+
+  /* live Now flag */
+  .now{ position:absolute; left:0; z-index:6; pointer-events:none; display:flex; align-items:center; width:108px; transform:translateY(-50%); transition:top .6s var(--ease-out-quart); }
+  .now-flag{ position:relative; flex:none; background:var(--brand-primary); color:#fff; padding:6px 11px; line-height:1.15; }
+  .now-flag::after{ content:""; position:absolute; right:-7px; top:50%; transform:translateY(-50%); border-top:7px solid transparent; border-bottom:7px solid transparent; border-left:7px solid var(--brand-primary); }
+  .now-flag .l{ display:block; font-size:10px; font-weight:600; opacity:.85; }
+  .now-flag .t{ display:block; font-size:13px; font-weight:700; white-space:nowrap; }
+  .now-line{ flex:1; height:2px; background:var(--brand-primary); margin-left:9px; min-width:6px; }
+  .now-dot{ flex:none; width:11px; height:11px; background:var(--brand-primary); border-radius:50%; }
+</style></head>
+<body class="card">
+  <section class="todo">
+    <div class="todo__header">
+      <span class="todo__title">To-Dos for <strong>14th Jul</strong></span>
+      <span class="todo__meta"><span class="m">Onboarding</span><span class="sep"></span><span class="m">4 Tasks</span></span>
+    </div>
+    <div class="todo__timeline" id="tl"></div>
+  </section>
+<script>
+  var ROWS = [
+    { t:'09:00', a:'AM', title:'Arrays: prefix sums', desc:'Worked examples + a short practice set.' },
+    { t:'11:00', a:'AM', title:'Heaps pre-read', desc:'A quick check to personalise your plan.', current:true },
+    { t:'01:00', a:'PM', title:'Top-K problems', desc:'Covers the core patterns with examples.' },
+    { t:'03:00', a:'PM', title:'Select your mentor', desc:'Your mentor guides your Scaler journey.', locked:true },
+  ];
+  function toMin(t,a){ var p=t.split(':').map(Number),h=p[0]; if(a==='PM'&&h!==12)h+=12; if(a==='AM'&&h===12)h=0; return h*60+p[1]; }
+  document.getElementById('tl').innerHTML = ROWS.map(function(r){
+    return '<div class="tl-row '+(r.current?'is-current':'')+'" data-min="'+toMin(r.t,r.a)+'">'+
+      '<div class="tl-time">'+r.t+'<span>'+r.a+'</span></div>'+
+      '<div class="tl-rail"><span class="tl-dot"></span></div>'+
+      '<div class="tl-body"><div class="tc '+(r.current?'is-current':'')+' '+(r.locked?'is-locked':'')+'">'+
+        '<div class="tc__thumb">'+(r.locked?'🔒':(r.current?'?':'▤'))+'</div>'+
+        '<div class="tc__main"><h3 class="tc__t">'+r.title+'</h3><p class="tc__d">'+r.desc+'</p></div>'+
+      '</div></div></div>';
+  }).join('');
+  (function(){
+    var tl=document.getElementById('tl');
+    var ind=document.createElement('div'); ind.className='now';
+    ind.innerHTML='<div class="now-flag"><span class="l">Now</span><span class="t">--:--</span></div><span class="now-line"></span><span class="now-dot"></span>';
+    tl.appendChild(ind);
+    function fmt(d){ var h=d.getHours(),ap=h>=12?'PM':'AM'; h=h%12||12; return h+':'+String(d.getMinutes()).padStart(2,'0')+' '+ap; }
+    function upd(){
+      var now=new Date(); ind.querySelector('.now-flag .t').textContent=fmt(now);
+      var nm=now.getHours()*60+now.getMinutes();
+      var pts=[].slice.call(tl.querySelectorAll('.tl-row')).map(function(r){ return { min:+r.dataset.min, y:r.offsetTop+r.offsetHeight/2 }; });
+      var y;
+      if(nm<=pts[0].min) y=pts[0].y;
+      else if(nm>=pts[pts.length-1].min) y=pts[pts.length-1].y;
+      else for(var i=0;i<pts.length-1;i++){ if(nm>=pts[i].min&&nm<=pts[i+1].min){ var f=(nm-pts[i].min)/(pts[i+1].min-pts[i].min); y=pts[i].y+f*(pts[i+1].y-pts[i].y); break; } }
+      ind.style.top=Math.round(y)+'px';
+    }
+    upd(); setInterval(upd,30000);
+  })();
+</script>
+</body></html>

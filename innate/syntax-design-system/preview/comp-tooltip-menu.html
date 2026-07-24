@@ -1,0 +1,80 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Tooltip & dropdown" subtitle="Dark tip + sectioned menu" viewport="720x460" --><html><head><meta charset="utf-8"><title>Tooltip & dropdown</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .stack { display:flex; flex-direction:column; gap:24px; }
+  .grp-title { font-family:var(--font-body); font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:#AAAAAA; margin-bottom:10px; }
+
+  .stage { position:relative; padding:32px; border:1px solid #ECECEC; background:#FAFAFA; }
+
+  .anchor { display:inline-flex; align-items:center; gap:8px; height:32px; padding:0 12px;
+    background:#fff; border:1px solid #D1D1D1; font-family:var(--font-body); font-size:13px; color:#262626; }
+
+  /* Tooltip */
+  .tip {
+    position:absolute; bottom:64px; left:32px;
+    background:#0C0C0C; color:#fff; padding:8px 10px;
+    font-family:var(--font-body); font-size:12px;
+    box-shadow:0 8px 16px -6px rgba(0,0,0,0.40);
+  }
+  .tip::after {
+    content:""; position:absolute; top:100%; left:18px;
+    border:6px solid transparent; border-top-color:#0C0C0C;
+  }
+
+  /* Dropdown menu */
+  .menu {
+    position:absolute; top:64px; right:32px; width:240px;
+    background:#fff; border:1px solid #E4E4E4;
+    box-shadow:0 18px 36px -10px rgba(1,24,69,0.20);
+  }
+  .menu .grp { padding:6px; }
+  .menu .grp + .grp { border-top:1px solid #ECECEC; }
+  .menu .item {
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:8px 10px; cursor:pointer;
+    font-family:var(--font-body); font-size:13px; color:#262626;
+    transition: background 100ms ease, color 100ms ease;
+  }
+  .menu .item:hover { background:#EBF8FF; color:#0055FF; }
+  .menu .item .kbd {
+    font-family:var(--font-mono); font-size:10px; color:#AAAAAA;
+    border:1px solid #E4E4E4; padding:1px 4px; background:#FAFAFA;
+  }
+  .menu .item.danger { color:#D62B2B; }
+  .menu .item.danger:hover { background:#FDECEC; color:#8B1B1B; }
+  .menu .lbl-sm { padding:6px 10px; font-family:var(--font-body); font-size:10px;
+    letter-spacing:0.18em; text-transform:uppercase; color:#AAAAAA; }
+</style></head>
+<body class="card">
+<div class="stack">
+  <div>
+    <div class="grp-title">Tooltip · dark</div>
+    <div class="stage" style="height:120px">
+      <span class="tip">Save your progress</span>
+      <button class="anchor" style="position:absolute; bottom:32px; left:32px">Save draft</button>
+    </div>
+  </div>
+  <div>
+    <div class="grp-title">Dropdown menu · with sections</div>
+    <div class="stage" style="height:240px">
+      <button class="anchor" style="position:absolute; top:32px; right:32px">Sudhanva ▾</button>
+      <div class="menu">
+        <div class="lbl-sm">Account</div>
+        <div class="grp">
+          <div class="item">Profile <span class="kbd">⌘P</span></div>
+          <div class="item">Settings <span class="kbd">⌘,</span></div>
+          <div class="item">Billing</div>
+        </div>
+        <div class="grp">
+          <div class="item">Switch cohort</div>
+          <div class="item">Help center <span class="kbd">?</span></div>
+        </div>
+        <div class="grp">
+          <div class="item danger">Sign out</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

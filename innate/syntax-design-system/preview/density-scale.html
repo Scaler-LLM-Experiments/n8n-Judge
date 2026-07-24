@@ -1,0 +1,34 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Density scale" subtitle="Six control heights · 24→56" viewport="720x220" --><html><head><meta charset="utf-8"><title>Density scale</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .row-d { display:flex; align-items:flex-end; gap:14px; flex-wrap:wrap; }
+  .col-d { display:flex; flex-direction:column; align-items:flex-start; gap:6px; }
+  .b {
+    display:inline-flex; align-items:center; padding:0 12px;
+    background:#0055FF; color:#fff;
+    font-family:var(--font-body); font-weight:500; border:0;
+  }
+  .b.s24  { height:24px; padding:0 8px;  font-size:11px; }
+  .b.s28  { height:28px; padding:0 10px; font-size:12px; }
+  .b.s32  { height:32px; padding:0 12px; font-size:13px; }
+  .b.s36  { height:36px; padding:0 16px; font-size:14px; }
+  .b.s48  { height:48px; padding:0 20px; font-size:15px; }
+  .b.s56  { height:56px; padding:0 28px; font-size:16px; }
+  .lbl  { font-family:var(--font-mono); font-size:10px; color:#616161; }
+  .name { font-family:var(--font-body); font-size:11px; color:#121212; font-weight:500; }
+</style></head>
+<body class="card">
+<div class="meta" style="margin-bottom:14px">
+  <strong>Six control heights.</strong>
+  Marketing reaches for 36/48/56. Dashboards live in 28/32/36. xs (24) is for inline tags.
+</div>
+<div class="row-d">
+  <div class="col-d"><span class="b s24">Apply</span><span class="name">xs · 24</span><span class="lbl">--ctrl-xs</span></div>
+  <div class="col-d"><span class="b s28">Apply</span><span class="name">sm · 28</span><span class="lbl">--ctrl-sm</span></div>
+  <div class="col-d"><span class="b s32">Apply</span><span class="name">md · 32</span><span class="lbl">--ctrl-md</span></div>
+  <div class="col-d"><span class="b s36">Apply</span><span class="name">base · 36</span><span class="lbl">--ctrl-base</span></div>
+  <div class="col-d"><span class="b s48">Apply</span><span class="name">lg · 48</span><span class="lbl">--ctrl-lg</span></div>
+  <div class="col-d"><span class="b s56">Apply</span><span class="name">xl · 56</span><span class="lbl">--ctrl-xl</span></div>
+</div>
+</body></html>

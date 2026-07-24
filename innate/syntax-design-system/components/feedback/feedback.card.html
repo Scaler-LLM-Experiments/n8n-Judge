@@ -1,0 +1,80 @@
+<!-- @dsCard group="Components" name="Feedback — Alert, Toast, Progress, Skeleton, Empty state" subtitle="Status, transient notifications and loading states" viewport="760x620" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Feedback components</title>
+<link rel="stylesheet" href="../../styles.css" />
+<style>
+  html, body { margin: 0; background: #fff; }
+  body { padding: 24px; font-family: var(--font-body); color: var(--fg-1); }
+  .group { margin-bottom: 26px; }
+  .lbl { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg-4); margin-bottom: 10px; }
+  .stack { display: flex; flex-direction: column; gap: 12px; max-width: 560px; }
+  .row { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+  .panel { border: 1px solid var(--border-subtle); padding: 20px; }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+  const { Alert, Toast, Progress, Skeleton, Spinner, EmptyState, Button } = window.SyntaxByScalerDesignSystem_6a7054;
+  const Inbox = <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>;
+  function Demo() {
+    return (
+      <div>
+        <div className="group">
+          <div className="lbl">Alerts</div>
+          <div className="stack">
+            <Alert tone="success" title="Application received" onClose={() => {}}>We’ll be in touch within one business day.</Alert>
+            <Alert tone="warning" title="Cohort closing soon" action={<Button variant="outline" size="sm">Apply</Button>}>Seats for the August batch close Friday.</Alert>
+            <Alert tone="info">Your next live session starts at 7:00 PM.</Alert>
+          </div>
+        </div>
+        <div className="group">
+          <div className="lbl">Toasts</div>
+          <div className="stack">
+            <Toast tone="success" title="Saved" description="Your progress is up to date." onClose={() => {}} />
+            <Toast tone="danger" title="Upload failed" description="The file exceeded 25 MB." onClose={() => {}} />
+          </div>
+        </div>
+        <div className="row" style={{ alignItems: 'flex-start' }}>
+          <div className="group" style={{ flex: 1, minWidth: 240 }}>
+            <div className="lbl">Progress</div>
+            <div className="stack">
+              <Progress label="Course completion" value={68} showValue />
+              <Progress indeterminate />
+            </div>
+          </div>
+          <div className="group">
+            <div className="lbl">Spinner</div>
+            <div className="row"><Spinner /><Spinner size={28} /></div>
+          </div>
+        </div>
+        <div className="row" style={{ alignItems: 'stretch' }}>
+          <div className="group" style={{ flex: 1, minWidth: 240 }}>
+            <div className="lbl">Skeleton</div>
+            <div className="panel stack" style={{ gap: 10 }}>
+              <Skeleton height={80} />
+              <Skeleton variant="text" width="80%" />
+              <Skeleton variant="text" width="55%" />
+            </div>
+          </div>
+          <div className="group" style={{ flex: 1, minWidth: 240 }}>
+            <div className="lbl">Empty state</div>
+            <div className="panel">
+              <EmptyState icon={Inbox} title="Nothing here yet." description="Assignments you’re given will show up here." action={<Button variant="outline" size="sm">Browse modules</Button>} />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(<Demo />);
+</script>
+</body>
+</html>

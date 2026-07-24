@@ -1,0 +1,51 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Companion mascot" subtitle="Abstract geometric mark — navy/white/blue, single eye; Rive state machine drives time-of-day + feedback states" viewport="720x340" -->
+<html><head><meta charset="utf-8"><title>Companion mascot</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body.card{ width:720px; }
+  .wrap{ display:flex; gap:34px; align-items:flex-start; }
+  .marks{ display:flex; align-items:flex-end; gap:26px; }
+  .m{ display:flex; flex-direction:column; align-items:center; gap:10px; }
+  .m .sz{ font-family:var(--font-mono); font-size:10px; color:var(--fg-4); }
+  .m.onbrand{ background:var(--brand-primary); padding:14px; }
+  .info{ flex:1; }
+  .info h3{ font-family:var(--font-body); font-size:13px; font-weight:700; color:var(--fg-1); margin:0 0 6px; }
+  .info p{ font-family:var(--font-body); font-size:12px; line-height:1.55; color:var(--fg-3); margin:0 0 12px; }
+  .swatches{ display:flex; gap:8px; margin-bottom:14px; }
+  .sw{ display:flex; flex-direction:column; gap:4px; }
+  .sw .chip{ width:54px; height:30px; border:1px solid rgba(0,11,31,0.08); }
+  .sw .n{ font-family:var(--font-mono); font-size:9px; color:var(--fg-4); }
+  .states{ display:flex; flex-wrap:wrap; gap:6px; }
+  .state{ font-family:var(--font-body); font-size:11px; font-weight:600; color:var(--fg-3); border:1px solid var(--border-subtle); padding:4px 9px; }
+  .state.live{ color:var(--brand-primary); border-color:rgba(0,85,255,.3); background:var(--brand-blue-50); }
+</style></head>
+<body class="card">
+<div class="wrap">
+  <div class="marks">
+    <div class="m"><span id="big"></span><span class="sz">64</span></div>
+    <div class="m"><span id="mid"></span><span class="sz">40</span></div>
+    <div class="m onbrand"><span id="inv"></span><span class="sz" style="color:#cfe0ff">on brand</span></div>
+  </div>
+  <div class="info">
+    <h3>Companion — the AI surface mark</h3>
+    <p>An abstract geometric character: four blue bars form an 8-point star behind a white face panel and a single dark eye. No literal face beyond the one eye. Used in the greeting, the Companion button, and "Taken by Companion".</p>
+    <div class="swatches">
+      <div class="sw"><div class="chip" style="background:#011845"></div><div class="n">#011845</div></div>
+      <div class="sw"><div class="chip" style="background:#0055ff"></div><div class="n">#0055FF</div></div>
+      <div class="sw"><div class="chip" style="background:#fff"></div><div class="n">#FFFFFF</div></div>
+      <div class="sw"><div class="chip" style="background:#121212"></div><div class="n">#121212</div></div>
+    </div>
+    <div class="states">
+      <span class="state live">timeOfDay</span>
+      <span class="state">Idle</span><span class="state">Greeting</span><span class="state">Thinking</span>
+      <span class="state">Correct</span><span class="state">Wrong</span><span class="state">Celebrating</span><span class="state">Sleepy</span>
+    </div>
+  </div>
+</div>
+<script>
+  var MARK = '<svg viewBox="0 0 83 83" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="30.8838" width="21.2326" height="83" fill="#0055ff"/><rect x="83" y="30.8837" width="21.2326" height="83" transform="rotate(90 83 30.8837)" fill="#0055ff"/><rect x="19.6621" y="78.3517" width="21.2326" height="83" transform="rotate(-135 19.6621 78.3517)" fill="#0055ff"/><rect x="4.64844" y="19.6619" width="21.2326" height="83" transform="rotate(-45 4.64844 19.6619)" fill="#0055ff"/><path d="M28.1709 38.5414C28.1709 33.4338 28.1709 30.8799 29.4975 29.1057C29.8794 28.595 30.3327 28.1418 30.8434 27.7599C32.6176 26.4332 35.1714 26.4332 40.2791 26.4332H42.7108C47.8185 26.4332 50.3723 26.4332 52.1465 27.7599C52.6573 28.1418 53.1105 28.595 53.4924 29.1057C54.819 30.8799 54.819 33.4338 54.819 38.5414V39.7573C54.819 44.7331 54.819 47.2211 53.7509 49.0751C53.0474 50.2961 52.0338 51.3097 50.8127 52.0132C48.9587 53.0814 46.4708 53.0814 41.495 53.0814C36.5191 53.0814 34.0312 53.0814 32.1772 52.0132C30.9561 51.3097 29.9426 50.2961 29.2391 49.0751C28.1709 47.2211 28.1709 44.7331 28.1709 39.7573V38.5414Z" fill="#fff"/><circle cx="41.4944" cy="39.7573" r="7.99444" fill="#121212"/><circle cx="44.799" cy="38.3169" r="1.77654" fill="#fff"/></svg>';
+  function place(id,px){ var e=document.getElementById(id); e.innerHTML=MARK; e.style.display='inline-block'; e.style.width=px+'px'; e.style.height=px+'px'; }
+  place('big',64); place('mid',40); place('inv',56);
+</script>
+</body></html>

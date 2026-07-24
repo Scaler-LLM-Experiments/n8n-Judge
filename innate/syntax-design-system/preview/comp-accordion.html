@@ -1,0 +1,91 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Accordion" subtitle="Curriculum modules + FAQ disclosure" viewport="720x460" --><html><head><meta charset="utf-8"><title>Accordion</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .stack { display:flex; flex-direction:column; gap:0; border-top:1px solid #ECECEC; }
+  details {
+    border-bottom:1px solid #ECECEC;
+  }
+  details > summary {
+    list-style:none; cursor:pointer;
+    padding:18px 16px;
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    font-family:var(--font-body); font-size:14px; font-weight:600; color:#0C0C0C;
+    transition: color 120ms ease;
+  }
+  details > summary::-webkit-details-marker { display:none; }
+  details > summary:hover { color:#0055FF; }
+  details > summary .meta { font-family:var(--font-body); font-weight:400; font-size:12px; color:#616161; }
+  details > summary .chev {
+    width:18px; height:18px; flex:none;
+    transition: transform 240ms cubic-bezier(0.16,1.00,0.30,1.00);
+    color:#616161;
+  }
+  details[open] > summary .chev { transform: rotate(180deg); color:#0055FF; }
+  details > .body {
+    padding: 0 16px 18px;
+    font-family:var(--font-body); font-size:13px; line-height:1.6; color:#616161;
+    animation: fadein 240ms cubic-bezier(0.16,1.00,0.30,1.00);
+  }
+  details > .body ul { margin:0; padding-left:18px; }
+  details > .body li { padding:2px 0; }
+  @keyframes fadein { from { opacity:0; transform:translateY(-2px); } to { opacity:1; transform:none; } }
+
+  /* Module variant — leading number */
+  details.module > summary { padding-left:0; }
+  details.module .num {
+    width:48px; flex:none; text-align:center;
+    font-family:var(--font-mono); font-size:11px; color:#AAAAAA;
+  }
+  details.module .name { flex:1; }
+  details.module > .body { padding-left:48px; }
+</style></head>
+<body class="card">
+<div class="meta" style="margin-bottom:12px"><strong>Curriculum / FAQ disclosure.</strong> Sharp corners, single-column rule, Lucide chevron rotates on open.</div>
+<div class="stack">
+
+  <details class="module" open>
+    <summary>
+      <span class="num">01</span>
+      <span class="name">Foundations of programming</span>
+      <span class="meta">8 lessons · 4h 20m</span>
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M6 9l6 6 6-6"/></svg>
+    </summary>
+    <div class="body">
+      <ul>
+        <li>How computers think · 32m</li>
+        <li>Variables, types, control flow · 48m</li>
+        <li>Functions and abstraction · 36m</li>
+        <li>Data structures, an overview · 44m</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="module">
+    <summary>
+      <span class="num">02</span>
+      <span class="name">Data structures &amp; algorithms</span>
+      <span class="meta">14 lessons · 9h 10m</span>
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M6 9l6 6 6-6"/></svg>
+    </summary>
+    <div class="body">Coverage: arrays, lists, trees, graphs, sorting, searching, complexity analysis. Includes 40+ practice problems and a graded mid-module assessment.</div>
+  </details>
+
+  <details>
+    <summary>
+      Will I get a job after completing the program?
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M6 9l6 6 6-6"/></svg>
+    </summary>
+    <div class="body">Scaler placement support runs for 12 months post-graduation. Of recent cohorts, 87% accepted offers within 6 months. Median CTC for the last cohort was ₹24.6L.</div>
+  </details>
+
+  <details>
+    <summary>
+      What if I miss a live class?
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M6 9l6 6 6-6"/></svg>
+    </summary>
+    <div class="body">All live sessions are recorded and posted to your dashboard within 4 hours. You retain access to recordings indefinitely.</div>
+  </details>
+
+</div>
+</body></html>

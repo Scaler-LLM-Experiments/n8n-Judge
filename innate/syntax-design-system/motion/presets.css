@@ -1,0 +1,35 @@
+/* =========================================================
+   Syntax by Scaler — Motion presets
+   A small, named library of entrance animations built on the
+   system's duration + easing tokens. CSS utilities here; the
+   GSAP-config equivalents live in motion/gsap-presets.js.
+
+   Pattern (brand rule): the VISIBLE end-state is the base.
+   Entrances animate FROM hidden and only run when motion is
+   allowed — so reduced-motion, print, and non-animating frames
+   always show content. Add a preset class to play the entrance.
+   ========================================================= */
+
+/* Optional stagger: set --stagger on a parent; direct children
+   inherit an incremental delay. Default step is 60ms. */
+[data-stagger] > * { animation-delay: calc(var(--stagger, 60ms) * var(--i, 0)); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .anim-fade-in    { animation: scl-fade-in    var(--dur-4) var(--ease-standard); }
+  .anim-fade-up    { animation: scl-fade-up    var(--dur-4) var(--ease-entrance); }
+  .anim-fade-down  { animation: scl-fade-down  var(--dur-4) var(--ease-entrance); }
+  .anim-scale-in   { animation: scl-scale-in   var(--dur-4) var(--ease-entrance); }
+  .anim-slide-right{ animation: scl-slide-right var(--dur-4) var(--ease-standard); }
+  .anim-slide-left { animation: scl-slide-left  var(--dur-4) var(--ease-standard); }
+  .anim-blur-in    { animation: scl-blur-in    var(--dur-5) var(--ease-standard); }
+  .anim-rise       { animation: scl-rise       var(--dur-5) var(--ease-entrance); }
+}
+
+@keyframes scl-fade-in     { from { opacity: 0; } }
+@keyframes scl-fade-up     { from { opacity: 0; transform: translateY(16px); } }
+@keyframes scl-fade-down   { from { opacity: 0; transform: translateY(-16px); } }
+@keyframes scl-scale-in    { from { opacity: 0; transform: scale(0.96); } }
+@keyframes scl-slide-right { from { opacity: 0; transform: translateX(-24px); } }
+@keyframes scl-slide-left  { from { opacity: 0; transform: translateX(24px); } }
+@keyframes scl-blur-in     { from { opacity: 0; filter: blur(8px); } }
+@keyframes scl-rise        { from { opacity: 0; transform: translateY(32px); } }

@@ -1,0 +1,66 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Skeleton loaders" subtitle="Shimmering loading state" viewport="720x320" --><html><head><meta charset="utf-8"><title>Skeletons</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .stack { display:flex; flex-direction:column; gap:18px; }
+  .grp-title { font-family:var(--font-body); font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:#AAAAAA; margin-bottom:10px; }
+  .row { display:flex; gap:18px; align-items:flex-start; flex-wrap:wrap; }
+
+  .sk {
+    position:relative; overflow:hidden;
+    background:linear-gradient(90deg, #EEEEEE 0%, #F5F5F5 50%, #EEEEEE 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1400ms cubic-bezier(0.16,1.00,0.30,1.00) infinite;
+  }
+  @keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sk { animation: none; background:#EEEEEE; }
+  }
+
+  .sk-line { height:10px; }
+  .sk-line.w70 { width:70%; }
+  .sk-line.w50 { width:50%; }
+  .sk-line.w90 { width:90%; }
+  .sk-thumb { width:120px; height:80px; }
+  .sk-circle { width:40px; height:40px; border-radius:50%; }
+  .card-sk { width:280px; padding:14px; border:1px solid #E4E4E4; display:flex; flex-direction:column; gap:10px; }
+
+  .row-sk { display:flex; gap:12px; align-items:center; }
+  .stack-sk { display:flex; flex-direction:column; gap:8px; flex:1; }
+</style></head>
+<body class="card">
+<div class="stack">
+  <div>
+    <div class="grp-title">Course card · loading</div>
+    <div class="row">
+      <div class="card-sk">
+        <div class="sk sk-thumb" style="width:100%; height:120px"></div>
+        <div class="sk sk-line w70"></div>
+        <div class="sk sk-line w50"></div>
+        <div class="row-sk">
+          <div class="sk sk-circle"></div>
+          <div class="stack-sk">
+            <div class="sk sk-line w90"></div>
+            <div class="sk sk-line w50"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card-sk">
+        <div class="sk sk-thumb" style="width:100%; height:120px"></div>
+        <div class="sk sk-line w70"></div>
+        <div class="sk sk-line w50"></div>
+        <div class="row-sk">
+          <div class="sk sk-circle"></div>
+          <div class="stack-sk">
+            <div class="sk sk-line w90"></div>
+            <div class="sk sk-line w50"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

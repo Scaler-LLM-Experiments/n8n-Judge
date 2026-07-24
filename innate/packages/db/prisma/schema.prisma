@@ -1,0 +1,296 @@
+// n8n Judge — data model.
+//
+// Design notes (see docs/plan-production-platform.md §4):
+//  - A Session pins the ProblemVersion it started on; republishing never changes
+//    a running/finished session's grading basis.
+//  - TraceEvent is append-only; the client assigns a monotonic per-session `seq`,
+//    and (sessionId, seq) is unique so re-sent batches after a dropped connection
+//    are idempotent. It is BOTH the admin session-map source AND the input the
+//    grading worker replays.
+//  - pg-boss owns its own `pgboss` schema in the same database; Prisma never
+//    migrates it.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum Role {
+  LEARNER
+  ADMIN
+}
+
+// Programs are DB rows (Program table) so new ones need no migration, but the
+// three shipping today are also captured as a key enum for typed filtering.
+enum ProgramKey {
+  SE
+  AIML
+  DSML
+}
+
+enum ProblemStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum SessionStatus {
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+}
+
+// The four journey screens, persisted for resume + the admin "who's stuck where".
+enum Screen {
+  STATEMENT
+  DASHBOARD
+  EVAL
+  REPORT
+}
+
+enum GradingStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+}
+
+enum VoiceClipStatus {
+  PENDING
+  RENDERING
+  READY
+  FAILED
+}
+
+// ---------------------------------------------------------------------------
+// Org: programs, batches, users
+// ---------------------------------------------------------------------------
+
+model Program {
+  id          String              @id @default(cuid())
+  key         ProgramKey          @unique
+  name        String
+  createdAt   DateTime            @default(now())
+  batches     Batch[]
+  assignments ProblemAssignment[]
+}
+
+model Batch {
+  id          String              @id @default(cuid())
+  program     Program             @relation(fields: [programId], references: [id])
+  programId   String
+  name        String
+  inviteCode  String              @unique
+  createdAt   DateTime            @default(now())
+  users       User[]
+  assignments ProblemAssignment[]
+
+  @@index([programId])
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  role         Role      @default(LEARNER)
+  // Interim email/password auth is a throwaway before "Login with Scaler" SSO.
+  batch        Batch?    @relation(fields: [batchId], references: [id])
+  batchId      String?
+  createdAt    DateTime  @default(now())
+  sessions     Session[]
+  ratings      Rating[]
+  tours        Tour[]
+
+  @@index([batchId])
+}
+
+// ---------------------------------------------------------------------------
+// Problems: version-pinned, JSONB payload validated by @judge/problem-schema
+// ---------------------------------------------------------------------------
+
+model Problem {
+  id                       String              @id @default(cuid())
+  slug                     String              @unique
+  title                    String
+  // The live published version (null until first publish). Not a relation FK to
+  // avoid a cycle with ProblemVersion.problem; resolved in app code.
+  currentPublishedVersionId String?
+  createdAt                DateTime            @default(now())
+  versions                 ProblemVersion[]
+  assignments              ProblemAssignment[]
+  sessions                 Session[]
+  rubrics                  Rubric[]
+}
+
+model ProblemVersion {
+  id          String        @id @default(cuid())
+  problem     Problem       @relation(fields: [problemId], references: [id])
+  problemId   String
+  version     Int           // monotonic per problem
+  status      ProblemStatus @default(DRAFT)
+  // The whole problem object, validated by validateProblem() before every write.
+  data        Json
+  authoredBy  String?       // User id or "ai"
+  draftPrompt String?       // the statement/prompt an AI draft was generated from
+  createdAt   DateTime      @default(now())
+  sessions    Session[]
+
+  @@unique([problemId, version])
+  @@index([problemId, status])
+}
+
+// A problem is assigned to exactly one of a program OR a batch (app-enforced).
+model ProblemAssignment {
+  id        String   @id @default(cuid())
+  problem   Problem  @relation(fields: [problemId], references: [id])
+  problemId String
+  program   Program? @relation(fields: [programId], references: [id])
+  programId String?
+  batch     Batch?   @relation(fields: [batchId], references: [id])
+  batchId   String?
+  createdAt DateTime @default(now())
+
+  @@unique([problemId, programId])
+  @@unique([problemId, batchId])
+  @@index([programId])
+  @@index([batchId])
+}
+
+// ---------------------------------------------------------------------------
+// Sessions + trace
+// ---------------------------------------------------------------------------
+
+// One row per attempt (each retry = a new Session; analytics dedupe by user+problem).
+model Session {
+  id                 String         @id @default(cuid())
+  user               User           @relation(fields: [userId], references: [id])
+  userId             String
+  problem            Problem        @relation(fields: [problemId], references: [id])
+  problemId          String
+  problemVersion     ProblemVersion @relation(fields: [problemVersionId], references: [id])
+  problemVersionId   String         // pinned at start
+  status             SessionStatus  @default(IN_PROGRESS)
+  currentScreen      Screen         @default(STATEMENT)
+  currentPhase       String?        // buildPhases[].id within the Build screen
+  builtGraphSnapshot Json?          // denormalized latest graph for resume/admin
+  startedAt          DateTime       @default(now())
+  completedAt        DateTime?
+  events             TraceEvent[]
+  reports            GradingReport[]
+  rating             Rating?
+
+  @@index([userId, problemId])
+  @@index([status, currentScreen]) // "who's stuck where"
+}
+
+// Append-only. Carries the interactions the prototype's grading store missed
+// (run results, graph mutations) so the worker can replay/regrade deterministically.
+model TraceEvent {
+  id         BigInt   @id @default(autoincrement())
+  session    Session  @relation(fields: [sessionId], references: [id])
+  sessionId  String
+  seq        Int      // client-assigned, monotonic per session
+  type       String
+  payload    Json
+  clientTs   DateTime
+  receivedAt DateTime @default(now())
+
+  @@unique([sessionId, seq]) // idempotent batch re-send
+  @@index([sessionId, seq])
+}
+
+// ---------------------------------------------------------------------------
+// Rubric (admin-editable) + grading reports
+// ---------------------------------------------------------------------------
+
+// problemId null = the generalized default rubric shared across problems.
+model Rubric {
+  id        String          @id @default(cuid())
+  problem   Problem?        @relation(fields: [problemId], references: [id])
+  problemId String?
+  label     String
+  createdAt DateTime        @default(now())
+  versions  RubricVersion[]
+
+  @@index([problemId])
+}
+
+model RubricVersion {
+  id           String          @id @default(cuid())
+  rubric       Rubric          @relation(fields: [rubricId], references: [id])
+  rubricId     String
+  version      Int             // monotonic per rubric
+  systemPrompt String          // the grading prompt sent to Claude
+  createdAt    DateTime        @default(now())
+  reports      GradingReport[]
+
+  @@unique([rubricId, version])
+}
+
+model GradingReport {
+  id                 String        @id @default(cuid())
+  session            Session       @relation(fields: [sessionId], references: [id])
+  sessionId          String
+  rubricVersion      RubricVersion @relation(fields: [rubricVersionId], references: [id])
+  rubricVersionId    String        // the exact rubric used (auditable; re-grade = new row)
+  status             GradingStatus @default(QUEUED)
+  jobId              String?       // queue job id
+  understandingScore Int?          // server-authoritative, replayed from decisions
+  reportJson         Json?         // areaBreakdown, misconceptions, narrative, …
+  promptTokens       Int?
+  completionTokens   Int?
+  costEstimateUsd    Decimal?      @db.Decimal(10, 6)
+  error              String?
+  createdAt          DateTime      @default(now())
+  completedAt        DateTime?
+
+  @@index([sessionId])
+  @@index([status])
+}
+
+// ---------------------------------------------------------------------------
+// Rating + voice/tour
+// ---------------------------------------------------------------------------
+
+model Rating {
+  id        String   @id @default(cuid())
+  session   Session  @relation(fields: [sessionId], references: [id])
+  sessionId String   @unique // one rating per attempt
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  stars     Int // 1..5 (app-validated)
+  text      String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// Generic clips have userId null; name-spliced clips are per user.
+model VoiceClip {
+  id        String          @id @default(cuid())
+  momentKey String
+  userId    String?
+  s3Key     String
+  status    VoiceClipStatus @default(PENDING)
+  createdAt DateTime        @default(now())
+
+  @@unique([momentKey, userId])
+}
+
+model Tour {
+  id          String   @id @default(cuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  tourKey     String
+  completedAt DateTime @default(now())
+
+  @@unique([userId, tourKey])
+}
