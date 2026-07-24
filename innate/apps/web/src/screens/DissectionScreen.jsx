@@ -79,7 +79,7 @@ export function DissectionScreen({ problem, onComplete, onDecision }) {
   // ---------- QUIZ ----------
   return (
     <div ref={quizRef} style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--surface-0)' }}>
-      <TopBar activeStage="statement" />
+      <TopBar activeStage="statement" problem={problem} />
       <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '72px 24px 72px' }}>
         <QuizBody
           key={index}
@@ -241,7 +241,7 @@ function Greet({ onContinue }) {
   }, []);
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <TopBar activeStage="statement" />
+      <TopBar activeStage="statement" problem={problem} />
       <div ref={root} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32, textAlign: 'center' }}>
         <div data-a="m" style={{ width: 108, height: 108, marginBottom: 14 }}>
           <MascotPlayer clip="hello" once={false} onceDone={() => {}} />
@@ -273,7 +273,7 @@ function ProblemBeat({ problem, onContinue }) {
   }, []);
   return (
     <div ref={root} style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <TopBar activeStage="statement" />
+      <TopBar activeStage="statement" problem={problem} />
       <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 32px', textAlign: 'center' }}>
         <div data-a="r" style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--fg-3)', fontWeight: 700, marginBottom: 14 }}>
           Today’s problem
@@ -304,7 +304,7 @@ function ProblemBeat({ problem, onContinue }) {
 function Done({ problem, unlockedTypes, onFinish }) {
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <TopBar activeStage="statement" />
+      <TopBar activeStage="statement" problem={problem} />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32, textAlign: 'center' }}>
         <div style={{ width: 96, height: 96, marginBottom: 8 }}>
           <MascotPlayer clip="celebrate" once={false} onceDone={() => {}} />

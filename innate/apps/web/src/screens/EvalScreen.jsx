@@ -87,7 +87,7 @@ export function EvalScreen({ problem, graph, onDecision, onSubmit }) {
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-      <TopBar activeStage="eval" onShowProblemStatement={() => setShowStatement(true)} />
+      <TopBar activeStage="eval" problem={problem} onShowProblemStatement={() => setShowStatement(true)} />
       <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain', display: 'flex', justifyContent: 'center', padding: answered ? '56px 24px 130px' : '56px 24px 56px' }}>
         <div key={index} ref={quizRef} style={{ width: '100%', maxWidth: GRID_WIDTH }}>
           <div data-q="head" style={{ textAlign: 'center', marginBottom: 28 }}>

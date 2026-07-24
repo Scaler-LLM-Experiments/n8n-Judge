@@ -9,10 +9,12 @@ export function claude(): Anthropic {
   return client;
 }
 
+// Model tiers (swappable via env). Decision: Sonnet for grading and authoring
+// (authoring doesn't need a heavier model); a cheaper tier for the Ask-AI chat.
 export const MODELS = {
-  grading: () => process.env.JUDGE_GRADING_MODEL ?? 'claude-opus-4-8',
-  authoring: () => process.env.JUDGE_AUTHORING_MODEL ?? 'claude-opus-4-8',
-  askAi: () => process.env.JUDGE_ASKAI_MODEL ?? 'claude-opus-4-8',
+  grading: () => process.env.JUDGE_GRADING_MODEL ?? 'claude-sonnet-5',
+  authoring: () => process.env.JUDGE_AUTHORING_MODEL ?? 'claude-sonnet-5',
+  askAi: () => process.env.JUDGE_ASKAI_MODEL ?? 'claude-haiku-4-5-20251001',
 };
 
 export interface StructuredCallOptions {

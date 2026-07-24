@@ -256,8 +256,9 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun }) {
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--surface-0)' }}>
       <TopBar
         activeStage="dashboard"
+        problem={problem}
+        currentPhase={phase?.label || phase?.id}
         onProblemDoc={() => setShowProblem(true)}
-        onAskAI={() => flashNudge('Ask Iris is coming soon ✨')}
         onRedo={handleRedo}
       />
 

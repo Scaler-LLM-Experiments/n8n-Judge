@@ -36,10 +36,22 @@ function IconButton({ icon: Icon, title, onClick, primary, dataTour }) {
   );
 }
 
-export function TopBar({ activeStage, onShowProblemStatement, onReset, onRun, onProblemDoc, onAskAI, onRedo }) {
+const SCREEN_BY_STAGE = { statement: 'STATEMENT', dashboard: 'DASHBOARD', eval: 'EVAL', report: 'REPORT' };
+
+export function TopBar({ activeStage, problem, currentPhase, nodeContext, learnerName, onShowProblemStatement, onReset, onRun, onProblemDoc, onAskAI, onRedo }) {
   const activeIndex = STAGES.findIndex((s) => s.id === activeStage);
   const [glossaryOpen, setGlossaryOpen] = useState(false);
   const [askOpen, setAskOpen] = useState(false);
+
+  // Context handed to the Ask-AI drawer so Iris's answers are scoped to the
+  // current problem, screen, phase, and open node.
+  const askContext = {
+    problemTitle: problem?.title ?? 'n8n Judge challenge',
+    problemStatement: problem?.statement ?? '',
+    currentScreen: SCREEN_BY_STAGE[activeStage] ?? 'DASHBOARD',
+    currentPhase,
+    nodeContext,
+  };
 
   return (
     <div
@@ -110,7 +122,7 @@ export function TopBar({ activeStage, onShowProblemStatement, onReset, onRun, on
       </div>
 
       {glossaryOpen ? <GlossaryDrawer onClose={() => setGlossaryOpen(false)} /> : null}
-      {askOpen ? <AskAiDrawer onClose={() => setAskOpen(false)} /> : null}
+      {askOpen ? <AskAiDrawer onClose={() => setAskOpen(false)} context={askContext} learnerName={learnerName} /> : null}
     </div>
   );
 }
