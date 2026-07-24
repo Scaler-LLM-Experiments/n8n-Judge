@@ -1,8 +1,12 @@
 **/node_modules
-app/dist
+**/.next
+app
 docs
 iris-mascot-kit
 syntax-design-system
 *.py
 *.md
 .git
+shots
+.env
+.env.local
