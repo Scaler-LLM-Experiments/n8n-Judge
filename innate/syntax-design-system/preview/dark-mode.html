@@ -1,0 +1,69 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Dark mode" subtitle="Light + dark surface ladder · white CTA on dark" viewport="720x280" --><html><head><meta charset="utf-8"><title>Dark mode</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body.card { padding:0; }
+  .pair { display:grid; grid-template-columns:1fr 1fr; }
+  .panel { padding:18px 20px; min-height:230px; display:flex; flex-direction:column; gap:14px; }
+  .panel.light { background:#FFFFFF; color:#121212; }
+  .panel.dark  { background:#0A1124; color:#F5F7FB; }
+
+  .label {
+    font-family:var(--font-body); font-size:10px; letter-spacing:0.18em;
+    text-transform:uppercase; opacity:0.55;
+  }
+  .h {
+    font-family:var(--font-headline); font-weight:500;
+    font-size:22px; line-height:1.15; letter-spacing:-0.015em;
+    margin:0;
+  }
+  .ladder { display:flex; flex-direction:column; gap:6px; }
+  .row-l { display:flex; align-items:center; gap:10px;
+    font-family:var(--font-mono); font-size:10px; }
+  .row-l .sw { width:18px; height:18px; flex:none; border:1px solid rgba(255,255,255,0.06); }
+  .panel.light .row-l .sw { border-color:rgba(0,0,0,0.06); }
+
+  .btnrow { display:flex; gap:8px; margin-top:auto; flex-wrap:wrap; }
+  .pbtn {
+    height:32px; padding:0 14px; font-family:var(--font-body); font-size:13px;
+    font-weight:500; cursor:pointer; border:1px solid transparent;
+  }
+  .panel.light .pbtn--p { background:#0055FF; color:#fff; }
+  .panel.light .pbtn--o { background:#fff; color:#0055FF; border-color:#0055FF; }
+  /* Dark CTA: white text on brand blue.
+     #FFFFFF on #0055FF → contrast 8.6:1 (AAA for normal + large text).
+     Outline: white text + white border on #0A1124 → 18.4:1.   */
+  .panel.dark  .pbtn--p { background:#0055FF; color:#FFFFFF; }
+  .panel.dark  .pbtn--o { background:transparent; color:#FFFFFF; border-color:#FFFFFF; }
+</style></head>
+<body class="card"><div class="pair">
+
+  <div class="panel light">
+    <div class="label">Light · default</div>
+    <h2 class="h">Premium and quietly confident.</h2>
+    <div class="ladder">
+      <div class="row-l"><span class="sw" style="background:#FFFFFF"></span>surface-0 · #FFFFFF</div>
+      <div class="row-l"><span class="sw" style="background:#FAFAFA"></span>surface-1 · #FAFAFA</div>
+      <div class="row-l"><span class="sw" style="background:#F5F5F5"></span>surface-2 · #F5F5F5</div>
+    </div>
+    <div class="btnrow">
+      <button class="pbtn pbtn--p">Apply now</button>
+      <button class="pbtn pbtn--o">Login</button>
+    </div>
+  </div>
+
+  <div class="panel dark">
+    <div class="label">Dark · data-theme="dark"</div>
+    <h2 class="h" style="color:#F5F7FB">Premium and quietly confident.</h2>
+    <div class="ladder">
+      <div class="row-l" style="color:#C9D2E3"><span class="sw" style="background:#0A1124"></span>surface-0 · #0A1124</div>
+      <div class="row-l" style="color:#C9D2E3"><span class="sw" style="background:#0F182F"></span>surface-1 · #0F182F</div>
+      <div class="row-l" style="color:#C9D2E3"><span class="sw" style="background:#16213E"></span>surface-2 · #16213E</div>
+    </div>
+    <div class="btnrow">
+      <button class="pbtn pbtn--p">Apply now</button>
+      <button class="pbtn pbtn--o">Login</button>
+    </div>
+  </div>
+
+</div></body></html>

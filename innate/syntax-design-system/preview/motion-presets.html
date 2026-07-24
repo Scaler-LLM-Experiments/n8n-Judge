@@ -1,0 +1,58 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Motion — Entrance presets" subtitle="8 GSAP-compliant entrance presets on the system's duration + easing tokens" viewport="700x300" -->
+<html><head><meta charset="utf-8"><title>Motion presets</title>
+<link rel="stylesheet" href="../styles.css">
+<style>
+  html, body { margin: 0; background: #fff; }
+  body { padding: 22px 24px; font-family: var(--font-body); color: var(--fg-1); }
+  .head { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .head .meta { font-size: 12px; color: var(--fg-3); }
+  .replay { font-family: var(--font-body); font-size: 12px; font-weight: 600; color: #fff;
+    background: var(--brand-primary); border: 0; height: 32px; padding: 0 14px; cursor: pointer; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .cell { border: 1px solid var(--border-subtle); padding: 14px 12px; display:flex; flex-direction:column; gap:8px; min-height: 78px; }
+  .cell .name { font-family: var(--font-mono); font-size: 12px; color: var(--fg-1); }
+  .cell .ease { font-size: 11px; color: var(--fg-3); }
+  .swatch { height: 24px; background: var(--brand-blue-100); border-left: 3px solid var(--brand-primary); }
+  /* Demo only: slow the playback so each entrance is clearly visible.
+     Real product motion uses the --dur-* tokens (240–360ms) unchanged. */
+  @media (prefers-reduced-motion: no-preference) {
+    .grid [class*="anim-"] { animation-duration: 900ms !important; }
+  }
+</style>
+</head>
+<body>
+  <div class="head">
+    <div class="meta">Visible state is the base; entrances play only when motion is allowed. CSS class + GSAP config are kept in parity.</div>
+    <button class="replay" onclick="play()">Replay ▸</button>
+  </div>
+  <div class="grid" id="grid"></div>
+  <script>
+    var presets = [
+      ['anim-fade-in', 'standard'],
+      ['anim-fade-up', 'entrance'],
+      ['anim-fade-down', 'entrance'],
+      ['anim-scale-in', 'entrance'],
+      ['anim-slide-right', 'standard'],
+      ['anim-slide-left', 'standard'],
+      ['anim-blur-in', 'standard'],
+      ['anim-rise', 'entrance'],
+    ];
+    var grid = document.getElementById('grid');
+    presets.forEach(function (p) {
+      var c = document.createElement('div');
+      c.className = 'cell';
+      c.innerHTML = '<div class="swatch"></div><div class="name">.' + p[0] + '</div><div class="ease">ease: ' + p[1] + '</div>';
+      grid.appendChild(c);
+    });
+    function play() {
+      document.querySelectorAll('.cell').forEach(function (c, i) {
+        var cls = presets[i][0];
+        c.classList.remove(cls); void c.offsetWidth;
+        c.style.animationDelay = (i * 140) + 'ms';
+        c.classList.add(cls);
+      });
+    }
+    play();
+  </script>
+</body></html>

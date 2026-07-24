@@ -1,0 +1,80 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Switch · checkbox · radio" subtitle="Form toggles" viewport="720x320" --><html><head><meta charset="utf-8"><title>Toggle controls</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .stack { display:flex; flex-direction:column; gap:20px; }
+  .grp-title { font-family:var(--font-body); font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:#AAAAAA; margin-bottom:10px; }
+  .row { display:flex; gap:24px; align-items:center; flex-wrap:wrap; }
+
+  /* Switch — sharp corners */
+  .sw { position:relative; display:inline-block; width:40px; height:22px; vertical-align:middle; }
+  .sw input { display:none; }
+  .sw .track {
+    position:absolute; inset:0; background:#E4E4E4; transition: background 160ms ease;
+  }
+  .sw .thumb {
+    position:absolute; top:2px; left:2px; width:18px; height:18px; background:#fff;
+    box-shadow:0 1px 2px rgba(0,0,0,0.2);
+    transition: transform 160ms cubic-bezier(0.20,0.80,0.20,1.00);
+  }
+  .sw input:checked ~ .track { background:#0055FF; }
+  .sw input:checked ~ .thumb { transform: translateX(18px); }
+  .lbl { font-family:var(--font-body); font-size:13px; color:#262626; display:inline-flex; align-items:center; gap:10px; }
+
+  /* Checkbox */
+  .cb { display:inline-flex; align-items:center; gap:10px; cursor:pointer; user-select:none;
+    font-family:var(--font-body); font-size:13px; color:#262626; }
+  .cb input { display:none; }
+  .cb .box {
+    width:18px; height:18px; border:1.5px solid #AAAAAA; background:#fff;
+    display:inline-flex; align-items:center; justify-content:center;
+    transition: background 120ms ease, border-color 120ms ease;
+  }
+  .cb input:checked ~ .box { background:#0055FF; border-color:#0055FF; }
+  .cb .check { display:none; color:#fff; font-size:14px; line-height:1; }
+  .cb input:checked ~ .box .check { display:inline; }
+
+  /* Radio */
+  .rd { display:inline-flex; align-items:center; gap:10px; cursor:pointer;
+    font-family:var(--font-body); font-size:13px; color:#262626; }
+  .rd input { display:none; }
+  .rd .ring {
+    width:18px; height:18px; border:1.5px solid #AAAAAA; background:#fff;
+    display:inline-flex; align-items:center; justify-content:center;
+    transition: border-color 120ms ease;
+  }
+  .rd .ring::before {
+    content:""; width:8px; height:8px; background:#0055FF; transform:scale(0);
+    transition: transform 160ms cubic-bezier(0.34,1.56,0.64,1.00);
+  }
+  .rd input:checked ~ .ring { border-color:#0055FF; }
+  .rd input:checked ~ .ring::before { transform: scale(1); }
+</style></head>
+<body class="card">
+<div class="stack">
+  <div>
+    <div class="grp-title">Switches</div>
+    <div class="row">
+      <label class="lbl"><span class="sw"><input type="checkbox" checked><span class="track"></span><span class="thumb"></span></span> Email digest</label>
+      <label class="lbl"><span class="sw"><input type="checkbox"><span class="track"></span><span class="thumb"></span></span> Auto-play next lesson</label>
+      <label class="lbl"><span class="sw"><input type="checkbox" checked><span class="track"></span><span class="thumb"></span></span> Captions</label>
+    </div>
+  </div>
+  <div>
+    <div class="grp-title">Checkboxes</div>
+    <div class="row">
+      <label class="cb"><input type="checkbox" checked><span class="box"><span class="check">✓</span></span>Frontend</label>
+      <label class="cb"><input type="checkbox"><span class="box"><span class="check">✓</span></span>Backend</label>
+      <label class="cb"><input type="checkbox" checked><span class="box"><span class="check">✓</span></span>AI / ML</label>
+    </div>
+  </div>
+  <div>
+    <div class="grp-title">Radio · pace</div>
+    <div class="row">
+      <label class="rd"><input type="radio" name="p" checked><span class="ring"></span>Self-paced</label>
+      <label class="rd"><input type="radio" name="p"><span class="ring"></span>Cohort</label>
+      <label class="rd"><input type="radio" name="p"><span class="ring"></span>Mentor-led</label>
+    </div>
+  </div>
+</div>
+</body></html>

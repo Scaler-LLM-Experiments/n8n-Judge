@@ -1,0 +1,87 @@
+<!doctype html>
+<!-- @dsCard group="LMS Patterns" name="Motion — interaction patterns" subtitle="Hover grows, press shrinks (center origin); border-not-shadow lift; sheen sweep; recurring ring-pulse" viewport="760x420" -->
+<html><head><meta charset="utf-8"><title>Interaction motion</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body.card{ width:760px; }
+  :root{ --ease-out-quart:cubic-bezier(.25,1,.5,1); }
+  .grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
+  .cell{ display:flex; flex-direction:column; gap:10px; }
+  .lbl{ font-family:var(--font-body); font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#AAAAAA; }
+  .desc{ font-family:var(--font-body); font-size:12px; color:var(--fg-3); margin-top:2px; }
+
+  .box{ font-family:var(--font-body); background:#fff; border:1px solid var(--border-subtle); padding:18px 20px; font-size:14px; font-weight:600; color:var(--fg-1); cursor:pointer; }
+
+  /* 1 — grow on hover, shrink on press, BORDER (not shadow) */
+  .m-grow{ transform-origin:center center; outline:1.5px solid transparent; outline-offset:-1.5px;
+    transition:transform .22s var(--ease-out-quart), outline-color .2s ease; }
+  .m-grow:hover{ transform:scale(1.02); outline-color:var(--brand-primary); }
+  .m-grow:active{ transform:scale(.97); transition-duration:.1s; }
+
+  /* 2 — blue hero header with sheen sweep */
+  .m-sheen{ position:relative; overflow:hidden; background:var(--brand-primary); color:#fff; border-color:var(--brand-primary); }
+  .m-sheen > span{ position:relative; z-index:1; }
+  .m-sheen::after{ content:""; position:absolute; top:0; bottom:0; left:0; width:34%;
+    background:linear-gradient(100deg, transparent 0%, rgba(255,255,255,.22) 50%, transparent 100%);
+    transform:translateX(-180%) skewX(-20deg); z-index:0; pointer-events:none;
+    animation:sheen 5s ease-in-out infinite; }
+  @keyframes sheen{ 0%{ transform:translateX(-180%) skewX(-20deg); } 55%,100%{ transform:translateX(440%) skewX(-20deg); } }
+
+  /* 3 — recurring ring pulse on the "next up" item */
+  .m-pulse{ background:#f4f8ff; border-color:transparent; outline:1.5px solid var(--brand-primary); outline-offset:-1.5px; color:var(--brand-primary); }
+
+  /* 4 — button feedback */
+  .btns{ display:flex; gap:12px; align-items:center; }
+  .btn{ font-family:var(--font-body); font-size:14px; font-weight:600; padding:11px 16px; cursor:pointer; border:1px solid var(--brand-primary);
+    transition:transform .15s var(--ease-out-quart), background .15s ease; }
+  .btn--p{ background:var(--brand-primary); color:#fff; }
+  .btn--p:hover{ transform:scale(1.02); } .btn--p:active{ transform:scale(.96); }
+  .btn--o{ background:transparent; color:var(--brand-primary); }
+  .btn--o:hover{ transform:scale(1.02); background:var(--brand-blue-50); } .btn--o:active{ transform:scale(.96); }
+
+  .replay{ position:absolute; top:16px; right:20px; font-family:var(--font-body); font-size:12px; font-weight:600; color:#fff; background:var(--brand-primary); border:0; height:30px; padding:0 12px; cursor:pointer; }
+  .head{ position:relative; margin-bottom:14px; font-family:var(--font-body); font-size:12px; color:var(--fg-3); }
+</style></head>
+<body class="card">
+  <div class="head">
+    Every surface uses the same language: <b>hover grows, press shrinks, both from the center</b>; emphasis is a <b>1.5px border</b>, never a drop shadow.
+    <button class="replay" id="replay">Pulse ▸</button>
+  </div>
+  <div class="grid">
+    <div class="cell">
+      <span class="lbl">Hover-grow · press-shrink · border</span>
+      <div class="box m-grow"><span>Lesson row — hover &amp; click me</span></div>
+      <span class="desc">scale 1.02 on hover, 0.97 on press; blue outline replaces the resting hairline.</span>
+    </div>
+    <div class="cell">
+      <span class="lbl">Sheen sweep (current module header)</span>
+      <div class="box m-sheen"><span>Module 12 — in progress</span></div>
+      <span class="desc">Slow 5s light sweep marks the one active, expanded hero.</span>
+    </div>
+    <div class="cell">
+      <span class="lbl">Ring pulse (next-up class)</span>
+      <div class="box m-pulse" id="pulse"><span>Up next — Top-K problems</span></div>
+      <span class="desc">2 pulses every ~10s; non-transform so hover/press still work; stops on click.</span>
+    </div>
+    <div class="cell">
+      <span class="lbl">Button feedback</span>
+      <div class="btns"><button class="btn btn--p">Start Quiz</button><button class="btn btn--o">Review</button></div>
+      <span class="desc">Primary + outline share the grow/press feel.</span>
+    </div>
+  </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>
+  var el=document.getElementById('pulse'), tl;
+  function pulse(){
+    if(typeof gsap==='undefined') return;
+    if(tl) tl.kill();
+    var PULSE={ boxShadow:"0 0 0 9px rgba(0,85,255,0)", duration:0.9, ease:"power2.out" };
+    var FROM={ boxShadow:"0 0 0 0 rgba(0,85,255,.5)" };
+    tl=gsap.timeline({ repeat:-1, repeatDelay:8, delay:.4 });
+    tl.fromTo(el,FROM,PULSE).fromTo(el,FROM,PULSE,"+=0.2");
+  }
+  pulse();
+  el.addEventListener('click', function(){ if(tl){ tl.kill(); gsap.set(el,{clearProps:'boxShadow'}); } });
+  document.getElementById('replay').addEventListener('click', pulse);
+</script>
+</body></html>

@@ -1,0 +1,129 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Code block" subtitle="Dark + light, line numbers, copy" viewport="720x560" --><html><head><meta charset="utf-8"><title>Code block</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .stack { display:flex; flex-direction:column; gap:14px; }
+
+  .code {
+    background:#0F182F; color:#C9D2E3;
+    font-family:var(--font-mono); font-size:12px; line-height:1.6;
+    overflow:hidden;
+  }
+  .code .topbar {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:8px 14px;
+    background:#16213E; border-bottom:1px solid rgba(255,255,255,0.08);
+  }
+  .code .topbar .lang {
+    font-family:var(--font-body); font-size:10px; letter-spacing:0.18em; text-transform:uppercase;
+    color:#82B0FF;
+  }
+  .code .topbar .file {
+    font-family:var(--font-mono); font-size:11px; color:#8794AE; margin-left:8px;
+  }
+  .code .topbar .copy {
+    background:transparent; border:1px solid rgba(255,255,255,0.16); color:#C9D2E3;
+    padding:4px 10px; font-family:var(--font-body); font-size:11px; cursor:pointer;
+    display:inline-flex; align-items:center; gap:6px;
+    transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+  }
+  .code .topbar .copy:hover { background:rgba(255,255,255,0.06); color:#F5F7FB; border-color:rgba(255,255,255,0.32); }
+
+  .code .body { display:grid; grid-template-columns:auto 1fr; }
+  .code .nums {
+    padding:14px 12px; text-align:right; user-select:none;
+    color:#5A6884;
+    border-right:1px solid rgba(255,255,255,0.06);
+    background:#0A1124;
+  }
+  .code .src { padding:14px 16px; overflow-x:auto; white-space:pre; }
+  .code .nums div, .code .src div { min-height:1.6em; }
+  .code .src .hl {
+    margin: 0 -16px; padding: 0 16px;
+    background: rgba(61,130,255,0.10);
+    border-left: 2px solid #3D82FF;
+    padding-left: 14px;
+  }
+
+  /* Light variant for marketing surfaces */
+  .code--light {
+    background:#FAFAFA; color:#0C0C0C; border:1px solid #ECECEC;
+  }
+  .code--light .topbar { background:#F0F0F0; border-bottom-color:#ECECEC; }
+  .code--light .topbar .lang { color:#0055FF; }
+  .code--light .topbar .file { color:#616161; }
+  .code--light .topbar .copy { color:#262626; border-color:#D1D1D1; }
+  .code--light .topbar .copy:hover { background:#EBF8FF; color:#0055FF; border-color:#0055FF; }
+  .code--light .nums { background:#F5F5F5; color:#AAAAAA; border-right-color:#ECECEC; }
+
+  /* Tokens (dark) */
+  .k  { color:#82B0FF; }       /* keyword */
+  .s  { color:#FFB47A; }       /* string */
+  .n  { color:#FFD27A; }       /* number */
+  .c  { color:#5A6884; font-style:italic; } /* comment */
+  .f  { color:#8FE0B7; }       /* function */
+  .pn { color:#C9D2E3; }       /* punctuation */
+  /* Tokens (light) */
+  .code--light .k  { color:#0055FF; }
+  .code--light .s  { color:#8A4F00; }
+  .code--light .n  { color:#8B1B1B; }
+  .code--light .c  { color:#AAAAAA; font-style:italic; }
+  .code--light .f  { color:#15663A; }
+  .code--light .pn { color:#262626; }
+
+  .inline-code {
+    font-family:var(--font-mono); font-size:12px; padding:1px 6px;
+    background:#F5F5F5; border:1px solid #ECECEC; color:#0055FF;
+  }
+  .meta { font-family:var(--font-body); font-size:11px; color:#616161; }
+</style></head>
+<body class="card">
+<div class="stack">
+
+  <div class="meta">
+    <strong>Dark variant.</strong> Used in lesson player + dashboard. Line numbers, language tag, copy button, current-line highlight.
+  </div>
+
+  <div class="code">
+    <div class="topbar">
+      <div>
+        <span class="lang">TypeScript</span>
+        <span class="file">src/lib/auth.ts</span>
+      </div>
+      <button class="copy">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">
+          <rect x="9" y="9" width="11" height="11"/><path d="M5 15V5h10"/>
+        </svg>
+        Copy
+      </button>
+    </div>
+    <div class="body">
+      <div class="nums"><div>1</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div><div>7</div><div>8</div><div>9</div></div>
+      <div class="src"><div><span class="c">// Verifies the JWT and returns the user, or null.</span></div><div><span class="k">export async function</span> <span class="f">getUser</span><span class="pn">(</span>req<span class="pn">:</span> Request<span class="pn">)</span> <span class="pn">{</span></div><div>  <span class="k">const</span> token <span class="pn">=</span> req<span class="pn">.</span>headers<span class="pn">.</span><span class="f">get</span><span class="pn">(</span><span class="s">"authorization"</span><span class="pn">);</span></div><div class="hl">  <span class="k">if</span> <span class="pn">(!</span>token<span class="pn">)</span> <span class="k">return null</span><span class="pn">;</span></div><div>  <span class="k">const</span> claims <span class="pn">=</span> <span class="k">await</span> <span class="f">verifyJwt</span><span class="pn">(</span>token<span class="pn">);</span></div><div>  <span class="k">if</span> <span class="pn">(!</span>claims <span class="pn">||</span> claims<span class="pn">.</span>exp <span class="pn">&lt;</span> <span class="f">Date</span><span class="pn">.</span><span class="f">now</span><span class="pn">()</span> <span class="pn">/</span> <span class="n">1000</span><span class="pn">)</span> <span class="k">return null</span><span class="pn">;</span></div><div>  <span class="k">return</span> <span class="f">db</span><span class="pn">.</span>user<span class="pn">.</span><span class="f">findUnique</span><span class="pn">({</span> where<span class="pn">: {</span> id<span class="pn">:</span> claims<span class="pn">.</span>sub <span class="pn">} });</span></div><div><span class="pn">}</span></div></div>
+    </div>
+  </div>
+
+  <div class="meta">
+    <strong>Light variant.</strong> For marketing pages, docs, blog. Inline: <span class="inline-code">npm install @scaler/sdk</span>
+  </div>
+
+  <div class="code code--light">
+    <div class="topbar">
+      <div>
+        <span class="lang">Bash</span>
+      </div>
+      <button class="copy">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">
+          <rect x="9" y="9" width="11" height="11"/><path d="M5 15V5h10"/>
+        </svg>
+        Copy
+      </button>
+    </div>
+    <div class="body">
+      <div class="nums"><div>1</div><div>2</div></div>
+      <div class="src"><div><span class="pn">$</span> npm install <span class="s">@scaler/sdk</span></div><div><span class="pn">$</span> npx scaler init <span class="pn">--</span>project<span class="pn">=</span><span class="s">my-app</span></div></div>
+    </div>
+  </div>
+
+</div>
+</body></html>

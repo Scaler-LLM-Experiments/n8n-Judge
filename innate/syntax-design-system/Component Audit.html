@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Component Audit — Syntax by Scaler</title>
+<link rel="stylesheet" href="styles.css" />
+<style>
+  :root {
+    --ok: #0055FF;        /* shipped */
+    --spec: #ED7700;      /* specimen-only */
+    --gap: #C2410C;       /* missing — restrained, only for dots/text */
+    --paper: #FFFFFF;
+    --ink: #0B1529;
+    --rule: #E4E4E4;
+    --rule-strong: #D1D1D1;
+    --meta: #616161;
+    --tint: #E9F1FF;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+  body {
+    margin: 0;
+    background: #F5F5F5;
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .page {
+    max-width: 1040px;
+    margin: 0 auto;
+    background: var(--paper);
+    padding: 80px 96px;
+    border-left: 1px solid var(--rule);
+    border-right: 1px solid var(--rule);
+  }
+  h1, h2, h3 { font-family: var(--font-headline); font-weight: 560; letter-spacing: -0.01em; }
+  .eyebrow {
+    font-family: var(--font-body);
+    font-weight: 600; font-size: 12px;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--brand-primary);
+    margin: 0 0 18px;
+  }
+  /* ---------- Masthead ---------- */
+  .mast { border-bottom: 2px solid var(--ink); padding-bottom: 32px; margin-bottom: 8px; }
+  .mast h1 { font-size: 52px; line-height: 1.04; margin: 0 0 16px; max-width: 16ch; }
+  .mast .lede { font-size: 17px; color: var(--n-700, #404040); max-width: 60ch; margin: 0; }
+  .mast .meta { display: flex; gap: 28px; margin-top: 28px; flex-wrap: wrap; }
+  .mast .meta div { font-size: 13px; color: var(--meta); }
+  .mast .meta b { display: block; color: var(--ink); font-weight: 600; font-size: 14px; margin-top: 2px; }
+
+  section { margin-top: 64px; }
+  section > h2 {
+    font-size: 13px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+    font-family: var(--font-body);
+    color: var(--meta);
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 12px; margin: 0 0 28px;
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  section > h2 span { color: var(--rule-strong); letter-spacing: 0; text-transform: none; font-size: 12px; }
+  h3.sub { font-size: 22px; margin: 0 0 6px; }
+  p.note { color: var(--meta); margin: 0 0 22px; max-width: 64ch; }
+
+  /* ---------- Verdict callout ---------- */
+  .verdict {
+    background: var(--brand-navy);
+    color: #fff;
+    padding: 40px 44px;
+    margin-top: 40px;
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 40px;
+  }
+  .verdict h3 { font-family: var(--font-headline); color:#fff; font-size: 26px; margin: 0 0 14px; font-weight: 560; }
+  .verdict p { margin: 0; color: rgba(255,255,255,0.78); font-size: 15px; }
+  .verdict p + p { margin-top: 12px; }
+  .vstats { display: flex; flex-direction: column; gap: 0; border-left: 1px solid rgba(255,255,255,0.16); padding-left: 36px; }
+  .vstat { padding: 10px 0; }
+  .vstat b { font-family: var(--font-body); font-weight: 700; font-size: 40px; line-height: 1; display:block; }
+  .vstat b.blue { color: #5C97FF; }
+  .vstat b.amber { color: #FFB454; }
+  .vstat span { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.62); }
+
+  /* ---------- Scorecard meters ---------- */
+  .score { display: grid; grid-template-columns: 1fr 1fr; gap: 28px 56px; }
+  .meter-row { }
+  .meter-head { display:flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .meter-head b { font-size: 15px; font-weight: 600; }
+  .meter-head em { font-style: normal; font-size: 13px; color: var(--meta); }
+  .meter { height: 8px; background: var(--n-150, #F6F6F6); border: 1px solid var(--rule); position: relative; }
+  .meter i { position:absolute; inset: 0 auto 0 0; background: var(--brand-primary); }
+  .meter i.warn { background: var(--spec); }
+  .meter i.low { background: var(--gap); }
+
+  /* ---------- Legend ---------- */
+  .legend { display:flex; gap: 28px; flex-wrap: wrap; margin-bottom: 26px; padding: 14px 18px; background: var(--n-150, #F6F6F6); border: 1px solid var(--rule); }
+  .legend span { display:flex; align-items:center; gap:9px; font-size: 13px; color: var(--ink); }
+  .dot { width: 10px; height: 10px; flex: none; }
+  .dot.ok { background: var(--ok); }
+  .dot.spec { background: var(--spec); }
+  .dot.gap { background: var(--gap); }
+
+  /* ---------- Matrix table ---------- */
+  table.matrix { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+  table.matrix caption {
+    text-align: left; font-family: var(--font-headline); font-weight: 560;
+    font-size: 20px; padding: 28px 0 14px; color: var(--ink);
+  }
+  table.matrix th {
+    text-align: left; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--meta); font-weight: 600; padding: 0 12px 10px; border-bottom: 1px solid var(--rule-strong);
+  }
+  table.matrix td { padding: 11px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; font-size: 14px; }
+  table.matrix td:first-child, table.matrix th:first-child { padding-left: 0; }
+  table.matrix .comp { font-weight: 600; white-space: nowrap; }
+  table.matrix .desc { color: var(--meta); font-size: 13px; }
+  .status { display:inline-flex; align-items:center; gap: 8px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+  .status .dot { width: 9px; height: 9px; }
+  .status.ok { color: var(--ok); }
+  .status.spec { color: var(--spec); }
+  .status.gap { color: var(--gap); }
+  .pri { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; padding: 3px 8px; border: 1px solid currentColor; white-space: nowrap; }
+  .pri.p0 { color: var(--gap); }
+  .pri.p1 { color: var(--spec); }
+  .pri.p2 { color: var(--meta); }
+  .pri.none { color: var(--rule-strong); border-color: var(--rule); }
+
+  /* ---------- Roadmap ---------- */
+  .road { display: grid; grid-template-columns: repeat(3,1fr); gap: 0; border: 1px solid var(--rule); }
+  .road > div { padding: 26px 24px; border-right: 1px solid var(--rule); }
+  .road > div:last-child { border-right: 0; }
+  .road h4 { margin: 0 0 4px; font-family: var(--font-body); font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; }
+  .road .p0c { color: var(--gap); } .road .p1c { color: var(--spec); } .road .p2c { color: var(--meta); }
+  .road p.cap { font-size: 12px; color: var(--meta); margin: 0 0 16px; }
+  .road ul { margin: 0; padding-left: 18px; }
+  .road li { font-size: 14px; margin-bottom: 7px; }
+  .road li b { font-weight: 600; }
+
+  ul.findings { margin: 0; padding: 0; list-style: none; }
+  ul.findings li { padding: 16px 0 16px 26px; border-bottom: 1px solid var(--rule); position: relative; }
+  ul.findings li:before { content: ""; position:absolute; left: 0; top: 22px; width: 11px; height: 11px; background: var(--brand-primary); }
+  ul.findings li.warn:before { background: var(--spec); }
+  ul.findings li b { font-weight: 600; }
+  ul.findings li span { color: var(--meta); }
+
+  .foot { margin-top: 72px; padding-top: 24px; border-top: 2px solid var(--ink); display:flex; justify-content: space-between; font-size: 12px; color: var(--meta); }
+
+  @media print {
+    body { background:#fff; }
+    .page { border: 0; padding: 40px 48px; max-width: none; }
+    section { break-inside: avoid; }
+    table.matrix { break-inside: auto; }
+    tr { break-inside: avoid; }
+  }
+  @media (max-width: 800px) {
+    .page { padding: 48px 28px; }
+    .verdict, .score, .road { grid-template-columns: 1fr; }
+    .vstats { border-left: 0; padding-left: 0; border-top: 1px solid rgba(255,255,255,0.16); padding-top: 12px; }
+    .road > div { border-right: 0; border-bottom: 1px solid var(--rule); }
+    .mast h1 { font-size: 38px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="mast">
+    <p class="eyebrow">Design System Review · June 2026</p>
+    <h1>Component coverage audit</h1>
+    <p class="lede">A review of the Syntax by Scaler component library against the component taxonomy common to mature production design systems (Material 3, Carbon, Polaris, Radix / shadcn, Ant). Scope: what ships as a reusable component today, what is documented but unbuilt, and what is missing.</p>
+    <div class="meta">
+      <div>Foundations<b>Mature — tokens, type, color, motion</b></div>
+      <div>Shipped components<b>15 React primitives</b></div>
+      <div>Specimen-only patterns<b>14 designed, not built</b></div>
+      <div>Aesthetic discipline<b>Strong &amp; consistent</b></div>
+    </div>
+  </header>
+
+  <div class="verdict">
+    <div>
+      <h3>The foundation is excellent. The component layer is half-built.</h3>
+      <p>Tokens, typography, color, motion, iconography and brand are documented to a production standard — this is the top decile of design systems. The primitive set (Button, Card, form controls) is well-modelled with real TypeScript contracts and usage notes.</p>
+      <p>The gap is structural: roughly a dozen high-traffic patterns — Table, Tabs, Tooltip, Toast, Modal, Menu, Progress, Skeleton, Breadcrumb, Pagination, Stepper, Empty state — already exist as polished <em>specimen cards</em> in <code>preview/</code> but were never promoted into reusable components. Consumers must rebuild them by hand, which is exactly the duplication a system exists to prevent.</p>
+    </div>
+    <div class="vstats">
+      <div class="vstat"><b class="blue">15</b><span>Components shipped</span></div>
+      <div class="vstat"><b class="amber">14</b><span>Designed, not built</span></div>
+      <div class="vstat"><b>~18</b><span>Standard gaps remaining</span></div>
+    </div>
+  </div>
+
+  <!-- ============ SCORECARD ============ -->
+  <section>
+    <h2>Maturity by layer <span>relative to a mature production system</span></h2>
+    <div class="score">
+      <div class="meter-row">
+        <div class="meter-head"><b>Foundations &amp; tokens</b><em>95%</em></div>
+        <div class="meter"><i style="width:95%"></i></div>
+      </div>
+      <div class="meter-row">
+        <div class="meter-head"><b>Typography &amp; color</b><em>95%</em></div>
+        <div class="meter"><i style="width:95%"></i></div>
+      </div>
+      <div class="meter-row">
+        <div class="meter-head"><b>Actions &amp; primitives</b><em>75%</em></div>
+        <div class="meter"><i style="width:75%"></i></div>
+      </div>
+      <div class="meter-row">
+        <div class="meter-head"><b>Form inputs</b><em>55%</em></div>
+        <div class="meter"><i class="warn" style="width:55%"></i></div>
+      </div>
+      <div class="meter-row">
+        <div class="meter-head"><b>Data display</b><em>45%</em></div>
+        <div class="meter"><i class="warn" style="width:45%"></i></div>
+      </div>
+      <div class="meter-row">
+        <div class="meter-head"><b>Navigation</b><em>25%</em></div>
+        <div class="meter"><i class="low" style="width:25%"></i></div>
+      </div>
+      <div class="meter-row">
+        <div class="meter-head"><b>Feedback &amp; status</b><em>20%</em></div>
+        <div class="meter"><i class="low" style="width:20%"></i></div>
+      </div>
+      <div class="meter-row">
+        <div class="meter-head"><b>Overlays &amp; surfaces</b><em>15%</em></div>
+        <div class="meter"><i class="low" style="width:15%"></i></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ WHAT EXISTS ============ -->
+  <section>
+    <h2>What ships today <span>15 components + 2 UI kits</span></h2>
+    <p class="note">Reusable, exported, and contracted under the bundle namespace. Each has a <code>.d.ts</code> and a <code>.prompt.md</code>. This is a solid, well-modelled core.</p>
+    <ul class="findings">
+      <li><b>Core (7)</b> — <span>Button (5 variants × 5 sizes, icons), Card (tone + interactive), Avatar, Badge, Tag, Stat, Eyebrow. Button and Card are the strongest assets in the system.</span></li>
+      <li><b>Forms (4)</b> — <span>Input (label / hint / error / icon), Select, Checkbox, Switch. Clean, accessible, on-brand.</span></li>
+      <li><b>Composite cards (2)</b> — <span>ImageCard, ProfileCard — photo-forward, landing-page oriented.</span></li>
+      <li><b>Dashboard (2)</b> — <span>StatTile, Accordion — promoted out of the LMS kit for reuse. This is the right instinct; apply it to the rest of the specimen patterns.</span></li>
+      <li><b>UI kits</b> — <span>scaler_com (marketing recreation) and lms (learner platform). Rich source of patterns — Nav, Modal, CodeEditor, tables live here as kit modules, not as system components.</span></li>
+    </ul>
+  </section>
+
+  <!-- ============ GAP MATRIX ============ -->
+  <section>
+    <h2>Coverage matrix <span>vs. the standard component taxonomy</span></h2>
+    <div class="legend">
+      <span><i class="dot ok"></i> Shipped — reusable component</span>
+      <span><i class="dot spec"></i> Specimen only — designed in <code>preview/</code>, not built</span>
+      <span><i class="dot gap"></i> Missing — no component or specimen</span>
+    </div>
+
+    <table class="matrix">
+      <caption>Actions</caption>
+      <thead><tr><th style="width:22%">Component</th><th style="width:34%">Purpose</th><th style="width:24%">Status</th><th style="width:20%">Priority</th></tr></thead>
+      <tbody>
+        <tr><td class="comp">Button</td><td class="desc">Primary action control</td><td><span class="status ok"><i class="dot"></i>Shipped</span></td><td><span class="pri none">—</span></td></tr>
+        <tr><td class="comp">Link</td><td class="desc">Inline text link</td><td><span class="status ok"><i class="dot"></i>Shipped <span style="font-weight:400">(Button variant)</span></span></td><td><span class="pri none">—</span></td></tr>
+        <tr><td class="comp">Icon button</td><td class="desc">Square icon-only action</td><td><span class="status gap"><i class="dot"></i>Missing</span></td><td><span class="pri p1">P1</span></td></tr>
+        <tr><td class="comp">Button group / Split</td><td class="desc">Segmented / dropdown actions</td><td><span class="status ok"><i class="dot"></i>Shipped</span></td><td><span class="pri none">—</span></td></tr>
+      </tbody>
+    </table>
+
+    <table class="matrix">
+      <caption>Form inputs</caption>
+      <thead><tr><th style="width:22%">Component</th><th style="width:34%">Purpose</th><th style="width:24%">Status</th><th style="width:20%">Priority</th></tr></thead>
+      <tbody>
+        <tr><td class="comp">Input</td><td class="desc">Single-line text field</td><td><span class="status ok"><i class="dot"></i>Shipped</span></td><td><span class="pri none">—</span></td></tr>
+        <tr><td class="comp">Select</td><td class="desc">Native dropdown</td><td><span class="status ok"><i class="dot"></i>Shipped</span></td><td><span class="pri none">—</span></td></tr>
+        <tr><td class="comp">Checkbox</td><td class="desc">Boolean / multi-select</td><td><span class="status ok"><i class="dot"></i>Shipped</span></td><td><span class="pri none">—</span></td></tr>
+        <tr><td class="comp">Switch</td><td class="desc">Instant on/off toggle</td><td><span class="status ok"><i class="dot"></i>Shipped</span></td><td><span class="pri none">—</span></td></tr>
+        <tr><td class="comp">Radio / Radio group</td><td class="desc">Single choice from a set</td><td><span class="status gap"><i class="dot"></i>Missing</span></td><td><span class="pri p0">P0</span></td></tr>
+        <tr><td class="comp">Textarea</td><td class="desc">Multi-line text</td><td><span class="status gap"><i class="dot"></i>Missing</span></td><td><span class="pri p0">P0</span></td></tr>
+        <tr><td class="comp">Field / Form group</td><td class="desc">Label + control + error wrapper</td><td><span class="status gap"><i class="dot"></i>Missing</span></td><td><span class="pri p1">P1</span></td></tr>
+        <tr><td class="comp">Date picker</td><td class="desc">Date / range selection</td><td><span class="status ok"><i class="dot"></i>Shipped</span></td><td><span class="pri none">—</span></td></tr>
+        <tr><td class="comp">Combobox / Autocomplete</td><td class="desc">Typeahead select</td><td><span class="status ok"><i class="dot"></i>Shipped</span></td><td><span class="pri none">—</span></td></tr>
+        <tr><td class="comp">Slider</td><td class="desc">Range / numeric drag</td><td><span class="status gap"><i class="dot"></i>Missing</span></td><td><span class="pri p2">P2</span></td></tr>
+        <tr><td class="comp">File upload</td><td class="desc">Dropzone / attach</td><td><span class="status gap"><i class="dot"></i>Missing</span></td><td><span class="pri p2">P2</span></td></tr>
+      </tbody>
+    </table>
+
+    <table class="matrix">
+      <caption>Data display</caption>
+      <thead><tr><th style="width:22%">Component</th><th style="width:34%">Purpose</th><th style="width:24%">Status</th><th style="width:20%">Priority</th></tr></thead>
+      <tbody>
+        <tr><td class="comp">Card</td><td class="desc">Hairline surface container</td><td><span class="status ok"><i class="dot"></i>Shipped</span></td><td><span class="pri none">—</span></td></tr>
+        <tr><td class="comp">Avatar</td><td class="desc">Person / entity image</td><td><span class="status ok"><i class="dot"></i>Shipped</span></td><td><span class="pri none">—</span></td></tr>
+        <tr><td class="comp">Badge</td><td class="desc">Status label</td><td><span class="status ok"><i class="dot"></i>Shipped</span></td><td><span class="pri none">—</span></td></tr>
+        <tr><td class="comp">Tag / Chip</td><td class="desc">Selectable / removable token</td><td><span class="status ok"><i class="dot"></i>Shipped</span></td><td><span class="pri none">—</span></td></tr>
+        <tr><td class="comp">Stat / StatTile</td><td class="desc">KPI numeral</td><td><span class="status ok"><i class="dot"></i>Shipped</span></td><td><span class="pri none">—</span></td></tr>
+        <tr><td class="comp">Accordion</td><td class="desc">Disclosure list</td><td><span class="status ok"><i class="dot"></i>Shipped</span></td><td><span class="pri none">—</span></td></tr>
+        <tr><td class="comp">Table / Data grid</td><td class="desc">Tabular data, sort / select</td><td><span class="status ok"><i class="dot"></i>Shipped</span></td><td><span class="pri none">—</span></td></tr>
+        <tr><td class="comp">Tooltip</td><td class="desc">Hover hint</td><td><span class="status spec"><i class="dot"></i>Specimen</span></td><td><span class="pri p0">P0</span></td></tr>
+        <tr><td class="comp">List / List item</td><td class="desc">Vertical item rows</td><td><span class="status ok"><i class="dot"></i>Shipped</span></td><td><span class="pri none">—</span></td></tr>
+        <tr><td class="comp">Code block</td><td class="desc">Syntax-highlighted code</td><td><span class="status ok"><i class="dot"></i>Shipped</span></td><td><span class="pri none">—</span></td></tr>
+        <tr><td class="comp">Chart / Data viz</td><td class="desc">Bar / line / ring</td><td><span class="status ok"><i class="dot"></i>Shipped</span></td><td><span class="pri none">—</span></td></tr>
+        <tr><td class="comp">Divider</td><td class="desc">Hairline separator</td><td><span class="status gap"><i class="dot"></i>Missing <span style="font-weight:400">(token only)</span></span></td><td><span class="pri p2">P2</span></td></tr>
+      </tbody>
+    </table>
+
+    <table class="matrix">
+      <caption>Navigation</caption>
+      <thead><tr><th style="width:22%">Component</th><th style="width:34%">Purpose</th><th style="width:24%">Status</th><th style="width:20%">Priority</th></tr></thead>
+      <tbody>
+        <tr><td class="comp">Navbar / App bar</td><td class="desc">Top-level chrome</td><td><span class="status ok"><i class="dot"></i>Shipped</span></td><td><span class="pri none">—</span></td></tr>
+        <tr><td class="comp">Tabs</td><td class="desc">Switch between views</td><td><span class="status spec"><i class="dot"></i>Specimen</span></td><td><span class="pri p0">P0</span></td></tr>
+        <tr><td class="comp">Breadcrumb</td><td class="desc">Hierarchy trail</td><td><span class="status spec"><i class="dot"></i>Specimen</span></td><td><span class="pri p1">P1</span></td></tr>
+        <tr><td class="comp">Pagination</td><td class="desc">Page-through control</td><td><span class="status spec"><i class="dot"></i>Specimen</span></td><td><span class="pri p1">P1</span></td></tr>
+        <tr><td class="comp">Stepper</td><td class="desc">Multi-step progress</td><td><span class="status spec"><i class="dot"></i>Specimen</span></td><td><span class="pri p1">P1</span></td></tr>
+        <tr><td class="comp">Menu / Dropdown</td><td class="desc">Action / nav menu</td><td><span class="status spec"><i class="dot"></i>Specimen</span></td><td><span class="pri p0">P0</span></td></tr>
+        <tr><td class="comp">Sidebar / Nav rail</td><td class="desc">Persistent side nav</td><td><span class="status ok"><i class="dot"></i>Shipped</span></td><td><span class="pri none">—</span></td></tr>
+      </tbody>
+    </table>
+
+    <table class="matrix">
+      <caption>Feedback &amp; status</caption>
+      <thead><tr><th style="width:22%">Component</th><th style="width:34%">Purpose</th><th style="width:24%">Status</th><th style="width:20%">Priority</th></tr></thead>
+      <tbody>
+        <tr><td class="comp">Toast / Notification</td><td class="desc">Transient feedback</td><td><span class="status spec"><i class="dot"></i>Specimen</span></td><td><span class="pri p0">P0</span></td></tr>
+        <tr><td class="comp">Alert / Banner</td><td class="desc">Inline persistent message</td><td><span class="status gap"><i class="dot"></i>Missing</span></td><td><span class="pri p0">P0</span></td></tr>
+        <tr><td class="comp">Progress</td><td class="desc">Bar / ring determinate</td><td><span class="status spec"><i class="dot"></i>Specimen</span></td><td><span class="pri p1">P1</span></td></tr>
+        <tr><td class="comp">Skeleton</td><td class="desc">Loading placeholder</td><td><span class="status spec"><i class="dot"></i>Specimen</span></td><td><span class="pri p1">P1</span></td></tr>
+        <tr><td class="comp">Spinner / Loader</td><td class="desc">Indeterminate loading</td><td><span class="status gap"><i class="dot"></i>Missing</span></td><td><span class="pri p1">P1</span></td></tr>
+        <tr><td class="comp">Empty state</td><td class="desc">No-data pause</td><td><span class="status spec"><i class="dot"></i>Specimen</span></td><td><span class="pri p1">P1</span></td></tr>
+      </tbody>
+    </table>
+
+    <table class="matrix">
+      <caption>Overlays &amp; surfaces</caption>
+      <thead><tr><th style="width:22%">Component</th><th style="width:34%">Purpose</th><th style="width:24%">Status</th><th style="width:20%">Priority</th></tr></thead>
+      <tbody>
+        <tr><td class="comp">Modal / Dialog</td><td class="desc">Focused interruptive task</td><td><span class="status spec"><i class="dot"></i>Specimen <span style="font-weight:400">(kit only)</span></span></td><td><span class="pri p0">P0</span></td></tr>
+        <tr><td class="comp">Drawer / Sheet</td><td class="desc">Edge-anchored panel</td><td><span class="status gap"><i class="dot"></i>Missing</span></td><td><span class="pri p1">P1</span></td></tr>
+        <tr><td class="comp">Popover</td><td class="desc">Anchored floating content</td><td><span class="status gap"><i class="dot"></i>Missing</span></td><td><span class="pri p1">P1</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ============ KEY FINDINGS ============ -->
+  <section>
+    <h2>Key findings</h2>
+    <ul class="findings">
+      <li class="warn"><b>The specimen-to-component gap is the headline issue.</b> <span>14 patterns are fully designed in <code>preview/</code> (table, tabs, tooltip, toasts, stepper, progress, skeleton, breadcrumb, pagination, menu, empty, datetime, codeblock, charts) but never built as reusable components. The visual work is done; the engineering promotion is not. This is the single highest-leverage area.</span></li>
+      <li class="warn"><b>Overlay infrastructure is absent.</b> <span>No Modal, Drawer, Popover, Tooltip, or Menu as system primitives — only a one-off <code>Modal.jsx</code> inside the scaler_com kit. These share a focus-trap / portal / dismiss foundation that should be built once. Currently the biggest accessibility and consistency risk.</span></li>
+      <li><b>Form coverage has obvious holes.</b> <span>Textarea and Radio are table-stakes and entirely missing; there is no Field wrapper to standardize label / hint / error composition across controls.</span></li>
+      <li><b>No feedback layer.</b> <span>Toast and Alert/Banner are how a product talks back to users. Neither ships. Status colors are defined as tokens but have no component to carry them.</span></li>
+      <li><b>Navigation lives in kits, not the system.</b> <span>Navbar, Tabs, Breadcrumb and Menu are realized inside the LMS and marketing kits but not extracted — so every new surface re-implements them.</span></li>
+      <li><b>Where components exist, they are high quality.</b> <span>Real <code>.d.ts</code> contracts, sensible variant/size APIs, usage prompts, and strict adherence to the zero-radius / Clash-display / Jakarta-body rules. The bar is set; the breadth needs to catch up.</span></li>
+    </ul>
+  </section>
+
+  <!-- ============ ROADMAP ============ -->
+  <section>
+    <h2>Recommended sequence</h2>
+    <div class="road">
+      <div>
+        <h4 class="p0c">P0 · Ship next</h4>
+        <p class="cap">Highest traffic · already designed or table-stakes</p>
+        <ul>
+          <li><b>Modal / Dialog</b> — promote from kit; build the portal + focus-trap base</li>
+          <li><b>Tooltip</b> &amp; <b>Menu / Dropdown</b> — share that overlay base</li>
+          <li><b>Tabs</b> — specimen ready</li>
+          <li><b>Table</b> — specimen ready</li>
+          <li><b>Toast</b> + <b>Alert / Banner</b> — the feedback layer</li>
+          <li><b>Textarea</b> + <b>Radio group</b> — close the forms gap</li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="p1c">P1 · Then</h4>
+        <p class="cap">Common, mostly specimen-ready</p>
+        <ul>
+          <li><b>Field</b> wrapper for forms</li>
+          <li><b>Breadcrumb</b>, <b>Pagination</b>, <b>Stepper</b></li>
+          <li><b>Progress</b>, <b>Skeleton</b>, <b>Spinner</b>, <b>Empty state</b></li>
+          <li><b>Navbar</b> — extract from kits</li>
+          <li><b>Icon button</b>, <b>List</b></li>
+          <li><b>Drawer</b>, <b>Popover</b>, <b>Code block</b>, <b>Date picker</b></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="p2c">P2 · Later</h4>
+        <p class="cap">Specialized or lower frequency</p>
+        <ul>
+          <li><b>Combobox / Autocomplete</b></li>
+          <li><b>Slider</b>, <b>File upload</b></li>
+          <li><b>Chart / Data viz</b></li>
+          <li><b>Sidebar / Nav rail</b></li>
+          <li><b>Button group / Split</b></li>
+          <li><b>Divider</b> as a component</li>
+        </ul>
+      </div>
+    </div>
+    <p class="note" style="margin-top:22px">Sequencing note: build the shared <b>overlay primitive</b> (portal, focus trap, dismiss, positioning) before Modal / Tooltip / Menu / Popover / Drawer — they are five faces of one foundation. Likewise a single <b>Field</b> wrapper unlocks consistent label / hint / error across every input.</p>
+  </section>
+
+  <div class="foot">
+    <span>Syntax by Scaler — Design System</span>
+    <span>Component coverage audit · June 2026</span>
+  </div>
+
+</div>
+</body>
+</html>

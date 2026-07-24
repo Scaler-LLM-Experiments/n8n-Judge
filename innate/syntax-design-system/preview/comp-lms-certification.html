@@ -1,0 +1,67 @@
+<!doctype html>
+<!-- @dsCard group="LMS Patterns" name="Certification card" subtitle="Module skill test — upcoming (Start Test) and locked, with type/duration tags" viewport="760x340" -->
+<html><head><meta charset="utf-8"><title>Certification card</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body.card { width: 760px; }
+  :root{ --ease-out-quart:cubic-bezier(.25,1,.5,1); --disabled-fg:#94979e; }
+  .certification__head{ border-left:3px solid var(--brand-primary); padding-left:14px; margin-bottom:18px; }
+  .certification__head h2{ margin:0; font-size:20px; font-weight:700; font-family:var(--font-body); color:var(--fg-1); }
+  .certification__head p{ margin:6px 0 0; font-size:14px; color:var(--fg-3); }
+
+  .cert-card{ display:flex; align-items:center; gap:14px; padding:18px 20px; border:1px solid var(--border-subtle); margin-bottom:12px; font-family:var(--font-body);
+    cursor:pointer; transform-origin:center center; transition:transform .22s var(--ease-out-quart), border-color .2s ease; }
+  .cert-card:not(.cert-card--locked):hover{ transform:scale(1.01); border-color:var(--brand-primary); }
+  .cert-card:not(.cert-card--locked):active{ transform:scale(.985); transition-duration:.1s; }
+  .cert-card--locked{ background:#fbfbfb; cursor:not-allowed; }
+  .cert-card__icon{ width:36px; height:36px; flex:none; display:flex; align-items:center; justify-content:center; }
+  .cert-card__main{ flex:1; }
+  .cert-card__title{ display:flex; align-items:center; gap:10px; font-size:16px; font-weight:700; color:var(--fg-1); }
+  .cert-card--locked .cert-card__title{ color:var(--disabled-fg); }
+  .cert-status{ display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:600; letter-spacing:.5px; }
+  .cert-status--upcoming{ color:var(--brand-primary); }
+  .cert-status--locked{ color:var(--disabled-fg); }
+  .cert-tags{ display:flex; gap:8px; margin-top:10px; }
+  .tag{ display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:500; color:#4a4a4a; padding:4px 9px; border:1px solid var(--border-subtle); background:#f5f5f5; }
+  .tag--companion{ color:var(--brand-primary); }
+  .cert-card--locked .tag{ color:var(--disabled-fg); opacity:.85; }
+  .btn-primary{ display:inline-flex; align-items:center; gap:7px; font-size:14px; font-weight:600; color:#fff; background:var(--brand-primary); padding:10px 16px; border:0; font-family:var(--font-body);
+    transition:transform .15s var(--ease-out-quart), background .15s ease; }
+  .btn-primary:hover{ transform:scale(1.02); } .btn-primary:active{ transform:scale(.96); }
+</style></head>
+<body class="card">
+  <div class="certification">
+    <div class="certification__head">
+      <h2>Module Certification</h2>
+      <p>Completing the mandatory items unlocks your job opportunities.</p>
+    </div>
+
+    <div class="cert-card">
+      <div class="cert-card__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0055ff" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="3 3"><circle cx="12" cy="12" r="9"/></svg></div>
+      <div class="cert-card__main">
+        <div class="cert-card__title">Heaps &amp; Priority Queues Skill Test
+          <span class="cert-status cert-status--upcoming"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3 2 6"/><path d="m22 6-3-3"/></svg>UPCOMING</span>
+        </div>
+        <div class="cert-tags">
+          <span class="tag"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6"/><path d="m8 6-6 6 6 6"/></svg>Skill Test</span>
+          <span class="tag"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/></svg>120 Mins</span>
+        </div>
+      </div>
+      <button class="btn-primary">Start Test <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg></button>
+    </div>
+
+    <div class="cert-card cert-card--locked">
+      <div class="cert-card__icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94979e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="0"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+      <div class="cert-card__main">
+        <div class="cert-card__title">Data Structures &amp; Algorithms — Mock Interview
+          <span class="cert-status cert-status--locked"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="0"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>LOCKED</span>
+        </div>
+        <div class="cert-tags">
+          <span class="tag">Mock Interview</span>
+          <span class="tag">120 Mins</span>
+          <span class="tag tag--companion"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0055ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>Taken by Companion</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</body></html>

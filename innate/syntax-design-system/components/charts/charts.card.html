@@ -1,0 +1,60 @@
+<!-- @dsCard group="Components" name="Charts — Line, Bar, Donut" subtitle="Flat brand-coloured SVG data viz" viewport="760x560" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Charts</title>
+<link rel="stylesheet" href="../../styles.css" />
+<style>
+  html, body { margin: 0; background: #fff; }
+  body { padding: 24px; font-family: var(--font-body); color: var(--fg-1); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .panel { border: 1px solid var(--border-subtle); padding: 16px; }
+  .panel h4 { margin: 0 0 12px; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--fg-3); font-weight: 600; }
+  .wide { grid-column: 1 / -1; }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+  const { LineChart, BarChart, DonutChart } = window.SyntaxByScalerDesignSystem_6a7054;
+  function Demo() {
+    return (
+      <div className="grid">
+        <div className="panel">
+          <h4>Weekly active learners</h4>
+          <LineChart data={[
+            { label: 'M', value: 90 }, { label: 'T', value: 76 }, { label: 'W', value: 82 },
+            { label: 'T', value: 112 }, { label: 'F', value: 104 }, { label: 'S', value: 150 }, { label: 'S', value: 168 },
+          ]} />
+        </div>
+        <div className="panel">
+          <h4>Learner status · cohort 18</h4>
+          <DonutChart centerValue="216" centerLabel="Learners" segments={[
+            { label: 'On track', value: 60 },
+            { label: 'In progress', value: 25 },
+            { label: 'Inactive', value: 15, color: '#D1D1D1' },
+          ]} />
+        </div>
+        <div className="panel wide">
+          <h4>Lesson completions · last 6 weeks</h4>
+          <BarChart height={170} showValues series={[{ name: 'Completed', color: '#0055FF' }, { name: 'In progress', color: '#82B0FF' }]} data={[
+            { label: 'W23', values: [60, 18] },
+            { label: 'W24', values: [70, 20] },
+            { label: 'W25', values: [84, 22] },
+            { label: 'W26', values: [76, 18] },
+            { label: 'W27', values: [102, 16] },
+            { label: 'W28', values: [88, 22] },
+          ]} />
+        </div>
+      </div>
+    );
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(<Demo />);
+</script>
+</body>
+</html>

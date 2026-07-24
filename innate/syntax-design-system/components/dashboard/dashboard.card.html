@@ -1,0 +1,47 @@
+<!-- @dsCard group="Components" name="Dashboard — StatTile & Accordion" subtitle="Reusable dashboard atoms promoted from the LMS kit" viewport="720x420" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Dashboard atoms</title>
+<link rel="stylesheet" href="../../styles.css" />
+<style>
+  html, body { margin: 0; background: #fff; }
+  body { padding: 24px; font-family: var(--font-body); color: var(--fg-1); }
+  .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 22px; }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+  const { StatTile, Accordion } = window.SyntaxByScalerDesignSystem_6a7054;
+  function Demo() {
+    const lessons = (
+      <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--fg-3)', padding: '10px 12px' }}>
+        10 lessons · Live class, assignments and practice tracked per day.
+      </div>
+    );
+    return (
+      <div>
+        <div className="tiles">
+          <StatTile label="Rank" value="#12" sub="of 150" />
+          <StatTile label="Lessons done" value="142" delta="8 this week" />
+          <StatTile label="Hours" value="96" delta="5.2h" />
+          <StatTile label="Avg. score" value="88%" delta="2%" deltaDir="down" />
+        </div>
+        <Accordion defaultOpenId="m3" items={[
+          { id: 'm1', title: 'Module 1: Coding Basics', meta: 'PSP 60%' },
+          { id: 'm3', title: 'Module 3: Linked Lists', meta: 'PSP 60%', content: lessons },
+          { id: 'm7', title: 'Module 7: Coding Basics', locked: true, meta: '—' },
+        ]} />
+      </div>
+    );
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(<Demo />);
+</script>
+</body>
+</html>

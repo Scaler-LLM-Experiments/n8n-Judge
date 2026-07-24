@@ -1,0 +1,68 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Status colors" subtitle="Success · Warning · Danger · Info" viewport="720x220" --><html><head><meta charset="utf-8"><title>Status colors</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; }
+  .swatch {
+    border:1px solid var(--border-subtle); padding:10px;
+    display:flex; flex-direction:column; gap:6px;
+  }
+  .chip {
+    height:32px; display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-body); font-size:12px; font-weight:600;
+    letter-spacing:0.04em;
+  }
+  .name { font-family:var(--font-body); font-size:12px; font-weight:600; color:#121212; }
+  .hex  { font-family:var(--font-mono); font-size:10px; color:#616161; }
+  .badge {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:2px 8px; height:20px;
+    font-family:var(--font-body); font-size:11px; font-weight:500;
+    border:1px solid; align-self:flex-start;
+  }
+  .badge .dot { width:6px; height:6px; flex:none; }
+</style></head>
+<body class="card">
+<div class="meta" style="margin-bottom:10px">
+  <strong>Four states. Same hue, three roles each: solid · soft fill · border.</strong>
+</div>
+<div class="grid">
+
+  <div class="swatch">
+    <div class="chip" style="background:#1F9D55; color:#fff">Success</div>
+    <div class="name">Success</div>
+    <div class="hex">#1F9D55 · bg #E8F6EE</div>
+    <span class="badge" style="background:#E8F6EE; border-color:#B7E2C7; color:#15663A">
+      <span class="dot" style="background:#1F9D55"></span>Submitted
+    </span>
+  </div>
+
+  <div class="swatch">
+    <div class="chip" style="background:#C97A0E; color:#fff">Warning</div>
+    <div class="name">Warning</div>
+    <div class="hex">#C97A0E · bg #FFF4E0</div>
+    <span class="badge" style="background:#FFF4E0; border-color:#F2D49A; color:#8A4F00">
+      <span class="dot" style="background:#C97A0E"></span>Due in 2d
+    </span>
+  </div>
+
+  <div class="swatch">
+    <div class="chip" style="background:#D62B2B; color:#fff">Danger</div>
+    <div class="name">Danger</div>
+    <div class="hex">#D62B2B · bg #FDECEC</div>
+    <span class="badge" style="background:#FDECEC; border-color:#F2B5B5; color:#8B1B1B">
+      <span class="dot" style="background:#D62B2B"></span>Overdue
+    </span>
+  </div>
+
+  <div class="swatch">
+    <div class="chip" style="background:#0055FF; color:#fff">Info / Brand</div>
+    <div class="name">Info</div>
+    <div class="hex">#0055FF · bg #E6F0FF</div>
+    <span class="badge" style="background:#E6F0FF; border-color:#BAD4FF; color:#003BB5">
+      <span class="dot" style="background:#0055FF"></span>In review
+    </span>
+  </div>
+
+</div>
+</body></html>

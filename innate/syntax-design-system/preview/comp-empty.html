@@ -1,0 +1,104 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Empty states" subtitle="No data, no results, connect, error" viewport="720x560" --><html><head><meta charset="utf-8"><title>Empty states</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .panel {
+    border:1px solid #ECECEC; padding:32px 24px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:14px; text-align:center; min-height:240px;
+  }
+  .panel .glyph {
+    width:72px; height:72px;
+    display:inline-flex; align-items:center; justify-content:center;
+    background:#FAFAFA; border:1px dashed #D1D1D1; color:#AAAAAA;
+  }
+  .panel h3 {
+    margin:0;
+    font-family:var(--font-headline); font-weight:500; font-size:18px;
+    letter-spacing:-0.01em; color:#0C0C0C;
+  }
+  .panel p {
+    margin:0; max-width:36ch;
+    font-family:var(--font-body); font-size:13px; line-height:1.5; color:#616161;
+  }
+  .row { display:flex; gap:8px; }
+  .btn {
+    height:36px; padding:0 16px; cursor:pointer;
+    font-family:var(--font-body); font-size:13px; font-weight:500;
+    border:1px solid transparent;
+  }
+  .btn--p { background:#0055FF; color:#fff; }
+  .btn--g { background:#fff; color:#262626; border-color:#D1D1D1; }
+  .btn--g:hover { background:#FAFAFA; }
+</style></head>
+<body class="card">
+<div class="grid">
+
+  <!-- No data yet -->
+  <div class="panel">
+    <div class="glyph">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square">
+        <rect x="3" y="3" width="7" height="7"/>
+        <rect x="14" y="3" width="7" height="7"/>
+        <rect x="3" y="14" width="7" height="7"/>
+        <rect x="14" y="14" width="7" height="7"/>
+      </svg>
+    </div>
+    <h3>No assignments yet</h3>
+    <p>Assignments your mentor sets will show up here. Check back after your first live session.</p>
+    <div class="row">
+      <button class="btn btn--p">Browse practice problems</button>
+    </div>
+  </div>
+
+  <!-- Search no results -->
+  <div class="panel">
+    <div class="glyph">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square">
+        <circle cx="11" cy="11" r="7"/>
+        <path d="M20 20l-3-3"/>
+      </svg>
+    </div>
+    <h3>No results for "graphql"</h3>
+    <p>We couldn't find any lessons matching that. Try a related term, or browse the curriculum index.</p>
+    <div class="row">
+      <button class="btn btn--g">Clear filters</button>
+      <button class="btn btn--p">Browse curriculum</button>
+    </div>
+  </div>
+
+  <!-- Connect / setup -->
+  <div class="panel">
+    <div class="glyph">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square">
+        <path d="M3 12h6"/><path d="M15 12h6"/>
+        <rect x="9" y="8" width="6" height="8"/>
+      </svg>
+    </div>
+    <h3>Connect your GitHub</h3>
+    <p>Link your account so we can auto-grade assignments and surface your recent commits to mentors.</p>
+    <div class="row">
+      <button class="btn btn--p">Connect GitHub</button>
+      <button class="btn btn--g">Skip for now</button>
+    </div>
+  </div>
+
+  <!-- Error / load failure -->
+  <div class="panel" style="border-color:#F2B5B5; background:#FFFBFB">
+    <div class="glyph" style="color:#D62B2B; border-color:#F2B5B5; background:#FDECEC">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square">
+        <circle cx="12" cy="12" r="9"/>
+        <path d="M12 7v5"/><path d="M12 16h.01"/>
+      </svg>
+    </div>
+    <h3 style="color:#8B1B1B">Couldn't load your dashboard</h3>
+    <p>Something went wrong on our end. Refresh the page; if it keeps happening, contact support.</p>
+    <div class="row">
+      <button class="btn btn--p" style="background:#D62B2B">Try again</button>
+      <button class="btn btn--g">Contact support</button>
+    </div>
+  </div>
+
+</div>
+</body></html>

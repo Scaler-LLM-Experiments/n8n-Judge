@@ -1,0 +1,39 @@
+<!doctype html>
+<!-- @dsCard group="LMS Patterns" name="View pill + Go to today" subtitle="Bottom-center segmented pill (Daily Plan / All Modules) + dark 'Go to today' jump button" viewport="600x240" -->
+<html><head><meta charset="utf-8"><title>View pill</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body.card{ width:600px; display:flex; flex-direction:column; gap:26px; align-items:flex-start; }
+  :root{ --ease:cubic-bezier(.25,1,.5,1); }
+  .label{ font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#AAAAAA; font-family:var(--font-body); }
+  .floating-tabs{ display:inline-flex; align-items:center; gap:4px; background:#fff; border:1px solid #d4d4d4; padding:6px; }
+  .ftab{ display:flex; align-items:center; gap:8px; font-family:var(--font-body); font-size:14px; font-weight:600; color:var(--fg-3); padding:9px 16px; background:none; border:0; cursor:pointer;
+    transition:background .18s ease, color .18s ease, transform .15s var(--ease); }
+  .ftab.is-active{ background:#121212; color:#fff; }
+  .ftab:active{ transform:scale(.96); }
+  .ftab-sep{ width:1px; height:20px; background:var(--border-subtle); }
+  .go-today{ display:inline-flex; align-items:center; gap:8px; background:#121212; color:#fff; font-family:var(--font-body); font-size:13px; font-weight:600; padding:11px 16px; border:1px solid #121212; cursor:pointer;
+    transition:transform .18s var(--ease), background .18s ease; }
+  .go-today:hover{ transform:translateY(-2px); background:#000; } .go-today:active{ transform:scale(.96); }
+  .grp{ display:flex; flex-direction:column; gap:10px; }
+</style></head>
+<body class="card">
+  <div class="grp">
+    <span class="label">Segmented view switch — click to toggle</span>
+    <div class="floating-tabs" id="tabs">
+      <button class="ftab" data-v="daily"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="0"/><path d="M3 10h18"/><path d="M8 2v4"/><path d="M16 2v4"/></svg>Daily Plan</button>
+      <span class="ftab-sep"></span>
+      <button class="ftab is-active" data-v="modules"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V8l7-5 7 5v13"/><path d="M9 21v-6h6v6"/></svg>All Modules</button>
+    </div>
+  </div>
+  <div class="grp">
+    <span class="label">Jump back to the current day / module</span>
+    <button class="go-today"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="0"/><path d="M3 10h18"/><path d="M8 2v4"/><path d="M16 2v4"/><circle cx="12" cy="15" r="2.2"/></svg><span>Go to today</span></button>
+  </div>
+<script>
+  document.getElementById('tabs').addEventListener('click', function(e){
+    var b=e.target.closest('.ftab'); if(!b) return;
+    this.querySelectorAll('.ftab').forEach(function(t){ t.classList.toggle('is-active', t===b); });
+  });
+</script>
+</body></html>

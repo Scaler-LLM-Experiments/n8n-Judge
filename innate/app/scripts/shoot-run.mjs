@@ -1,0 +1,10 @@
+import { chromium } from 'playwright-core';
+const browser = await chromium.launch({ channel: 'chrome', headless: true, args: ['--no-sandbox'] });
+const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+await page.goto('http://localhost:5173/#run-demo', { waitUntil: 'networkidle' });
+await page.waitForTimeout(7000);
+await page.screenshot({ path: '/tmp/judge-shots/r1-running.png' });
+await page.waitForTimeout(16000);
+await page.screenshot({ path: '/tmp/judge-shots/r2-done.png' });
+await browser.close();
+console.log('done');

@@ -1,0 +1,8 @@
+**/node_modules
+app/dist
+docs
+iris-mascot-kit
+syntax-design-system
+*.py
+*.md
+.git

@@ -1,0 +1,163 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Video & media card" subtitle="Lesson, live, resume — centered play, scrim, clean meta" viewport="720x380" --><html><head><meta charset="utf-8"><title>Video & media card</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  .grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:14px; }
+
+  .vcard {
+    border:1px solid var(--border-subtle); background:#fff;
+    display:flex; flex-direction:column; cursor:pointer;
+    transition: border-color 180ms var(--ease-standard,ease),
+                box-shadow 180ms var(--ease-standard,ease),
+                transform 180ms var(--ease-standard,ease);
+  }
+  .vcard:hover {
+    border-color:#BAD4FF;
+    box-shadow:0 18px 36px -16px rgba(0,85,255,0.22);
+    transform: translateY(-2px);
+  }
+
+  .thumb {
+    position:relative; aspect-ratio:16/9; overflow:hidden;
+    background:linear-gradient(135deg,#011845 0%,#003ACC 60%,#0055FF 100%);
+  }
+  .thumb.b2 { background:linear-gradient(135deg,#1B0A40 0%,#5C20A8 60%,#8000FF 100%); }
+  .thumb.b3 { background:linear-gradient(135deg,#06251A 0%,#0E6B43 55%,#00E1AD 100%); }
+
+  /* faint diagonal texture so the gradient reads as a placeholder, not a flat fill */
+  .thumb::before {
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background-image:repeating-linear-gradient(135deg, rgba(255,255,255,0.05) 0 1px, transparent 1px 9px);
+  }
+  /* bottom scrim for the duration chip */
+  .thumb::after {
+    content:""; position:absolute; left:0; right:0; bottom:0; height:55%;
+    background:linear-gradient(to top, rgba(0,0,0,0.5), transparent); pointer-events:none;
+  }
+
+  /* Centered play — square, brand blue, scales from the middle on hover */
+  .play {
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    width:48px; height:48px; background:var(--brand-primary); color:#fff;
+    display:flex; align-items:center; justify-content:center; z-index:2;
+    box-shadow:0 8px 20px -6px rgba(0,0,0,0.45);
+    transition: transform 180ms var(--ease-standard,ease), background 180ms ease;
+  }
+  .vcard:hover .play { transform:translate(-50%,-50%) scale(1.08); background:#1F6BFF; }
+  .play svg { display:block; }
+
+  /* Category label — top-left, mono, on the gradient */
+  .cat {
+    position:absolute; left:11px; top:11px; z-index:2;
+    font-family:var(--font-mono); font-size:10px; letter-spacing:0.08em;
+    text-transform:uppercase; color:rgba(255,255,255,0.82);
+    text-shadow:0 1px 2px rgba(0,0,0,0.35);
+  }
+
+  /* Status badge — top-right */
+  .badge {
+    position:absolute; right:11px; top:11px; z-index:2;
+    font-family:var(--font-body); font-size:10px; font-weight:600;
+    text-transform:uppercase; letter-spacing:0.08em;
+    background:#fff; color:var(--brand-primary); padding:3px 8px;
+  }
+  .badge.live { background:#D62B2B; color:#fff; display:inline-flex; align-items:center; gap:6px; }
+  .badge.live .dot { width:6px; height:6px; background:#fff; animation:pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+  .badge.resume { background:#1F9D55; color:#fff; }
+
+  /* Duration / viewers — bottom-right on the scrim */
+  .duration {
+    position:absolute; right:11px; bottom:11px; z-index:2;
+    color:#fff; font-family:var(--font-mono); font-size:11px; letter-spacing:0.02em;
+    text-shadow:0 1px 2px rgba(0,0,0,0.45);
+  }
+
+  .progress { position:absolute; left:0; right:0; bottom:0; height:3px; background:rgba(255,255,255,0.22); z-index:3; }
+  .progress i { display:block; height:100%; background:#3D82FF; }
+
+  .body { padding:14px 16px 16px; display:flex; flex-direction:column; gap:7px; }
+  .eyebrow {
+    font-family:var(--font-body); font-size:10px; font-weight:600;
+    letter-spacing:0.12em; text-transform:uppercase; color:var(--brand-primary);
+  }
+  .title {
+    font-family:var(--font-body); font-size:14px; font-weight:600; color:var(--fg-1);
+    line-height:1.35; margin:0; text-wrap:pretty;
+  }
+  .by {
+    display:flex; align-items:center; gap:10px; margin-top:5px; padding-top:11px;
+    border-top:1px solid var(--border-subtle);
+  }
+  .by .av {
+    width:28px; height:28px; flex:none; background:#011845; color:#fff;
+    display:inline-flex; align-items:center; justify-content:center;
+    font-family:var(--font-body); font-size:10px; font-weight:600;
+  }
+  .by .who { display:flex; flex-direction:column; line-height:1.25; min-width:0; }
+  .by .who .n {
+    font-family:var(--font-body); font-size:12px; font-weight:600; color:var(--fg-1);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .by .who .d { font-family:var(--font-body); font-size:11px; color:var(--fg-4); margin-top:1px; }
+</style></head>
+<body class="card">
+<div class="grid">
+
+  <!-- Recorded lesson -->
+  <div class="vcard">
+    <div class="thumb">
+      <span class="cat">Module 2 · Lesson 4</span>
+      <span class="badge">Lesson</span>
+      <span class="play"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5l12 7-12 7z"/></svg></span>
+      <span class="duration">42:18</span>
+    </div>
+    <div class="body">
+      <span class="eyebrow">Data structures</span>
+      <h3 class="title">Binary trees: traversal patterns and recursion</h3>
+      <div class="by">
+        <span class="av">AP</span>
+        <span class="who"><span class="n">Aman Prasad</span><span class="d">Updated Mar 12</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live -->
+  <div class="vcard">
+    <div class="thumb b2">
+      <span class="cat">Live workshop</span>
+      <span class="badge live"><span class="dot"></span>Live</span>
+      <span class="play"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5l12 7-12 7z"/></svg></span>
+      <span class="duration">87 watching</span>
+    </div>
+    <div class="body">
+      <span class="eyebrow">Systems</span>
+      <h3 class="title">Designing rate limiters at scale</h3>
+      <div class="by">
+        <span class="av" style="background:#8000FF">RG</span>
+        <span class="who"><span class="n">Riya Gupta</span><span class="d">Started 14 min ago</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resume -->
+  <div class="vcard">
+    <div class="thumb b3">
+      <span class="cat">Module 5 · Lesson 1</span>
+      <span class="badge resume">Resume</span>
+      <span class="play"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5l12 7-12 7z"/></svg></span>
+      <span class="duration">12:08 / 38:42</span>
+      <div class="progress"><i style="width:31%"></i></div>
+    </div>
+    <div class="body">
+      <span class="eyebrow">React</span>
+      <h3 class="title">React Server Components — what changes for product engineers</h3>
+      <div class="by">
+        <span class="av" style="background:#1F9D55">MK</span>
+        <span class="who"><span class="n">Manish Kumar</span><span class="d">3 of 12 chapters</span></span>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body></html>

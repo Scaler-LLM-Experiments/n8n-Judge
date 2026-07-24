@@ -1,0 +1,98 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Table row" subtitle="Selectable rows · status · progress" viewport="720x340" --><html><head><meta charset="utf-8"><title>Table row</title>
+<link rel="stylesheet" href="_card.css">
+<style>
+  body.card { padding:0; }
+  .wrap { padding:18px 20px; }
+  .toolbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+  .toolbar .left { font-family:var(--font-body); font-size:12px; color:#616161; }
+  .toolbar .right { display:flex; gap:8px; }
+  .ibtn { height:28px; padding:0 10px; background:#fff; border:1px solid #D1D1D1; cursor:pointer;
+    font-family:var(--font-body); font-size:12px; color:#262626; }
+  .ibtn:hover { background:#EBF8FF; color:#0055FF; border-color:#0055FF; }
+
+  table { width:100%; border-collapse:collapse; }
+  thead th {
+    text-align:left; padding:10px 12px;
+    font-family:var(--font-body); font-size:11px; font-weight:600; letter-spacing:0.04em;
+    color:#616161; background:#FAFAFA; border-bottom:1px solid #E4E4E4; text-transform:uppercase;
+  }
+  tbody td {
+    padding:12px; border-bottom:1px solid #ECECEC;
+    font-family:var(--font-body); font-size:13px; color:#262626; vertical-align:middle;
+  }
+  tbody tr:hover td { background:#FAFAFD; }
+  tbody tr.is-selected td { background:#E6F0FF; }
+  .who { display:flex; align-items:center; gap:10px; }
+  .who .av { width:28px; height:28px; background:#011845; color:#fff; display:inline-flex; align-items:center; justify-content:center; font-family:var(--font-body); font-size:11px; font-weight:600; }
+  .badge { display:inline-flex; align-items:center; gap:6px; height:22px; padding:0 8px;
+    font-family:var(--font-body); font-size:11px; font-weight:500; border:1px solid; }
+  .b-s { background:#E8F6EE; border-color:#B7E2C7; color:#15663A; }
+  .b-w { background:#FFF4E0; border-color:#F2D49A; color:#8A4F00; }
+  .b-d { background:#FDECEC; border-color:#F2B5B5; color:#8B1B1B; }
+  .b-i { background:#E6F0FF; border-color:#BAD4FF; color:#003BB5; }
+
+  .pbar { position:relative; height:4px; background:#E4E4E4; width:100%; max-width:160px; }
+  .pbar > i { position:absolute; left:0; top:0; bottom:0; background:#0055FF; }
+
+  .cb { width:16px; height:16px; border:1.5px solid #AAAAAA; background:#fff; display:inline-block; vertical-align:middle; }
+  .cb.is-checked { background:#0055FF; border-color:#0055FF; position:relative; }
+  .cb.is-checked::after { content:"✓"; color:#fff; font-size:11px; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
+</style></head>
+<body class="card">
+<div class="wrap">
+  <div class="toolbar">
+    <div class="left">12 learners · Cohort 18 · Backend</div>
+    <div class="right">
+      <button class="ibtn">Export CSV</button>
+      <button class="ibtn">Filter</button>
+    </div>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:32px"><span class="cb"></span></th>
+        <th>Learner</th>
+        <th>Course</th>
+        <th>Progress</th>
+        <th>Status</th>
+        <th>Last active</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="cb"></span></td>
+        <td><div class="who"><div class="av">SA</div>Sudhanva Acharya</div></td>
+        <td>SE Mastery</td>
+        <td><div class="pbar"><i style="width:64%"></i></div></td>
+        <td><span class="badge b-s">On track</span></td>
+        <td>2h ago</td>
+      </tr>
+      <tr class="is-selected">
+        <td><span class="cb is-checked"></span></td>
+        <td><div class="who"><div class="av" style="background:#0055FF">RP</div>Riya Patel</div></td>
+        <td>AI Labs</td>
+        <td><div class="pbar"><i style="width:88%"></i></div></td>
+        <td><span class="badge b-i">In review</span></td>
+        <td>14m ago</td>
+      </tr>
+      <tr>
+        <td><span class="cb"></span></td>
+        <td><div class="who"><div class="av" style="background:#8000FF">MK</div>Manish K.</div></td>
+        <td>SE Mastery</td>
+        <td><div class="pbar"><i style="width:32%; background:#C97A0E"></i></div></td>
+        <td><span class="badge b-w">Behind</span></td>
+        <td>3d ago</td>
+      </tr>
+      <tr>
+        <td><span class="cb"></span></td>
+        <td><div class="who"><div class="av" style="background:#1F9D55">AN</div>Ananya R.</div></td>
+        <td>System Design</td>
+        <td><div class="pbar"><i style="width:12%; background:#D62B2B"></i></div></td>
+        <td><span class="badge b-d">At risk</span></td>
+        <td>9d ago</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+</body></html>
