@@ -12,6 +12,7 @@
     "build": "npm run build --workspace @judge/web",
     "start": "npm run start --workspace @judge/web",
     "test": "vitest run",
+    "smoke": "node apps/web/scripts/smoke.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {

@@ -63,7 +63,7 @@ export function DissectionScreen({ problem, onComplete, onDecision }) {
   };
 
   if (phase === 'greet') {
-    return <Greet onContinue={() => { setPhase('problem'); }} />;
+    return <Greet problem={problem} onContinue={() => { setPhase('problem'); }} />;
   }
   if (phase === 'problem') {
     return <ProblemBeat problem={problem} onContinue={() => { setPhase('quiz'); setMascotClip('idle'); }} />;
@@ -230,7 +230,7 @@ function OptionBox({ letter, option, state, dim, disabled, onClick }) {
   );
 }
 
-function Greet({ onContinue }) {
+function Greet({ problem, onContinue }) {
   const root = useRef(null);
   useEffect(() => {
     const ctx = gsap.context(() => {
