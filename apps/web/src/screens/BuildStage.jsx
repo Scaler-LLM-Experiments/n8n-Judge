@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import gsap from 'gsap';
-import { CheckCircle, XCircle, ArrowRight, Play, Sparkle, CircleNotch, DotsSixVertical, EnvelopeSimpleOpen, BracketsCurly, ArrowsSplit, PaperPlaneTilt } from '@phosphor-icons/react';
+import { CheckCircle, XCircle, ArrowRight, Play, Sparkle, CircleNotch, DotsSixVertical, EnvelopeSimpleOpen, BracketsCurly, ArrowsSplit, PaperPlaneTilt, ArrowUUpLeft } from '@phosphor-icons/react';
 import { TopBar } from '../components/TopBar.jsx';
 import { ProblemStatementPanel } from '../components/ProblemStatementPanel.jsx';
 import { Button } from '../design-system/Button.jsx';
@@ -485,15 +485,19 @@ function FloatingProbe({ probe, onAnswer, onClose }) {
         <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.4, color: 'var(--fg-1)', marginBottom: 14 }}>{data.prompt}</div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {/* Deliberately NOT scored green/red. This probe fires because the
+              node is wrong — that is already settled, and the node comes off
+              the canvas whichever option is chosen. Colouring the accurate
+              answer green read as "you were right", and then the node
+              vanished. The selection is neutral; the explanation carries the
+              meaning. Right/wrong is still recorded for the report. */}
           {options.map((opt, i) => {
             const isPicked = picked === i;
-            const tone = isPicked ? (opt.correct ? 'var(--status-success)' : 'var(--status-danger)') : 'var(--border-subtle)';
-            const letterBg = isPicked ? (opt.correct ? 'var(--status-success)' : 'var(--status-danger)') : 'transparent';
-            const letterColor = isPicked ? '#fff' : 'var(--fg-2)';
+            const tone = isPicked ? 'var(--brand-primary)' : 'var(--border-subtle)';
             return (
               <button key={i} type="button" onClick={() => pick(opt, i)} disabled={picked !== null && !isPicked}
-                style={{ display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', padding: '11px 12px', border: `1px solid ${tone}`, background: isPicked ? (opt.correct ? 'var(--status-success-bg)' : 'var(--status-danger-bg)') : 'var(--surface-0)', cursor: picked === null ? 'pointer' : 'default', fontFamily: 'var(--font-body)', opacity: picked !== null && !isPicked ? 0.5 : 1 }}>
-                <span style={{ width: 26, height: 26, flex: 'none', borderRadius: '50%', border: `1.5px solid ${isPicked ? tone : 'var(--border-strong)'}`, background: letterBg, color: letterColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700 }}>{String.fromCharCode(65 + i)}</span>
+                style={{ display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', padding: '11px 12px', border: `1px solid ${tone}`, background: isPicked ? 'var(--brand-blue-50, rgba(0,85,255,0.08))' : 'var(--surface-0)', cursor: picked === null ? 'pointer' : 'default', fontFamily: 'var(--font-body)', opacity: picked !== null && !isPicked ? 0.5 : 1 }}>
+                <span style={{ width: 26, height: 26, flex: 'none', borderRadius: '50%', border: `1.5px solid ${isPicked ? tone : 'var(--border-strong)'}`, background: isPicked ? 'var(--brand-primary)' : 'transparent', color: isPicked ? '#fff' : 'var(--fg-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700 }}>{String.fromCharCode(65 + i)}</span>
                 <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--fg-1)', lineHeight: 1.4 }}>{opt.text}</span>
               </button>
             );
@@ -501,7 +505,17 @@ function FloatingProbe({ probe, onAnswer, onClose }) {
         </div>
 
         {chosen ? (
-          <div className="fade-in" style={{ marginTop: 13, padding: '11px 13px', background: 'var(--surface-1)', borderLeft: `3px solid ${chosen.correct ? 'var(--status-success)' : 'var(--status-danger)'}`, fontSize: 12.5, lineHeight: 1.5, color: 'var(--fg-2)' }}>{chosen.response}</div>
+          <div className="fade-in">
+            <div style={{ marginTop: 13, padding: '11px 13px', background: 'var(--surface-1)', borderLeft: '3px solid var(--brand-primary)', fontSize: 12.5, lineHeight: 1.5, color: 'var(--fg-2)' }}>
+              {chosen.response}
+            </div>
+            {/* Say the outcome plainly. The node is leaving either way, and
+                leaving that implicit is what made the panel confusing. */}
+            <div style={{ marginTop: 9, display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, color: 'var(--fg-3)' }}>
+              <ArrowUUpLeft size={13} weight="bold" />
+              Taking it back off the canvas — pick again when you’re ready.
+            </div>
+          </div>
         ) : null}
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 14 }}>
