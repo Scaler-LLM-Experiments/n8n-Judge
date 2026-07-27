@@ -8,4 +8,5 @@ export {
   countsByKind,
   misconceptionsHit,
 } from './grading.js';
-export { edgeMatches } from './edgeMatches.js';
+export { hasConnection } from './connectionMatches.js';
+export { asWorkflow, inferBranches } from './asWorkflow.js';

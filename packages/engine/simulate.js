@@ -13,6 +13,8 @@
 // (placeholders like {from}, {category}, {label}, {reply} are filled per step).
 
 import { NODE_CATALOG } from '@judge/catalog';
+import { outputsOf, subNodesOf, nodeByName } from '@judge/workflow';
+import { asWorkflow, inferBranches } from './asWorkflow.js';
 
 const DEFAULT_NARRATION = {
   onNew: 'New email from {from} — "{subject}"',
@@ -45,20 +47,31 @@ export function roleOf(type) {
   return 'passthrough'; // core (parse, code, …); 'model' sub-nodes never enter the main walk
 }
 
-// Main-flow out-edges: exclude AI sub-node connectors (ai_model, ai_tool, …).
-function mainOut(graph, id) {
-  return graph.edges.filter((e) => e.source === id && !String(e.targetHandle || '').startsWith('ai_'));
+// Main-flow successors of a node, by name. The canonical model already keeps
+// ai_* sub-node attachments on separate connectors, so unlike the old flat
+// edge list there is nothing to filter out here.
+function mainNext(wf, name, outputIndex = 0) {
+  const outputs = outputsOf(wf, name, 'main');
+  const target = (outputs[outputIndex] ?? [])[0];
+  return target ? nodeByName(wf, target.node) : undefined;
 }
 
-export function simulateCase(graph, c, sim = {}) {
+export function simulateCase(graph, c, sim = {}, branches = []) {
   const t = { ...DEFAULT_NARRATION, ...sim };
   const steps = [];
-  const nodeById = (id) => graph.nodes.find((n) => n.id === id);
+  // Walk the canonical n8n workflow: connections keyed by node name, `main`
+  // as an array-per-output. Steps still carry the editor's node id so the Run
+  // animation can highlight the right node on the canvas.
+  // Branch names live in the problem, not the workflow — a router's outputs
+  // are positional. Fall back to the graph's own handle order when a caller
+  // hands over a bare graph with no problem attached.
+  const branchList = branches.length ? branches : inferBranches(graph);
+  const wf = asWorkflow(graph, { branches: branchList });
   const ctx = (extra) => ({ from: c.from, subject: c.subject, category: c.category, urgency: c.urgency, reply: c.reply, ...extra });
 
   steps.push({ iconType: 'email', status: 'ok', text: fill(t.onNew, ctx()) });
 
-  const trigger = graph.nodes.find((n) => roleOf(n.type) === 'trigger');
+  const trigger = wf.nodes.find((n) => roleOf(n.type) === 'trigger');
   if (!trigger) {
     steps.push({ iconType: 'dead', status: 'dead', text: fill(t.noTrigger, ctx()) });
     return { steps, delivered: false };
@@ -68,16 +81,18 @@ export function simulateCase(graph, c, sim = {}) {
   const visited = new Set();
 
   while (current) {
-    if (visited.has(current.id)) break;
-    visited.add(current.id);
-    const label = current.data?.label || current.type;
+    if (visited.has(current.name)) break;
+    visited.add(current.name);
+    const label = current.name;
     const role = roleOf(current.type);
 
     if (role === 'trigger') {
       steps.push({ nodeId: current.id, iconType: current.type, status: 'ok', text: fill(t.trigger, ctx({ label })) });
     } else if (role === 'ai') {
       if (meta(current.type).needsModel) {
-        const hasModel = graph.edges.some((e) => e.target === current.id && e.targetHandle === 'ai_model');
+        // A Chat Model attaches over the ai_languageModel connector, never the
+        // main wire — n8n reports "A Chat Model sub-node must be connected".
+        const hasModel = subNodesOf(wf, current.name, 'ai_languageModel').length > 0;
         if (!hasModel) {
           steps.push({ nodeId: current.id, iconType: 'dead', status: 'dead', text: fill(t.aiNoModel, ctx({ label })) });
           return { steps, delivered: false };
@@ -89,17 +104,15 @@ export function simulateCase(graph, c, sim = {}) {
         steps.push({ nodeId: current.id, iconType: 'dead', status: 'dead', text: fill(t.switchNoMatch, ctx({ label })) });
         return { steps, delivered: false };
       }
-      const branchEdge = mainOut(graph, current.id).find((e) => e.sourceHandle === c.branch);
-      if (!branchEdge) {
+      // A router's outputs are positional; the problem's branch order is what
+      // maps a branch id onto an output index.
+      const outputIndex = branchList.findIndex((b) => b.id === c.branch);
+      const target = outputIndex >= 0 ? mainNext(wf, current.name, outputIndex) : undefined;
+      if (!target) {
         steps.push({ nodeId: current.id, iconType: 'dead', status: 'dead', text: fill(t.switchUnwired, ctx({ label })) });
         return { steps, delivered: false };
       }
-      steps.push({ nodeId: current.id, edgeId: branchEdge.id, iconType: current.type, status: 'ok', text: fill(t.switchTake, ctx({ label })) });
-      const target = nodeById(branchEdge.target);
-      if (!target) {
-        steps.push({ iconType: 'dead', status: 'dead', text: fill(t.branchNoAction, ctx()) });
-        return { steps, delivered: false };
-      }
+      steps.push({ nodeId: current.id, iconType: current.type, status: 'ok', text: fill(t.switchTake, ctx({ label })) });
       current = target; // continue the generic walk down the chosen branch
       continue;
     } else if (role === 'action') {
@@ -110,12 +123,12 @@ export function simulateCase(graph, c, sim = {}) {
       steps.push({ nodeId: current.id, iconType: current.type, status: 'ok', text: fill(t.parse, ctx({ label })) });
     }
 
-    const next = mainOut(graph, current.id)[0];
+    const next = mainNext(wf, current.name);
     if (!next) {
       steps.push({ iconType: 'dead', status: 'dead', text: fill(t.deadEnd, ctx()) });
       return { steps, delivered: false };
     }
-    current = nodeById(next.target);
+    current = next;
   }
 
   return { steps, delivered: false };
@@ -123,7 +136,8 @@ export function simulateCase(graph, c, sim = {}) {
 
 export function simulateAll(graph, problem) {
   const sim = problem.simulation || {};
-  const cases = problem.sampleCases.map((c) => ({ case: c, ...simulateCase(graph, c, sim) }));
+  const branches = problem.branches ?? [];
+  const cases = problem.sampleCases.map((c) => ({ case: c, ...simulateCase(graph, c, sim, branches) }));
   // Success = every case that is expected to deliver, delivers. Router problems
   // mark intentional fall-through with branch:null (not required); problems
   // without routing expect every case to deliver.

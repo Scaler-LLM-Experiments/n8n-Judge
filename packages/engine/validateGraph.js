@@ -1,8 +1,13 @@
-import { edgeMatches } from './edgeMatches.js';
+import { hasConnection } from './connectionMatches.js';
+import { asWorkflow, inferBranches } from './asWorkflow.js';
 
 export function validateGraph(studentGraph, problem) {
   const typeCategory = buildTypeCategory(problem);
-  const results = problem.testCases.map((testCase) => runCheck(testCase, studentGraph, typeCategory));
+  // Structural checks run against the canonical n8n workflow, so a "branch"
+  // means an output index rather than a React Flow handle string.
+  const branches = problem.branches?.length ? problem.branches : inferBranches(studentGraph);
+  const wf = asWorkflow(studentGraph, { branches });
+  const results = problem.testCases.map((testCase) => runCheck(testCase, wf, typeCategory, branches));
   const allPassed = results.every((r) => r.passed);
   return { allPassed, results };
 }
@@ -13,12 +18,12 @@ function buildTypeCategory(problem) {
   return map;
 }
 
-function runCheck(testCase, studentGraph, typeCategory) {
+function runCheck(testCase, wf, typeCategory, branches) {
   const { checks } = testCase;
 
   if (checks.requiredNodeTypes) {
     const missing = checks.requiredNodeTypes.filter(
-      (type) => !studentGraph.nodes.some((n) => n.type === type)
+      (type) => !wf.nodes.some((n) => n.type === type)
     );
     if (missing.length > 0) {
       return fail(testCase, `Missing node type(s): ${missing.join(', ')}`);
@@ -27,7 +32,7 @@ function runCheck(testCase, studentGraph, typeCategory) {
 
   if (checks.requiredEdges) {
     for (const req of checks.requiredEdges) {
-      const found = studentGraph.edges.some((edge) => edgeMatches(edge, req, studentGraph.nodes, typeCategory));
+      const found = hasConnection(wf, req, typeCategory, branches);
       if (!found) {
         return fail(testCase, describeMissingEdge(req));
       }
