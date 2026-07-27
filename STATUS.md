@@ -47,7 +47,7 @@ smoke green.
 
 ## Next
 
-### M1 — Auth + problems from the DB ⬅ **current**
+### M1 — Auth + problems from the DB ✅
 
 1. ~~Provision Postgres, wire `DATABASE_URL`, run the migration.~~ **Done.**
    - **Local** — [docker-compose.yml](docker-compose.yml) (`npm run db:up`), 14 tables live.
@@ -55,10 +55,22 @@ smoke green.
      `DATABASE_URL` set on the app service as a `${{Postgres.DATABASE_URL}}` reference,
      `AUTH_SECRET` generated and set. Migration `0001_init` applied; `migrate status`
      reports the schema up to date.
-2. Auth.js Credentials — email + password, bcrypt/argon2, roles LEARNER/ADMIN.
-3. Signup with batch invite codes; Programs (SE / AIML / DSML) as DB rows.
-4. `GET /api/problems`, `GET /api/problems/[slug]`; seed the three problems as v1 PUBLISHED.
-5. Switch the journey off the client-side registry import.
+2. ~~Auth.js Credentials — email + password, bcrypt, roles LEARNER/ADMIN.~~ **Done.**
+   JWT sessions; `auth.config.ts` is the edge-safe half (middleware) and `auth.ts` adds
+   the Prisma-backed Credentials provider. `middleware.ts` guards `/` and
+   `/api/problems/*`, and bounces signed-in users away from `/login` and `/signup`.
+3. ~~Signup with batch invite codes; Programs as DB rows.~~ **Done.** `/signup` and
+   `/login` pages; invite codes match case-insensitively; duplicate email → 409.
+4. ~~`GET /api/problems`, `GET /api/problems/[slug]`; seed the three problems as v1.~~ **Done.**
+5. ~~Switch the journey off the client-side registry import.~~ **Done.** The web app no
+   longer depends on `@judge/problems` at all, so the client bundle no longer ships every
+   problem's answer key. `apps/web/src/data/` is gone; `problemsApi.js` fetches, and
+   `AsyncGate` supplies the loading/error states that async startup now needs.
+
+**M1 is complete.** Remaining for later: `/api/problems` should filter by the caller's
+batch/program via `ProblemAssignment` (the data is seeded, the filter is not written), and
+there is no admin UI yet — promote an admin with
+`UPDATE "User" SET role='ADMIN' WHERE email='…';`
 
 ### M1.5 — n8n fidelity + real assessment
 Full plan: **[docs/plan-m1.5-fidelity-and-assessment.md](docs/plan-m1.5-fidelity-and-assessment.md)**

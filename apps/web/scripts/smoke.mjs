@@ -22,8 +22,57 @@ const IGNORE = /wasm|lottie|favicon|ERR_CONNECTION_RESET|net::ERR_FAILED/i;
 const browser = await chromium.launch({ executablePath: exe, headless: true });
 const failures = [];
 
+// The journey is behind auth now, so the whole run shares one signed-in
+// context. Without this every visit lands on /login and the suite is green
+// while testing nothing.
+const SMOKE_EMAIL = process.env.SMOKE_EMAIL ?? 'smoke@judge.local';
+const SMOKE_PASSWORD = process.env.SMOKE_PASSWORD ?? 'smoke-test-password';
+const SMOKE_INVITE = process.env.SMOKE_INVITE ?? 'AIML-DEMO';
+
+const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+
+// Sign in through the API rather than by driving the login form. This suite
+// exists to catch runtime errors on the journey screens; making it depend on
+// the login form's DOM would mean a form tweak fails all 16 checks for no real
+// reason. Requests run inside the page so cookies land in the shared context.
+async function signIn() {
+  const page = await context.newPage();
+  await page.goto(`${base}/login`, { waitUntil: 'domcontentloaded' });
+
+  const result = await page.evaluate(
+    async ([email, password, inviteCode]) => {
+      // Idempotent: 201 the first run, 409 after — both fine.
+      await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ email, password, inviteCode }),
+      }).catch(() => {});
+
+      const { csrfToken } = await (await fetch('/api/auth/csrf')).json();
+      const res = await fetch('/api/auth/callback/credentials', {
+        method: 'POST',
+        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ csrfToken, email, password }),
+        redirect: 'follow',
+      });
+      const session = await (await fetch('/api/auth/session')).json();
+      return { status: res.status, email: session?.user?.email ?? null };
+    },
+    [SMOKE_EMAIL, SMOKE_PASSWORD, SMOKE_INVITE]
+  );
+  await page.close();
+
+  if (result.email !== SMOKE_EMAIL) {
+    console.log(`✗ could not sign in (status ${result.status}) — every screen would just be the login page`);
+    process.exit(1);
+  }
+  console.log(`✓ signed in as ${SMOKE_EMAIL}`);
+}
+
+await signIn();
+
 async function visit(name, url, extra) {
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const page = await context.newPage();
   const errs = [];
   page.on('pageerror', (e) => errs.push(`pageerror: ${e.message}`));
   page.on('console', (m) => {

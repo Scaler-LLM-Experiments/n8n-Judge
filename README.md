@@ -69,6 +69,22 @@ npm run db:migrate     # apply committed migrations
 another project's container. Set it in `.env` and keep `DATABASE_URL`'s port in sync —
 compose reads the same file.
 
+```bash
+npm run db:seed        # programs, batches, and the three problems as v1 PUBLISHED
+```
+
+### Signing in
+
+The journey is behind auth. Seeded batch invite codes: **`AIML-DEMO`**, **`DSML-DEMO`**,
+**`SE-DEMO`** — sign up at `/signup` with one of them. Set a real `AUTH_SECRET` in `.env`
+(`openssl rand -base64 32`); the template ships a placeholder.
+
+To make yourself an admin:
+
+```sql
+UPDATE "User" SET role = 'ADMIN' WHERE email = 'you@example.com';
+```
+
 ### Dev routes
 
 Hash routes that isolate a single screen. All honor `?problem=<id>`:

@@ -32,7 +32,6 @@ const nextConfig = {
   transpilePackages: [
     '@judge/engine',
     '@judge/catalog',
-    '@judge/problems',
     '@judge/problem-schema',
     '@judge/trace',
     '@judge/queue',

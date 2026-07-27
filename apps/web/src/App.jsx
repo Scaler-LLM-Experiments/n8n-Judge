@@ -1,6 +1,7 @@
 // app/src/App.jsx
-import React, { useState } from 'react';
-import { resolveProblem, problemList } from './data/problems/index.js';
+import React, { useState, useCallback } from 'react';
+import { fetchProblemList, fetchProblem, slugFromUrl } from './data/problemsApi.js';
+import { AsyncGate } from './components/AsyncGate.jsx';
 import { HomeScreen } from './screens/HomeScreen.jsx';
 import { DissectionScreen } from './screens/DissectionScreen.jsx';
 import { BuildStage } from './screens/BuildStage.jsx';
@@ -44,54 +45,108 @@ const DEMO_GRAPH = {
   ],
 };
 
+// Dev routes need a problem too, and problems are now fetched. Resolve
+// `?problem=<slug>` against the database, falling back to the first published
+// challenge when the URL doesn't name one.
+function DevProblem({ children }) {
+  const load = useCallback(async () => {
+    const slug = slugFromUrl();
+    if (slug) return fetchProblem(slug);
+    const list = await fetchProblemList();
+    if (!list.length) throw new Error('No published challenges. Run `npm run db:seed`.');
+    return fetchProblem(list[0].slug);
+  }, []);
+
+  return (
+    <div style={{ height: '100vh' }}>
+      <AsyncGate load={load} label="Loading challenge…">
+        {(problem) => children(problem)}
+      </AsyncGate>
+    </div>
+  );
+}
+
 export default function App() {
-  const problem = resolveProblem();
-  if (typeof window !== 'undefined' && window.location.hash === '#playground') {
+  const hash = typeof window === 'undefined' ? '' : window.location.hash;
+
+  if (hash === '#playground') {
     return <div style={{ height: '100vh' }}><PlaygroundScreen /></div>;
   }
-  if (typeof window !== 'undefined' && window.location.hash.startsWith('#build')) {
-    return <div style={{ height: '100vh' }}><BuildPreview problem={problem} /></div>;
+  if (hash.startsWith('#build')) {
+    return <DevProblem>{(problem) => <BuildPreview problem={problem} />}</DevProblem>;
   }
-  if (typeof window !== 'undefined' && window.location.hash.startsWith('#run-story')) {
-    return <div style={{ height: '100vh' }}><BuildPreview problem={problem} devAutoRun /></div>;
+  if (hash.startsWith('#run-story')) {
+    return <DevProblem>{(problem) => <BuildPreview problem={problem} devAutoRun />}</DevProblem>;
   }
-  if (typeof window !== 'undefined' && window.location.hash.startsWith('#eval-demo')) {
-    return <div style={{ height: '100vh' }}><EvalScreen problem={problem} graph={DEMO_GRAPH} onSubmit={() => {}} onDecision={() => {}} /></div>;
+  if (hash.startsWith('#eval-demo')) {
+    return <DevProblem>{(problem) => <EvalScreen problem={problem} graph={DEMO_GRAPH} onSubmit={() => {}} onDecision={() => {}} />}</DevProblem>;
   }
-  if (typeof window !== 'undefined' && window.location.hash === '#run-demo') {
-    const g = DEMO_GRAPH;
-    const result = { ...simulateAll(g, problem), val: validateGraph(g, problem) };
+  if (hash === '#run-demo') {
     return (
-      <div style={{ height: '100vh', position: 'relative', background: '#E9ECF2' }}>
-        <RunPanel result={result} onContinue={() => {}} onClose={() => {}} />
-      </div>
+      <DevProblem>
+        {(problem) => {
+          const g = DEMO_GRAPH;
+          const result = { ...simulateAll(g, problem), val: validateGraph(g, problem) };
+          return (
+            <div style={{ height: '100%', position: 'relative', background: '#E9ECF2' }}>
+              <RunPanel result={result} onContinue={() => {}} onClose={() => {}} />
+            </div>
+          );
+        }}
+      </DevProblem>
     );
   }
-  if (typeof window !== 'undefined' && window.location.hash === '#report-demo') {
-    let s = createStore();
-    [
-      { id: 'dissection:trigger', kind: 'dissection', correct: true, firstTry: true },
-      { id: 'dissection:classify', kind: 'dissection', correct: true, firstTry: false },
-      { id: 'classify:classify-brain', kind: 'field', correct: true, firstTry: false },
-      { id: 'classify:classify-text', kind: 'field', correct: true, firstTry: true },
-      { id: 'switch:switch-field', kind: 'field', correct: true, firstTry: true },
-      { id: 'nodePick:chat-trigger', kind: 'nodePick', correct: false, firstTry: false, misconception: 'chat-trigger-is-email' },
-      { id: 'stress:general-question-gap', kind: 'stress', correct: true, firstTry: true },
-      { id: 'stress:why-fixed-path', kind: 'stress', correct: false, firstTry: true },
-    ].forEach((d) => { s = recordDecision(s, d); });
-    const g = DEMO_GRAPH;
-    const runResult = validateGraph(g, problem);
-    const evalOutcome = scoreEval({ 'general-question-gap': 1, 'why-fixed-path': 0 }, problem.evalQuestions);
-    return <div style={{ height: '100vh' }}><ReportScreen problem={problem} grading={s} runResult={runResult} evalOutcome={evalOutcome} graph={g} /></div>;
+  if (hash === '#report-demo') {
+    return (
+      <DevProblem>
+        {(problem) => {
+          let s = createStore();
+          [
+            { id: 'dissection:trigger', kind: 'dissection', correct: true, firstTry: true },
+            { id: 'dissection:classify', kind: 'dissection', correct: true, firstTry: false },
+            { id: 'classify:classify-brain', kind: 'field', correct: true, firstTry: false },
+            { id: 'classify:classify-text', kind: 'field', correct: true, firstTry: true },
+            { id: 'switch:switch-field', kind: 'field', correct: true, firstTry: true },
+            { id: 'nodePick:chat-trigger', kind: 'nodePick', correct: false, firstTry: false, misconception: 'chat-trigger-is-email' },
+            { id: 'stress:general-question-gap', kind: 'stress', correct: true, firstTry: true },
+            { id: 'stress:why-fixed-path', kind: 'stress', correct: false, firstTry: true },
+          ].forEach((d) => { s = recordDecision(s, d); });
+          const g = DEMO_GRAPH;
+          const runResult = validateGraph(g, problem);
+          const evalOutcome = scoreEval({ 'general-question-gap': 1, 'why-fixed-path': 0 }, problem.evalQuestions);
+          return <ReportScreen problem={problem} grading={s} runResult={runResult} evalOutcome={evalOutcome} graph={g} />;
+        }}
+      </DevProblem>
+    );
   }
   return <Landing />;
 }
 
-// Home → pick a problem → run its full journey. Selecting remounts MainApp fresh.
+// Home → pick a problem → run its full journey. The home cards carry only
+// card-level fields, so selecting one fetches that problem's full data before
+// the journey mounts. Selecting remounts MainApp fresh.
 function Landing() {
   const [selected, setSelected] = useState(null);
-  if (selected) return <MainApp key={selected.id} problem={selected} />;
-  return <HomeScreen problems={problemList} onSelect={setSelected} />;
+
+  if (selected) {
+    return (
+      <div style={{ height: '100vh' }}>
+        <AsyncGate
+          load={() => fetchProblem(selected.slug ?? selected.id)}
+          deps={[selected.slug ?? selected.id]}
+          label={`Loading ${selected.title}…`}
+        >
+          {(problem) => <MainApp key={problem.id} problem={problem} />}
+        </AsyncGate>
+      </div>
+    );
+  }
+
+  return (
+    <AsyncGate load={fetchProblemList} label="Loading challenges…">
+      {(problems) => <HomeScreen problems={problems} onSelect={setSelected} />}
+    </AsyncGate>
+  );
 }
 
 // Preview wrapper for the #build / #run-story routes: build → eval → report,
