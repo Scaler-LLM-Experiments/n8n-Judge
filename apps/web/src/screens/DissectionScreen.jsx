@@ -194,7 +194,10 @@ function QuizBody({ q, index, total, picked, isCorrect, onPick, onContinue }) {
       {/* per-question Continue — below the node box, once the pick is correct */}
       {answered && isCorrect ? (
         <div style={{ marginTop: 22 }}>
-          <Button variant="outline" size="lg" iconRight={<ArrowRight size={16} />} onClick={onContinue}>
+          {/* Primary, not outline: once the answer is right this is the only
+              thing left to do on the screen, so it should not read as
+              secondary. */}
+          <Button variant="primary" size="lg" iconRight={<ArrowRight size={16} />} onClick={onContinue}>
             {isLast ? 'Finish — see my toolkit' : 'Continue'}
           </Button>
         </div>

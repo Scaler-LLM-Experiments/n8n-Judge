@@ -32,8 +32,10 @@ export function N8nFlowNode({ id, type, data, selected }) {
 
       <N8nNodeView type={type} label={data.label} selected={selected || (hover && needsSetup)} pulse={needsSetup} running={data.running} errorPulse={data.wrong} hidePorts hideAiChip />
 
-      {/* "Set me up" label appears on hover; the pulse is the persistent cue */}
-      {needsSetup && hover ? (
+      {/* Always shown while the node needs setting up. It used to appear only
+          on hover, which meant the one cue naming WHAT to do was invisible
+          until you happened to point at the right node. */}
+      {needsSetup ? (
         <div style={{ position: 'absolute', left: '50%', top: -30, transform: 'translateX(-50%)', zIndex: 6, display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap', background: 'var(--brand-primary)', color: '#fff', border: '1px solid var(--brand-primary)', padding: '3px 8px', fontSize: 11, fontWeight: 700, boxShadow: '0 4px 12px rgba(1,24,69,0.14)', pointerEvents: 'none' }}>
           <Wrench size={12} weight="fill" /> Set me up
         </div>

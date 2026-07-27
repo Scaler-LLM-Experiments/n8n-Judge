@@ -1,5 +1,5 @@
 import React from 'react';
-import { EnvelopeSimple, Brain, PaperPlaneTilt } from '@phosphor-icons/react';
+import { EnvelopeSimple, Brain, PaperPlaneTilt, BracketsCurly } from '@phosphor-icons/react';
 import { typeCategory } from '../nodes/nodeIcons.js';
 
 // A loose, excalidraw-ish sketch of the problem — icons + handwritten labels +
@@ -11,7 +11,11 @@ const CATEGORY_SKETCH = {
   trigger: { icon: EnvelopeSimple, color: '#0055FF' },
   ai: { icon: Brain, color: '#6B4EFF' },
   model: { icon: Brain, color: '#0E9488' },
-  core: { icon: null, color: '#ED7700' },
+  // `null` here meant every core-category step (Parse Result, Code, Filter…)
+  // rendered as bare text with an empty space where its icon should be. Only
+  // the router case genuinely has no glyph — it draws branch dots instead, and
+  // that is handled separately below.
+  core: { icon: BracketsCurly, color: '#ED7700' },
   action: { icon: PaperPlaneTilt, color: '#127A54' },
 };
 
