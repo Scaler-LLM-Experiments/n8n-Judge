@@ -9,7 +9,7 @@ import { Confetti } from '../components/Confetti.jsx';
 import { seededShuffle } from '../lib/shuffle.js';
 import { N8nEditor } from '../n8n/N8nEditor.jsx';
 import { validateGraph } from '@judge/engine/validateGraph.js';
-import { simulateAll } from '@judge/engine/simulate.js';
+import { simulateAll, roleOf } from '@judge/engine/simulate.js';
 
 const STEP_ICON = { email: EnvelopeSimpleOpen, trigger: EnvelopeSimpleOpen, classify: Sparkle, parse: BracketsCurly, switch: ArrowsSplit, action: PaperPlaneTilt, dead: XCircle };
 
@@ -66,6 +66,12 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun }) {
   const [run, setRun] = useState(null); // { cases, success, val }
   const [runPos, setRunPos] = useState({ ci: 0, si: 0 }); // current case/step
   const [runFinished, setRunFinished] = useState(false);
+  // Which side of the active node the traveling sticky note sits on. The note
+  // prefers the node's left, but flips to the right when there isn't room
+  // (e.g. the trigger sits at the canvas's left edge) — the speech-bubble
+  // pointer has to flip with it, or it ends up aimed at empty canvas instead
+  // of the node it's narrating.
+  const [noteSide, setNoteSide] = useState('left');
   const [showProblem, setShowProblem] = useState(false);
   const [editorKey, setEditorKey] = useState(0);
   const [irisSay, setIrisSay] = useState(null); // chat bubble to the right of parked Iris
@@ -248,12 +254,19 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun }) {
     return () => { runTimers.current.forEach(clearTimeout); runTimers.current = []; };
   }, [run]);
 
-  // the node the current step runs on (falls back to the trigger for the intro step)
-  const triggerId = graphRef.current.nodes.find((n) => n.type === 'trigger')?.id || null;
+  // the node the current step runs on (falls back to the trigger for the intro step).
+  // Resolved via the catalog role, not a literal type string — a trigger's node
+  // TYPE varies by problem (email-triage's is literally "trigger", but
+  // meeting-notes' is "webhook"), so `n.type === 'trigger'` silently matched
+  // nothing outside email-triage and left the intro step with no active node:
+  // the sticky note froze at its unset default position and nothing on the
+  // canvas highlighted for that whole step.
+  const triggerId = graphRef.current.nodes.find((n) => roleOf(n.type) === 'trigger')?.id || null;
   const activeStep = run && stage === 'running' ? run.cases[runPos.ci]?.steps?.[runPos.si] : null;
   const activeNodeId = run && stage === 'running' && !runFinished ? (activeStep?.nodeId || triggerId) : null;
 
-  // travel the sticky note to the left of the active node
+  // travel the sticky note to the left of the active node (or the right, if
+  // there isn't room — see `noteSide` above)
   useEffect(() => {
     if (!activeNodeId || !noteRef.current) return;
     const t = setTimeout(() => {
@@ -261,8 +274,13 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun }) {
       if (!r || !noteRef.current) return;
       const w = 224;
       let x = r.left - w - 20;
-      if (x < 12) x = Math.min(r.left + r.width + 20, r.cw - w - 12);
+      let side = 'left';
+      if (x < 12) {
+        x = Math.min(r.left + r.width + 20, r.cw - w - 12);
+        side = 'right';
+      }
       const y = Math.min(Math.max(12, r.top + r.height / 2 - 48), r.ch - 130);
+      setNoteSide(side);
       gsap.to(noteRef.current, { left: x, top: y, duration: 0.5, ease: 'power3.inOut' });
     }, 30);
     return () => clearTimeout(t);
@@ -348,7 +366,7 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun }) {
             <RunStepper run={run} runPos={runPos} finished={runFinished} onStop={stopRun} />
             {activeStep && !runFinished ? (
               <div ref={noteRef} className="fade-in" style={{ position: 'absolute', left: 40, top: 300, width: 224, zIndex: 44, pointerEvents: 'none' }}>
-                <RunNote step={activeStep} caseInfo={run.cases[runPos.ci].case} />
+                <RunNote step={activeStep} caseInfo={run.cases[runPos.ci].case} side={noteSide} />
               </div>
             ) : null}
             {runFinished && run.success ? <RunCelebration onContinue={() => onComplete({ validation: run.val, graph: graphRef.current })} /> : null}
@@ -586,12 +604,22 @@ function RunStepper({ run, runPos, finished, onStop }) {
 }
 
 // Sticky note that travels beside the running node, narrating what's happening.
-function RunNote({ step, caseInfo }) {
+// `side` is which side of the node the note itself sits on ('left' is the
+// common case; 'right' when the node has no room to its left, e.g. the
+// trigger at the canvas edge — see the placement effect in BuildStage). The
+// tail must point back at the node, so it renders on the opposite edge from
+// `side` rather than always on the right.
+function RunNote({ step, caseInfo, side = 'left' }) {
   const dead = step.status === 'dead';
   const accent = dead ? 'var(--status-danger)' : step.status === 'done' ? 'var(--status-success)' : 'var(--brand-primary)';
+  const tailOnRight = side === 'left';
   return (
     <div style={{ position: 'relative', background: '#FEF7E0', border: '1px solid #E7D699', borderLeft: `3px solid ${accent}`, boxShadow: '0 14px 32px rgba(1,24,69,0.2)', padding: '11px 13px' }}>
-      <span style={{ position: 'absolute', right: -8, top: 24, width: 0, height: 0, borderTop: '7px solid transparent', borderBottom: '7px solid transparent', borderLeft: '8px solid #FEF7E0' }} />
+      {tailOnRight ? (
+        <span style={{ position: 'absolute', right: -8, top: 24, width: 0, height: 0, borderTop: '7px solid transparent', borderBottom: '7px solid transparent', borderLeft: '8px solid #FEF7E0' }} />
+      ) : (
+        <span style={{ position: 'absolute', left: -8, top: 24, width: 0, height: 0, borderTop: '7px solid transparent', borderBottom: '7px solid transparent', borderRight: '8px solid #FEF7E0' }} />
+      )}
       <div style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: accent, marginBottom: 4 }}>{caseInfo.reply || 'General question'}</div>
       <div style={{ fontSize: 12.5, lineHeight: 1.5, color: 'var(--fg-1)' }}>{step.text}</div>
     </div>

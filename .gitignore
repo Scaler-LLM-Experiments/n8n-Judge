@@ -12,3 +12,7 @@ apps/web/public/dotlottie-player.wasm
 
 shots/
 .superpowers/
+
+# throwaway verification scripts — never commit these
+tmp-*.mjs
+*_tmp.mjs

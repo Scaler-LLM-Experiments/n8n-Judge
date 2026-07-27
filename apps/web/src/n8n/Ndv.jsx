@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { X, LockSimple, CaretDown, CheckCircle, XCircle, Lightning, Sparkle, Lock, CircleNotch } from '@phosphor-icons/react';
-import { NodeIcon, metaOf } from '../nodes/nodeIcons.js';
+import { NodeIcon, metaOf, typeCategory } from '../nodes/nodeIcons.js';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
 import { seededShuffle } from '../lib/shuffle.js';
 import { SettingsForm } from './SettingsForm.jsx';
 import { IrisBubble } from './IrisBubble.jsx';
-import { FieldControl, isCorrectValue, expressionFor } from './FieldControl.jsx';
+import { FieldControl, isCorrectValue, expressionFor, whyForField } from './FieldControl.jsx';
 import { defaultSettings, gradeSettings } from './nodeSettings.js';
 
 // Shown once per session: the first time a node verifies, Iris spotlights the
@@ -27,6 +27,10 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
   const outputRef = useRef(null);
   const runTimer = useRef(null);
   const meta = metaOf(node.nodeType);
+  // Sub-nodes (Chat Model, and later Memory/Tool/Parser) attach to a root node
+  // over an ai_* connector. They are never handed items, so the INPUT pane has
+  // nothing truthful to show — it was claiming "this node starts the flow".
+  const isSubNode = typeCategory[node.nodeType] === 'model';
 
   const fields = setup?.fields || [];
   // Settings the problem actually grades. The tab always renders the full n8n
@@ -163,7 +167,7 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
       if (!paramsPassed) {
         setPhase('idle');
         const firstWrong = fields.find((f) => next[f.key] === 'wrong');
-        if (firstWrong) setFeedback({ key: firstWrong.key, verdict: 'wrong', why: optionFor(firstWrong, values[firstWrong.key])?.why });
+        if (firstWrong) setFeedback({ key: firstWrong.key, verdict: 'wrong', why: whyForField(firstWrong, values[firstWrong.key], 'wrong') });
         return;
       }
 
@@ -188,11 +192,7 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
   };
 
   const explain = (field, verdict) => {
-    const why = field.options
-      ? (verdict === 'correct' ? field.options.find((o) => o.correct) : optionFor(field, values[field.key]))?.why
-      : verdict === 'correct'
-        ? field.whyCorrect
-        : field.whyWrong;
+    const why = whyForField(field, values[field.key], verdict);
     setFeedback((f) => (f && f.key === field.key ? null : { key: field.key, verdict, why }));
   };
 
@@ -219,7 +219,8 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
         </div>
       </div>
 
-      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1.25fr 1fr', minHeight: 0 }}>
+      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: isSubNode ? '1.4fr 1fr' : '1fr 1.25fr 1fr', minHeight: 0 }}>
+        {isSubNode ? null : (
         <Pane label="Input">
           {noVerify ? (
             inputData ? (
@@ -247,6 +248,7 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
             </div>
           )}
         </Pane>
+        )}
 
         <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0, borderLeft: '1px solid var(--border-subtle)', borderRight: '1px solid var(--border-subtle)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 18, padding: '0 16px', borderBottom: '1px solid var(--border-subtle)', flex: 'none' }}>
@@ -309,6 +311,9 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
             ) : (
               <FieldForm
                 nodeType={node.nodeType}
+                /* Field names from the upstream node, so an expression
+                   parameter can be filled by picking as well as dragging. */
+                inputKeys={Object.keys(inputData ?? {})}
                 setup={setup}
                 fields={fields}
                 values={values}
@@ -399,7 +404,7 @@ function ctaStyle(bg, disabled) {
 // `nodeType` is only used to seed the option shuffle — FieldForm has no other
 // reason to know which node it is rendering, so it is passed rather than
 // reaching for the parent's `node`, which is not in scope here.
-function FieldForm({ nodeType, setup, fields, values, results, feedback, optionFor, onChange, onDrop, onExplain, allCorrect }) {
+function FieldForm({ nodeType, inputKeys, setup, fields, values, results, feedback, optionFor, onChange, onDrop, onExplain, allCorrect }) {
   const locked = setup?.locked || [];
   const [hoveredKey, setHoveredKey] = useState(null);
   const [dropKey, setDropKey] = useState(null);
@@ -437,7 +442,10 @@ function FieldForm({ nodeType, setup, fields, values, results, feedback, optionF
           <div key={f.key} onMouseEnter={() => setHoveredKey(f.key)} onMouseLeave={() => setHoveredKey((k) => (k === f.key ? null : k))}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
               <Label style={{ margin: 0 }}>{f.label}</Label>
-              {!verdict && hoveredKey === f.key ? (
+              {/* Always visible, not hover-only: this badge is the signal for
+                  WHICH field still needs the learner, and a signal you have to
+                  hover to discover is not a signal. */}
+              {!verdict ? (
                 <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--brand-primary)', border: '1px solid var(--brand-primary)', padding: '1px 6px' }}>Set me up</span>
               ) : null}
             </div>
@@ -459,6 +467,7 @@ function FieldForm({ nodeType, setup, fields, values, results, feedback, optionF
                    field, which made the whole build clickable blind. Only
                    select fields have options to shuffle. */
                 shuffledOptions={seededShuffle(f.options ?? [], `ndv:${nodeType}:${f.key}`)}
+                inputKeys={inputKeys}
               />
             </div>
             {verdict ? (

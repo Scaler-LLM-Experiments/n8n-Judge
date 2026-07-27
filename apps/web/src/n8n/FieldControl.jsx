@@ -37,6 +37,22 @@ export function expressionFor(inputKey) {
   return `{{ $json.${inputKey} }}`;
 }
 
+/**
+ * The explanation for the answer a learner actually gave.
+ *
+ * Select fields carry a `why` per option; typed fields carry one whyCorrect
+ * and one whyWrong. Reading only `option.why` left typed fields with an empty
+ * Iris bubble — the mascot appeared, said "NOT QUITE", and then had nothing to
+ * say, which is worse than not appearing.
+ */
+export function whyForField(field, value, verdict) {
+  if (field.options) {
+    const chosen = field.options.find((o) => o.value === value);
+    return verdict === 'correct' ? field.options.find((o) => o.correct)?.why : chosen?.why;
+  }
+  return verdict === 'correct' ? field.whyCorrect : field.whyWrong;
+}
+
 const baseInput = (border, bg) => ({
   width: '100%',
   boxSizing: 'border-box',
@@ -48,7 +64,7 @@ const baseInput = (border, bg) => ({
   color: 'var(--fg-1)',
 });
 
-export function FieldControl({ field, value, border, bg, onChange, shuffledOptions }) {
+export function FieldControl({ field, value, border, bg, onChange, shuffledOptions, inputKeys = [] }) {
   const kind = field.kind ?? 'select';
 
   if (kind === 'boolean') {
@@ -77,7 +93,16 @@ export function FieldControl({ field, value, border, bg, onChange, shuffledOptio
         max={field.max}
         step={field.step ?? 1}
         placeholder={field.placeholder}
-        onChange={(e) => onChange(field.key, e.target.value === '' ? '' : Number(e.target.value))}
+        onChange={(e) => {
+          if (e.target.value === '') return onChange(field.key, '');
+          // Clamp: typing into a number input bypasses min/max, and marking
+          // someone wrong for a value the field should not have accepted is
+          // the field's fault, not theirs.
+          let n = Number(e.target.value);
+          if (typeof field.min === 'number') n = Math.max(field.min, n);
+          if (typeof field.max === 'number') n = Math.min(field.max, n);
+          onChange(field.key, n);
+        }}
         style={baseInput(border, bg)}
       />
     );
@@ -107,7 +132,23 @@ export function FieldControl({ field, value, border, bg, onChange, shuffledOptio
             fontFamily: isExpr ? 'var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace)' : 'var(--font-body)',
           }}
         />
-        {isExpr && String(value ?? '').includes('{{') ? (
+        {isExpr && inputKeys.length > 0 ? (
+          // Drag-and-drop is the interaction n8n teaches, but a learner who
+          // has never seen n8n does not know it is possible. The picker makes
+          // the same action discoverable; both write the same expression.
+          <select
+            aria-label={`Insert an input field into ${field.label}`}
+            value=""
+            onChange={(e) => { if (e.target.value) onChange(field.key, expressionFor(e.target.value)); }}
+            style={{ position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)', border: '1px solid var(--border-strong)', background: 'var(--surface-1)', fontSize: 10.5, fontFamily: 'var(--font-body)', color: 'var(--fg-2)', padding: '3px 4px', cursor: 'pointer', maxWidth: 118 }}
+          >
+            <option value="">Insert field…</option>
+            {inputKeys.map((k) => (
+              <option key={k} value={k}>{k}</option>
+            ))}
+          </select>
+        ) : null}
+        {isExpr && inputKeys.length === 0 && String(value ?? '').includes('{{') ? (
           <span style={{ position: 'absolute', right: 9, top: '50%', transform: 'translateY(-50%)', display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10.5, color: 'var(--fg-3)', pointerEvents: 'none' }}>
             <Lightning size={11} weight="fill" /> live
           </span>
