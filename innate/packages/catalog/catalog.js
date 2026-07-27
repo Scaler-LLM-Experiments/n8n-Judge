@@ -104,11 +104,16 @@ export const NODE_CATALOG = {
   },
   'slack-message': { type: 'slack-message', label: 'Slack — Send Message', subtitle: 'Slack', category: 'action', params: [{ key: 'channel', label: 'Channel', value: '#support', kind: 'select' }], output: { ok: true } },
   'google-docs': { type: 'google-docs', label: 'Google Docs', subtitle: 'Create document', category: 'action', params: [{ key: 'doc', label: 'Document', value: 'Ticket log', kind: 'select' }], output: { ok: true } },
+  'calendar-event': { type: 'calendar-event', label: 'Google Calendar — Create Event', subtitle: 'Google Calendar', category: 'action', params: [{ key: 'calendar', label: 'Calendar', value: 'Primary', kind: 'select' }], output: { ok: true } },
+  'notion-page': { type: 'notion-page', label: 'Notion — Create Page', subtitle: 'Notion', category: 'action', params: [{ key: 'database', label: 'Database', value: 'Requests', kind: 'select' }], output: { ok: true } },
+  'web-search': { type: 'web-search', label: 'Web Search', subtitle: 'Search the web', category: 'core', params: [{ key: 'query', label: 'Query', value: '', kind: 'text', mappable: true }], output: { results: [] } },
   webhook: { type: 'webhook', label: 'On webhook call', subtitle: 'Webhook', description: 'Runs the flow when it receives an HTTP request', category: 'trigger', params: [{ key: 'path', label: 'Path', value: '/hook', kind: 'text' }], output: {} },
   schedule: { type: 'schedule', label: 'On a schedule', subtitle: 'Schedule Trigger', description: 'Runs the flow every day, hour, or custom interval', category: 'trigger', params: [{ key: 'every', label: 'Every', value: '1 hour', kind: 'select' }], output: {} },
   manual: { type: 'manual', label: 'Trigger manually', subtitle: 'Manual Trigger', description: 'Runs the flow when you click Execute. Good for testing.', category: 'trigger', params: [], output: {} },
   code: { type: 'code', label: 'Code', subtitle: 'Run JavaScript', category: 'core', params: [{ key: 'js', label: 'Code', value: 'return items;', kind: 'textarea' }], output: {} },
   if: { type: 'if', label: 'If', subtitle: 'True / false', category: 'core', params: [{ key: 'cond', label: 'Condition', value: '', kind: 'text' }], output: {} },
+  merge: { type: 'merge', label: 'Merge', subtitle: 'Combine two inputs', category: 'core', params: [{ key: 'mode', label: 'Mode', value: 'Append', kind: 'select' }], output: {} },
+  filter: { type: 'filter', label: 'Filter', subtitle: 'Drop non-matching items', category: 'core', params: [{ key: 'cond', label: 'Condition', value: '', kind: 'text' }], output: {} },
 };
 
 // What the picker offers, grouped, for trigger vs. regular slots.

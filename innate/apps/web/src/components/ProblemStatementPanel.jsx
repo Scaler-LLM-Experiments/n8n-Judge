@@ -35,7 +35,7 @@ export function ProblemStatementPanel({ problem, onClose, side, sticky }) {
             <div style={{ fontSize: 13.5, lineHeight: 1.6, color: 'var(--fg-2)' }}>{problem.statement}</div>
             <div style={{ marginTop: 22, marginBottom: 6, fontSize: 12, fontWeight: 700, color: '#8A7B2E', display: 'flex', alignItems: 'center', gap: 6 }}>Flow diagram</div>
             <div style={{ display: 'flex', justifyContent: 'center', marginTop: 8 }}>
-              <ConceptFlow direction="column" size="md" />
+              <ConceptFlow direction="column" size="md" problem={problem} />
             </div>
           </div>
         </div>
@@ -58,10 +58,10 @@ export function ProblemStatementPanel({ problem, onClose, side, sticky }) {
         <div style={{ fontSize: 11, textTransform: 'uppercase', color: 'var(--fg-2)', fontWeight: 700, marginBottom: 8, letterSpacing: '0.04em' }}>
           What Run will check
         </div>
-        {problem.testCaseSummary.map((line) => (
-          <div key={line} style={{ display: 'flex', gap: 9, alignItems: 'flex-start', padding: '10px 0', borderBottom: '1px solid var(--surface-1)', fontSize: side ? 13.5 : 13, lineHeight: 1.5, color: 'var(--fg-1)' }}>
+        {(problem.testCases ?? []).map((tc) => (
+          <div key={tc.id} style={{ display: 'flex', gap: 9, alignItems: 'flex-start', padding: '10px 0', borderBottom: '1px solid var(--surface-1)', fontSize: side ? 13.5 : 13, lineHeight: 1.5, color: 'var(--fg-1)' }}>
             <CheckCircle size={17} color="var(--brand-primary)" style={{ marginTop: 1, flex: 'none' }} />
-            {line}
+            {tc.description}
           </div>
         ))}
       </div>

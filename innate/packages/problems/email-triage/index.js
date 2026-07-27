@@ -82,14 +82,6 @@ export const emailTriage = {
     },
   ],
 
-  testCaseSummary: [
-    'A New Email trigger starts the flow.',
-    'A Chat Model is plugged into the Classify with AI node.',
-    'The email is classified with AI, then the result is parsed.',
-    'A Switch node routes the parsed result by category.',
-    'Each of the 3 categories — Bug Report, Feature Request, Urgent Complaint — sends its own reply.',
-  ],
-
   nodePalette: [
     { type: 'trigger', label: 'New Email', category: 'trigger', isDistractor: false },
     { type: 'chat-trigger', label: 'Chat Trigger', category: 'trigger', isDistractor: true },
@@ -176,24 +168,6 @@ export const emailTriage = {
         ],
       },
     },
-  ],
-
-  buildSteps: [
-    { id: 'trigger', label: 'Start the flow', categories: ['trigger'] },
-    { id: 'think', label: 'Classify, connect a model, parse & route', categories: ['ai', 'model', 'core'] },
-    { id: 'act', label: 'Send the replies', categories: ['action'] },
-  ],
-
-  // The connections the learner must make, in order, with plain-language labels.
-  // `match` reuses the same shape as testCases.requiredEdges.
-  connectionGuide: [
-    { id: 'trigger-classify', label: 'New Email → Classify with AI', match: { sourceType: 'trigger', targetType: 'classify' } },
-    { id: 'model-classify', label: 'Gemini Chat Model → Classify’s Chat Model port', hint: 'Drag from the model’s top dot up into the dashed “Chat Model” port under Classify.', match: { sourceCategory: 'model', targetType: 'classify', targetHandle: 'ai_model' } },
-    { id: 'classify-parse', label: 'Classify with AI → Parse Result', match: { sourceType: 'classify', targetType: 'parse' } },
-    { id: 'parse-switch', label: 'Parse Result → Switch', match: { sourceType: 'parse', targetType: 'switch' } },
-    { id: 'bug', label: 'Switch · Bug Report → Send Reply', match: { sourceType: 'switch', targetType: 'action', branch: 'bug_report' } },
-    { id: 'feature', label: 'Switch · Feature Request → Send Reply', match: { sourceType: 'switch', targetType: 'action', branch: 'feature_request' } },
-    { id: 'urgent', label: 'Switch · Urgent Complaint → Send Reply', match: { sourceType: 'switch', targetType: 'action', branch: 'urgent_complaint' } },
   ],
 
   // The Switch's labelled outputs (branches). Drives the branch ports on the

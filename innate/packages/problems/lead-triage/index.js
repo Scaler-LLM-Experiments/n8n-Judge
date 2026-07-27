@@ -82,14 +82,6 @@ export const leadTriage = {
     },
   ],
 
-  testCaseSummary: [
-    'A New Email trigger starts the flow.',
-    'A Chat Model is plugged into the Classify with AI node.',
-    'The email is classified with AI, then the result is parsed.',
-    'A Switch node routes the parsed result by intent.',
-    'Each of the 3 intents — Demo Request, Pricing Question, Not a Fit — sends its own reply.',
-  ],
-
   nodePalette: [
     { type: 'trigger', label: 'New Email', category: 'trigger', isDistractor: false },
     { type: 'chat-trigger', label: 'Chat Trigger', category: 'trigger', isDistractor: true },
@@ -176,24 +168,6 @@ export const leadTriage = {
         ],
       },
     },
-  ],
-
-  buildSteps: [
-    { id: 'trigger', label: 'Start the flow', categories: ['trigger'] },
-    { id: 'think', label: 'Classify, connect a model, parse & route', categories: ['ai', 'model', 'core'] },
-    { id: 'act', label: 'Send the replies', categories: ['action'] },
-  ],
-
-  // The connections the learner must make, in order, with plain-language labels.
-  // `match` reuses the same shape as testCases.requiredEdges.
-  connectionGuide: [
-    { id: 'trigger-classify', label: 'New Email → Classify with AI', match: { sourceType: 'trigger', targetType: 'classify' } },
-    { id: 'model-classify', label: 'Gemini Chat Model → Classify’s Chat Model port', hint: 'Drag from the model’s top dot up into the dashed “Chat Model” port under Classify.', match: { sourceCategory: 'model', targetType: 'classify', targetHandle: 'ai_model' } },
-    { id: 'classify-parse', label: 'Classify with AI → Parse Result', match: { sourceType: 'classify', targetType: 'parse' } },
-    { id: 'parse-switch', label: 'Parse Result → Switch', match: { sourceType: 'parse', targetType: 'switch' } },
-    { id: 'demo', label: 'Switch · Demo Request → Send Reply', match: { sourceType: 'switch', targetType: 'action', branch: 'demo_request' } },
-    { id: 'pricing', label: 'Switch · Pricing Question → Send Reply', match: { sourceType: 'switch', targetType: 'action', branch: 'pricing_question' } },
-    { id: 'notfit', label: 'Switch · Not a Fit → Send Reply', match: { sourceType: 'switch', targetType: 'action', branch: 'not_a_fit' } },
   ],
 
   // The Switch's labelled outputs (branches). Drives the branch ports on the

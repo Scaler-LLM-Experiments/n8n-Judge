@@ -1,14 +1,61 @@
 import React from 'react';
 import { EnvelopeSimple, Brain, PaperPlaneTilt } from '@phosphor-icons/react';
+import { typeCategory } from '../nodes/nodeIcons.js';
 
 // A loose, excalidraw-ish sketch of the problem — icons + handwritten labels +
 // hand-drawn arrows, no rigid boxes. Plain-language (not the n8n node names).
-const STEPS = [
-  { icon: EnvelopeSimple, label: 'a new email\narrives', color: '#0055FF' },
-  { icon: Brain, label: 'figure out\nwhat it is', color: '#6B4EFF' },
-  { icon: null, label: 'bug · feature\n· complaint', color: '#ED7700', dots: ['#ED7700', '#6B4EFF', '#D4380D'] },
-  { icon: PaperPlaneTilt, label: 'send the\nright reply', color: '#127A54' },
-];
+
+// Plain-language sketch per node category, so the diagram describes whatever
+// problem is loaded rather than hardcoding one challenge's story.
+const CATEGORY_SKETCH = {
+  trigger: { icon: EnvelopeSimple, color: '#0055FF' },
+  ai: { icon: Brain, color: '#6B4EFF' },
+  model: { icon: Brain, color: '#0E9488' },
+  core: { icon: null, color: '#ED7700' },
+  action: { icon: PaperPlaneTilt, color: '#127A54' },
+};
+
+const BRANCH_DOTS = ['#ED7700', '#6B4EFF', '#D4380D', '#0055FF'];
+
+// Two words per line keeps the handwritten labels readable in a narrow column.
+function wrapLabel(text) {
+  const words = String(text).split(/\s+/);
+  const out = [];
+  for (let i = 0; i < words.length; i += 2) out.push(words.slice(i, i + 2).join(' '));
+  return out.join('\n');
+}
+
+// Derive the sketch from the problem's own flowSummary (+ branches for the
+// routing fan-out). Falls back to the original email-triage sketch when no
+// problem is supplied (dev routes / legacy callers).
+function stepsFor(problem) {
+  const summary = problem?.flowSummary?.steps;
+  if (!summary?.length) {
+    return [
+      { icon: EnvelopeSimple, label: 'a new email\narrives', color: '#0055FF' },
+      { icon: Brain, label: 'figure out\nwhat it is', color: '#6B4EFF' },
+      { icon: null, label: 'bug · feature\n· complaint', color: '#ED7700', dots: ['#ED7700', '#6B4EFF', '#D4380D'] },
+      { icon: PaperPlaneTilt, label: 'send the\nright reply', color: '#127A54' },
+    ];
+  }
+
+  const branches = problem?.branches ?? [];
+  return summary.map((step) => {
+    const category = typeCategory[step.type] || 'core';
+    const sketch = CATEGORY_SKETCH[category] || CATEGORY_SKETCH.core;
+    // A routing node is drawn as its branch labels + a dot per branch.
+    const isRouter = branches.length > 0 && category === 'core' && /switch|route/i.test(step.type);
+    if (isRouter) {
+      return {
+        icon: null,
+        color: sketch.color,
+        label: branches.map((b) => b.label).join(' · '),
+        dots: branches.slice(0, BRANCH_DOTS.length).map((_, i) => BRANCH_DOTS[i]),
+      };
+    }
+    return { icon: sketch.icon, color: sketch.color, label: wrapLabel(step.label) };
+  });
+}
 
 const sketchFont = "'Caveat', 'Comic Sans MS', cursive";
 
@@ -30,10 +77,11 @@ function SketchArrow({ vertical }) {
   );
 }
 
-export function ConceptFlow({ direction = 'row', size = 'md' }) {
+export function ConceptFlow({ direction = 'row', size = 'md', problem }) {
   const vertical = direction === 'column';
   const iconSize = size === 'sm' ? 22 : 30;
   const font = size === 'sm' ? 15 : 19;
+  const STEPS = stepsFor(problem);
 
   return (
     <div style={{ display: 'flex', flexDirection: vertical ? 'column' : 'row', alignItems: 'center', gap: vertical ? 2 : 4, flexWrap: 'nowrap' }}>

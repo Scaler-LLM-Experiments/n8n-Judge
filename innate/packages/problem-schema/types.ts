@@ -5,10 +5,10 @@ import { z } from 'zod';
 // - the Claude structured-output contract for AI-drafted problems
 // - the shape stored in ProblemVersion.data (JSONB)
 //
-// Legacy prototype fields (buildSteps, connectionGuide, testCaseSummary) fed
-// only the dead DashboardScreen path and are deliberately NOT part of this
-// schema; they are tolerated on input (passthrough) so the two seed problems
-// load unmodified.
+// The legacy prototype fields (buildSteps, connectionGuide, testCaseSummary)
+// have been removed from every problem along with the dead DashboardScreen
+// path they fed. The "What Run will check" list is derived from
+// testCases[].description, so it has a single source of truth.
 
 export const nodeCategorySchema = z.enum(['trigger', 'ai', 'model', 'core', 'action']);
 

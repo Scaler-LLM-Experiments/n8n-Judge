@@ -285,7 +285,7 @@ function ProblemBeat({ problem, onContinue }) {
 
         <div data-a="r" style={{ background: 'var(--surface-2)', border: '1px solid var(--border-subtle)', padding: '26px 28px', marginBottom: 32, maxWidth: '100%', overflowX: 'auto' }}>
           <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--fg-3)', fontWeight: 700, marginBottom: 16 }}>The shape of it</div>
-          <ConceptFlow direction="row" />
+          <ConceptFlow direction="row" problem={problem} />
         </div>
 
         <div data-a="r">

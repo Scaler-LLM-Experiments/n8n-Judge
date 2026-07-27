@@ -85,7 +85,7 @@ export function ProblemNote({ problem, onHide }) {
         </button>
         {showDiagram ? (
           <div style={{ marginTop: 14, display: 'flex', justifyContent: 'center' }}>
-            <ConceptFlow direction="column" size="md" />
+            <ConceptFlow direction="column" size="md" problem={problem} />
           </div>
         ) : null}
       </div>
