@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight, CheckCircle, XCircle } from '@phosphor-icons/react';
 import gsap from 'gsap';
 import { Button } from '../design-system/Button.jsx';
@@ -6,6 +6,7 @@ import { TopBar } from '../components/TopBar.jsx';
 import { ProblemStatementPanel } from '../components/ProblemStatementPanel.jsx';
 import { NodeFlowRow } from '../components/NodeFlowRow.jsx';
 import { NodeReplay } from '../components/NodeReplay.jsx';
+import { shuffledEvalOptions } from '../lib/shuffle.js';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
 import { simulateCase } from '@judge/engine/simulate.js';
 import { scoreEval } from '@judge/engine/evalScore.js';
@@ -39,8 +40,12 @@ export function EvalScreen({ problem, graph, onDecision, onSubmit }) {
   const quizRef = useRef(null);
 
   const q = questions[index];
+  // Displayed options are shuffled; each carries its authored position so
+  // grading (which compares against q.correctIndex) is unaffected. `picked` is
+  // a position in THIS array, never the authored index.
+  const opts = useMemo(() => shuffledEvalOptions(q, `stress:${q.id}`), [q]);
   const answered = picked !== null;
-  const isCorrect = answered && picked === q.correctIndex;
+  const isCorrect = answered && !!opts[picked]?.correct;
 
   const sampleCase = q.caseId ? problem.sampleCases.find((c) => c.id === q.caseId) : null;
   const replaySteps = answered && sampleCase && graph ? simulateCase(graph, sampleCase).steps : null;
@@ -58,10 +63,12 @@ export function EvalScreen({ problem, graph, onDecision, onSubmit }) {
 
   const pick = (i) => {
     if (answered) return;
-    const correct = i === q.correctIndex;
+    const chosen = opts[i];
+    const correct = !!chosen?.correct;
     setPicked(i);
     setMascotClip(correct ? 'correct' : 'shake-no');
-    setAnswers((a) => ({ ...a, [q.id]: i }));
+    // Store the authored index — scoreEval grades against q.correctIndex.
+    setAnswers((a) => ({ ...a, [q.id]: chosen?.originalIndex ?? -1 }));
     if (onDecision) {
       onDecision({
         id: `stress:${q.id}`,
@@ -69,7 +76,7 @@ export function EvalScreen({ problem, graph, onDecision, onSubmit }) {
         label: q.prompt,
         correct,
         firstTry: true,
-        chosenLabel: q.options[i],
+        chosenLabel: chosen?.label,
         correctLabel: q.options[q.correctIndex],
       });
     }
@@ -131,12 +138,12 @@ export function EvalScreen({ problem, graph, onDecision, onSubmit }) {
 
             {/* RIGHT COLUMN: the question's options */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {q.options.map((opt, i) => {
+              {opts.map((opt, i) => {
                 const state = picked === i ? (isCorrect ? 'correct' : 'wrong') : 'idle';
                 const dim = answered && picked !== i;
                 return (
-                  <div key={i} data-q="opt">
-                    <OptionRow letter={LETTERS[i]} label={opt} state={state} dim={dim} disabled={answered} onClick={() => pick(i)} />
+                  <div key={opt.originalIndex} data-q="opt">
+                    <OptionRow letter={LETTERS[i]} label={opt.label} state={state} dim={dim} disabled={answered} onClick={() => pick(i)} />
                   </div>
                 );
               })}

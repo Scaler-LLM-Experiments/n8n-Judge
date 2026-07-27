@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { CheckCircle, XCircle, ArrowRight, Play, Sparkle, CircleNotch, DotsSixVertical, EnvelopeSimpleOpen, BracketsCurly, ArrowsSplit, PaperPlaneTilt } from '@phosphor-icons/react';
 import { TopBar } from '../components/TopBar.jsx';
@@ -6,6 +6,7 @@ import { ProblemStatementPanel } from '../components/ProblemStatementPanel.jsx';
 import { Button } from '../design-system/Button.jsx';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
 import { Confetti } from '../components/Confetti.jsx';
+import { seededShuffle } from '../lib/shuffle.js';
 import { N8nEditor } from '../n8n/N8nEditor.jsx';
 import { validateGraph } from '@judge/engine/validateGraph.js';
 import { simulateAll } from '@judge/engine/simulate.js';
@@ -437,7 +438,10 @@ function FloatingProbe({ probe, onAnswer, onClose }) {
   const onGripUp = (e) => { drag.current = null; try { e.currentTarget.releasePointerCapture(e.pointerId); } catch { /* noop */ } };
 
   const pick = (opt, i) => { if (picked !== null) return; setPicked(i); onAnswer(opt); };
-  const chosen = picked !== null ? data.options[picked] : null;
+  // Shuffled: probe answers were never at index 0 and almost always at
+  // index 1, so "always pick the second" beat 16 of 18 probes.
+  const options = useMemo(() => seededShuffle(data.options, `probe:${type}`), [data, type]);
+  const chosen = picked !== null ? options[picked] : null;
 
   return (
     <div ref={ref} style={{ position: 'absolute', left: pos.x, top: pos.y, width: 380, maxWidth: 'calc(100% - 24px)', zIndex: 56, background: 'var(--surface-0)', border: '1px solid var(--border-strong)', boxShadow: '0 24px 60px rgba(1,24,69,0.28), 0 4px 12px rgba(1,24,69,0.12)' }}>
@@ -457,7 +461,7 @@ function FloatingProbe({ probe, onAnswer, onClose }) {
         <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.4, color: 'var(--fg-1)', marginBottom: 14 }}>{data.prompt}</div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {data.options.map((opt, i) => {
+          {options.map((opt, i) => {
             const isPicked = picked === i;
             const tone = isPicked ? (opt.correct ? 'var(--status-success)' : 'var(--status-danger)') : 'var(--border-subtle)';
             const letterBg = isPicked ? (opt.correct ? 'var(--status-success)' : 'var(--status-danger)') : 'transparent';

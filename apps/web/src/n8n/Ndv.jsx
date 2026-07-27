@@ -3,6 +3,7 @@ import gsap from 'gsap';
 import { X, LockSimple, CaretDown, CheckCircle, XCircle, Lightning, Sparkle, Lock, CircleNotch } from '@phosphor-icons/react';
 import { NodeIcon, metaOf } from '../nodes/nodeIcons.js';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
+import { seededShuffle } from '../lib/shuffle.js';
 
 // Shown once per session: the first time a node verifies, Iris spotlights the
 // close button so the learner learns that closing a green NDV finishes the node.
@@ -326,7 +327,11 @@ function FieldForm({ setup, fields, values, results, feedback, optionFor, onChan
                 style={{ width: '100%', boxSizing: 'border-box', appearance: 'none', border: `1.5px solid ${border}`, background: bg, padding: '9px 30px 9px 11px', fontSize: 12.5, fontFamily: 'var(--font-body)', color: value ? 'var(--fg-1)' : 'var(--fg-3)', cursor: 'pointer' }}
               >
                 <option value="" disabled>Select a field…</option>
-                {f.options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                {/* Shuffled: authored data puts the correct option first in
+                    every field, which made the whole build clickable blind. */}
+                {seededShuffle(f.options, `ndv:${node.nodeType}:${f.key}`).map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
               </select>
               <CaretDown size={13} color="var(--fg-3)" style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
             </div>

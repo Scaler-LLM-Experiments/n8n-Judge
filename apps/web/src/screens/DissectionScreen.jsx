@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ArrowRight, XCircle, CheckCircle, Microphone } from '@phosphor-icons/react';
 import { Button } from '../design-system/Button.jsx';
@@ -6,6 +6,7 @@ import { TopBar } from '../components/TopBar.jsx';
 import { ConceptFlow } from '../components/ConceptFlow.jsx';
 import { ProblemNote } from '../components/ProblemNote.jsx';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
+import { seededShuffle } from '../lib/shuffle.js';
 import { N8nNodeView } from '../n8n/N8nNodeView.jsx';
 import { NodeIcon } from '../nodes/nodeIcons.js';
 
@@ -34,7 +35,15 @@ export function DissectionScreen({ problem, onComplete, onDecision }) {
     }
   }, [phase]);
 
-  const q = questions[index];
+  // Shuffled once per question: the authored data lists the correct option
+  // first in every dissection item, so the quiz was answerable without
+  // reading. Memoised so re-renders don't reorder options mid-read, and
+  // derived here so the pick handler, the verdict and QuizBody all index into
+  // the same array. Correctness is by `type`, never by position.
+  const q = useMemo(() => {
+    const base = questions[index];
+    return { ...base, options: seededShuffle(base.options, `dissection:${base.id}`) };
+  }, [questions, index]);
   const pickedOption = picked !== null ? q.options[picked] : null;
   const isCorrect = pickedOption ? pickedOption.type === q.correctType : false;
   const unlockedTypes = [...new Set(questions.flatMap((x) => x.unlocks))];
