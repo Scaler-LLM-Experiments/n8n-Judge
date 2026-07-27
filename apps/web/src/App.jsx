@@ -1,7 +1,9 @@
 // app/src/App.jsx
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { fetchProblemList, fetchProblem, slugFromUrl } from './data/problemsApi.js';
 import { AsyncGate } from './components/AsyncGate.jsx';
+import { GradingLoader } from './components/GradingLoader.jsx';
+import { createSession } from './lib/grader.js';
 import { HomeScreen } from './screens/HomeScreen.jsx';
 import { DissectionScreen } from './screens/DissectionScreen.jsx';
 import { BuildStage } from './screens/BuildStage.jsx';
@@ -182,13 +184,30 @@ function MainApp({ problem }) {
   const [builtGraph, setBuiltGraph] = useState(null);
   const [evalOutcome, setEvalOutcome] = useState(null);
   const [grading, setGrading] = useState(() => createStore());
+  const [sessionId, setSessionId] = useState(null);
+  const [gradingReport, setGradingReport] = useState(false);
   const record = (d) => setGrading((s) => recordDecision(s, d));
+
+  // One Session per attempt, created up front. It pins the ProblemVersion the
+  // learner is being graded against and gives the answer-check endpoint
+  // somewhere to record every attempt. Screens still render while this is in
+  // flight — a slow round trip should not hold up the opening screen — and a
+  // failure leaves sessionId null, which the check client treats as
+  // "unverified" rather than guessing a verdict.
+  useEffect(() => {
+    let cancelled = false;
+    createSession(problem.id)
+      .then((s) => { if (!cancelled) setSessionId(s.sessionId); })
+      .catch((err) => console.error('[session] could not start:', err));
+    return () => { cancelled = true; };
+  }, [problem.id]);
 
   return (
     <div style={{ height: '100vh' }}>
       {screen === SCREEN.STATEMENT ? (
         <DissectionScreen
           problem={problem}
+          sessionId={sessionId}
           onDecision={record}
           onComplete={(result) => {
             setDissection(result);
@@ -200,6 +219,7 @@ function MainApp({ problem }) {
       {screen === SCREEN.DASHBOARD ? (
         <BuildStage
           problem={problem}
+          sessionId={sessionId}
           onDecision={record}
           onComplete={(result) => {
             if (result) {
@@ -214,16 +234,23 @@ function MainApp({ problem }) {
       {screen === SCREEN.EVAL ? (
         <EvalScreen
           problem={problem}
+          sessionId={sessionId}
           graph={builtGraph}
           onDecision={record}
           onSubmit={(outcome) => {
             setEvalOutcome(outcome);
+            // Hold on a loader while the report is put together, rather than
+            // snapping to a score — grading is server-side work now.
+            setGradingReport(true);
             setScreen(SCREEN.REPORT);
+            setTimeout(() => setGradingReport(false), 2600);
           }}
         />
       ) : null}
 
-      {screen === SCREEN.REPORT ? (
+      {screen === SCREEN.REPORT && gradingReport ? <GradingLoader /> : null}
+
+      {screen === SCREEN.REPORT && !gradingReport ? (
         <ReportScreen problem={problem} grading={grading} dissection={dissection} runResult={runResult} evalOutcome={evalOutcome} graph={builtGraph} />
       ) : null}
     </div>
