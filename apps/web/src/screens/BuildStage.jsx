@@ -18,13 +18,37 @@ const STEP_ICON = { email: EnvelopeSimpleOpen, trigger: EnvelopeSimpleOpen, clas
 // mascot) narrates: a wrong pick is placed then Iris travels to it and floats a
 // draggable MCQ before it's removed; a correct node is set up in the centred NDV;
 // clearing a whole stage brings Iris centre-stage with confetti before the next.
+// Fired when a node is placed out of order. This probe is generated in code
+// rather than authored per problem, so validateProblem() never sees it — it
+// has to hold the same three rules by hand: never name the node that should go
+// here (`meta.expectedLabel` is deliberately unused), no escape hatch, and a
+// correct answer that teaches why order matters rather than what the order is.
+//
+// The misconception underneath is always the same one: thinking a node can
+// reach for data from anywhere in the flow, rather than only what the node
+// immediately before it hands over. Both wrong options record `flow-sequence`.
 function sequenceProbe(meta) {
+  const source = meta.sourceLabel || 'the previous node';
   return {
-    prompt: `Hold on — after ${meta.sourceLabel}, this isn’t the next step. Why did you put it here?`,
+    prompt: `Hold on — this can’t go straight after ${source}. What does a node actually receive when the flow reaches it?`,
     options: [
-      { text: 'It felt like the next logical step', correct: false, misconception: 'flow-sequence', response: `Not quite — right after ${meta.sourceLabel} the flow needs ${meta.expectedLabel || 'a different node'}. This one belongs elsewhere.` },
-      { text: `I thought ${meta.expectedLabel || 'something else'} came later`, correct: false, misconception: 'flow-sequence', response: `Actually ${meta.expectedLabel || 'that step'} comes right here — the order matters so each node gets the data it expects.` },
-      { text: 'Added it by mistake', correct: true, response: 'No worries — taking it back out.' },
+      {
+        text: 'Only what the node immediately before it passes on',
+        correct: true,
+        response: `Right. So look at what ${source} actually hands over, and ask whether this node can do its job with just that. If something it needs hasn’t been produced yet, it can’t run here.`,
+      },
+      {
+        text: 'Anything produced anywhere earlier in the flow',
+        correct: false,
+        misconception: 'flow-sequence',
+        response: `No — each node is handed the output of the one directly before it. Work out what ${source} produces, and what this node needs before it can start.`,
+      },
+      {
+        text: 'The original input, unchanged, at every step',
+        correct: false,
+        misconception: 'flow-sequence',
+        response: `Each step transforms what it receives and passes the new version on, so what leaves ${source} isn’t what arrived. What shape is the data in by the time it gets here?`,
+      },
     ],
   };
 }

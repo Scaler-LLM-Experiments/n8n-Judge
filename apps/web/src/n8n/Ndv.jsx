@@ -4,6 +4,9 @@ import { X, LockSimple, CaretDown, CheckCircle, XCircle, Lightning, Sparkle, Loc
 import { NodeIcon, metaOf } from '../nodes/nodeIcons.js';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
 import { seededShuffle } from '../lib/shuffle.js';
+import { SettingsForm } from './SettingsForm.jsx';
+import { IrisBubble } from './IrisBubble.jsx';
+import { defaultSettings, gradeSettings } from './nodeSettings.js';
 
 // Shown once per session: the first time a node verifies, Iris spotlights the
 // close button so the learner learns that closing a green NDV finishes the node.
@@ -25,6 +28,11 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
   const meta = metaOf(node.nodeType);
 
   const fields = setup?.fields || [];
+  // Settings the problem actually grades. The tab always renders the full n8n
+  // set; this is just the subset that counts.
+  const gradedSettings = setup?.settings || [];
+  const [settings, setSettings] = useState(() => defaultSettings());
+  const [settingsResults, setSettingsResults] = useState(null);
   const [values, setValues] = useState({});
   const [results, setResults] = useState(null); // { [key]: 'correct' | 'wrong' }
   const [feedback, setFeedback] = useState(null); // { key, verdict, why }
@@ -45,17 +53,37 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
     gsap.to(rootRef.current, { opacity: 0, duration: 0.24, ease: 'power2.in', onComplete: onClose });
   };
 
-  const noVerify = fields.length === 0; // node has only fixed settings → nothing to verify
+  const noVerify = fields.length === 0 && gradedSettings.length === 0;
   const optionFor = (field, value) => field.options.find((o) => o.value === value);
-  const allChosen = fields.length > 0 && fields.every((f) => values[f.key]);
-  const allCorrect = results && fields.length > 0 && fields.every((f) => results[f.key] === 'correct');
+
+  // A node is configured in two stages, in order: Parameters, then Settings.
+  // Settings stays locked until the parameters are green, because a node whose
+  // parameters are still wrong has nothing meaningful to say about how it
+  // should behave when it fails. Setup is only complete when BOTH are green —
+  // clearing the first tab is not finishing the node.
+  const paramsOk = fields.length === 0 || (results !== null && fields.every((f) => results[f.key] === 'correct'));
+  const hasSettings = gradedSettings.length > 0;
+  const settingsOk = !hasSettings || (settingsResults !== null && settingsResults.every((r) => r.correct));
+  const settingsUnlocked = paramsOk;
+  const stage = !paramsOk ? 'params' : !settingsOk ? 'settings' : 'done';
+
+  const allChosen = stage === 'params' ? fields.every((f) => values[f.key]) : true;
+  const allCorrect = paramsOk && settingsOk;
   const running = phase === 'running';
-  const isComplete = noVerify || phase === 'done';
+  const isComplete = noVerify || (paramsOk && settingsOk);
 
   const setValue = (key, value) => {
     setValues((v) => ({ ...v, [key]: value }));
     setResults(null);
+    setSettingsResults(null);
     setFeedback(null);
+    if (phase !== 'idle') setPhase('idle');
+  };
+
+  const setSetting = (key, value) => {
+    setSettings((s2) => ({ ...s2, [key]: value }));
+    setSettingsResults(null);
+    setResults(null);
     if (phase !== 'idle') setPhase('idle');
   };
 
@@ -74,29 +102,73 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
     if (running) return;
     setInputLoaded(true);
     setPhase('running');
-    setResults(null);
     setFeedback(null);
+    const gradingSettings = stage === 'settings';
+    if (!gradingSettings) setResults(null);
+
     runTimer.current = setTimeout(() => {
-      const next = {};
       const firstTry = attempts.current === 0;
+      attempts.current += 1;
+
+      // --- Stage 2: the parameters are already green, grade the Settings tab.
+      if (gradingSettings) {
+        const sres = gradeSettings(gradedSettings, settings);
+        sres.forEach((r) => {
+          if (onDecision) {
+            onDecision({
+              id: `${node.nodeType}:settings.${r.key}`,
+              kind: 'setting',
+              label: r.label,
+              correct: r.correct,
+              firstTry,
+            });
+          }
+        });
+        setSettingsResults(sres);
+        if (sres.every((r) => r.correct)) {
+          setPhase('done');
+          if (!ndvVignetteSeen) { ndvVignetteSeen = true; vigTimer.current = setTimeout(() => setShowVignette(true), 2600); }
+        } else {
+          setPhase('idle');
+        }
+        return;
+      }
+
+      // --- Stage 1: grade the parameters.
+      const next = {};
       fields.forEach((f) => {
         const opt = optionFor(f, values[f.key]);
         next[f.key] = opt?.correct ? 'correct' : 'wrong';
         if (onDecision) onDecision({ id: `${node.nodeType}:${f.key}`, kind: 'field', label: f.label, correct: !!opt?.correct, firstTry });
       });
-      attempts.current += 1;
       setResults(next);
-      const ok = fields.length > 0 && fields.every((f) => next[f.key] === 'correct');
-      if (ok) {
-        setPhase('done');
-        // let the learner take in the output first, then Iris nudges them to close
-        if (!ndvVignetteSeen) { ndvVignetteSeen = true; vigTimer.current = setTimeout(() => setShowVignette(true), 2600); }
-      } else {
+
+      const paramsPassed = fields.every((f) => next[f.key] === 'correct');
+      if (!paramsPassed) {
         setPhase('idle');
         const firstWrong = fields.find((f) => next[f.key] === 'wrong');
         if (firstWrong) setFeedback({ key: firstWrong.key, verdict: 'wrong', why: optionFor(firstWrong, values[firstWrong.key])?.why });
+        return;
       }
+
+      // Parameters clean. If this node has settings to get right, unlock that
+      // tab and move the learner to it rather than letting them close a
+      // half-configured node.
+      if (gradedSettings.length > 0) {
+        setPhase('idle');
+        setTab('settings');
+        return;
+      }
+
+      setPhase('done');
+      if (!ndvVignetteSeen) { ndvVignetteSeen = true; vigTimer.current = setTimeout(() => setShowVignette(true), 2600); }
     }, 2000);
+  };
+
+  // Settings share the Parameters tab's Iris bubble rather than inventing a
+  // second explanation surface — one node, one voice.
+  const explainSetting = (key, verdict, why) => {
+    setFeedback((f) => (f && f.key === `settings.${key}` ? null : { key: `settings.${key}`, verdict, why }));
   };
 
   const explain = (field, verdict) => {
@@ -158,16 +230,36 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
 
         <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0, borderLeft: '1px solid var(--border-subtle)', borderRight: '1px solid var(--border-subtle)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 18, padding: '0 16px', borderBottom: '1px solid var(--border-subtle)', flex: 'none' }}>
-            <Tab active={tab === 'params'} onClick={() => setTab('params')}>Parameters</Tab>
-            <span title="Nothing to change here for this task" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '11px 0', fontSize: 12.5, fontWeight: 600, color: 'var(--fg-3)', opacity: 0.55, cursor: 'not-allowed' }}>
-              <Lock size={11} weight="fill" /> Settings
-            </span>
+            <Tab active={tab === 'params'} onClick={() => setTab('params')}>
+              Parameters
+              {fields.length > 0 && paramsOk ? (
+                <CheckCircle size={12} weight="fill" color="var(--status-success)" style={{ marginLeft: 5, verticalAlign: 'middle' }} />
+              ) : null}
+            </Tab>
+            {settingsUnlocked ? (
+              <Tab active={tab === 'settings'} onClick={() => setTab('settings')}>
+                Settings
+                {hasSettings && !settingsOk ? (
+                  <span style={{ marginLeft: 6, display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: 'var(--brand-primary)', verticalAlign: 'middle' }} />
+                ) : null}
+                {hasSettings && settingsOk ? (
+                  <CheckCircle size={12} weight="fill" color="var(--status-success)" style={{ marginLeft: 5, verticalAlign: 'middle' }} />
+                ) : null}
+              </Tab>
+            ) : (
+              <span
+                title="Get the parameters right first"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '11px 0', fontSize: 12.5, fontWeight: 600, color: 'var(--fg-3)', opacity: 0.55, cursor: 'not-allowed' }}
+              >
+                <Lock size={11} weight="fill" /> Settings
+              </span>
+            )}
             <div style={{ marginLeft: 'auto', margin: '8px 0 8px auto' }}>
               {noVerify ? (
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--status-success)', fontSize: 12.5, fontWeight: 700 }}>
                   <CheckCircle size={16} weight="fill" /> Nothing to set up — close to finish
                 </span>
-              ) : phase === 'done' ? (
+              ) : stage === 'done' ? (
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--status-success)', fontSize: 12.5, fontWeight: 700 }}>
                   <CheckCircle size={16} weight="fill" /> Setup complete
                 </span>
@@ -177,26 +269,38 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
                 </span>
               ) : (
                 <button type="button" disabled={!allChosen} onClick={verify} style={ctaStyle(allChosen ? 'var(--brand-primary)' : 'var(--n-200)', !allChosen)}>
-                  <Sparkle size={14} weight="fill" /> Verify setup
+                  <Sparkle size={14} weight="fill" />
+                  {stage === 'settings' ? 'Verify settings' : 'Verify setup'}
                 </button>
               )}
             </div>
           </div>
           {running ? <RunningStrip /> : null}
           <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '16px 16px 32px' }}>
-            <FieldForm
-              nodeType={node.nodeType}
-              setup={setup}
-              fields={fields}
-              values={values}
-              results={results}
-              feedback={feedback}
-              optionFor={optionFor}
-              onChange={setValue}
-              onDrop={dropField}
-              onExplain={explain}
-              allCorrect={allCorrect}
-            />
+            {tab === 'settings' ? (
+              <SettingsForm
+                values={settings}
+                graded={gradedSettings}
+                results={settingsResults}
+                onChange={setSetting}
+                onExplain={explainSetting}
+                feedback={feedback}
+              />
+            ) : (
+              <FieldForm
+                nodeType={node.nodeType}
+                setup={setup}
+                fields={fields}
+                values={values}
+                results={results}
+                feedback={feedback}
+                optionFor={optionFor}
+                onChange={setValue}
+                onDrop={dropField}
+                onExplain={explain}
+                allCorrect={allCorrect}
+              />
+            )}
           </div>
         </div>
 
@@ -358,28 +462,6 @@ function FieldForm({ nodeType, setup, fields, values, results, feedback, optionF
 }
 
 // Iris travels in from the left with a square speech bubble (tail toward Iris).
-function IrisBubble({ tone, children }) {
-  const ref = useRef(null);
-  const correct = tone === 'correct';
-  const c = correct ? 'var(--status-success)' : 'var(--status-danger)';
-  useEffect(() => {
-    if (ref.current) gsap.fromTo(ref.current, { x: -26, opacity: 0 }, { x: 0, opacity: 1, duration: 0.38, ease: 'back.out(1.4)' });
-  }, []);
-  return (
-    <div ref={ref} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginTop: 11 }}>
-      <div style={{ width: 46, height: 46, flex: 'none' }}>
-        <MascotPlayer clip={correct ? 'correct' : 'shake-no'} once={false} onceDone={() => {}} />
-      </div>
-      <div style={{ position: 'relative', flex: 1, maxWidth: 300, background: 'var(--surface-0)', border: '1px solid var(--border-strong)', borderLeft: `3px solid ${c}`, boxShadow: '0 10px 26px rgba(1,24,69,0.14)', padding: '10px 12px' }}>
-        <span style={{ position: 'absolute', left: -7, top: 15, width: 0, height: 0, borderTop: '6px solid transparent', borderBottom: '6px solid transparent', borderRight: '7px solid var(--border-strong)' }} />
-        <span style={{ position: 'absolute', left: -6, top: 15, width: 0, height: 0, borderTop: '6px solid transparent', borderBottom: '6px solid transparent', borderRight: '7px solid var(--surface-0)' }} />
-        <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: c, marginBottom: 3 }}>{correct ? 'Nailed it' : 'Not quite'}</div>
-        <div style={{ fontSize: 12.5, lineHeight: 1.5, color: 'var(--fg-1)' }}>{children}</div>
-      </div>
-    </div>
-  );
-}
-
 const disabledInput = { width: '100%', boxSizing: 'border-box', border: '1px solid var(--border-subtle)', background: 'var(--surface-1)', padding: '8px 10px', fontSize: 12.5, fontFamily: 'var(--font-body)', color: 'var(--fg-3)', resize: 'none', cursor: 'not-allowed' };
 
 function Tab({ active, onClick, children }) {

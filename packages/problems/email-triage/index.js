@@ -311,6 +311,36 @@ export const emailTriage = {
       ],
     },
     switch: {
+      // Graded Settings, not just parameters. Both directions are represented
+      // on purpose: On Error must be CHANGED off its default, while Retry On
+      // Fail must be LEFT alone. Flipping every toggle should fail as surely
+      // as touching none of them.
+      settings: [
+        {
+          key: 'onError',
+          correct: 'continueErrorOutput',
+          // One explanation per choice, so a learner is told why THEIR answer
+          // is right or wrong rather than reading the same sentence either way.
+          why: {
+            continueErrorOutput:
+              'Right. Routing is where mail quietly goes missing, and this gives the failures somewhere visible to land instead of vanishing or taking the whole run down with them.',
+            stopWorkflow:
+              'One malformed email would now halt everything behind it. Every message still queued goes unanswered, and nobody finds out until a customer complains. Is one bad input worth stopping the inbox?',
+            continueRegularOutput:
+              'This carries on using the last valid data, so a failed email inherits the previous one’s category and gets someone else’s reply. Silent and wrong is worse than loud and broken.',
+          },
+        },
+        {
+          key: 'retryOnFail',
+          correct: false,
+          why: {
+            false:
+              'Correct — leave it off. Retrying helps when something failed for a passing reason, like a network blip. Deciding which branch an email belongs to fails the same way every time, so retries just add delay.',
+            true:
+              'Retrying only helps a step that might succeed on a second attempt. A routing decision is deterministic: the same email hits the same rules and fails identically. All you have added is waiting.',
+          },
+        },
+      ],
       locked: [
         { label: 'Mode', value: 'Rules — 3 outputs (Bug Report · Feature Request · Urgent Complaint)' },
       ],
