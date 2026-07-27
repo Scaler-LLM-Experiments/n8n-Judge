@@ -49,11 +49,12 @@ smoke green.
 
 ### M1 — Auth + problems from the DB ⬅ **current**
 
-1. ~~Provision Postgres, wire `DATABASE_URL`, run the migration.~~ **Done** — local
-   Postgres via [docker-compose.yml](docker-compose.yml) (`npm run db:up`), migration
-   `0001_init` applied, all 14 tables live. A **hosted** Postgres is still needed for
-   deploys; the Railway MCP is not authenticated, so someone has to run `railway login`
-   and add a Postgres service.
+1. ~~Provision Postgres, wire `DATABASE_URL`, run the migration.~~ **Done.**
+   - **Local** — [docker-compose.yml](docker-compose.yml) (`npm run db:up`), 14 tables live.
+   - **Railway** — Postgres service provisioned in project *n8n Judge* (production).
+     `DATABASE_URL` set on the app service as a `${{Postgres.DATABASE_URL}}` reference,
+     `AUTH_SECRET` generated and set. Migration `0001_init` applied; `migrate status`
+     reports the schema up to date.
 2. Auth.js Credentials — email + password, bcrypt/argon2, roles LEARNER/ADMIN.
 3. Signup with batch invite codes; Programs (SE / AIML / DSML) as DB rows.
 4. `GET /api/problems`, `GET /api/problems/[slug]`; seed the three problems as v1 PUBLISHED.
@@ -117,6 +118,24 @@ Do not re-litigate these.
 | LMS | Parked. |
 
 ---
+
+## Deployment state — needs attention
+
+**`https://n8n-judge-production.up.railway.app` is serving the DEAD Vite prototype**, not
+the Next.js app. Its title is `Judge — Email Triage` and there is no `X-Powered-By: Next.js`.
+The service's Root Directory was never switched to `innate`, so it kept building the old
+root Dockerfile. Anyone who has been shown that URL has been looking at the prototype.
+
+After the 2026-07-27 flatten the root Dockerfile **is** the Next.js one, so Root Directory
+= repo root is now correct and needs no change. What's still required:
+
+1. Get this branch onto whatever branch the service deploys from (merge `sudhanva/nextjs`,
+   or repoint the service at it).
+2. Set `ANTHROPIC_API_KEY` on the app service — it is not set, so Ask-AI returns 503 in
+   production.
+
+The Railway **MCP** holds a stale token and reports `Unauthorized` even though the CLI is
+logged in; it needs a Claude Code restart. The CLI works, so this is not blocking.
 
 ## Known issues
 
