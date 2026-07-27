@@ -11,10 +11,12 @@ can share). Everything below assumes the branch `claude/init-jniws3`.
 git fetch origin claude/init-jniws3
 git checkout claude/init-jniws3
 cd innate
-npm install          # installs the whole monorepo
-cd apps/web
+npm install          # installs the whole monorepo (~1 min)
 npm run dev          # → http://localhost:3000
 ```
+
+Requires Node 20+ (`node -v`). `npm run dev`, `npm run build`, `npm start` and
+`npm test` all work from `innate/` — no need to cd into `apps/web`.
 
 Open **http://localhost:3000**. You should see **three challenges** on the home page.
 
@@ -58,7 +60,7 @@ The **Ask AI** button (top right) opens Iris. Without an API key it shows a poli
 cd innate
 cp .env.example .env
 # edit .env and set ANTHROPIC_API_KEY="sk-ant-..."
-cd apps/web && npm run dev
+npm run dev
 ```
 
 Then ask Iris something mid-challenge. Note it is deliberately built **not to give

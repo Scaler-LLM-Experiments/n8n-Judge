@@ -8,6 +8,9 @@
     "apps/*"
   ],
   "scripts": {
+    "dev": "npm run dev --workspace @judge/web",
+    "build": "npm run build --workspace @judge/web",
+    "start": "npm run start --workspace @judge/web",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
