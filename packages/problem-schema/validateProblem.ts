@@ -31,6 +31,12 @@ export interface ValidateProblemResult {
 // are enforced only when the problem actually uses those roles (see below).
 const STRUCTURAL_REQUIRED_CATEGORIES = ['trigger', 'action'] as const;
 
+// Probe-quality rules. A probe exists to diagnose a misconception, so it needs
+// enough plausible positions to be worth answering, and no way to opt out.
+const MIN_PROBE_OPTIONS = 3;
+const ESCAPE_HATCH =
+  /\b(by mistake|mistake|oops|didn'?t mean|not sure|dunno|no reason|accident(al(ly)?)?|ignore this|just testing)\b/i;
+
 export function validateProblem(input: unknown): ValidateProblemResult {
   const issues: ProblemIssue[] = [];
 
@@ -151,14 +157,37 @@ export function validateProblem(input: unknown): ValidateProblemResult {
   }
 
   // --- Probes: exactly one correct option; misconception codes must be labeled.
+  //
+  // Probes also have to be worth answering. Every probe used to end with an
+  // "Added it by mistake" option flagged correct, which meant any probe could
+  // be dodged for a free correct grading record and no misconception logged.
+  // These rules stop that pattern returning; shuffling handles position, so
+  // there is no positional rule here.
   for (const [type, probe] of Object.entries(p.nodeProbes)) {
     const correct = probe.options.filter((o) => o.correct);
     if (correct.length !== 1) {
       err(`nodeProbes.${type}`, `Probe must have exactly one correct option (has ${correct.length})`);
     }
+    if (probe.options.length < MIN_PROBE_OPTIONS) {
+      err(
+        `nodeProbes.${type}`,
+        `Probe needs at least ${MIN_PROBE_OPTIONS} options (has ${probe.options.length}) — two options is a coin flip`
+      );
+    }
     for (const o of probe.options) {
       if (o.misconception && !p.misconceptionLabels[o.misconception]) {
         err(`nodeProbes.${type}`, `Misconception code "${o.misconception}" has no entry in misconceptionLabels`);
+      }
+      if (ESCAPE_HATCH.test(o.text)) {
+        err(
+          `nodeProbes.${type}`,
+          `Option "${o.text}" is an escape hatch — every option must be a position a learner could actually hold`
+        );
+      }
+      // A wrong option with no misconception code records nothing, so the
+      // Report can't surface why the learner went wrong.
+      if (!o.correct && !o.misconception) {
+        warn(`nodeProbes.${type}`, `Wrong option "${o.text}" has no misconception code, so it is never surfaced on the report`);
       }
     }
   }

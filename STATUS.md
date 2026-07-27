@@ -72,8 +72,22 @@ batch/program via `ProblemAssignment` (the data is seeded, the filter is not wri
 there is no admin UI yet — promote an admin with
 `UPDATE "User" SET role='ADMIN' WHERE email='…';`
 
-### M1.5 — n8n fidelity + real assessment
+### M1.5 — n8n fidelity + real assessment ⬅ **current**
 Full plan: **[docs/plan-m1.5-fidelity-and-assessment.md](docs/plan-m1.5-fidelity-and-assessment.md)**
+
+Progress:
+- **A1 — option shuffling. Done.** Seeded by (tab session, question key) so order is
+  stable while reading and identical after a reload. `EvalScreen` options carry
+  `originalIndex` because `scoreEval` grades against the authored `correctIndex`.
+- **A2 — authoring lint. Done.** `validateProblem()` rejects escape-hatch option text
+  and probes with fewer than 3 options, and warns when a wrong option carries no
+  misconception code (it would never reach the report).
+- **A4 + C1 — probe rewrite.** Every probe used to end with "Added it by mistake"
+  flagged `correct: true`: a free correct grading record, no misconception logged.
+  Rewritten under three rules — never name the correct node, every option is a real
+  position, and the correct answer describes what the *wrong* node actually does.
+- Still to do: B1 (real n8n connections model) and the rest of Part B, A3/A5
+  (widened answer space, assessed mode), C2/C3 (run narration, coach copy), D1/D2.
 
 Judge currently cannot fail a learner. An audit of the three shipped problems found the
 correct option at index 0 in **25/25** NDV fields and **13/13** dissection items, every

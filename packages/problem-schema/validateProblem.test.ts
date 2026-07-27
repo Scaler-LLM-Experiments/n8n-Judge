@@ -36,6 +36,46 @@ describe('validateProblem', () => {
     expect(validateProblem(p).valid).toBe(false);
   });
 
+  // Probe-quality rules. Every probe used to end with an "Added it by mistake"
+  // option flagged correct, so any probe could be dodged for a free correct
+  // grading record with no misconception logged. These guard the fix.
+  it('rejects an escape-hatch probe option', () => {
+    for (const text of ['Added it by mistake', 'Oops, wrong one', 'Not sure', 'I clicked it accidentally']) {
+      const p = base();
+      const type = Object.keys(p.nodeProbes)[0];
+      p.nodeProbes[type].options[0].text = text;
+      const result = validateProblem(p);
+      expect(result.valid, `"${text}" should be rejected`).toBe(false);
+      expect(result.issues.some((i) => i.message.includes('escape hatch'))).toBe(true);
+    }
+  });
+
+  it('rejects a probe with fewer than three options', () => {
+    const p = base();
+    const type = Object.keys(p.nodeProbes)[0];
+    p.nodeProbes[type].options = p.nodeProbes[type].options.slice(0, 2);
+    const result = validateProblem(p);
+    expect(result.valid).toBe(false);
+    expect(result.issues.some((i) => i.message.includes('at least 3 options'))).toBe(true);
+  });
+
+  it('warns when a wrong probe option records no misconception', () => {
+    const p = base();
+    const type = Object.keys(p.nodeProbes)[0];
+    const wrong = p.nodeProbes[type].options.find((o: { correct: boolean }) => !o.correct)!;
+    delete wrong.misconception;
+    const result = validateProblem(p);
+    expect(result.issues.some((i) => i.level === 'warning' && i.message.includes('never surfaced'))).toBe(true);
+  });
+
+  it('does not flag ordinary option text as an escape hatch', () => {
+    const p = base();
+    const type = Object.keys(p.nodeProbes)[0];
+    p.nodeProbes[type].options[0].text = 'It reacts the moment a message arrives';
+    const result = validateProblem(p);
+    expect(result.issues.some((i) => i.message.includes('escape hatch'))).toBe(false);
+  });
+
   it('rejects an out-of-range correctIndex', () => {
     const p = base();
     p.evalQuestions[0].correctIndex = 99;

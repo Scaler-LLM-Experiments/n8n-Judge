@@ -252,47 +252,60 @@ export const meetingNotes = {
     },
   },
 
+  // Wrong-pick probes. Three rules, applied to every entry (see email-triage
+  // for the reference version of this comment):
+  //   1. Never name the correct node — the probe diagnoses a misconception,
+  //      it does not resolve it. The learner goes back and chooses again.
+  //   2. Every option is a position someone actually holds — no escape hatch.
+  //   3. The correct answer accurately describes what the WRONG node really
+  //      does; understanding that is what reveals it doesn't fit here.
   nodeProbes: {
     schedule: {
-      prompt: 'Why a Schedule trigger?',
+      prompt: 'Schedule Trigger is on the canvas. When would this actually run?',
       options: [
-        { text: 'It can check for new transcripts on a timer', correct: false, misconception: 'poll-vs-event', response: 'It can, but polling adds delay and runs even when there’s been no call. The transcript is pushed to you — react to that event with a Webhook.' },
-        { text: 'Added it by mistake', correct: true, response: 'No worries — putting it back.' },
+        { text: 'On a fixed clock — every few minutes, or at set times of day', correct: true, response: 'Correct. Now compare that to when a transcript actually becomes available. A clock has no idea a call just ended — how would it know to go check?' },
+        { text: 'The moment the meeting tool sends over a finished transcript', correct: false, misconception: 'poll-vs-event', response: 'No — a schedule only fires on its own clock, never on an incoming push from another system. Something needs to actually receive that data the instant it lands.' },
+        { text: 'Once, right when the workflow is turned on', correct: false, misconception: 'schedule-runs-once', response: 'A Schedule Trigger repeats on its interval — it does not fire only once at activation. But repeating on a timer still isn’t the same as reacting the moment a call ends.' },
       ],
     },
     'chat-trigger': {
-      prompt: 'Why Chat Trigger?',
+      prompt: 'Chat Trigger is on the canvas. If you keep it, what actually starts this workflow?',
       options: [
-        { text: 'A transcript is basically a chat message', correct: false, misconception: 'chat-vs-webhook', response: 'Chat Trigger listens for live chatbot messages, not a transcript another app posts. The meeting tool POSTs to a URL — that’s a Webhook.' },
-        { text: 'Added it by mistake', correct: true, response: 'All good — back it goes.' },
+        { text: 'Someone typing into a live chat session', correct: true, response: 'Right — that’s all it listens for. Now think about how the transcript actually reaches this workflow once a call ends, and pick the trigger built to catch that.' },
+        { text: 'The meeting tool posting over the finished transcript', correct: false, misconception: 'chat-vs-webhook', response: 'It won’t catch that. Chat Trigger is wired to a live chat widget, not to another system posting data after the fact — go back to what’s actually built to receive a post like that.' },
+        { text: 'Any incoming data, since it’s the general-purpose starting point', correct: false, misconception: 'triggers-interchangeable', response: 'Triggers aren’t general-purpose — each one subscribes to exactly one kind of event. Which event does this workflow actually need to begin from?' },
       ],
     },
     classify: {
-      prompt: 'Why Classify with AI?',
+      prompt: 'Classify with AI is on the canvas. What does this node actually hand back?',
       options: [
-        { text: 'It uses AI to read the transcript, so it fits', correct: false, misconception: 'classify-vs-summarize', response: 'Both use AI, but Classify sorts text into fixed categories. You want a written summary with action items — that’s the Summarize node.' },
-        { text: 'Added it by mistake', correct: true, response: 'No problem — removing it.' },
+        { text: 'One category label, chosen from a fixed set you define ahead of time', correct: true, response: 'Right — it sorts input into buckets you set up in advance. Now look at what this step in the flow actually needs to produce from the transcript, and whether a label is it.' },
+        { text: 'A written summary of whatever text it reads', correct: false, misconception: 'classify-vs-summarize', response: 'That’s not what this node produces — it returns one label from a fixed list, not prose. The transcript needs turning into readable notes, not sorted into a category.' },
+        { text: 'Whatever shape you ask for in the prompt, a summary included', correct: false, misconception: 'ai-nodes-interchangeable', response: 'A classifier node is built to emit one of its predefined categories, no matter how the prompt is worded — it isn’t a general-purpose writer. Something else in the palette is built for open-ended writing.' },
       ],
     },
     'slack-message': {
-      prompt: 'Why Slack here?',
+      prompt: 'Slack — Send Message is on the canvas. What happens to a message once it’s posted in a channel?',
       options: [
-        { text: 'The team should get the notes', correct: false, misconception: 'notify-vs-store', response: 'Slack pings people, but the notes scroll away. The task is to store them somewhere lasting — a Google Doc. (A Slack heads-up is a nice add-on, not the record itself.)' },
-        { text: 'Added it by mistake', correct: true, response: 'Back to the sidebar.' },
+        { text: 'It sits in the channel history, and scrolls further down as new messages arrive', correct: true, response: 'Right — it stays there, but it’s soon buried under whatever gets posted next. Think about what the team needs to do with these notes days or weeks later, and whether a channel post supports that.' },
+        { text: 'It stays pinned and easy to find whenever anyone needs it later', correct: false, misconception: 'notify-vs-store', response: 'A regular message isn’t pinned or indexed on its own — it scrolls away with everything else in the channel. The task calls for something the team can reliably find later, not just a heads-up.' },
+        { text: 'It gets saved as its own separate, searchable file', correct: false, misconception: 'chat-message-is-document', response: 'A chat message lives inside the channel’s timeline, not as a standalone file. If the goal is a lasting record for each call, something else is built to create that.' },
       ],
     },
     switch: {
-      prompt: 'Why a Switch?',
+      prompt: 'Switch is on the canvas. What does this node need in order to send work down more than one path?',
       options: [
-        { text: 'To handle different kinds of meetings differently', correct: false, misconception: 'route-without-branches', response: 'There’s only one path here — every transcript gets summarized and saved the same way. No routing to do, so no Switch.' },
-        { text: 'Added it by mistake', correct: true, response: 'Removing it.' },
+        { text: 'Two or more distinct categories or rules to route items on', correct: true, response: 'Right — it needs multiple distinct values to split across. Now look back at this problem: is there more than one path a transcript could take, or does every call get handled the same way?' },
+        { text: 'Nothing extra — it can still branch even with just one outcome', correct: false, misconception: 'route-without-branches', response: 'A Switch only earns its place when there’s more than one category to split on; with a single outcome for every case, there’s nothing to route between. Does this workflow actually treat any calls differently?' },
+        { text: 'If there’s only one kind of case, it just passes the item straight through unchanged', correct: false, misconception: 'switch-passthrough', response: 'It doesn’t just pass through — every item still has to match a rule you’ve set up, and with none defined here it would have nowhere to go. This flow doesn’t need a routing decision at all.' },
       ],
     },
     code: {
-      prompt: 'Why Code to summarize?',
+      prompt: 'Code is on the canvas to summarize the transcript. What would you actually have to write inside it to produce a summary?',
       options: [
-        { text: 'I can write code to shorten the transcript', correct: false, misconception: 'rules-vs-ai', response: 'Chopping text isn’t summarizing — you’d lose the meaning. Let the AI actually read and condense it.' },
-        { text: 'Added it by mistake', correct: true, response: 'Back it goes.' },
+        { text: 'Explicit, deterministic logic — string handling, fixed rules, no understanding of meaning', correct: true, response: 'Right — it only executes exactly what you write, nothing more. Now think about a rambling, cross-talking transcript: could fixed logic decide what matters and write it up in plain sentences?' },
+        { text: 'A rule that keeps the first and last few sentences of the transcript', correct: false, misconception: 'rules-vs-ai', response: 'That would just chop text, not summarize it — you’d lose whatever important point was buried in the middle. Producing real notes needs something that reads for meaning, not a fixed rule.' },
+        { text: 'Nothing much — it can tell which parts of a transcript matter on its own', correct: false, misconception: 'code-is-smart', response: 'Code has no understanding of meaning; it only runs the exact steps you program. Deciding what’s worth keeping in a messy transcript takes actual reading and judgment.' },
       ],
     },
   },
@@ -304,6 +317,12 @@ export const meetingNotes = {
     'notify-vs-store': 'Confused notifying the team with storing a durable record',
     'route-without-branches': 'Added routing to a single-path flow',
     'rules-vs-ai': 'Tried code/rules to summarize free text',
+    'schedule-runs-once': 'Thought a Schedule Trigger fires once rather than on a repeating interval',
+    'triggers-interchangeable': 'Assumed any trigger can start the flow, regardless of the event it’s built for',
+    'ai-nodes-interchangeable': 'Assumed any AI node can produce any output format based on the prompt alone',
+    'chat-message-is-document': 'Treated a chat message as a saved, standalone document',
+    'switch-passthrough': 'Assumed an unrouted Switch simply passes data through unchanged',
+    'code-is-smart': 'Expected Code to interpret meaning rather than run written rules',
     'flow-sequence': 'Placed a step out of the correct flow order',
   },
 

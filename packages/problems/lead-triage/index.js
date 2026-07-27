@@ -370,48 +370,62 @@ export const leadTriage = {
   },
 
   // Misconception probes for plausible wrong drops (types absent here get a light nudge).
+  // Wrong-pick probes. Three rules, applied to every entry:
+  //   1. Never name the correct node. The probe diagnoses a misconception; it
+  //      does not resolve it. The learner goes back and chooses again.
+  //   2. Every option is a position someone actually holds — no "added it by
+  //      mistake" escape, which used to be marked `correct: true` and handed
+  //      out a free right answer (and a clean grading record) on every probe.
+  //   3. The correct answer is an accurate account of what the WRONG node
+  //      really does. Understanding that is what tells the learner it doesn't
+  //      fit here, without being told which node does.
   nodeProbes: {
     'chat-trigger': {
-      prompt: 'Hmm — why Chat Trigger?',
+      prompt: 'Chat Trigger is on the canvas. If you keep it, what actually starts this workflow?',
       options: [
-        { text: 'Emails and chats both bring in a message', correct: false, misconception: 'chat-trigger-is-email', response: 'Close, but Chat Trigger only listens for chatbot messages, not an inbox. A sales inbox needs an email trigger.' },
-        { text: 'Any trigger starts the flow, so it’s fine', correct: false, misconception: 'triggers-interchangeable', response: 'Triggers aren’t interchangeable — each fires on one specific event. You need the one that fires on a new email.' },
-        { text: 'Added it by mistake', correct: true, response: 'No worries — popping it back.' },
+        { text: 'Someone sending a message into a live chat session', correct: true, response: 'Right — that’s the only thing it listens for. Now think about how a sales lead actually reaches this workflow in this problem, and pick the trigger that hears it.' },
+        { text: 'A new lead email landing in the sales inbox', correct: false, misconception: 'chat-trigger-is-email', response: 'It won’t. Chat Trigger is wired to a chat widget or session, and never looks at a mailbox. Go back to what event actually opens this workflow.' },
+        { text: 'Whatever inbound signal happens to reach this workflow first', correct: false, misconception: 'triggers-interchangeable', response: 'Triggers don’t take whatever shows up — each one subscribes to exactly one event on one service. Which event does a new sales lead actually produce?' },
       ],
     },
     schedule: {
-      prompt: 'Why a Schedule trigger?',
+      prompt: 'Schedule Trigger is on the canvas. When does it actually run?',
       options: [
-        { text: 'It can check the inbox on a timer', correct: false, misconception: 'poll-vs-event', response: 'It can, but that polls on a clock and adds delay. A hot lead deserves an instant response — use an event trigger.' },
-        { text: 'Added it by mistake', correct: true, response: 'All good — back it goes.' },
+        { text: 'On a fixed interval you set, say every few minutes, no matter what is happening in the inbox', correct: true, response: 'Correct. Now compare that to the moment a lead’s email actually lands. A clock has no idea one just arrived — how long might it sit before the next tick fires?' },
+        { text: 'The instant a new lead email arrives', correct: false, misconception: 'poll-vs-event', response: 'No — a schedule only fires on its own clock, never on the event itself. Anything that lands between ticks waits. How fast does a fresh lead need a response?' },
+        { text: 'Once, right after the workflow is activated', correct: false, misconception: 'schedule-runs-once', response: 'A Schedule Trigger keeps firing on its interval; it isn’t a one-shot. But repeating on a clock still isn’t the same as reacting when a lead actually writes in.' },
       ],
     },
     webhook: {
-      prompt: 'Why a Webhook?',
+      prompt: 'Webhook is on the canvas. What has to happen before it fires?',
       options: [
-        { text: 'Email must arrive over HTTP', correct: false, misconception: 'email-is-http', response: 'A webhook waits for an app to POST to a URL. Gmail doesn’t call your webhook when mail arrives — use the email trigger.' },
-        { text: 'Added it by mistake', correct: true, response: 'No problem — removing it.' },
+        { text: 'Some other system has to send an HTTP request to its URL', correct: true, response: 'Exactly. So ask yourself who would call that URL the moment a lead emails in — nothing does, unless you build it yourself.' },
+        { text: 'Your mail provider calls it automatically the moment a lead’s email lands', correct: false, misconception: 'email-is-http', response: 'Your mail provider has no idea your webhook exists. A webhook only fires when something has been configured to POST to it — mail arriving isn’t that.' },
+        { text: 'It watches the inbox the same way any other trigger would', correct: false, misconception: 'triggers-interchangeable', response: 'A webhook watches a URL, not a mailbox. Which trigger is actually built to sit on an inbox?' },
       ],
     },
     if: {
-      prompt: 'Why If here?',
+      prompt: 'If is on the canvas. How many separate paths can one If node send a lead down?',
       options: [
-        { text: 'It branches, and I need branches', correct: false, misconception: 'if-vs-switch', response: 'If only splits two ways (true/false). You have three intents — that’s what Switch is for.' },
-        { text: 'Added it by mistake', correct: true, response: 'Back to the sidebar.' },
+        { text: 'Two — a true path and a false path', correct: true, response: 'Right. Now count how many intents this problem has to route to separate replies. Does two cover Demo Request, Pricing Question, and Not a Fit?' },
+        { text: 'As many as the conditions you configure', correct: false, misconception: 'if-vs-switch', response: 'No — If always resolves to exactly two outputs. Extra conditions just combine into one true/false decision; they don’t add more paths.' },
+        { text: 'One — it passes through leads that match and drops the rest', correct: false, misconception: 'if-is-filter', response: 'That describes Filter, which discards non-matches entirely. If doesn’t drop anything — it sends every lead down one of two paths.' },
       ],
     },
     code: {
-      prompt: 'Why Code to classify?',
+      prompt: 'Code is on the canvas to work out each lead’s intent. What would you actually have to write inside it?',
       options: [
-        { text: 'I can write rules to detect the intent', correct: false, misconception: 'rules-vs-ai', response: 'Brittle — leads phrase their asks a thousand ways. Let an AI read it instead.' },
-        { text: 'Added it by mistake', correct: true, response: 'Removing it.' },
+        { text: 'Explicit rules or keyword checks, written out line by line', correct: true, response: 'Right. Now picture five leads asking about pricing in five different ways — how many of those phrasings would your rules actually catch?' },
+        { text: 'A description of the three intents, and it works out the rest', correct: false, misconception: 'rules-vs-ai', response: 'Code doesn’t take a description like that — it runs exactly the logic you write, nothing more. Something else in the palette is built to take instructions like that.' },
+        { text: 'Nothing much — it reads intent the way a person would', correct: false, misconception: 'code-is-smart', response: 'Code has no understanding of what a lead means. It only runs the exact checks you hand it, on the exact text you give it.' },
       ],
     },
     'web-search': {
-      prompt: 'Why Web Search?',
+      prompt: 'Web Search is on the canvas. What would it actually bring into this flow?',
       options: [
-        { text: 'To look up what the lead wants', correct: false, misconception: 'search-vs-classify', response: 'The intent is inside the email itself — you classify it, you don’t search the web for it.' },
-        { text: 'Added it by mistake', correct: true, response: 'Back it goes.' },
+        { text: 'Results pulled from the open web — not from the lead’s own message', correct: true, response: 'Right — and everything needed to judge this lead’s intent is already sitting inside the email they sent. What information are you actually missing?' },
+        { text: 'A read on what the lead is asking for', correct: false, misconception: 'search-vs-classify', response: 'Searching hands back web pages; it doesn’t form a judgement about the message sitting in front of you. That call has to come from the email’s own text.' },
+        { text: 'A check on whether this contact already exists in your CRM', correct: false, misconception: 'search-as-lookup', response: 'That would be a lookup against your own records, not a web search — and it still isn’t the decision this step is meant to make.' },
       ],
     },
   },
@@ -421,10 +435,14 @@ export const leadTriage = {
     'chat-trigger-is-email': 'Treated a chat trigger as an email trigger',
     'triggers-interchangeable': 'Assumed any trigger can start the flow',
     'poll-vs-event': 'Chose a scheduled poll instead of an event trigger',
+    'schedule-runs-once': 'Thought a Schedule Trigger fires once rather than on an interval',
     'email-is-http': 'Confused a webhook with receiving email',
     'if-vs-switch': 'Reached for If where a multi-way Switch was needed',
+    'if-is-filter': 'Confused If (two paths) with Filter (drops non-matches)',
     'rules-vs-ai': 'Tried rules/code to classify free-text email',
+    'code-is-smart': 'Expected Code to interpret meaning rather than run written rules',
     'search-vs-classify': 'Confused searching the web with classifying the email',
+    'search-as-lookup': 'Confused a web search with looking up internal records',
     'flow-sequence': 'Placed a step out of the correct flow order',
   },
 
