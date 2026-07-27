@@ -39,6 +39,43 @@ Open **http://localhost:3000**. You should see **three challenges** on the home 
 | **Inbound Sales Lead Triage** | same shape, sales framing | Second routing problem |
 | **Meeting Notes Summarizer** | webhook → AI summarize → Google Docs (**linear, no switch**) | New. Proves topology is data — this shape could not run before |
 
+### How to be sure you're on the Next.js app, not the old prototype
+
+The two look nearly identical — the same screens were ported over — so here is how to
+prove which one you're running. Any one of these is conclusive.
+
+| Check | Next.js app (what you want) | Old Vite prototype |
+|---|---|---|
+| **Port** | `http://localhost:3000` | `http://localhost:5173` |
+| **Terminal banner** | `▲ Next.js 15.5.21` | `VITE v5.4.11` |
+| **Response header** | `X-Powered-By: Next.js` | *(none)* |
+| **Page source** | `/_next/static/…` chunks | `<script src="/src/main.jsx">` |
+| **Has a backend** | yes — `/api/ask-ai` responds | no routes at all (frontend-only) |
+
+Two quick terminal checks:
+
+```bash
+curl -sI http://localhost:3000/ | grep -i x-powered-by
+# → X-Powered-By: Next.js
+
+curl -s -X POST http://localhost:3000/api/ask-ai \
+  -H 'content-type: application/json' -d '{"messages":[{"role":"user","content":"hi"}]}'
+# → {"error":"ask_ai_unconfigured"}   (or a streamed answer once the API key is set)
+```
+
+That last one is the strongest signal: the prototype is **frontend-only by definition**
+— it has no server, so it cannot answer an API call. Getting *any* JSON back proves
+you're on the full-stack app.
+
+In the browser: DevTools → Network → reload. Next.js requests `/_next/static/...`;
+Vite requests `/@vite/client` and `/src/main.jsx`.
+
+> **Footgun:** the old prototype is still in the tree at `innate/app/` as reference
+> material. If you `cd innate/app && npm run dev` you'll get the **old** one on port
+> 5173. Always run from `innate/` (port 3000). Nothing depends on `innate/app/` any
+> more and it's excluded from the Docker build — it can be deleted whenever you're
+> happy to let it go.
+
 ### Faster ways in (dev routes)
 
 Append these to the URL to jump straight to a screen. All accept `?problem=<id>`
