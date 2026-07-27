@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@judge/catalog": "*",
+    "@judge/db": "*",
     "@judge/engine": "*",
     "@judge/llm": "*",
     "@judge/problem-schema": "*",

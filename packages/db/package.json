@@ -18,6 +18,7 @@
     "schema": "prisma/schema.prisma"
   },
   "dependencies": {
+    "@judge/problems": "*",
     "@prisma/client": "^6.19.3"
   },
   "devDependencies": {
