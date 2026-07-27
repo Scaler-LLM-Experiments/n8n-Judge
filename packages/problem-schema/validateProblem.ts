@@ -1,4 +1,16 @@
 import { NODE_CATALOG } from '@judge/catalog';
+
+// The catalog is a plain JS object literal, so TypeScript infers its exact keys
+// and refuses an arbitrary `string` index. Problem node types are validated
+// against `catalogTypes` below before use — this narrows the lookup to the
+// shape we actually read, without pretending every string is a valid key.
+interface CatalogEntry {
+  category?: string;
+  needsModel?: boolean;
+  branches?: unknown[];
+}
+const catalogEntryOf = (type: string): CatalogEntry | undefined =>
+  (NODE_CATALOG as Record<string, CatalogEntry>)[type];
 import { problemSchema, type Problem } from './types.ts';
 
 export interface ProblemIssue {
@@ -90,12 +102,12 @@ export function validateProblem(input: unknown): ValidateProblemResult {
   }
   // Role-conditional rules — only enforced when the problem uses that role.
   // (a) An AI node that needs a Chat Model requires a 'model'-category node.
-  const needsModel = [...requiredTypes].some((t) => NODE_CATALOG[t]?.needsModel);
+  const needsModel = [...requiredTypes].some((t) => catalogEntryOf(t)?.needsModel);
   if (needsModel && !requiredCategories.has('model')) {
     err('nodePalette', 'An AI node needs a Chat Model — palette must require a "model"-category node');
   }
   // (b) A routing node (catalog entry declares branches) needs ≥2 declared branches.
-  const hasRouter = [...requiredTypes].some((t) => (NODE_CATALOG[t]?.branches?.length ?? 0) > 0);
+  const hasRouter = [...requiredTypes].some((t) => (catalogEntryOf(t)?.branches?.length ?? 0) > 0);
   if (hasRouter && p.branches.length < 2) {
     err('branches', 'A routing node needs at least 2 declared branches');
   }
