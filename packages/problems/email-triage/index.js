@@ -267,14 +267,20 @@ export const emailTriage = {
       ],
       fields: [
         {
+          // An expression field, not a dropdown of pre-written expressions.
+          // Picking `{{ $json.body }}` off a list teaches recognition; writing
+          // it — or dragging `body` in from the Input pane — teaches the
+          // interaction n8n actually runs on.
           key: 'text',
           label: 'Text to classify',
-          subtitle: 'Point the model at the content it should read.',
-          options: [
-            { value: 'body', label: '{{ $json.body }}', correct: true, why: 'The message itself — this is what you classify on.' },
-            { value: 'subject', label: '{{ $json.subject }}', correct: false, why: 'Only the title; the AI would miss most of the signal.' },
-            { value: 'from', label: '{{ $json.from }}', correct: false, why: 'That’s the sender, not the content.' },
-          ],
+          kind: 'expression',
+          correct: '{{ $json.body }}',
+          accepts: ['{{ $json.body }}', '{{ $json["body"] }}'],
+          subtitle: 'Drag the field from Input, or type the expression yourself.',
+          whyCorrect:
+            'Right — the message body is the content being judged, and referencing it as an expression means every email gets read, not just this one.',
+          whyWrong:
+            'Look at what the Input pane is offering. One of those fields holds the customer’s actual complaint; the others hold who sent it and what they titled it. And if you typed the text in directly, ask yourself what happens on the next email.',
         },
         {
           key: 'output',
@@ -294,10 +300,30 @@ export const emailTriage = {
       credential: 'Scaler AI Gateway',
       locked: [
         { label: 'Model', value: 'models/gemini-2.5-flash' },
-        { label: 'Temperature', value: '0' },
         { label: 'Max output tokens', value: '1024' },
         { label: 'Top P', value: '0.95' },
         { label: 'Safety settings', value: 'Default' },
+      ],
+      // Temperature used to sit in `locked` displaying "0" — the answer handed
+      // over, and the node had nothing to configure at all. It is the one
+      // setting on a Chat Model that decides whether classification is
+      // repeatable, so it is the one the learner should have to reason about.
+      fields: [
+        {
+          key: 'temperature',
+          label: 'Temperature',
+          kind: 'number',
+          min: 0,
+          max: 1,
+          step: 0.1,
+          correct: 0,
+          placeholder: '0 – 1',
+          subtitle: 'How much the model is allowed to vary its answer between runs.',
+          whyCorrect:
+            'Right. At 0 the model gives the same answer for the same email every time. Triage has to be repeatable — the same complaint should never be a Bug Report on Monday and a Complaint on Tuesday.',
+          whyWrong:
+            'Anything above 0 lets the model pick differently on identical input. That is useful when you want variety in writing, and the opposite of what you want when the answer decides which branch an email takes. What value makes it deterministic?',
+        },
       ],
     },
     parse: {

@@ -109,8 +109,25 @@ export const nodeSetupSchema = z.object({
         key: z.string().min(1),
         label: z.string().min(1),
         subtitle: z.string().optional(),
-        options: z.array(nodeSetupFieldOptionSchema).min(2),
+        // Parameter kinds mirror n8n's. `select` is the default and the only
+        // one that carries `options`; the rest compare a typed value against
+        // `correct`, so they carry their own explanations instead of
+        // per-option ones.
+        kind: z.enum(['select', 'text', 'number', 'boolean', 'expression']).optional(),
+        options: z.array(nodeSetupFieldOptionSchema).min(2).optional(),
+        correct: z.union([z.string(), z.number(), z.boolean()]).optional(),
+        /** Alternative spellings that should also be accepted (expressions). */
+        accepts: z.array(z.string()).optional(),
+        whyCorrect: z.string().optional(),
+        whyWrong: z.string().optional(),
+        placeholder: z.string().optional(),
+        min: z.number().optional(),
+        max: z.number().optional(),
+        step: z.number().optional(),
       })
+        .refine((f) => (f.kind ?? 'select') === 'select' ? Array.isArray(f.options) : f.correct !== undefined, {
+          message: 'A select field needs `options`; any other kind needs a `correct` value',
+        })
     )
     .optional(),
 });

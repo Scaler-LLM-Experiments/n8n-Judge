@@ -149,9 +149,21 @@ export function validateProblem(input: unknown): ValidateProblemResult {
   // --- NDV setup: exactly one correct option per field.
   for (const [type, setup] of Object.entries(p.nodeSetup)) {
     for (const field of setup.fields ?? []) {
-      const correct = field.options.filter((o) => o.correct);
-      if (correct.length !== 1) {
-        err(`nodeSetup.${type}.${field.key}`, `Field must have exactly one correct option (has ${correct.length})`);
+      const kind = field.kind ?? 'select';
+      if (kind === 'select') {
+        const correct = (field.options ?? []).filter((o) => o.correct);
+        if (correct.length !== 1) {
+          err(`nodeSetup.${type}.${field.key}`, `Field must have exactly one correct option (has ${correct.length})`);
+        }
+        continue;
+      }
+      // Typed fields grade against `correct`, so they need their own
+      // explanations — there are no per-option `why` strings to fall back on.
+      if (!field.whyCorrect || !field.whyWrong) {
+        warn(
+          `nodeSetup.${type}.${field.key}`,
+          `A ${kind} field needs whyCorrect and whyWrong — without them Iris has nothing to say about this answer`
+        );
       }
     }
   }

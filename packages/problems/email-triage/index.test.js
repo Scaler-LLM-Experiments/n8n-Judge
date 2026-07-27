@@ -36,14 +36,24 @@ describe('emailTriage problem spec', () => {
     for (const p of emailTriage.buildPhases) expect(typeof p.coach).toBe('string');
   });
 
-  it('every node-setup field has exactly one correct option, each with a why', () => {
+  it('every node-setup field is answerable and explains itself', () => {
     for (const [type, setup] of Object.entries(emailTriage.nodeSetup)) {
       for (const field of setup.fields || []) {
-        const correct = field.options.filter((o) => o.correct);
-        expect(correct.length, `${type}/${field.key}`).toBe(1);
-        for (const o of field.options) {
-          expect(typeof o.why).toBe('string');
-          expect(typeof o.label).toBe('string');
+        const kind = field.kind ?? 'select';
+        if (kind === 'select') {
+          const correct = field.options.filter((o) => o.correct);
+          expect(correct.length, `${type}/${field.key}`).toBe(1);
+          for (const o of field.options) {
+            expect(typeof o.why).toBe('string');
+            expect(typeof o.label).toBe('string');
+          }
+        } else {
+          // Typed fields (number, expression, text, boolean) grade against
+          // `correct` and carry one explanation for each outcome, since there
+          // are no per-option `why` strings to fall back on.
+          expect(field.correct, `${type}/${field.key} needs a correct value`).toBeDefined();
+          expect(typeof field.whyCorrect, `${type}/${field.key} whyCorrect`).toBe('string');
+          expect(typeof field.whyWrong, `${type}/${field.key} whyWrong`).toBe('string');
         }
       }
     }

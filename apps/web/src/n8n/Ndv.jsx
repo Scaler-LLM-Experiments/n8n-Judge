@@ -6,6 +6,7 @@ import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
 import { seededShuffle } from '../lib/shuffle.js';
 import { SettingsForm } from './SettingsForm.jsx';
 import { IrisBubble } from './IrisBubble.jsx';
+import { FieldControl, isCorrectValue, expressionFor } from './FieldControl.jsx';
 import { defaultSettings, gradeSettings } from './nodeSettings.js';
 
 // Shown once per session: the first time a node verifies, Iris spotlights the
@@ -54,7 +55,7 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
   };
 
   const noVerify = fields.length === 0 && gradedSettings.length === 0;
-  const optionFor = (field, value) => field.options.find((o) => o.value === value);
+  const optionFor = (field, value) => (field.options ?? []).find((o) => o.value === value);
 
   // A node is configured in two stages, in order: Parameters, then Settings.
   // Settings stays locked until the parameters are green, because a node whose
@@ -67,7 +68,15 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
   const settingsUnlocked = paramsOk;
   const stage = !paramsOk ? 'params' : !settingsOk ? 'settings' : 'done';
 
-  const allChosen = stage === 'params' ? fields.every((f) => values[f.key]) : true;
+  // A boolean field's answer may legitimately be `false`, and a number's may
+  // be 0 — truthiness is the wrong test now that fields aren't all dropdowns.
+  const hasValue = (f) => {
+    const v = values[f.key];
+    if (f.kind === 'boolean') return v !== undefined;
+    if (f.kind === 'number') return v !== undefined && v !== '';
+    return v !== undefined && String(v).trim() !== '';
+  };
+  const allChosen = stage === 'params' ? fields.every(hasValue) : true;
   const allCorrect = paramsOk && settingsOk;
   const running = phase === 'running';
   const isComplete = noVerify || (paramsOk && settingsOk);
@@ -89,7 +98,14 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
 
   // dragging an input field chip onto a parameter picks the matching option
   const dropField = (field, droppedKey) => {
-    const opt = field.options.find((o) => o.value === droppedKey);
+    // The single highest-leverage n8n interaction: drop a field from INPUT and
+    // n8n writes the expression for you. For select fields it still just picks
+    // the matching option.
+    if (field.kind === 'expression') {
+      setValue(field.key, expressionFor(droppedKey));
+      return;
+    }
+    const opt = (field.options ?? []).find((o) => o.value === droppedKey);
     if (opt) setValue(field.key, opt.value);
   };
 
@@ -137,9 +153,9 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
       // --- Stage 1: grade the parameters.
       const next = {};
       fields.forEach((f) => {
-        const opt = optionFor(f, values[f.key]);
-        next[f.key] = opt?.correct ? 'correct' : 'wrong';
-        if (onDecision) onDecision({ id: `${node.nodeType}:${f.key}`, kind: 'field', label: f.label, correct: !!opt?.correct, firstTry });
+        const ok = isCorrectValue(f, values[f.key]);
+        next[f.key] = ok ? 'correct' : 'wrong';
+        if (onDecision) onDecision({ id: `${node.nodeType}:${f.key}`, kind: 'field', label: f.label, correct: ok, firstTry });
       });
       setResults(next);
 
@@ -172,7 +188,11 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
   };
 
   const explain = (field, verdict) => {
-    const why = (verdict === 'correct' ? field.options.find((o) => o.correct) : optionFor(field, values[field.key]))?.why;
+    const why = field.options
+      ? (verdict === 'correct' ? field.options.find((o) => o.correct) : optionFor(field, values[field.key]))?.why
+      : verdict === 'correct'
+        ? field.whyCorrect
+        : field.whyWrong;
     setFeedback((f) => (f && f.key === field.key ? null : { key: field.key, verdict, why }));
   };
 
@@ -408,7 +428,7 @@ function FieldForm({ nodeType, setup, fields, values, results, feedback, optionF
 
       {/* the field(s) the learner must set */}
       {fields.map((f) => {
-        const value = values[f.key] || '';
+        const value = values[f.key];
         const verdict = results?.[f.key];
         const border = verdict === 'correct' ? 'var(--status-success)' : verdict === 'wrong' ? 'var(--status-danger)' : 'var(--brand-primary)';
         const bg = verdict === 'correct' ? 'var(--status-success-bg)' : verdict === 'wrong' ? 'var(--status-danger-bg)' : 'var(--brand-blue-50, rgba(0,85,255,0.05))';
@@ -429,19 +449,17 @@ function FieldForm({ nodeType, setup, fields, values, results, feedback, optionF
               onDrop={(e) => { e.preventDefault(); const key = e.dataTransfer.getData('application/x-ndv-field'); setDropKey(null); if (key && onDrop) onDrop(f, key); }}
               style={{ position: 'relative', outline: dropKey === f.key ? '2px dashed var(--brand-primary)' : 'none', outlineOffset: 2 }}
             >
-              <select
+              <FieldControl
+                field={f}
                 value={value}
-                onChange={(e) => onChange(f.key, e.target.value)}
-                style={{ width: '100%', boxSizing: 'border-box', appearance: 'none', border: `1.5px solid ${border}`, background: bg, padding: '9px 30px 9px 11px', fontSize: 12.5, fontFamily: 'var(--font-body)', color: value ? 'var(--fg-1)' : 'var(--fg-3)', cursor: 'pointer' }}
-              >
-                <option value="" disabled>Select a field…</option>
-                {/* Shuffled: authored data puts the correct option first in
-                    every field, which made the whole build clickable blind. */}
-                {seededShuffle(f.options, `ndv:${nodeType}:${f.key}`).map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </select>
-              <CaretDown size={13} color="var(--fg-3)" style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                border={border}
+                bg={bg}
+                onChange={onChange}
+                /* Shuffled: authored data put the correct option first in every
+                   field, which made the whole build clickable blind. Only
+                   select fields have options to shuffle. */
+                shuffledOptions={seededShuffle(f.options ?? [], `ndv:${nodeType}:${f.key}`)}
+              />
             </div>
             {verdict ? (
               <button type="button" onClick={() => onExplain(f, verdict)} style={{ marginTop: 7, display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 600, color: verdict === 'correct' ? 'var(--status-success)' : 'var(--status-danger)' }}>
