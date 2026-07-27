@@ -96,7 +96,11 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
   const setSetting = (key, value) => {
     setSettings((s2) => ({ ...s2, [key]: value }));
     setSettingsResults(null);
-    setResults(null);
+    // Deliberately does NOT clear `results`. Parameter verification is stage
+    // one and is already banked; clearing it here sent the node back to stage
+    // one the moment a setting was touched — which re-locked the Settings tab
+    // the learner was standing on and flipped the button back to "Verify
+    // setup", so a graded setting could never be submitted at all.
     if (phase !== 'idle') setPhase('idle');
   };
 
