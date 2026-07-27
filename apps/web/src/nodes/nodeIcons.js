@@ -78,8 +78,13 @@ export function NodeIcon({ type, size = 24, color, style }) {
       style: { width: size, height: size, objectFit: 'contain', display: 'block', ...style },
     });
   }
-  const Glyph = nodeIcons[type];
-  if (!Glyph) return null;
+  // Any type with no dedicated glyph — a problem-data distractor that predates
+  // its own icon, or simply a type nobody got round to adding here — still
+  // renders something legible: fall back to its category glyph (trigger/ai/
+  // model/core/action) instead of leaving a blank space. metaOf() always
+  // resolves (categoryOf defaults unknown types to 'core'), so this is never
+  // null.
+  const Glyph = nodeIcons[type] || metaOf(type).icon;
   return React.createElement(Glyph, {
     size,
     color: color || nodeIconColor[type] || metaOf(type).color,
@@ -104,6 +109,10 @@ export const typeCategory = {
   'google-docs': 'action',
   schedule: 'trigger',
   webhook: 'trigger',
+  // 'manual' has no dedicated glyph in nodeIcons (Trigger Manually is a rare
+  // distractor, not a real flow node) — category it correctly so NodeIcon's
+  // fallback shows a trigger glyph (Lightning) rather than the generic core one.
+  manual: 'trigger',
   code: 'core',
   if: 'core',
   merge: 'core',

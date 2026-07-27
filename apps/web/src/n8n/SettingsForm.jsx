@@ -9,6 +9,12 @@ import { IrisBubble } from './IrisBubble.jsx';
 
 function Row({ spec, value, onChange, graded, verdict, why, disabled, onExplain, showBubble }) {
   const border = verdict === 'correct' ? 'var(--status-success)' : verdict === 'wrong' ? 'var(--status-danger)' : graded ? 'var(--brand-primary)' : 'var(--border-strong)';
+  // Mirror the Parameters tab exactly: a graded row pulses only while it has
+  // never been verified (`verdict` undefined). Once Verify has run — right or
+  // wrong — the border color already carries the feedback, so pulsing a row
+  // that's already been checked would just be noise. A disabled row (its
+  // parent toggle is off) isn't actionable yet either, so it stays still too.
+  const pulse = graded && !verdict && !disabled;
 
   return (
     <div style={{ padding: '12px 0', borderBottom: '1px solid var(--border-subtle)', opacity: disabled ? 0.45 : 1 }}>
@@ -32,7 +38,7 @@ function Row({ spec, value, onChange, graded, verdict, why, disabled, onExplain,
           ) : null}
         </div>
 
-        <div style={{ flex: 'none' }}>
+        <div className={pulse ? 'pulse-field' : undefined} style={{ flex: 'none' }}>
           {spec.kind === 'boolean' ? (
             <button
               type="button"

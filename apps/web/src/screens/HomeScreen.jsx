@@ -2,7 +2,7 @@ import React from 'react';
 import { ArrowRight, EnvelopeSimpleOpen, UsersThree, Robot } from '@phosphor-icons/react';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
 import { Button } from '../design-system/Button.jsx';
-const scalerLogo = '/brand/scaler-logo.svg';
+import { TopBar } from '../components/TopBar.jsx';
 
 // A Phosphor icon per problem (falls back to a generic agent icon).
 const ICONS = { 'email-triage': EnvelopeSimpleOpen, 'lead-triage': UsersThree };
@@ -11,10 +11,9 @@ const ICONS = { 'email-triage': EnvelopeSimpleOpen, 'lead-triage': UsersThree };
 export function HomeScreen({ problems, onSelect }) {
   return (
     <div style={{ height: '100%', overflowY: 'auto', background: 'var(--surface-0)' }}>
-      {/* brand bar */}
-      <div style={{ display: 'flex', alignItems: 'center', padding: '16px 24px' }}>
-        <img src={scalerLogo} alt="Scaler" style={{ height: 22, width: 'auto', display: 'block' }} />
-      </div>
+      {/* Home is outside any problem journey — no activeStage/problem to pass, and
+          TopBar itself hides the stage pills and problem-scoped buttons when absent. */}
+      <TopBar />
 
       <div style={{ maxWidth: 940, margin: '0 auto', padding: '12px 24px 64px' }}>
         {/* hero */}
@@ -31,7 +30,10 @@ export function HomeScreen({ problems, onSelect }) {
 
         {/* problem cards */}
         <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--fg-2)', fontWeight: 700, marginBottom: 12 }}>Choose a challenge</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
+        {/* minmax's 300px floor forced a 2-up wrap at this container's ~892px content width (3*300+2*16=932>892).
+            260px lets all 3 challenge cards share one row on a normal desktop width, and auto-fit still
+            collapses to 2-up / 1-up on narrower viewports instead of overflowing horizontally. */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
           {problems.map((p) => {
             const Icon = ICONS[p.id] || Robot;
             return (

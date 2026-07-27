@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Check, Question, ArrowCounterClockwise, ArrowClockwise, Play, FileText } from '@phosphor-icons/react';
 const scalerLogo = '/brand/scaler-logo.svg';
 import { GlossaryDrawer } from './GlossaryDrawer.jsx';
@@ -38,6 +38,145 @@ function IconButton({ icon: Icon, title, onClick, primary, dataTour }) {
 
 const SCREEN_BY_STAGE = { statement: 'STATEMENT', dashboard: 'DASHBOARD', eval: 'EVAL', report: 'REPORT' };
 
+// Signed-in identity + sign-out, at the right end of the nav. There is no
+// <SessionProvider> mounted (the app is a dynamically-imported client-only
+// SPA under a single #root — adding one means restructuring that boundary),
+// so this fetches /api/auth/session itself instead of using next-auth/react's
+// useSession hook.
+function UserMenu() {
+  const [user, setUser] = useState(null);
+  const [open, setOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const rootRef = useRef(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/auth/session')
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelled) setUser(data?.user ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setUser(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Outside-click and Escape close the menu; only attached while it's open.
+  useEffect(() => {
+    if (!open) return undefined;
+    function onPointerDown(e) {
+      if (rootRef.current && !rootRef.current.contains(e.target)) setOpen(false);
+    }
+    function onKeyDown(e) {
+      if (e.key === 'Escape') setOpen(false);
+    }
+    document.addEventListener('mousedown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [open]);
+
+  if (!user) return null; // no session yet (still loading, or genuinely signed out)
+
+  const email = user.email || '';
+  const initial = email.charAt(0).toUpperCase() || '?';
+
+  async function handleSignOut() {
+    setSigningOut(true);
+    try {
+      // Auth.js's POST /api/auth/signout requires a CSRF token minted by the
+      // GET csrf endpoint — a bare POST is rejected.
+      const { csrfToken } = await (await fetch('/api/auth/csrf')).json();
+      await fetch('/api/auth/signout', {
+        method: 'POST',
+        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ csrfToken }),
+      });
+    } finally {
+      // Hard navigation, not client-side routing: the session cookie just
+      // cleared and every screen in this SPA assumes a signed-in user, so a
+      // full reload is the simplest way to guarantee no stale state lingers.
+      window.location.href = '/login';
+    }
+  }
+
+  return (
+    <div ref={rootRef} style={{ position: 'relative' }}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        title={email}
+        aria-haspopup="true"
+        aria-expanded={open}
+        style={{
+          width: 34,
+          height: 34,
+          borderRadius: '50%', // deliberate exception to zero-radius chrome: an avatar reads as a circle
+          border: '1px solid var(--border-subtle)',
+          background: 'var(--brand-primary)',
+          color: 'var(--fg-on-brand)',
+          fontWeight: 700,
+          fontSize: 13,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+        }}
+      >
+        {initial}
+      </button>
+
+      {open ? (
+        <div
+          role="menu"
+          style={{
+            position: 'absolute',
+            top: 40,
+            right: 0,
+            minWidth: 210,
+            background: 'var(--surface-0)',
+            border: '1px solid var(--border-subtle)',
+            boxShadow: 'var(--shadow-md, 0 4px 16px rgba(0,0,0,0.12))',
+            zIndex: 50,
+          }}
+        >
+          <div style={{ padding: '10px 12px', borderBottom: '1px solid var(--border-subtle)' }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--fg-1)', wordBreak: 'break-all' }}>{email}</div>
+            <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--fg-3)', marginTop: 2 }}>
+              {user.role}
+            </div>
+          </div>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={handleSignOut}
+            disabled={signingOut}
+            style={{
+              width: '100%',
+              textAlign: 'left',
+              padding: '10px 12px',
+              border: 'none',
+              background: 'transparent',
+              color: 'var(--status-danger)',
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: signingOut ? 'default' : 'pointer',
+              opacity: signingOut ? 0.6 : 1,
+            }}
+          >
+            {signingOut ? 'Signing out…' : 'Sign out'}
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function TopBar({ activeStage, problem, currentPhase, nodeContext, learnerName, onShowProblemStatement, onReset, onRun, onProblemDoc, onAskAI, onRedo }) {
   const activeIndex = STAGES.findIndex((s) => s.id === activeStage);
   const [glossaryOpen, setGlossaryOpen] = useState(false);
@@ -69,7 +208,9 @@ export function TopBar({ activeStage, problem, currentPhase, nodeContext, learne
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', justifySelf: 'center' }}>
-        {STAGES.map((stage, index) => {
+        {/* No activeStage (e.g. the home page, which is outside any problem journey) means no pills to draw — an
+            unmatched index would otherwise render every stage in its "not started" state, which reads as broken. */}
+        {activeStage ? STAGES.map((stage, index) => {
           const done = index < activeIndex;
           const active = index === activeIndex;
           return (
@@ -105,7 +246,7 @@ export function TopBar({ activeStage, problem, currentPhase, nodeContext, learne
               </div>
             </React.Fragment>
           );
-        })}
+        }) : null}
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifySelf: 'end' }}>
@@ -119,6 +260,7 @@ export function TopBar({ activeStage, problem, currentPhase, nodeContext, learne
         {onReset ? <IconButton icon={ArrowCounterClockwise} title="Reset" onClick={onReset} /> : null}
         {onRun ? <IconButton icon={Play} title="Run" onClick={onRun} primary dataTour="run" /> : null}
         {onRedo ? <IconButton icon={ArrowClockwise} title="Start over" onClick={onRedo} /> : null}
+        <UserMenu />
       </div>
 
       {glossaryOpen ? <GlossaryDrawer onClose={() => setGlossaryOpen(false)} /> : null}
