@@ -59,7 +59,7 @@ function expectedNext(ctx, nodes, flow) {
   return (src && flow.next?.[src.type]) || [];
 }
 
-const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, nodeSetup, onDecision, flow, branches, runActiveId, initialGraph, onWrongPick, onPlaceCorrect }, ref) {
+const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, nodeSetup, onDecision, flow, branches, runActiveId, initialGraph, onWrongPick, onPlaceCorrect, sessionId }, ref) {
   const [nodes, setNodes] = useState(() => seedNodes(initialGraph));
   const [edges, setEdges] = useState(() => seedEdges(initialGraph));
   const [picker, setPicker] = useState(null); // {sourceId, triggerSlot, modelSlot, branch, branchIndex}
@@ -235,6 +235,8 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
             inputData={ndvIn.data}
             inputLabel={ndvIn.label}
             onDecision={onDecision}
+            /* Server-authoritative grading: the NDV asks the API for each verdict. */
+            sessionId={sessionId}
             onComplete={(settings) => completeNode(ndvNode.id, settings)}
             onClose={() => setNdvId(null)}
           />

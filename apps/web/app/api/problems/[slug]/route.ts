@@ -1,4 +1,5 @@
 import { prisma } from '@judge/db';
+import { toPublicProblem } from '@judge/problem-schema';
 
 // One problem's full published data — the object the journey is driven by.
 // Returns the version id alongside it so a Session can pin the exact version
@@ -27,7 +28,11 @@ export async function GET(_req: Request, ctx: { params: Promise<{ slug: string }
       title: problem.title,
       version: published.version,
       problemVersionId: published.id,
-      data: published.data,
+      // The public projection: every marker of a correct answer is stripped
+      // here. Verdicts come from POST /api/sessions/[id]/check instead, which
+      // also records the attempt. Serving `published.data` raw put the whole
+      // answer key one devtools fetch away.
+      data: toPublicProblem(published.data as Record<string, unknown>),
     });
   } catch (err) {
     console.error(`[api/problems/${slug}] failed:`, err);

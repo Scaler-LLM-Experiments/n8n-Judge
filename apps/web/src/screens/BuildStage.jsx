@@ -10,6 +10,7 @@ import { seededShuffle } from '../lib/shuffle.js';
 import { N8nEditor } from '../n8n/N8nEditor.jsx';
 import { validateGraph } from '@judge/engine/validateGraph.js';
 import { simulateAll, roleOf } from '@judge/engine/simulate.js';
+import { checkAnswer } from '../lib/grader.js';
 
 const STEP_ICON = { email: EnvelopeSimpleOpen, trigger: EnvelopeSimpleOpen, classify: Sparkle, parse: BracketsCurly, switch: ArrowsSplit, action: PaperPlaneTilt, dead: XCircle };
 
@@ -53,7 +54,7 @@ function sequenceProbe(meta) {
   };
 }
 
-export function BuildStage({ problem, onDecision, onComplete, devAutoRun }) {
+export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessionId }) {
   const phases = problem.buildPhases;
 
   const [phaseIndex, setPhaseIndex] = useState(0);
@@ -61,6 +62,12 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun }) {
   const [showSpotlight, setShowSpotlight] = useState(!devAutoRun);
   const [nodesState, setNodesState] = useState([]); // { id, type, configured, wrong }
   const [probe, setProbe] = useState(null); // { type, nodeId, data, anchor }
+  // The probe's explanation is server-graded now (`nodeProbes[type].options[].response`
+  // is stripped from the payload) — resolved async after a pick, with the
+  // locally-generated `sequenceProbe` text as fallback (the server has never
+  // heard of that one; it's authored in code, not in problem data).
+  const [probeWhy, setProbeWhy] = useState(null);
+  const [probeResolving, setProbeResolving] = useState(false);
   const [nudge, setNudge] = useState(null);
   const [clearInfo, setClearInfo] = useState(null);
   const [run, setRun] = useState(null); // { cases, success, val }
@@ -139,6 +146,8 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun }) {
 
   const handleWrongPick = useCallback((type, nodeId, meta) => {
     setIrisSay(null);
+    setProbeWhy(null);
+    setProbeResolving(false);
     const authored = problem.nodeProbes[type];
     setProbe({ type, nodeId, data: authored || sequenceProbe(meta || {}), anchor: null });
   }, [problem]);
@@ -169,12 +178,30 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun }) {
     return () => clearTimeout(t);
   }, [probe, moveTo]);
 
+  // `answer` is the option's TEXT, never an index — options are shuffled per
+  // session, so the server has to match on what was actually shown. Capture
+  // type/prompt as locals rather than reading `probe` again inside `.then`:
+  // the probe can already be closed (nulled) by the time this resolves.
   const answerProbe = (opt) => {
-    if (onDecision) onDecision({ id: `nodePick:${probe.type}`, kind: 'nodePick', label: probe.data.prompt, correct: !!opt.correct, firstTry: false, misconception: opt.misconception });
+    const type = probe.type;
+    const prompt = probe.data.prompt;
+    setProbeResolving(true);
+    checkAnswer(sessionId, 'probe', type, opt.text).then((server) => {
+      const correct = server ? server.correct : !!opt.correct;
+      const firstTry = server ? server.firstTry : false;
+      if (onDecision) onDecision({ id: `nodePick:${type}`, kind: 'nodePick', label: prompt, correct, firstTry, misconception: opt.misconception });
+      // Fall back to the locally-authored response only when the server had
+      // nothing to say (no session, or a code-generated sequenceProbe that
+      // isn't in `problem.nodeProbes` for it to grade).
+      setProbeWhy(server ? server.why : opt.response);
+      setProbeResolving(false);
+    });
   };
   const closeProbe = () => {
     if (probe?.nodeId && editorRef.current) editorRef.current.removeNode(probe.nodeId);
     setProbe(null);
+    setProbeWhy(null);
+    setProbeResolving(false);
     parkCorner();
   };
 
@@ -319,6 +346,7 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun }) {
           onGraphChange={handleGraph}
           nodeSetup={problem.nodeSetup}
           onDecision={onDecision}
+          sessionId={sessionId}
         />
 
         {/* traveling Iris */}
@@ -340,7 +368,9 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun }) {
         {showSpotlight && phaseIndex === 0 && nodesState.length === 0 ? <SpotlightIntro /> : null}
 
         {/* wrong-pick floating MCQ */}
-        {probe && probe.anchor ? <FloatingProbe probe={probe} onAnswer={answerProbe} onClose={closeProbe} /> : null}
+        {probe && probe.anchor ? (
+          <FloatingProbe probe={probe} onAnswer={answerProbe} onClose={closeProbe} resolvedWhy={probeWhy} resolving={probeResolving} />
+        ) : null}
 
         {/* light nudge */}
         {nudge ? (
@@ -458,7 +488,7 @@ function StageClearOverlay({ info, onContinue }) {
 }
 
 // Light-themed, draggable floating MCQ; a chat-bubble tail points at Iris.
-function FloatingProbe({ probe, onAnswer, onClose }) {
+function FloatingProbe({ probe, onAnswer, onClose, resolvedWhy, resolving }) {
   const { data, type } = probe;
   const ref = useRef(null);
   const [pos, setPos] = useState(probe.anchor);
@@ -525,7 +555,12 @@ function FloatingProbe({ probe, onAnswer, onClose }) {
         {chosen ? (
           <div className="fade-in">
             <div style={{ marginTop: 13, padding: '11px 13px', background: 'var(--surface-1)', borderLeft: '3px solid var(--brand-primary)', fontSize: 12.5, lineHeight: 1.5, color: 'var(--fg-2)' }}>
-              {chosen.response}
+              {/* The server's explanation for the chosen option wins once it
+                  resolves; `chosen.response` is only a legitimate fallback,
+                  never a first read — for an authored probe it no longer
+                  exists in the payload at all, so a request in flight shows a
+                  neutral placeholder rather than nothing was verified. */}
+              {resolvedWhy ?? (resolving ? 'Checking…' : chosen.response)}
             </div>
             {/* Say the outcome plainly. The node is leaving either way, and
                 leaving that implicit is what made the panel confusing. */}

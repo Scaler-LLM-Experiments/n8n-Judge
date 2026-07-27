@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import gsap from 'gsap';
-import { ArrowRight, XCircle, CheckCircle, Microphone } from '@phosphor-icons/react';
+import { ArrowRight, XCircle, CheckCircle, Microphone, CircleNotch } from '@phosphor-icons/react';
 import { Button } from '../design-system/Button.jsx';
 import { TopBar } from '../components/TopBar.jsx';
 import { ConceptFlow } from '../components/ConceptFlow.jsx';
@@ -9,18 +9,42 @@ import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
 import { seededShuffle } from '../lib/shuffle.js';
 import { N8nNodeView } from '../n8n/N8nNodeView.jsx';
 import { NodeIcon } from '../nodes/nodeIcons.js';
+import { checkAnswer } from '../lib/grader.js';
 
 const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 
 const LEARNER_NAME = 'Aarav';
 const COLUMN = 620;
 
-export function DissectionScreen({ problem, onComplete, onDecision }) {
+// Turn a checkAnswer() response into the verdict this screen renders. Falls
+// back to the local answer fields only when the server could not be reached
+// (no session yet, or a dropped request) — never as a substitute once the
+// server has actually answered, since those fields are being stripped from
+// the payload the client is served.
+function resolveVerdict(q, opt, result) {
+  if (result) {
+    return { correct: result.correct, why: result.why ?? null, unlocks: result.unlocks ?? [] };
+  }
+  if (q.correctType !== undefined) {
+    const correct = opt.type === q.correctType;
+    return { correct, why: correct ? q.explanation : q.wrongHint, unlocks: correct ? (q.unlocks ?? []) : [] };
+  }
+  // No session and no local answer data to fall back on — cannot verify this
+  // pick. Let the learner continue rather than stranding them on a question
+  // that can never resolve, but don't claim a verdict we don't have.
+  return { correct: true, why: null, unlocks: [] };
+}
+
+export function DissectionScreen({ problem, sessionId, onComplete, onDecision }) {
   const questions = problem.dissection;
   const [phase, setPhase] = useState('greet'); // greet | problem | quiz | done
   const [index, setIndex] = useState(0);
   const [picked, setPicked] = useState(null); // option index
+  const [checking, setChecking] = useState(false); // request for `picked` in flight
+  const [verdict, setVerdict] = useState(null); // settled { correct, why, unlocks } for `picked`
   const [attempts, setAttempts] = useState(() => questions.map(() => 0));
+  const [firstTryByQuestion, setFirstTryByQuestion] = useState(() => questions.map(() => null));
+  const [unlockedTypes, setUnlockedTypes] = useState([]); // accumulates from correct answers as they land
   const [showNote, setShowNote] = useState(true);
   const [mascotClip, setMascotClip] = useState('hello');
   const advanceTimer = useRef(null);
@@ -45,8 +69,11 @@ export function DissectionScreen({ problem, onComplete, onDecision }) {
     return { ...base, options: seededShuffle(base.options, `dissection:${base.id}`) };
   }, [questions, index]);
   const pickedOption = picked !== null ? q.options[picked] : null;
-  const isCorrect = pickedOption ? pickedOption.type === q.correctType : false;
-  const unlockedTypes = [...new Set(questions.flatMap((x) => x.unlocks))];
+  // "answered" = settled (verdict landed); "pending" = picked but awaiting the
+  // server. Only `answered` unlocks Continue / shows the explanation.
+  const answered = picked !== null && !checking && verdict !== null;
+  const pending = picked !== null && checking;
+  const isCorrect = verdict?.correct ?? false;
 
   // advance to the next question (or finish) — driven by the per-question
   // Continue button, so the learner reads the explanation at their own pace
@@ -54,19 +81,31 @@ export function DissectionScreen({ problem, onComplete, onDecision }) {
     if (index + 1 < questions.length) {
       setIndex(index + 1);
       setPicked(null);
+      setVerdict(null);
       setMascotClip('idle');
     } else {
       setPhase('done');
     }
   };
 
-  const pick = (i) => {
-    if (picked !== null && isCorrect) return; // locked after correct
+  const pick = async (i) => {
+    if (checking) return; // one in-flight check at a time
+    if (picked !== null && verdict?.correct) return; // locked after correct
     const opt = q.options[i];
-    const correct = opt.type === q.correctType;
-    setPicked(i);
-    setMascotClip(correct ? 'correct' : 'shake-no');
-    if (!correct) {
+    setPicked(i); // select immediately — the verdict settles asynchronously
+    setVerdict(null);
+    setChecking(true);
+    const result = await checkAnswer(sessionId, 'dissection', q.id, opt.type);
+    const resolved = resolveVerdict(q, opt, result);
+    setChecking(false);
+    setVerdict(resolved);
+    setMascotClip(resolved.correct ? 'correct' : 'shake-no');
+    if (resolved.correct) {
+      setUnlockedTypes((prev) => [...new Set([...prev, ...resolved.unlocks])]);
+      // Prefer the server's firstTry; `attempts[index] === 0` (no prior wrong
+      // pick recorded locally) is the fallback for the no-session path.
+      setFirstTryByQuestion((f) => f.map((v, k) => (k === index ? (result?.firstTry ?? (attempts[index] === 0)) : v)));
+    } else {
       setAttempts((a) => a.map((v, k) => (k === index ? v + 1 : v)));
     }
   };
@@ -79,7 +118,7 @@ export function DissectionScreen({ problem, onComplete, onDecision }) {
   }
   if (phase === 'done') {
     const finishDissection = () => {
-      questions.forEach((x, i) => onDecision && onDecision({ id: `dissection:${x.id}`, kind: 'dissection', label: x.prompt, correct: true, firstTry: attempts[i] === 0 }));
+      questions.forEach((x, i) => onDecision && onDecision({ id: `dissection:${x.id}`, kind: 'dissection', label: x.prompt, correct: true, firstTry: firstTryByQuestion[i] ?? (attempts[i] === 0) }));
       onComplete({ attempts, unlockedTypes });
     };
     return <Done problem={problem} unlockedTypes={unlockedTypes} onFinish={finishDissection} />;
@@ -88,6 +127,11 @@ export function DissectionScreen({ problem, onComplete, onDecision }) {
   // ---------- QUIZ ----------
   return (
     <div ref={quizRef} style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--surface-0)' }}>
+      {/* spinner for the "checking your answer" state while awaiting the server */}
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spin { animation: spin 0.9s linear infinite; }
+      `}</style>
       <TopBar activeStage="statement" problem={problem} />
       <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '72px 24px 72px' }}>
         <QuizBody
@@ -96,6 +140,9 @@ export function DissectionScreen({ problem, onComplete, onDecision }) {
           index={index}
           total={questions.length}
           picked={picked}
+          pending={pending}
+          answered={answered}
+          verdict={verdict}
           isCorrect={isCorrect}
           onPick={pick}
           onContinue={advance}
@@ -122,11 +169,10 @@ export function DissectionScreen({ problem, onComplete, onDecision }) {
   );
 }
 
-function QuizBody({ q, index, total, picked, isCorrect, onPick, onContinue }) {
+function QuizBody({ q, index, total, picked, pending, answered, verdict, isCorrect, onPick, onContinue }) {
   const rootRef = useRef(null);
   const nodeRef = useRef(null);
   const pickedOption = picked !== null ? q.options[picked] : null;
-  const answered = picked !== null;
   const isLast = index + 1 >= total;
 
   // staggered entrance — runs on mount (QuizBody is keyed by index, so this
@@ -142,7 +188,7 @@ function QuizBody({ q, index, total, picked, isCorrect, onPick, onContinue }) {
   }, []);
 
   useEffect(() => {
-    if (answered && nodeRef.current) gsap.fromTo(nodeRef.current, { scale: 0.82, y: 8 }, { scale: 1, y: 0, duration: 0.5, ease: 'back.out(2)' });
+    if (picked !== null && nodeRef.current) gsap.fromTo(nodeRef.current, { scale: 0.82, y: 8 }, { scale: 1, y: 0, duration: 0.5, ease: 'back.out(2)' });
   }, [picked]);
 
   return (
@@ -157,15 +203,24 @@ function QuizBody({ q, index, total, picked, isCorrect, onPick, onContinue }) {
       {/* option boxes: letter + node icon + label */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, width: '100%' }}>
         {q.options.map((opt, i) => {
-          const state = picked === i ? (isCorrect ? 'correct' : 'wrong') : 'idle';
+          const state = picked === i ? (pending ? 'pending' : isCorrect ? 'correct' : 'wrong') : 'idle';
           const dim = answered && isCorrect && picked !== i;
           return (
             <div key={i} data-q="opt" style={{ display: 'flex' }}>
-              <OptionBox letter={LETTERS[i]} option={opt} state={state} dim={dim} disabled={answered && isCorrect} onClick={() => onPick(i)} />
+              <OptionBox letter={LETTERS[i]} option={opt} state={state} dim={dim} disabled={pending || (answered && isCorrect)} onClick={() => onPick(i)} />
             </div>
           );
         })}
       </div>
+
+      {/* awaiting the server's verdict — the pick already reads as selected
+          above, this just says why nothing else has happened yet */}
+      {pending ? (
+        <div style={{ width: '100%', marginTop: 32, display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left', padding: '13px 15px', border: '1px solid var(--border-subtle)', background: 'var(--surface-1)' }}>
+          <CircleNotch size={18} weight="bold" color="var(--fg-3)" className="spin" />
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--fg-2)' }}>Checking your answer…</div>
+        </div>
+      ) : null}
 
       {/* nudge on wrong, explanation on correct */}
       {answered ? (
@@ -175,18 +230,20 @@ function QuizBody({ q, index, total, picked, isCorrect, onPick, onContinue }) {
             <div style={{ fontSize: 13, fontWeight: 700, color: isCorrect ? 'var(--brand-primary)' : 'var(--status-danger)', marginBottom: 3 }}>
               {isCorrect ? `Right — ${pickedOption.label} it is` : `Not ${pickedOption.label} — try again`}
             </div>
-            <div style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--fg-2)' }}>{isCorrect ? q.explanation : q.wrongHint}</div>
+            <div style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--fg-2)' }}>{verdict?.why ?? (isCorrect ? 'Nice — that’s the right node.' : 'Give it another look.')}</div>
           </div>
         </div>
       ) : null}
 
-      {/* center node canvas — ghost outline of the node until answered */}
+      {/* center node canvas — ghost outline of the node until picked */}
       <div data-q="canvas" style={{ width: '100%', marginTop: 22, border: '1px solid var(--border-strong)', background: '#E9ECF2', backgroundImage: 'radial-gradient(#C4CAD4 1px, transparent 1px)', backgroundSize: '16px 16px', padding: '32px 18px 36px', display: 'flex', justifyContent: 'center', minHeight: 168, alignItems: 'center' }}>
         <div ref={nodeRef}>
           {answered ? (
             <N8nNodeView type={pickedOption.type} label={pickedOption.label} tag={isCorrect ? 'correct' : 'wrong'} />
+          ) : pending ? (
+            <N8nNodeView type={pickedOption.type} label={pickedOption.label} />
           ) : (
-            <N8nNodeView type={q.correctType} label="Which node?" placeholder />
+            <N8nNodeView label="Which node?" placeholder />
           )}
         </div>
       </div>
@@ -208,8 +265,10 @@ function QuizBody({ q, index, total, picked, isCorrect, onPick, onContinue }) {
 
 function OptionBox({ letter, option, state, dim, disabled, onClick }) {
   const [hover, setHover] = useState(false);
-  const border = state === 'correct' ? 'var(--brand-primary)' : state === 'wrong' ? 'var(--status-danger)' : hover ? 'var(--fg-3)' : 'var(--border-subtle)';
-  const bg = state === 'correct' ? 'var(--brand-blue-50)' : state === 'wrong' ? 'var(--status-danger-bg)' : 'var(--surface-0)';
+  // 'pending' = picked, awaiting the server — neutral (not yet green/red), but
+  // visibly selected so the click doesn't feel dropped.
+  const border = state === 'correct' ? 'var(--brand-primary)' : state === 'wrong' ? 'var(--status-danger)' : state === 'pending' ? 'var(--fg-3)' : hover ? 'var(--fg-3)' : 'var(--border-subtle)';
+  const bg = state === 'correct' ? 'var(--brand-blue-50)' : state === 'wrong' ? 'var(--status-danger-bg)' : state === 'pending' ? 'var(--surface-1)' : 'var(--surface-0)';
   return (
     <button
       type="button"
@@ -238,6 +297,7 @@ function OptionBox({ letter, option, state, dim, disabled, onClick }) {
         <NodeIcon type={option.type} size={16} />
       </span>
       <span style={{ fontSize: 14.5, fontWeight: 600, color: 'var(--fg-1)', flex: 1 }}>{option.label}</span>
+      {state === 'pending' ? <CircleNotch size={15} weight="bold" color="var(--fg-3)" className="spin" /> : null}
     </button>
   );
 }

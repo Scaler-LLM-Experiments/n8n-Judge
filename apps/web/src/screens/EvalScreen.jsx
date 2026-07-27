@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowRight, CheckCircle, XCircle } from '@phosphor-icons/react';
+import { ArrowRight, CheckCircle, XCircle, CircleNotch } from '@phosphor-icons/react';
 import gsap from 'gsap';
 import { Button } from '../design-system/Button.jsx';
 import { TopBar } from '../components/TopBar.jsx';
@@ -10,6 +10,7 @@ import { shuffledEvalOptions } from '../lib/shuffle.js';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
 import { simulateCase } from '@judge/engine/simulate.js';
 import { scoreEval } from '@judge/engine/evalScore.js';
+import { checkAnswer } from '../lib/grader.js';
 
 const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 const GRID_WIDTH = 1040;
@@ -30,10 +31,29 @@ const REFERENCE_PATH = [
 // giving away the answer (the outcome only reveals via NodeReplay post-pick).
 const BASE_PATH = REFERENCE_PATH.slice(0, 4);
 
-export function EvalScreen({ problem, graph, onDecision, onSubmit }) {
+// Turn a checkAnswer() response into the verdict this screen renders. The
+// local `q.correctIndex` / `q.explanation` fields are only a fallback for when
+// the server can't be reached (no session yet, e.g. the #eval-demo dev
+// route) — never a substitute once the server has actually answered, since
+// those fields are being stripped from the payload the client is served.
+function resolveVerdict(q, chosen, result) {
+  if (result) {
+    return { correct: result.correct, why: result.why ?? null };
+  }
+  if (q.correctIndex !== undefined) {
+    return { correct: !!chosen?.correct, why: q.explanation ?? null };
+  }
+  // No session and no local answer data — cannot verify this pick. Let the
+  // learner continue rather than stranding them, but don't claim a verdict.
+  return { correct: true, why: null };
+}
+
+export function EvalScreen({ problem, sessionId, graph, onDecision, onSubmit }) {
   const questions = problem.evalQuestions;
   const [index, setIndex] = useState(0);
   const [picked, setPicked] = useState(null);
+  const [checking, setChecking] = useState(false); // request for `picked` in flight
+  const [verdict, setVerdict] = useState(null); // settled { correct, why } for `picked`
   const [answers, setAnswers] = useState({});
   const [mascotClip, setMascotClip] = useState('idle');
   const [showStatement, setShowStatement] = useState(false);
@@ -44,8 +64,11 @@ export function EvalScreen({ problem, graph, onDecision, onSubmit }) {
   // grading (which compares against q.correctIndex) is unaffected. `picked` is
   // a position in THIS array, never the authored index.
   const opts = useMemo(() => shuffledEvalOptions(q, `stress:${q.id}`), [q]);
-  const answered = picked !== null;
-  const isCorrect = answered && !!opts[picked]?.correct;
+  // "answered" = settled (verdict landed); "pending" = picked but awaiting the
+  // server. Only `answered` reveals the replay/explanation and unlocks Continue.
+  const pending = picked !== null && checking;
+  const answered = picked !== null && !checking && verdict !== null;
+  const isCorrect = verdict?.correct ?? false;
 
   const sampleCase = q.caseId ? problem.sampleCases.find((c) => c.id === q.caseId) : null;
   const replaySteps = answered && sampleCase && graph ? simulateCase(graph, sampleCase).steps : null;
@@ -61,23 +84,31 @@ export function EvalScreen({ problem, graph, onDecision, onSubmit }) {
     return () => ctx.revert();
   }, [index]);
 
-  const pick = (i) => {
-    if (answered) return;
+  const pick = async (i) => {
+    if (checking || answered) return; // one in-flight check; no re-answering once settled
     const chosen = opts[i];
-    const correct = !!chosen?.correct;
-    setPicked(i);
-    setMascotClip(correct ? 'correct' : 'shake-no');
-    // Store the authored index — scoreEval grades against q.correctIndex.
+    setPicked(i); // select immediately — the verdict settles asynchronously
+    setVerdict(null);
+    // Store the authored index right away — scoreEval grades against
+    // q.correctIndex, and this mapping doesn't depend on the server round trip.
     setAnswers((a) => ({ ...a, [q.id]: chosen?.originalIndex ?? -1 }));
+    setChecking(true);
+    // The server is sent the option TEXT, not an index — display order is
+    // shuffled per session, so an index would mean nothing to it.
+    const result = await checkAnswer(sessionId, 'stress', q.id, chosen?.label);
+    const resolved = resolveVerdict(q, chosen, result);
+    setChecking(false);
+    setVerdict(resolved);
+    setMascotClip(resolved.correct ? 'correct' : 'shake-no');
     if (onDecision) {
       onDecision({
         id: `stress:${q.id}`,
         kind: 'stress',
         label: q.prompt,
-        correct,
-        firstTry: true,
+        correct: resolved.correct,
+        firstTry: result?.firstTry ?? true,
         chosenLabel: chosen?.label,
-        correctLabel: q.options[q.correctIndex],
+        correctLabel: q.options?.[q.correctIndex],
       });
     }
   };
@@ -86,6 +117,7 @@ export function EvalScreen({ problem, graph, onDecision, onSubmit }) {
     if (index + 1 < questions.length) {
       setIndex(index + 1);
       setPicked(null);
+      setVerdict(null);
       setMascotClip('idle');
     } else {
       onSubmit(scoreEval(answers, questions));
@@ -95,6 +127,11 @@ export function EvalScreen({ problem, graph, onDecision, onSubmit }) {
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
       <TopBar activeStage="eval" problem={problem} onShowProblemStatement={() => setShowStatement(true)} />
+      {/* spinner for the "checking your answer" state while awaiting the server */}
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spin { animation: spin 0.9s linear infinite; }
+      `}</style>
       <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain', display: 'flex', justifyContent: 'center', padding: answered ? '56px 24px 130px' : '56px 24px 56px' }}>
         <div key={index} ref={quizRef} style={{ width: '100%', maxWidth: GRID_WIDTH }}>
           <div data-q="head" style={{ textAlign: 'center', marginBottom: 28 }}>
@@ -123,14 +160,24 @@ export function EvalScreen({ problem, graph, onDecision, onSubmit }) {
                 </div>
               ) : null}
 
+              {pending ? (
+                <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left', padding: '13px 15px', border: '1px solid var(--border-subtle)', background: 'var(--surface-1)' }}>
+                  <CircleNotch size={18} weight="bold" color="var(--fg-3)" className="spin" />
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--fg-2)' }}>Checking your answer…</div>
+                </div>
+              ) : null}
+
               {answered ? (
                 <div style={{ marginTop: 16, display: 'flex', gap: 10, textAlign: 'left', padding: '13px 15px', border: `1px solid ${isCorrect ? 'var(--status-success-border)' : 'var(--status-danger-border)'}`, background: isCorrect ? 'var(--status-success-bg)' : 'var(--status-danger-bg)' }}>
                   {isCorrect ? <CheckCircle size={18} weight="fill" color="var(--status-success)" style={{ flex: 'none', marginTop: 1 }} /> : <XCircle size={18} weight="fill" color="var(--status-danger)" style={{ flex: 'none', marginTop: 1 }} />}
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 700, color: isCorrect ? 'var(--status-success)' : 'var(--status-danger)', marginBottom: 3 }}>
-                      {isCorrect ? 'Correct' : `Not quite — the answer is "${q.options[q.correctIndex]}"`}
+                      {isCorrect ? 'Correct' : 'Not quite'}
                     </div>
-                    <div style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--fg-2)' }}>{q.explanation}</div>
+                    {/* The server sends the same explanation regardless of which
+                        option was picked — it never hands back the correct
+                        option's text for a wrong pick, only the reasoning. */}
+                    <div style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--fg-2)' }}>{verdict?.why ?? (isCorrect ? 'Nice — that tracks.' : 'Take a look at what actually happens below.')}</div>
                   </div>
                 </div>
               ) : null}
@@ -139,11 +186,11 @@ export function EvalScreen({ problem, graph, onDecision, onSubmit }) {
             {/* RIGHT COLUMN: the question's options */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {opts.map((opt, i) => {
-                const state = picked === i ? (isCorrect ? 'correct' : 'wrong') : 'idle';
+                const state = picked === i ? (pending ? 'pending' : isCorrect ? 'correct' : 'wrong') : 'idle';
                 const dim = answered && picked !== i;
                 return (
                   <div key={opt.originalIndex} data-q="opt">
-                    <OptionRow letter={LETTERS[i]} label={opt.label} state={state} dim={dim} disabled={answered} onClick={() => pick(i)} />
+                    <OptionRow letter={LETTERS[i]} label={opt.label} state={state} dim={dim} disabled={pending || answered} onClick={() => pick(i)} />
                   </div>
                 );
               })}
@@ -172,8 +219,10 @@ export function EvalScreen({ problem, graph, onDecision, onSubmit }) {
 }
 
 function OptionRow({ letter, label, state, dim, disabled, onClick }) {
-  const border = state === 'correct' ? 'var(--status-success)' : state === 'wrong' ? 'var(--status-danger)' : 'var(--border-subtle)';
-  const bg = state === 'correct' ? 'var(--status-success-bg)' : state === 'wrong' ? 'var(--status-danger-bg)' : 'var(--surface-0)';
+  // 'pending' = picked, awaiting the server — neutral (not yet green/red), but
+  // visibly selected so the click doesn't feel dropped.
+  const border = state === 'correct' ? 'var(--status-success)' : state === 'wrong' ? 'var(--status-danger)' : state === 'pending' ? 'var(--fg-3)' : 'var(--border-subtle)';
+  const bg = state === 'correct' ? 'var(--status-success-bg)' : state === 'wrong' ? 'var(--status-danger-bg)' : state === 'pending' ? 'var(--surface-1)' : 'var(--surface-0)';
   return (
     <button
       type="button"
@@ -197,6 +246,7 @@ function OptionRow({ letter, label, state, dim, disabled, onClick }) {
         {letter}
       </span>
       <span style={{ fontSize: 14.5, fontWeight: 600, color: 'var(--fg-1)', flex: 1 }}>{label}</span>
+      {state === 'pending' ? <CircleNotch size={15} weight="bold" color="var(--fg-3)" className="spin" /> : null}
     </button>
   );
 }

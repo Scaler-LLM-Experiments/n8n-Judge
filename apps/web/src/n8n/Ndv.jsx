@@ -8,6 +8,7 @@ import { SettingsForm } from './SettingsForm.jsx';
 import { IrisBubble } from './IrisBubble.jsx';
 import { FieldControl, isCorrectValue, expressionFor, whyForField } from './FieldControl.jsx';
 import { defaultSettings, gradeSettings } from './nodeSettings.js';
+import { checkAnswer } from '../lib/grader.js';
 
 // Shown once per session: the first time a node verifies, Iris spotlights the
 // close button so the learner learns that closing a green NDV finishes the node.
@@ -19,7 +20,7 @@ let ndvVignetteSeen = false;
 // as an editable select. "Verify setup" marks it green or red; clicking the field
 // brings Iris close with a chat bubble explaining it. All green → "Complete setup".
 // The Settings tab is locked — nothing there matters for this problem.
-export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete, onClose }) {
+export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete, onClose, sessionId }) {
   const [tab, setTab] = useState('params');
   const rootRef = useRef(null);
   const panelRef = useRef(null);
@@ -40,6 +41,12 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
   const [settingsResults, setSettingsResults] = useState(null);
   const [values, setValues] = useState({});
   const [results, setResults] = useState(null); // { [key]: 'correct' | 'wrong' }
+  // The explanation text for each field, keyed like `results`. Populated at
+  // Verify time from the server's answer (or the local fallback) — the
+  // "ask Iris why" button reads from here rather than recomputing locally,
+  // because the server no longer ships `option.why`/`whyCorrect`/`whyWrong`
+  // for it to recompute from.
+  const [fieldWhy, setFieldWhy] = useState(null);
   const [feedback, setFeedback] = useState(null); // { key, verdict, why }
   const [phase, setPhase] = useState('idle'); // idle | running | done
   const [inputLoaded, setInputLoaded] = useState(false);
@@ -88,6 +95,7 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
   const setValue = (key, value) => {
     setValues((v) => ({ ...v, [key]: value }));
     setResults(null);
+    setFieldWhy(null);
     setSettingsResults(null);
     setFeedback(null);
     if (phase !== 'idle') setPhase('idle');
@@ -122,6 +130,14 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
 
   // "Verify setup" runs the node like a real execution: the parameters strip shows
   // a running bar, then the output loads on the right (all-correct) or stays empty.
+  //
+  // Grading is server-authoritative: the request is fired the moment Verify is
+  // pressed (not inside the timeout), so the round trip overlaps the ~2s
+  // "running" animation instead of adding to it. All fields/settings are
+  // checked together via Promise.all — never awaited one at a time. If a
+  // check comes back null (no session, e.g. the #build/#run-story dev
+  // routes, or a dropped request), that one item falls back to the local
+  // logic so those routes keep working without a backend.
   const verify = () => {
     if (running) return;
     setInputLoaded(true);
@@ -130,62 +146,80 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
     const gradingSettings = stage === 'settings';
     if (!gradingSettings) setResults(null);
 
+    const pending = gradingSettings
+      ? Promise.all(gradedSettings.map((g) => checkAnswer(sessionId, 'setting', `${node.nodeType}:${g.key}`, settings[g.key])))
+      : Promise.all(fields.map((f) => checkAnswer(sessionId, 'field', `${node.nodeType}:${f.key}`, values[f.key])));
+
     runTimer.current = setTimeout(() => {
-      const firstTry = attempts.current === 0;
-      attempts.current += 1;
+      pending.then((serverResults) => {
+        const firstTry = attempts.current === 0;
+        attempts.current += 1;
 
-      // --- Stage 2: the parameters are already green, grade the Settings tab.
-      if (gradingSettings) {
-        const sres = gradeSettings(gradedSettings, settings);
-        sres.forEach((r) => {
-          if (onDecision) {
-            onDecision({
-              id: `${node.nodeType}:settings.${r.key}`,
-              kind: 'setting',
-              label: r.label,
-              correct: r.correct,
-              firstTry,
-            });
+        // --- Stage 2: the parameters are already green, grade the Settings tab.
+        if (gradingSettings) {
+          // Local grading is the fallback baseline (also supplies label et al,
+          // which the check response doesn't carry); the server's verdict and
+          // explanation win wherever it actually answered.
+          const local = gradeSettings(gradedSettings, settings);
+          const sres = local.map((l, i) => {
+            const server = serverResults[i];
+            return server ? { ...l, correct: server.correct, why: server.why ?? l.why } : l;
+          });
+          sres.forEach((r, i) => {
+            const server = serverResults[i];
+            if (onDecision) {
+              onDecision({
+                id: `${node.nodeType}:settings.${r.key}`,
+                kind: 'setting',
+                label: r.label,
+                correct: r.correct,
+                firstTry: server ? server.firstTry : firstTry,
+              });
+            }
+          });
+          setSettingsResults(sres);
+          if (sres.every((r) => r.correct)) {
+            setPhase('done');
+            if (!ndvVignetteSeen) { ndvVignetteSeen = true; vigTimer.current = setTimeout(() => setShowVignette(true), 2600); }
+          } else {
+            setPhase('idle');
           }
-        });
-        setSettingsResults(sres);
-        if (sres.every((r) => r.correct)) {
-          setPhase('done');
-          if (!ndvVignetteSeen) { ndvVignetteSeen = true; vigTimer.current = setTimeout(() => setShowVignette(true), 2600); }
-        } else {
-          setPhase('idle');
+          return;
         }
-        return;
-      }
 
-      // --- Stage 1: grade the parameters.
-      const next = {};
-      fields.forEach((f) => {
-        const ok = isCorrectValue(f, values[f.key]);
-        next[f.key] = ok ? 'correct' : 'wrong';
-        if (onDecision) onDecision({ id: `${node.nodeType}:${f.key}`, kind: 'field', label: f.label, correct: ok, firstTry });
+        // --- Stage 1: grade the parameters.
+        const next = {};
+        const why = {};
+        fields.forEach((f, i) => {
+          const server = serverResults[i];
+          const ok = server ? server.correct : isCorrectValue(f, values[f.key]);
+          next[f.key] = ok ? 'correct' : 'wrong';
+          why[f.key] = server ? server.why : whyForField(f, values[f.key], ok ? 'correct' : 'wrong');
+          if (onDecision) onDecision({ id: `${node.nodeType}:${f.key}`, kind: 'field', label: f.label, correct: ok, firstTry: server ? server.firstTry : firstTry });
+        });
+        setResults(next);
+        setFieldWhy(why);
+
+        const paramsPassed = fields.every((f) => next[f.key] === 'correct');
+        if (!paramsPassed) {
+          setPhase('idle');
+          const firstWrong = fields.find((f) => next[f.key] === 'wrong');
+          if (firstWrong) setFeedback({ key: firstWrong.key, verdict: 'wrong', why: why[firstWrong.key] });
+          return;
+        }
+
+        // Parameters clean. If this node has settings to get right, unlock that
+        // tab and move the learner to it rather than letting them close a
+        // half-configured node.
+        if (gradedSettings.length > 0) {
+          setPhase('idle');
+          setTab('settings');
+          return;
+        }
+
+        setPhase('done');
+        if (!ndvVignetteSeen) { ndvVignetteSeen = true; vigTimer.current = setTimeout(() => setShowVignette(true), 2600); }
       });
-      setResults(next);
-
-      const paramsPassed = fields.every((f) => next[f.key] === 'correct');
-      if (!paramsPassed) {
-        setPhase('idle');
-        const firstWrong = fields.find((f) => next[f.key] === 'wrong');
-        if (firstWrong) setFeedback({ key: firstWrong.key, verdict: 'wrong', why: whyForField(firstWrong, values[firstWrong.key], 'wrong') });
-        return;
-      }
-
-      // Parameters clean. If this node has settings to get right, unlock that
-      // tab and move the learner to it rather than letting them close a
-      // half-configured node.
-      if (gradedSettings.length > 0) {
-        setPhase('idle');
-        setTab('settings');
-        return;
-      }
-
-      setPhase('done');
-      if (!ndvVignetteSeen) { ndvVignetteSeen = true; vigTimer.current = setTimeout(() => setShowVignette(true), 2600); }
     }, 2000);
   };
 
@@ -196,7 +230,10 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
   };
 
   const explain = (field, verdict) => {
-    const why = whyForField(field, values[field.key], verdict);
+    // Read the explanation banked at Verify time, not recomputed here — the
+    // server doesn't ship `option.why`/`whyCorrect`/`whyWrong` for a fresh
+    // local lookup to work against.
+    const why = fieldWhy?.[field.key];
     setFeedback((f) => (f && f.key === field.key ? null : { key: field.key, verdict, why }));
   };
 
