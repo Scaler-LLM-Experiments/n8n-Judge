@@ -117,6 +117,24 @@ for (const p of PROBLEMS) {
   for (const r of ROUTES) {
     await visit(`${p}--${r.replace('#', '')}`, `${base}/${r}?problem=${p}`);
   }
+
+  // Opening a node's detail view is the one high-traffic interaction that
+  // loading a screen never exercises. A crash in there renders nothing until
+  // a learner double-clicks a node, so every other check stays green — which
+  // is exactly how a `node is not defined` in FieldForm shipped.
+  await visit(`${p}--ndv`, `${base}/#run-story?problem=${p}`, async (page, errs) => {
+    const node = page.locator('.react-flow__node').first();
+    if ((await node.count().catch(() => 0)) === 0) {
+      errs.push('no nodes on the canvas — could not open the NDV');
+      return;
+    }
+    await node.dblclick().catch((e) => errs.push(`dblclick: ${e.message}`));
+    await page.waitForTimeout(1200);
+    // The NDV is the only thing with a Parameters tab. If it isn't there the
+    // modal failed to mount, which is the failure we care about.
+    const opened = await page.getByText('Parameters', { exact: true }).count().catch(() => 0);
+    if (opened === 0) errs.push('node detail view did not open');
+  });
 }
 
 await browser.close();

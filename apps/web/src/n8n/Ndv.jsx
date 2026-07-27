@@ -185,6 +185,7 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
           {running ? <RunningStrip /> : null}
           <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '16px 16px 32px' }}>
             <FieldForm
+              nodeType={node.nodeType}
               setup={setup}
               fields={fields}
               values={values}
@@ -271,7 +272,10 @@ function ctaStyle(bg, disabled) {
   return { display: 'flex', alignItems: 'center', gap: 6, background: bg, color: disabled ? 'var(--fg-3)' : '#fff', border: 'none', padding: '7px 13px', fontSize: 12.5, fontWeight: 600, cursor: disabled ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-body)' };
 }
 
-function FieldForm({ setup, fields, values, results, feedback, optionFor, onChange, onDrop, onExplain, allCorrect }) {
+// `nodeType` is only used to seed the option shuffle — FieldForm has no other
+// reason to know which node it is rendering, so it is passed rather than
+// reaching for the parent's `node`, which is not in scope here.
+function FieldForm({ nodeType, setup, fields, values, results, feedback, optionFor, onChange, onDrop, onExplain, allCorrect }) {
   const locked = setup?.locked || [];
   const [hoveredKey, setHoveredKey] = useState(null);
   const [dropKey, setDropKey] = useState(null);
@@ -329,7 +333,7 @@ function FieldForm({ setup, fields, values, results, feedback, optionFor, onChan
                 <option value="" disabled>Select a field…</option>
                 {/* Shuffled: authored data puts the correct option first in
                     every field, which made the whole build clickable blind. */}
-                {seededShuffle(f.options, `ndv:${node.nodeType}:${f.key}`).map((o) => (
+                {seededShuffle(f.options, `ndv:${nodeType}:${f.key}`).map((o) => (
                   <option key={o.value} value={o.value}>{o.label}</option>
                 ))}
               </select>
