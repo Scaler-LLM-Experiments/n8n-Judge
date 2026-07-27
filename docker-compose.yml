@@ -1,0 +1,25 @@
+# Local Postgres for development. Prisma and pg-boss share this database.
+# Matches the DATABASE_URL in .env.example, so `npm run db:up` then
+# `npm run db:migrate` is all a fresh clone needs.
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: judge-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: judge
+    # Host port is configurable — 5432 is often taken by a native Postgres.
+    # Set POSTGRES_PORT in .env and keep DATABASE_URL's port in sync.
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - judge-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d judge']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  judge-pgdata:

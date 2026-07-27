@@ -48,9 +48,12 @@ smoke green.
 ## Next
 
 ### M1 — Auth + problems from the DB ⬅ **current**
-**Blocked on:** no Postgres instance exists yet. That is step 1.
 
-1. Provision Postgres, wire `DATABASE_URL`, run `npm run migrate:deploy --workspace @judge/db`.
+1. ~~Provision Postgres, wire `DATABASE_URL`, run the migration.~~ **Done** — local
+   Postgres via [docker-compose.yml](docker-compose.yml) (`npm run db:up`), migration
+   `0001_init` applied, all 14 tables live. A **hosted** Postgres is still needed for
+   deploys; the Railway MCP is not authenticated, so someone has to run `railway login`
+   and add a Postgres service.
 2. Auth.js Credentials — email + password, bcrypt/argon2, roles LEARNER/ADMIN.
 3. Signup with batch invite codes; Programs (SE / AIML / DSML) as DB rows.
 4. `GET /api/problems`, `GET /api/problems/[slug]`; seed the three problems as v1 PUBLISHED.

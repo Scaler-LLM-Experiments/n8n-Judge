@@ -13,11 +13,19 @@
     "start": "npm run start --workspace @judge/web",
     "test": "vitest run",
     "smoke": "node apps/web/scripts/smoke.mjs",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "db:up": "docker compose up -d db 2>/dev/null || docker-compose up -d db",
+    "db:down": "docker compose down 2>/dev/null || docker-compose down",
+    "db:migrate": "prisma migrate deploy --schema packages/db/prisma/schema.prisma",
+    "db:migrate:dev": "prisma migrate dev --schema packages/db/prisma/schema.prisma",
+    "db:generate": "prisma generate --schema packages/db/prisma/schema.prisma",
+    "db:studio": "prisma studio --schema packages/db/prisma/schema.prisma",
+    "db:seed": "node --env-file=.env packages/db/seed.mjs"
   },
   "devDependencies": {
     "@types/node": "^26.1.1",
     "playwright-core": "^1.61.1",
+    "prisma": "^6.19.3",
     "typescript": "^5.6.3",
     "vitest": "^2.1.8"
   }

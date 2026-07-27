@@ -46,6 +46,29 @@ this has already happened once.
 **Live Ask-AI** needs a key: `cp .env.example .env`, set `ANTHROPIC_API_KEY`, restart.
 Without one the route returns 503 and the UI shows a graceful fallback.
 
+### Database
+
+Postgres runs in Docker via [docker-compose.yml](docker-compose.yml). Prisma and pg-boss
+share it.
+
+```bash
+cp .env.example .env   # then edit POSTGRES_PORT if 5432 is taken on your machine
+npm run db:up          # start Postgres
+npm run db:migrate     # apply committed migrations
+```
+
+| Command | What it does |
+|---|---|
+| `npm run db:up` / `db:down` | Start / stop the local Postgres |
+| `npm run db:migrate` | Apply committed migrations (`migrate deploy`) |
+| `npm run db:migrate:dev` | Create a new migration from schema changes |
+| `npm run db:generate` | Regenerate the Prisma client |
+| `npm run db:studio` | Prisma Studio |
+
+`POSTGRES_PORT` exists because 5432 is frequently occupied by a native Postgres or
+another project's container. Set it in `.env` and keep `DATABASE_URL`'s port in sync —
+compose reads the same file.
+
 ### Dev routes
 
 Hash routes that isolate a single screen. All honor `?problem=<id>`:
