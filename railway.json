@@ -6,8 +6,8 @@
   },
   "deploy": {
     "startCommand": "npm run start --workspace @judge/web",
-    "healthcheckPath": "/",
-    "healthcheckTimeout": 120,
+    "healthcheckPath": "/api/health",
+    "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE"
   }
 }
