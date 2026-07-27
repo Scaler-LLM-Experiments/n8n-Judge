@@ -2,77 +2,173 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## What this is
+## Orientation
 
-"Judge" is a standalone, **frontend-only** React prototype where a learner builds an n8n-style AI-agent workflow instead of writing code, runs it against sample cases, then answers concept-check questions. There is **no backend, auth, or persistence** — the whole thing is a single-session state machine in the browser.
+**Read [STATUS.md](STATUS.md) first** — it is the single source of truth for what's built,
+what's next, and known issues. Keep it updated as work lands; do not start a new handoff
+doc. [README.md](README.md) covers commands and layout. This file covers architecture,
+conventions, and the things that will bite you.
 
-It is **multi-problem**: a home page lists challenges, and each launches its own journey — **Home → Understand → Build → Stress Testing → Result**. Two problems ship (`email-triage`, `lead-triage`); adding more is a data-only task (see "Problem-as-data" below).
+"n8n Judge" is a simulator that teaches non-technical Scaler learners to build AI-agent
+workflows in n8n **and grades them while they do it**. Per challenge the learner walks
+**Home → Understand → Build → Stress Testing → Result**. Three challenges ship:
+`email-triage`, `lead-triage` (routing) and `meeting-notes` (linear).
 
-The app lives in [app/](app/). The repo root also holds source material copied into the app: [syntax-design-system/](syntax-design-system/) and [iris-mascot-kit/](iris-mascot-kit/) (the Lottie mascot, "Iris"). [class_08_building_agents_n8n_zapier.py](class_08_building_agents_n8n_zapier.py) is the course the first problem is grounded in.
+The repo root **is** the monorepo — `apps/web` plus eight `@judge/*` packages. It was
+restructured on 2026-07-27; anything referring to an `innate/` folder or an `app/` Vite
+prototype is out of date, and both are gone.
 
 ## Commands
 
-All app commands run from [app/](app/), not the repo root:
+Node 20+, everything from the repo root.
 
 ```bash
-cd app
 npm install
-npm run dev       # Vite dev server (localhost:5173)
-npm run build     # production build to app/dist
-npm run test      # vitest run (all unit tests, one-shot)
+npm run dev        # Next.js dev → http://localhost:3000
+npm run build      # production build
+npm test           # vitest — engine/schema/problems
+npm run smoke      # full-journey runtime check (needs dev running)
+npm run typecheck  # tsc --noEmit over packages/
 ```
 
-- Single test file: `npx vitest run src/engine/validateGraph.test.js`
-- Watch mode: `npx vitest` (omit `run`)
-- Only the pure engine/data logic is unit-tested (`*.test.js` colocated in `src/engine/` and `src/data/problems/*/`). React components are not tested.
+Single test file: `npx vitest run packages/engine/simulate.test.js`. Watch: `npx vitest`.
 
-**Visual verification** (there is no Playwright MCP): `app/scripts/shoot-*.mjs` drive **system Chrome** via `playwright-core` (`channel: 'chrome'`, headless) against the dev server, screenshotting the dev hash routes below.
+**`npm run smoke` is not optional after touching components.** There are no component
+tests, so a render-time bug passes both `npm test` and `next build`. Smoke drives system
+Chrome via `playwright-core`; on macOS pass
+`SMOKE_CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"`.
 
-**Dev routes** (isolate a screen; all honor `?problem=<id>`): `#build`, `#run-story` (auto-runs a finished flow), `#eval-demo`, `#report-demo`, `#run-demo`, `#playground`.
+**Dev hash routes** (isolate one screen, all honor `?problem=<id>`): `#build`,
+`#run-story`, `#eval-demo`, `#report-demo`, `#run-demo`, `#playground`.
 
 ## Architecture
 
-### Entry & routing — [app/src/App.jsx](app/src/App.jsx)
-`resolveProblem()` reads `?problem=<id>` (default `email-triage`). The default route renders `Landing` (home ⇄ journey); `MainApp` is the real four-screen state machine (`STATEMENT → DASHBOARD → EVAL → REPORT`); `BuildPreview` is the same journey minus the intro, used by dev routes. A grading store is threaded through every screen via a `record` callback.
+### Entry — the app mounts client-only
+[apps/web/app/page.tsx](apps/web/app/page.tsx) → `JudgeClient` → `next/dynamic(…, { ssr: false })`
+around [src/App.jsx](apps/web/src/App.jsx). The whole journey (reactflow canvas, GSAP
+mascot, hash routing) is browser-only. `App.jsx` dispatches the dev hash routes, then
+renders `Landing` (home ⇄ journey); `MainApp` is the four-screen state machine
+(`STATEMENT → DASHBOARD → EVAL → REPORT`); `BuildPreview` is the same journey minus the
+intro. A grading store is threaded through every screen via a `record` callback.
+
+### Port, don't rewrite
+Prototype `.jsx` moved in untouched. **All new code is TypeScript.** Workspace packages
+ship raw sources and are listed in `transpilePackages` in
+[next.config.mjs](apps/web/next.config.mjs) — a new `@judge/*` package must be added there.
 
 ### Problem-as-data + registry (the key pattern)
-Everything specific to a challenge lives in **one plain data object** — `app/src/data/problems/<id>/index.js` — threaded through the app as the `problem` prop. Register it in [app/src/data/problems/index.js](app/src/data/problems/index.js) (`problems` map, `getProblem`, `resolveProblem`, `defaultProblem`, `problemList`). To add or change a challenge you edit data, **not** the engine or UI — see [docs/adding-a-problem.md](docs/adding-a-problem.md) for the full field reference.
+Everything specific to a challenge is **one plain data object** in
+`packages/problems/<id>/index.js`, registered in
+[packages/problems/index.js](packages/problems/index.js) and threaded through the app as
+the `problem` prop. To add or change a challenge you edit data, **not** the engine or UI —
+see [docs/adding-a-problem.md](docs/adding-a-problem.md).
 
-Key fields: `branches` (Switch outputs), `flow` (sequence rules: `start`/`next`/`branchNext`/`modelNext`), `flowSummary` (Stress-Testing strip), `buildPhases` (guided build sub-stages), `nodeSetup` (per-node NDV: `credential` + disabled `locked[]` + editable `fields[]` whose `options` carry `{value,label,correct,why}`), `nodeProbes` (misconception MCQs), `sampleCases` (Run inputs; `branch:null` = intentional fall-through), `dissection`, `testCases`, `evalQuestions`, and optional `simulation` (run-narration overrides).
+Key fields: `branches`, `flow` (`start`/`next`/`branchNext`/`modelNext` — the last two
+optional), `flowSummary`, `buildPhases`, `nodeSetup` (per-node NDV: `credential` +
+disabled `locked[]` + editable `fields[]` whose `options` carry `{value,label,correct,why}`),
+`nodeProbes`, `sampleCases` (`branch:null` = intentional fall-through), `dissection`,
+`nodePalette`, `referenceGraph`, `testCases`, `evalQuestions`, `misconceptionLabels`,
+optional `simulation`.
 
-**What's generic vs. coupled:** all of the above is data-only, *provided the problem reuses the canonical node vocabulary* in [app/src/n8n/catalog.js](app/src/n8n/catalog.js) — a trigger, an **AI node** (category `ai`, needs a Chat Model), an optional parse, a **switch** with branches, and **action** replies. A genuinely different node vocabulary/topology requires editing `catalog.js` and the walk in `engine/simulate.js` — the one remaining coupling.
+[src/data/problems/index.js](apps/web/src/data/problems/index.js) is a thin client shim
+over `@judge/problems` adding `resolveProblem()` (reads `?problem=<id>`). Once problems
+are served from the DB (M1) the journey fetches `/api/problems/<slug>` instead.
 
-### The journey screens — [app/src/screens/](app/src/screens/)
+### Topology is data, not code
+[packages/engine/simulate.js](packages/engine/simulate.js) resolves each node's role from
+**catalog metadata** (`category`, `needsModel`, `branches`) → `trigger | ai | router |
+action | passthrough` and walks the graph generically. Linear flows, routers whose
+branches pass through several nodes, multiple actions, and alternative node *types* all
+work as pure data. `validateProblem()` enforces only generic structure.
+
+**Still coupled:** a genuinely new *node type* needs an entry in
+[packages/catalog/catalog.js](packages/catalog/catalog.js) plus a `nodeIcons.js` mapping.
+That's by design.
+
+### Packages
+| Package | What |
+|---|---|
+| `@judge/engine` | Pure, unit-tested `(studentGraph, problem)` logic: `validateGraph` (gates the Run), `simulateCase`/`simulateAll`, `scoreEval`, `grading`, shared `edgeMatches` |
+| `@judge/catalog` | `NODE_CATALOG` — node vocabulary, params, sample I/O |
+| `@judge/problems` | The three challenges as data + registry + tests |
+| `@judge/problem-schema` | zod `Problem` schema + `validateProblem()` |
+| `@judge/trace` | `TraceEvent` contract — decision, screen/phase transition, ndv_open, graph_mutation, run_result, ask_ai_turn |
+| `@judge/queue` | Queue interface + pg-boss driver + SQS stub |
+| `@judge/llm` | Claude client + grading / authoring / ask-ai prompt builders |
+| `@judge/db` | Prisma 6.x schema (13 tables, 7 enums) + migration + client singleton |
+
+`grading` is **pure functions**, not a Zustand store — the UI holds one store in React
+state and appends. `recordDecision` keeps the *earliest* decision per id, so re-answering
+never inflates the first-try signal that Understanding is scored on.
+
+### Screens — [apps/web/src/screens/](apps/web/src/screens/)
 - `HomeScreen` — challenge cards from `problemList`.
-- `DissectionScreen` (Understand) — Iris-narrated node-pick quiz that drops nodes onto a canvas.
-- **`BuildStage` (Build) — the most complex file.** A "storytelling board": one traveling Iris mascot (GSAP), a spotlight intro on the first `+`, guided `buildPhases`, wrong-pick handling (node is placed with a red pulse, Iris travels to it, a **draggable floating MCQ** probes, then it's removed), the **NDV** opened as a centered modal, and the **Run animation** (numbered test-case stepper below the nav; a traveling sticky note narrating each step ~2s/node; the active node highlighted while the rest dim; an all-pass confetti celebration). Phase completion requires all phase node-types placed **and** configured, and for the Switch phase, **all `branches` wired to configured replies**.
-- `EvalScreen` (Stress Testing) — a read-only `flowSummary` strip + `evalQuestions`, one at a time.
-- `ReportScreen` (Result) — an Understanding score (first-try-correct), per-area breakdown, surfaced misconceptions.
+- `DissectionScreen` (Understand) — Iris-narrated node-pick quiz.
+- **`BuildStage` (Build) — the most complex file.** A storytelling board: one traveling
+  Iris mascot (GSAP), a spotlight intro on the first `+`, guided `buildPhases`, wrong-pick
+  handling (node placed with a red pulse, Iris travels to it, a draggable floating MCQ
+  probes, then it's removed), the NDV as a centered modal, and the Run animation
+  (test-case stepper, traveling sticky note ~2s/node, active node highlighted while the
+  rest dim, all-pass confetti). Phase completion requires every phase node-type placed
+  **and** configured — and for a router phase, all `branches` wired to configured replies.
+- `EvalScreen` (Stress Testing) — read-only `flowSummary` strip + `evalQuestions`.
+- `ReportScreen` (Result) — Understanding score, per-area breakdown, misconceptions.
 
-### n8n editor layer — [app/src/n8n/](app/src/n8n/)
+### n8n editor layer — [apps/web/src/n8n/](apps/web/src/n8n/)
 Built from scratch (not n8n's assets), on `reactflow` v11.
-- `N8nEditor` — `forwardRef` exposing an imperative handle (`removeNode`, `fitAll`); `initialGraph` seeds a finished flow (used by `#run-story`); a `displayNodes` memo injects per-node cue flags (`needsSetup`, `awaitingNext`, `hasModel`, `openBranches`, `running`, `dimmed`) that drive pulses/highlights. `EditorContext` provides `openPicker`/`openNdv`/`branches`.
-- `N8nFlowNode` / `N8nNodeView` — the flow node + its pure visual (`variantOf(type)` classifies trigger/ai/model/action; props `pulse`/`running`/`errorPulse`). The **AI node is identified by `variantOf === 'ai'`** and **Switch branches come from `problem.branches`** via context — neither is hardcoded.
-- `Ndv` — the node-detail modal: real **field editing** (highlighted required fields + disabled `locked` context fields), a **Verify** step marking each field green/red, per-field Iris chat-bubble explanations; closing = completing once all green (no separate "Complete" button). It is **not** an MCQ.
-- `catalog.js` (node library), `NodePickerDrawer`.
+- `N8nEditor` — `forwardRef` exposing `removeNode`/`fitAll`; `initialGraph` seeds a
+  finished flow; a `displayNodes` memo injects per-node cue flags (`needsSetup`,
+  `awaitingNext`, `hasModel`, `openBranches`, `running`, `dimmed`). `EditorContext`
+  provides `openPicker`/`openNdv`/`branches`.
+- `N8nFlowNode` / `N8nNodeView` — the **AI node is identified by `variantOf === 'ai'`** and
+  **router branches come from `problem.branches`** via context. Neither is hardcoded.
+- `Ndv` — field editing with a Verify step marking each field green/red and per-field Iris
+  explanations. Closing completes it once all green. **The Settings tab is currently
+  hard-disabled** — M1.5 §B5 enables it.
+- `NodePickerDrawer` — the node library drawer.
 
-### Shared cross-screen UI — [app/src/components/](app/src/components/)
-Live components reused across the journey, all wired via `TopBar` or the screens: `TopBar` (the persistent top bar, hosting the `GlossaryDrawer` and `AskAiDrawer` slide-overs), `ProblemStatementPanel`, `NodeReplay`, `ConceptFlow`, `Confetti`, `Tour`, `ProblemNote`, and the node-list helpers (`NodePalette`, `NodeFlowRow`, `NodeDetailView`).
+### Ask-AI
+[app/api/ask-ai/route.ts](apps/web/app/api/ask-ai/route.ts) streams Claude on the cheap
+tier, scoped to problem/screen/phase/node. It is **deliberately unhelpful about answers** —
+asked "which node?", it teaches the concept and asks a guiding question. Intended.
 
-### Engine (pure functions, unit-tested) — [app/src/engine/](app/src/engine/)
-Take `(studentGraph, problem)`. `validateGraph` (structural test cases; gates the Run), `checkDrop`, `connections`, `simulate` (walks each `sampleCase` through the actual wiring → narrative steps carrying `nodeId`s; narration is templated, with `problem.simulation` overriding `DEFAULT_NARRATION`), `evalScore`, `grading` (a Zustand-backed store: `createStore`/`recordDecision`/`understandingScore`/`countsByKind`/`misconceptionsHit`). `validateGraph.js` and `connections.js` each carry a near-identical `edgeMatches` helper — keep them in sync.
+### Legacy inside apps/web/src
+`nodes/*.jsx` (`ActionNode`, `ChatModelNode`, `ClassifyNode`, `ProcessNode`, `TriggerNode`,
+`SwitchNode`, `NodeCard`, `nodeTypes.js`) have no importers — the live canvas is the
+`n8n/` layer. **Exception:** `nodes/nodeIcons.js` is live and imported by eight files.
 
-### Legacy — do not edit for the current flow
-A pre-rewrite dashboard still sits in the tree but is unused: `screens/DashboardScreen.jsx`, `screens/ProblemStatementScreen.jsx`, and the hand-rolled node components in `app/src/nodes/*.jsx` (`ActionNode`, `ChatModelNode`, `ClassifyNode`, `ProcessNode`, `TriggerNode`, `SwitchNode`, `NodeCard`, `nodeTypes.js`). The live canvas is the `n8n/` layer. **Exception:** `nodes/nodeIcons.js` (icons/colors/`typeCategory`) is live and shared.
+## Design conventions
 
-## Design system conventions
+Follows `design-source/syntax-design-system/SKILL.md`, styled inline via CSS custom
+properties (`--brand-primary` `#0055FF`, `--surface-*`, `--fg-*`, `--border-*`,
+`--status-*` — never raw hex). Zero `border-radius` on app chrome; 1px hairline borders;
+no decorative gradients; Plus Jakarta Sans for UI, Clash Grotesk for headlines.
+**Exception:** n8n node *bodies* (`N8nNodeView`) use rounded corners for n8n fidelity.
+Primitives live in [apps/web/src/design-system/](apps/web/src/design-system/).
 
-Follows `syntax-design-system/SKILL.md`, styled inline via CSS custom properties (`--brand-primary` `#0055FF`, `--surface-*`, `--fg-*`, `--border-*`, `--status-*` — not raw hex). Zero `border-radius` on app chrome; 1px hairline borders; no decorative gradients; Plus Jakarta Sans for UI, Clash Grotesk for headlines. **Exception:** the n8n node *bodies* (`N8nNodeView`) intentionally use rounded corners for n8n fidelity. Reusable primitives (`Button`, `Card`, `Badge`, `Alert`, `RadioGroup`, `Switch`) live in [app/src/design-system/](app/src/design-system/).
+The user reviews this product **by looking at it** — screenshot after UI changes rather
+than only asserting the code is right. `apps/web/scripts/shoot-*.mjs` drive system Chrome.
 
 ## Deployment
 
-Deployed on Railway via a **root [Dockerfile](Dockerfile)** (the repo root is not the app root): it builds `app/` and serves the bundle with `vite preview` bound to `$PORT` (`preview.allowedHosts` is set in `app/vite.config.js`). Keep the Railway service **Root Directory at the repo root** so the Dockerfile is used. `app/railway.json` is a Nixpacks fallback for when Root Directory is set to `app`. The container serve command is `npm start` (`vite preview --host 0.0.0.0 --port ${PORT:-4173}`).
+Railway builds from the root [Dockerfile](Dockerfile), so the service **Root Directory
+must be the repo root**. It runs `npm ci --include=dev` (lifecycle hooks run
+`prisma generate` and sync the dotLottie wasm into `public/`), builds `@judge/web`, and
+starts `next start -p ${PORT:-3000}`. Health check `/`. Env template:
+[.env.example](.env.example).
+
+## Gotchas
+
+- **Beware `replace_all` edits in `.jsx`** — check enclosing function scope. See STATUS.md.
+- **Next.js pollutes the root `tsconfig.json`** if `next dev` runs from the monorepo root.
+  Revert it if it shows up in a diff.
+- Full list of known issues lives in [STATUS.md](STATUS.md).
 
 ## Reference docs
 
-[docs/adding-a-problem.md](docs/adding-a-problem.md) — how to add a challenge as data. [docs/](docs/) also holds the original design/spec material.
+[STATUS.md](STATUS.md) · [docs/understanding.md](docs/understanding.md) (intent + locked
+decisions) · [docs/plan-production-platform.md](docs/plan-production-platform.md) ·
+[docs/plan-m1.5-fidelity-and-assessment.md](docs/plan-m1.5-fidelity-and-assessment.md) ·
+[docs/adding-a-problem.md](docs/adding-a-problem.md) ·
+[docs/research/](docs/research/) (how real n8n works — the basis for M1.5) ·
+[docs/n8n-reference/](docs/n8n-reference/) · [docs/reference/](docs/reference/)
