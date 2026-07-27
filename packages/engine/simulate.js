@@ -30,11 +30,25 @@ const DEFAULT_NARRATION = {
   actionSend: '{targetLabel} sends the reply to {from}.',
   action: 'Reply sent.',
   deadEnd: 'The flow dead-ends here — nothing is connected next.',
+  // Consequences of node-level Settings. Without these the Settings tab grades
+  // a decision the learner never sees the result of.
+  aiNoModelContinue:
+    '{label} has no Chat Model, but On Error is set to continue — the flow carries on with nothing to work from.',
+  aiNoModelErrorOutput:
+    '{label} has no Chat Model, so it fails to its error output. Nothing is wired there, so this email stops here — but at least it is visible.',
+  switchAlwaysOutput:
+    'Switch matched no branch, but Always Output Data is on — an empty item is pushed down the first branch anyway.',
+  emptyReply:
+    '{targetLabel} sends a reply built from an empty item — {from} gets a blank message.',
 };
 
 const fill = (tpl, ctx) => String(tpl).replace(/\{(\w+)\}/g, (_, k) => (ctx[k] ?? ''));
 
 const meta = (type) => NODE_CATALOG[type] || {};
+
+// Node-level Settings, as configured in the NDV's Settings tab. Missing means
+// the learner never opened it, so fall back to n8n's real defaults.
+const settingsOf = (node) => node?.settings ?? {};
 
 // Resolve a node's structural role from catalog metadata (never from a
 // hard-coded type string), so new node vocabularies work as pure data.
@@ -94,13 +108,38 @@ export function simulateCase(graph, c, sim = {}, branches = []) {
         // main wire — n8n reports "A Chat Model sub-node must be connected".
         const hasModel = subNodesOf(wf, current.name, 'ai_languageModel').length > 0;
         if (!hasModel) {
-          steps.push({ nodeId: current.id, iconType: 'dead', status: 'dead', text: fill(t.aiNoModel, ctx({ label })) });
-          return { steps, delivered: false };
+          // What a failure does to the run is the node's On Error setting.
+          // This is what makes that setting worth getting right: the same
+          // broken node produces three visibly different outcomes.
+          const onError = settingsOf(current).onError ?? 'stopWorkflow';
+          if (onError === 'continueRegularOutput') {
+            steps.push({ nodeId: current.id, iconType: 'warn', status: 'warn', text: fill(t.aiNoModelContinue, ctx({ label })) });
+            // Nothing was classified, so downstream has no category to route on.
+            c = { ...c, category: undefined, branch: null };
+          } else if (onError === 'continueErrorOutput') {
+            steps.push({ nodeId: current.id, iconType: 'dead', status: 'dead', text: fill(t.aiNoModelErrorOutput, ctx({ label })) });
+            return { steps, delivered: false };
+          } else {
+            steps.push({ nodeId: current.id, iconType: 'dead', status: 'dead', text: fill(t.aiNoModel, ctx({ label })) });
+            return { steps, delivered: false };
+          }
         }
       }
       steps.push({ nodeId: current.id, iconType: current.type, status: 'ok', text: fill(t.aiRead, ctx({ label })) });
     } else if (role === 'router') {
       if (!c.branch) {
+        // Always Output Data turns "nothing matched, nothing happens" into
+        // "nothing matched, so an EMPTY item goes down the first branch" —
+        // which is worse, because a blank reply actually gets sent. This is
+        // the risk n8n's own docs warn about on Switch-style nodes.
+        if (settingsOf(current).alwaysOutputData) {
+          steps.push({ nodeId: current.id, iconType: 'warn', status: 'warn', text: fill(t.switchAlwaysOutput, ctx({ label })) });
+          const fallthrough = mainNext(wf, current.name, 0);
+          if (fallthrough) {
+            steps.push({ nodeId: fallthrough.id, iconType: fallthrough.type, status: 'warn', text: fill(t.emptyReply, ctx({ targetLabel: fallthrough.name })) });
+            return { steps, delivered: false, emptyDelivery: true };
+          }
+        }
         steps.push({ nodeId: current.id, iconType: 'dead', status: 'dead', text: fill(t.switchNoMatch, ctx({ label })) });
         return { steps, delivered: false };
       }

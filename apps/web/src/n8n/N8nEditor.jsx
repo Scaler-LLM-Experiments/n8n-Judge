@@ -75,7 +75,15 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
 
   const openPicker = useCallback((ctx) => setPicker(ctx), []);
   const openNdv = useCallback((id) => setNdvId(id), []);
-  const completeNode = useCallback((id) => setNodes((ns) => ns.map((n) => (n.id === id ? { ...n, data: { ...n.data, configured: true } } : n))), []);
+  // Node-level settings are stored ON the node, not left in the NDV's local
+  // state. The simulation reads them, so a wrong On Error has to survive the
+  // modal closing — otherwise the tab grades a decision that never has a
+  // consequence.
+  const completeNode = useCallback(
+    (id, settings) =>
+      setNodes((ns) => ns.map((n) => (n.id === id ? { ...n, data: { ...n.data, configured: true, settings: settings ?? n.data.settings } } : n))),
+    []
+  );
 
   const removeNode = useCallback((id) => {
     setNodes((ns) => ns.filter((n) => n.id !== id));
@@ -227,7 +235,7 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
             inputData={ndvIn.data}
             inputLabel={ndvIn.label}
             onDecision={onDecision}
-            onComplete={() => completeNode(ndvNode.id)}
+            onComplete={(settings) => completeNode(ndvNode.id, settings)}
             onClose={() => setNdvId(null)}
           />
         ) : null}

@@ -242,6 +242,24 @@ export const emailTriage = {
       ],
     },
     classify: {
+      // On Error is graded here because this is the node that can actually
+      // fail — pull the Chat Model and the run visibly changes with each of
+      // the three choices. Grading it on a node that cannot fail would be
+      // marking an answer the learner never sees the result of.
+      settings: [
+        {
+          key: 'onError',
+          correct: 'continueErrorOutput',
+          why: {
+            continueErrorOutput:
+              'Right. If classification fails, the email is routed somewhere you can see, instead of vanishing or taking the whole inbox down with it.',
+            stopWorkflow:
+              'One failure now halts everything behind it, and every email still queued goes unanswered until somebody notices. Is one bad classification worth stopping the inbox?',
+            continueRegularOutput:
+              'This carries on with nothing to work from, so the email reaches the Switch with no category, matches no branch, and quietly disappears. Try it — pull the Chat Model out and run the flow.',
+          },
+        },
+      ],
       credential: 'Scaler AI Gateway',
       locked: [
         { label: 'System prompt', value: 'Classify this email as Bug Report, Feature Request or Complaint, with an urgency.', kind: 'textarea' },
@@ -315,29 +333,22 @@ export const emailTriage = {
       // on purpose: On Error must be CHANGED off its default, while Retry On
       // Fail must be LEFT alone. Flipping every toggle should fail as surely
       // as touching none of them.
+      // Only settings with a visible consequence are graded. Always Output
+      // Data changes what the general-question email does on EVERY run: off,
+      // it goes unanswered; on, an empty item is pushed down the first branch
+      // and a blank reply actually gets sent. The correct answer is to leave
+      // it alone, so "flip every toggle" loses.
       settings: [
         {
-          key: 'onError',
-          correct: 'continueErrorOutput',
+          key: 'alwaysOutputData',
+          correct: false,
           // One explanation per choice, so a learner is told why THEIR answer
           // is right or wrong rather than reading the same sentence either way.
           why: {
-            continueErrorOutput:
-              'Right. Routing is where mail quietly goes missing, and this gives the failures somewhere visible to land instead of vanishing or taking the whole run down with them.',
-            stopWorkflow:
-              'One malformed email would now halt everything behind it. Every message still queued goes unanswered, and nobody finds out until a customer complains. Is one bad input worth stopping the inbox?',
-            continueRegularOutput:
-              'This carries on using the last valid data, so a failed email inherits the previous one’s category and gets someone else’s reply. Silent and wrong is worse than loud and broken.',
-          },
-        },
-        {
-          key: 'retryOnFail',
-          correct: false,
-          why: {
             false:
-              'Correct — leave it off. Retrying helps when something failed for a passing reason, like a network blip. Deciding which branch an email belongs to fails the same way every time, so retries just add delay.',
+              'Correct — leave it off. When an email matches no branch, the Switch should produce nothing. That email going unanswered is a real gap you can see and fix; it is not something to paper over.',
             true:
-              'Retrying only helps a step that might succeed on a second attempt. A routing decision is deterministic: the same email hits the same rules and fails identically. All you have added is waiting.',
+              'Turn this on and an email that matched nothing is still pushed down the first branch as an empty item — so a blank reply goes out to a real customer. Silently wrong is worse than visibly missing. Run it and watch the general question.',
           },
         },
       ],

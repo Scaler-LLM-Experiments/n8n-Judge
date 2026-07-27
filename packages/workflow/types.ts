@@ -53,6 +53,12 @@ export interface N8nNode {
   parameters?: Record<string, unknown>;
   credentials?: Record<string, { id?: string; name: string }>;
   disabled?: boolean;
+  /**
+   * Node-level behaviour: onError, retryOnFail, alwaysOutputData, executeOnce.
+   * In n8n these sit alongside `parameters`, not inside them, and they change
+   * how a run behaves — so the simulation reads them.
+   */
+  settings?: Record<string, unknown>;
 }
 
 /** One edge: which node receives, over which connector, into which input. */

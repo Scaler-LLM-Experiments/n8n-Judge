@@ -134,6 +134,11 @@ export function toWorkflow(graph: EditorGraph | null | undefined, opts: ToWorkfl
     };
     const params = (n as { parameters?: Record<string, unknown> }).parameters;
     if (params) node.parameters = params;
+    // Node-level settings (onError, alwaysOutputData, …) are n8n node
+    // properties, not parameters — the editor stores them on `data`.
+    const settings = (n.data as { settings?: Record<string, unknown> } | undefined)?.settings
+      ?? (n as { settings?: Record<string, unknown> }).settings;
+    if (settings) node.settings = settings;
     return node;
   });
 

@@ -184,7 +184,7 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
     if (phase === 'done' && outputRef.current) gsap.fromTo(outputRef.current, { clipPath: 'inset(0 0 100% 0)', opacity: 0 }, { clipPath: 'inset(0 0 0% 0)', opacity: 1, duration: 0.55, ease: 'power2.out' });
   }, [phase]);
 
-  const finishAndClose = () => { if (isComplete && onComplete) onComplete(); requestClose(); };
+  const finishAndClose = () => { if (isComplete && onComplete) onComplete(settings); requestClose(); };
 
   return (
     <div ref={rootRef} onMouseDown={(e) => { if (e.target === e.currentTarget) finishAndClose(); }} style={{ position: 'absolute', inset: 0, zIndex: 45, background: 'rgba(6,20,50,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2vh 1.5vw' }}>
