@@ -80,7 +80,9 @@ function SketchArrow({ vertical }) {
 export function ConceptFlow({ direction = 'row', size = 'md', problem }) {
   const vertical = direction === 'column';
   const iconSize = size === 'sm' ? 22 : 30;
-  const font = size === 'sm' ? 15 : 19;
+  // Keep the handwritten labels smaller than the surrounding body copy — at 19px
+  // a two-word line overflowed the 96px column and wrapped a third time.
+  const font = size === 'sm' ? 13 : 15;
   const STEPS = stepsFor(problem);
 
   return (
