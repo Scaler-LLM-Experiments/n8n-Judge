@@ -9,4 +9,14 @@ export {
   misconceptionsHit,
 } from './grading.js';
 export { hasConnection } from './connectionMatches.js';
+export {
+  itemScore,
+  enumerateItems,
+  scoreSession,
+  scoreBand,
+  problemComplexity,
+  phaseBreakdown,
+  attemptsFromTrace,
+  DEFAULT_WEIGHTS,
+} from './rubric.ts';
 export { asWorkflow, inferBranches } from './asWorkflow.js';

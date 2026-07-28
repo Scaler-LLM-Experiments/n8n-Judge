@@ -5,6 +5,7 @@
 //   DATABASE_URL=<url> npm run db:seed (any other environment)
 import { PrismaClient } from '@prisma/client';
 import { problemList } from '@judge/problems';
+import { DEFAULT_RUBRIC_SYSTEM_PROMPT } from '@judge/llm/gradingPrompt.ts';
 
 const prisma = new PrismaClient();
 
@@ -103,9 +104,42 @@ async function seedAssignments(programs) {
   console.log(`assignments: +${n}`);
 }
 
+// The grading rubric the worker reads. Global (problemId null) until an admin
+// writes a problem-specific one.
+//
+// Versioned rather than updated in place: a GradingReport points at the exact
+// RubricVersion that produced it, so an edit must never rewrite the basis of
+// reports already issued. Re-running this seed after editing the prompt text
+// therefore appends v2 rather than mutating v1.
+async function seedRubric() {
+  const label = 'Default rubric';
+  let rubric = await prisma.rubric.findFirst({ where: { label, problemId: null } });
+  if (!rubric) rubric = await prisma.rubric.create({ data: { label } });
+
+  const latest = await prisma.rubricVersion.findFirst({
+    where: { rubricId: rubric.id },
+    orderBy: { version: 'desc' },
+  });
+
+  if (latest?.systemPrompt === DEFAULT_RUBRIC_SYSTEM_PROMPT) {
+    console.log(`rubric:   "${label}" @ v${latest.version} (unchanged)`);
+    return;
+  }
+
+  const version = await prisma.rubricVersion.create({
+    data: {
+      rubricId: rubric.id,
+      version: (latest?.version ?? 0) + 1,
+      systemPrompt: DEFAULT_RUBRIC_SYSTEM_PROMPT,
+    },
+  });
+  console.log(`rubric:   "${label}" @ v${version.version} (${latest ? 'updated' : 'created'})`);
+}
+
 const programs = await seedPrograms();
 await seedBatches(programs);
 await seedProblems();
 await seedAssignments(programs);
+await seedRubric();
 await prisma.$disconnect();
 console.log('\nseed complete.');
