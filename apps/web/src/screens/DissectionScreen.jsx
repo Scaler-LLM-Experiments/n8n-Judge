@@ -10,6 +10,7 @@ import { seededShuffle } from '../lib/shuffle.js';
 import { N8nNodeView } from '../n8n/N8nNodeView.jsx';
 import { NodeIcon } from '../nodes/nodeIcons.js';
 import { checkAnswer } from '../lib/grader.js';
+import { resolveServerVerdict, UNVERIFIED_MESSAGE } from '../lib/verdict.js';
 
 const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 
@@ -22,17 +23,23 @@ const COLUMN = 620;
 // server has actually answered, since those fields are being stripped from
 // the payload the client is served.
 function resolveVerdict(q, opt, result) {
-  if (result) {
-    return { correct: result.correct, why: result.why ?? null, unlocks: result.unlocks ?? [] };
-  }
-  if (q.correctType !== undefined) {
-    const correct = opt.type === q.correctType;
-    return { correct, why: correct ? q.explanation : q.wrongHint, unlocks: correct ? (q.unlocks ?? []) : [] };
-  }
-  // No session and no local answer data to fall back on — cannot verify this
-  // pick. Let the learner continue rather than stranding them on a question
-  // that can never resolve, but don't claim a verdict we don't have.
-  return { correct: true, why: null, unlocks: [] };
+  // The server is the only source of a verdict; the browser holds no answers.
+  // If it did not answer, `correct` comes back null and the screen says so.
+  //
+  // This used to fall back to `correct: true`, which meant that whenever a check
+  // failed EVERY option a learner clicked went green — unlocking nodes nobody had
+  // earned and teaching the wrong thing. Never guess. See lib/verdict.js.
+  if (result || q.correctType === undefined) return resolveServerVerdict(result);
+
+  // Authored data present (never true for a learner — only in tests and tooling
+  // that work from the unprojected problem).
+  const correct = opt.type === q.correctType;
+  return {
+    correct,
+    why: correct ? q.explanation : q.wrongHint,
+    unlocks: correct ? (q.unlocks ?? []) : [],
+    verified: true,
+  };
 }
 
 export function DissectionScreen({ problem, sessionId, onComplete, onDecision }) {
@@ -73,7 +80,9 @@ export function DissectionScreen({ problem, sessionId, onComplete, onDecision })
   // server. Only `answered` unlocks Continue / shows the explanation.
   const answered = picked !== null && !checking && verdict !== null;
   const pending = picked !== null && checking;
-  const isCorrect = verdict?.correct ?? false;
+  const isCorrect = verdict?.correct === true;
+  // The check did not complete. Not correct, not wrong — and the learner can retry.
+  const unverified = verdict !== null && verdict.correct === null;
 
   // advance to the next question (or finish) — driven by the per-question
   // Continue button, so the learner reads the explanation at their own pace
@@ -90,7 +99,7 @@ export function DissectionScreen({ problem, sessionId, onComplete, onDecision })
 
   const pick = async (i) => {
     if (checking) return; // one in-flight check at a time
-    if (picked !== null && verdict?.correct) return; // locked after correct
+    if (picked !== null && verdict?.correct === true) return; // locked only after a verified correct answer
     const opt = q.options[i];
     setPicked(i); // select immediately — the verdict settles asynchronously
     setVerdict(null);
@@ -99,13 +108,16 @@ export function DissectionScreen({ problem, sessionId, onComplete, onDecision })
     const resolved = resolveVerdict(q, opt, result);
     setChecking(false);
     setVerdict(resolved);
-    setMascotClip(resolved.correct ? 'correct' : 'shake-no');
-    if (resolved.correct) {
+    // Only react to a verdict we actually have. `correct === null` means the
+    // check did not complete: no celebration, no shake, and crucially no attempt
+    // counted against the learner for a request that failed.
+    setMascotClip(resolved.correct === true ? 'correct' : resolved.correct === false ? 'shake-no' : 'idle');
+    if (resolved.correct === true) {
       setUnlockedTypes((prev) => [...new Set([...prev, ...resolved.unlocks])]);
       // Prefer the server's firstTry; `attempts[index] === 0` (no prior wrong
       // pick recorded locally) is the fallback for the no-session path.
       setFirstTryByQuestion((f) => f.map((v, k) => (k === index ? (result?.firstTry ?? (attempts[index] === 0)) : v)));
-    } else {
+    } else if (resolved.correct === false) {
       setAttempts((a) => a.map((v, k) => (k === index ? v + 1 : v)));
     }
   };
@@ -144,6 +156,7 @@ export function DissectionScreen({ problem, sessionId, onComplete, onDecision })
           answered={answered}
           verdict={verdict}
           isCorrect={isCorrect}
+          unverified={unverified}
           onPick={pick}
           onContinue={advance}
         />
@@ -169,7 +182,7 @@ export function DissectionScreen({ problem, sessionId, onComplete, onDecision })
   );
 }
 
-function QuizBody({ q, index, total, picked, pending, answered, verdict, isCorrect, onPick, onContinue }) {
+function QuizBody({ q, index, total, picked, pending, answered, verdict, isCorrect, unverified, onPick, onContinue }) {
   const rootRef = useRef(null);
   const nodeRef = useRef(null);
   const pickedOption = picked !== null ? q.options[picked] : null;
@@ -203,7 +216,7 @@ function QuizBody({ q, index, total, picked, pending, answered, verdict, isCorre
       {/* option boxes: letter + node icon + label */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, width: '100%' }}>
         {q.options.map((opt, i) => {
-          const state = picked === i ? (pending ? 'pending' : isCorrect ? 'correct' : 'wrong') : 'idle';
+          const state = picked === i ? (pending ? 'pending' : unverified ? 'idle' : isCorrect ? 'correct' : 'wrong') : 'idle';
           const dim = answered && isCorrect && picked !== i;
           return (
             <div key={i} data-q="opt" style={{ display: 'flex' }}>

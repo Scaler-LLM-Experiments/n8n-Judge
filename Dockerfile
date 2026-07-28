@@ -22,5 +22,7 @@ RUN npm ci --include=dev
 RUN npm run build --workspace @judge/web
 
 EXPOSE 3000
-# apps/web `start` = `next start -p ${PORT:-3000}`; Railway injects PORT.
-CMD ["npm", "run", "start", "--workspace", "@judge/web"]
+# Migrations run at START, not during the build — the build has no database. A
+# deploy that ships code needing a new column while the migration waits for
+# someone to remember is exactly how production broke; see the script.
+CMD ["sh", "scripts/start-production.sh"]

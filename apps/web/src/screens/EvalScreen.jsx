@@ -11,6 +11,7 @@ import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
 import { simulateCase } from '@judge/engine/simulate.js';
 import { scoreEval } from '@judge/engine/evalScore.js';
 import { checkAnswer } from '../lib/grader.js';
+import { resolveServerVerdict, UNVERIFIED_MESSAGE } from '../lib/verdict.js';
 
 const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 const GRID_WIDTH = 1040;
@@ -37,15 +38,11 @@ const BASE_PATH = REFERENCE_PATH.slice(0, 4);
 // route) — never a substitute once the server has actually answered, since
 // those fields are being stripped from the payload the client is served.
 function resolveVerdict(q, chosen, result) {
-  if (result) {
-    return { correct: result.correct, why: result.why ?? null };
-  }
-  if (q.correctIndex !== undefined) {
-    return { correct: !!chosen?.correct, why: q.explanation ?? null };
-  }
-  // No session and no local answer data — cannot verify this pick. Let the
-  // learner continue rather than stranding them, but don't claim a verdict.
-  return { correct: true, why: null };
+  // Same rule as Understand: the server is the only source of a verdict, and a
+  // check that did not answer yields `correct: null`. This used to return
+  // `correct: true`, so a failed check marked every answer right.
+  if (result || q.correctIndex === undefined) return resolveServerVerdict(result);
+  return { correct: !!chosen?.correct, why: q.explanation ?? null, verified: true };
 }
 
 export function EvalScreen({ problem, sessionId, graph, onDecision, onSubmit }) {
@@ -85,7 +82,10 @@ export function EvalScreen({ problem, sessionId, graph, onDecision, onSubmit }) 
   }, [index]);
 
   const pick = async (i) => {
-    if (checking || answered) return; // one in-flight check; no re-answering once settled
+    if (checking) return; // one in-flight check at a time
+    // `answered` only blocks once a real verdict landed — a failed check must not
+    // strand the learner on a question they can never answer.
+    if (answered && verdict?.correct !== null) return;
     const chosen = opts[i];
     setPicked(i); // select immediately — the verdict settles asynchronously
     setVerdict(null);
@@ -99,8 +99,8 @@ export function EvalScreen({ problem, sessionId, graph, onDecision, onSubmit }) 
     const resolved = resolveVerdict(q, chosen, result);
     setChecking(false);
     setVerdict(resolved);
-    setMascotClip(resolved.correct ? 'correct' : 'shake-no');
-    if (onDecision) {
+    setMascotClip(resolved.correct === true ? 'correct' : resolved.correct === false ? 'shake-no' : 'idle');
+    if (onDecision && resolved.correct !== null) {
       onDecision({
         id: `stress:${q.id}`,
         kind: 'stress',

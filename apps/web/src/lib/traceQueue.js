@@ -37,6 +37,12 @@ export function createTraceQueue({
   let nextSeq = restore?.nextSeq ?? 0;
   let inFlight = false;
   let timer = null;
+  // Consecutive failures, for backoff. Without this a batch the server will never
+  // accept is retried every couple of seconds forever — and because each attempt
+  // opens a transaction that takes a per-session database lock, a failing trace
+  // route can starve answer checking on the same session. That is not theoretical:
+  // it is how a missing migration turned into learners seeing no verdicts.
+  let failures = 0;
 
   const clearTimer = () => {
     if (timer !== null) {
@@ -47,10 +53,14 @@ export function createTraceQueue({
 
   const scheduleFlush = () => {
     if (timer !== null) return;
+    // Exponential backoff on consecutive failures, capped at ~2 minutes. Tracing
+    // is the least important thing happening on the page; it must never be the
+    // reason something that matters is slow.
+    const delay = failures === 0 ? flushDelayMs : Math.min(flushDelayMs * 2 ** failures, 120_000);
     timer = setTimeout(() => {
       timer = null;
       void flush();
-    }, flushDelayMs);
+    }, delay);
   };
 
   function push(type, payload) {
@@ -83,9 +93,11 @@ export function createTraceQueue({
     const batch = pending.slice(0, maxBatch);
     try {
       await send(batch);
+      failures = 0;
       const delivered = new Set(batch.map((e) => e.clientSeq));
       pending = pending.filter((e) => !delivered.has(e.clientSeq));
     } catch {
+      failures += 1;
       // Keep everything. The server de-duplicates on (session, clientSeq), so
       // re-sending the same batch is safe.
     } finally {
