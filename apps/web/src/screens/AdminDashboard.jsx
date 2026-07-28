@@ -16,6 +16,7 @@ const TABS = [
   { key: 'cases', label: 'Cases' },
   { key: 'completion', label: 'Completion' },
   { key: 'learners', label: 'Learners' },
+  { key: 'admins', label: 'Admins' },
 ];
 
 const scoreColor = (n) =>
@@ -90,6 +91,7 @@ function Dashboard({ data }) {
         {tab === 'cases' ? <Cases rows={data.cases} /> : null}
         {tab === 'completion' ? <Completion funnel={data.funnel} /> : null}
         {tab === 'learners' ? <Learners rows={data.learners} onOpen={setOpenSession} /> : null}
+        {tab === 'admins' ? <Admins /> : null}
       </main>
 
       {openSession ? <SessionDrawer userId={openSession} onClose={() => setOpenSession(null)} /> : null}
@@ -534,5 +536,186 @@ function SessionDrawer({ userId, onClose }) {
         </div>
       </div>
     </div>
+  );
+}
+
+// ---------------------------------------------------------------- admins
+
+function Admins() {
+  const [state, setState] = useState(null);
+  const [email, setEmail] = useState('');
+  const [note, setNote] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState(null); // { tone, text }
+
+  const reload = useCallback(async () => {
+    const res = await fetch('/api/admin/admins', { cache: 'no-store' });
+    setState(res.ok ? await res.json() : { admins: [], pending: [] });
+  }, []);
+
+  useEffect(() => { void reload(); }, [reload]);
+
+  const add = async (e) => {
+    e.preventDefault();
+    const value = email.trim();
+    if (!value || busy) return;
+    setBusy(true);
+    setMsg(null);
+    try {
+      const res = await fetch('/api/admin/admins', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ email: value, note: note.trim() || undefined }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setMsg({ tone: 'danger', text: body.message ?? `Could not add that email (${res.status}).` });
+      } else {
+        setMsg({ tone: 'success', text: body.message });
+        setEmail('');
+        setNote('');
+        await reload();
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const remove = async (target) => {
+    setBusy(true);
+    setMsg(null);
+    try {
+      const res = await fetch(`/api/admin/admins?email=${encodeURIComponent(target)}`, { method: 'DELETE' });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) setMsg({ tone: 'danger', text: body.message ?? `Could not remove (${res.status}).` });
+      else await reload();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const input = {
+    boxSizing: 'border-box', border: '1px solid var(--border-strong)', background: 'var(--surface-1)',
+    padding: '8px 11px', fontSize: 13, fontFamily: 'var(--font-body)', color: 'var(--fg-1)',
+  };
+
+  return (
+    <>
+      <h1 style={{ margin: '0 0 4px', fontSize: 24 }}>Admins</h1>
+      <p style={{ margin: '0 0 22px', fontSize: 13.5, color: 'var(--fg-2)' }}>
+        Anyone listed here can see this dashboard. An email works even if they have not signed up yet — they become an
+        admin the moment they do.
+      </p>
+
+      <Panel title="Add an admin" style={{ marginBottom: 22 }}>
+        <form onSubmit={add} style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="name@scaler.com"
+            style={{ ...input, width: 280 }}
+          />
+          <input
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Note (optional)"
+            style={{ ...input, width: 200 }}
+          />
+          <button
+            type="submit"
+            disabled={busy || !email.trim()}
+            style={{
+              border: 'none', background: busy || !email.trim() ? 'var(--surface-2)' : 'var(--brand-primary)',
+              color: busy || !email.trim() ? 'var(--fg-3)' : 'var(--fg-on-brand, #fff)',
+              padding: '9px 18px', fontSize: 13, fontWeight: 700, fontFamily: 'var(--font-body)',
+              cursor: busy || !email.trim() ? 'default' : 'pointer',
+            }}
+          >
+            {busy ? 'Saving…' : 'Add admin'}
+          </button>
+        </form>
+        {msg ? (
+          <div
+            style={{
+              marginTop: 12, padding: '9px 12px', fontSize: 12.5,
+              border: `1px solid var(--status-${msg.tone}-border)`,
+              background: `var(--status-${msg.tone}-bg)`,
+              color: `var(--status-${msg.tone})`,
+            }}
+          >
+            {msg.text}
+          </div>
+        ) : null}
+      </Panel>
+
+      <Panel title="Current admins" subtitle={state ? `${state.admins.length}` : 'Loading…'} style={{ marginBottom: 22 }}>
+        {!state ? (
+          <div style={{ fontSize: 13, color: 'var(--fg-3)' }}>Loading…</div>
+        ) : (
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr>
+                <Th>Email</Th>
+                <Th align="right">Since</Th>
+                <Th />
+              </tr>
+            </thead>
+            <tbody>
+              {state.admins.map((a) => (
+                <tr key={a.id}>
+                  <Td>{a.email}</Td>
+                  <Td align="right" mono>{fmtDate(a.createdAt)}</Td>
+                  <Td align="right">
+                    <button
+                      type="button"
+                      onClick={() => remove(a.email)}
+                      disabled={busy}
+                      style={{ border: '1px solid var(--border-strong)', background: 'var(--surface-1)', padding: '3px 9px', fontSize: 12, fontFamily: 'var(--font-body)', color: 'var(--status-danger)', cursor: busy ? 'default' : 'pointer' }}
+                    >
+                      Remove
+                    </button>
+                  </Td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </Panel>
+
+      {state?.pending?.length ? (
+        <Panel title="Waiting for signup" subtitle="Listed as admins, no account yet">
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr>
+                <Th>Email</Th>
+                <Th>Note</Th>
+                <Th>Added by</Th>
+                <Th />
+              </tr>
+            </thead>
+            <tbody>
+              {state.pending.map((p) => (
+                <tr key={p.email}>
+                  <Td>{p.email}</Td>
+                  <Td><span style={{ fontSize: 12, color: 'var(--fg-2)' }}>{p.note ?? '—'}</span></Td>
+                  <Td><span style={{ fontSize: 12, color: 'var(--fg-3)' }}>{p.addedBy ?? '—'}</span></Td>
+                  <Td align="right">
+                    <button
+                      type="button"
+                      onClick={() => remove(p.email)}
+                      disabled={busy}
+                      style={{ border: '1px solid var(--border-strong)', background: 'var(--surface-1)', padding: '3px 9px', fontSize: 12, fontFamily: 'var(--font-body)', color: 'var(--status-danger)', cursor: busy ? 'default' : 'pointer' }}
+                    >
+                      Remove
+                    </button>
+                  </Td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Panel>
+      ) : null}
+    </>
   );
 }

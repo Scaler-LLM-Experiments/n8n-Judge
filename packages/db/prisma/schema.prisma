@@ -96,6 +96,23 @@ model Batch {
   @@index([programId])
 }
 
+// Emails that get ADMIN, whether or not they have signed up yet.
+//
+// Promoting an existing user is not enough on its own: the people you want as
+// admins usually have not created an account at the moment you decide it, and
+// "ask them to sign up, then tell me" is a step everyone forgets. An email listed
+// here is promoted on signup, and promoted immediately if the account exists.
+//
+// Kept as a list rather than a one-off UPDATE so the decision is auditable — who
+// was granted admin, by whom, and when.
+model AdminAllowlist {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  note      String?
+  addedBy   String?  // email of the admin who added it, for the audit trail
+  createdAt DateTime @default(now())
+}
+
 model User {
   id           String    @id @default(cuid())
   email        String    @unique

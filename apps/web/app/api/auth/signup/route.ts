@@ -54,11 +54,17 @@ export async function POST(req: Request) {
       );
     }
 
+    // An email an admin listed in advance becomes an admin on signup. Without
+    // this, granting admin to someone who has not signed up yet is impossible —
+    // and asking them to sign up first, then remembering to go back and promote
+    // them, is a step that gets forgotten.
+    const listed = await prisma.adminAllowlist.findUnique({ where: { email }, select: { id: true } });
+
     const user = await prisma.user.create({
       data: {
         email,
         passwordHash: await bcrypt.hash(password, BCRYPT_ROUNDS),
-        role: 'LEARNER',
+        role: listed ? 'ADMIN' : 'LEARNER',
         batchId: batch.id,
       },
       select: { id: true, email: true, role: true, batchId: true },
