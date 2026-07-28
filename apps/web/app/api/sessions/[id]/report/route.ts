@@ -160,7 +160,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
         data: {
           sessionId,
           rubricVersionId: rubric.id,
-          status: 'DONE',
+          status: 'SUCCEEDED',
           understandingScore: score.total,
           reportJson: data as unknown as object,
           promptTokens: usage.inputTokens,
