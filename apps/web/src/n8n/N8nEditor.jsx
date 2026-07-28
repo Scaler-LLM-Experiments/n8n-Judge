@@ -17,6 +17,7 @@ import { NodePickerDrawer } from './NodePickerDrawer.jsx';
 import { Ndv } from './Ndv.jsx';
 import { variantOf } from './N8nNodeView.jsx';
 import { NODE_CATALOG } from '@judge/catalog/catalog.js';
+import { useTraceContext } from '../lib/TraceContext.jsx';
 
 const nodeTypes = Object.fromEntries(Object.keys(NODE_CATALOG).map((t) => [t, N8nFlowNode]));
 
@@ -74,7 +75,17 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
   const onEdgesChange = useCallback((c) => setEdges((e) => applyEdgeChanges(c, e)), []);
 
   const openPicker = useCallback((ctx) => setPicker(ctx), []);
-  const openNdv = useCallback((id) => setNdvId(id), []);
+  const { trace } = useTraceContext();
+  // Which nodes a learner opens, and how often, is how an admin sees where the
+  // configuration step actually costs them time.
+  const openNdv = useCallback(
+    (id) => {
+      setNdvId(id);
+      const node = nodes.find((n) => n.id === id);
+      if (node) trace('ndv_open', { nodeType: node.type });
+    },
+    [nodes, trace]
+  );
   // Node-level settings are stored ON the node, not left in the NDV's local
   // state. The simulation reads them, so a wrong On Error has to survive the
   // modal closing — otherwise the tab grades a decision that never has a

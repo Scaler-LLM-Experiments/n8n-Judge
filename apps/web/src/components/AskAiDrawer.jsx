@@ -20,6 +20,8 @@ const ERROR_REPLY = 'Iris hit a snag answering just now — please try again in 
 
 // Right-hand chat drawer, opened from the nav-bar "Ask AI" button. Streams real
 // answers from Iris (Claude) scoped to the current problem via `context`.
+import { useTraceContext } from '../lib/TraceContext.jsx';
+
 export function AskAiDrawer({ onClose, context, learnerName }) {
   const panelRef = useRef(null);
   const scrollRef = useRef(null);
@@ -48,9 +50,14 @@ export function AskAiDrawer({ onClose, context, learnerName }) {
       return copy;
     });
 
+  const { trace } = useTraceContext();
+
   const send = async (value) => {
     const t = (value ?? text).trim();
     if (!t || streaming) return;
+    // What learners ask, and where they ask it, is the most direct signal of
+    // which step of a challenge is confusing. Recorded per turn.
+    trace('ask_ai_turn', { role: 'user', content: t, ...(context?.nodeContext ? { nodeContext: String(context.nodeContext) } : {}) });
     const history = [...messages, { role: 'user', text: t }];
     setMessages([...history, { role: 'iris', text: '' }]); // user turn + empty Iris placeholder
     setText('');
@@ -81,6 +88,8 @@ export function AskAiDrawer({ onClose, context, learnerName }) {
         setLastIris(acc);
       }
       if (!acc.trim()) setLastIris(ERROR_REPLY);
+      // Recorded once, after streaming finishes — one turn, not one per chunk.
+      else trace('ask_ai_turn', { role: 'assistant', content: acc });
     } catch {
       setLastIris(ERROR_REPLY);
     } finally {

@@ -5,6 +5,7 @@ import { AsyncGate } from './components/AsyncGate.jsx';
 import { GradingLoader } from './components/GradingLoader.jsx';
 import { createSession, fetchReport } from './lib/grader.js';
 import { useTrace } from './lib/useTrace.js';
+import { TraceProvider } from './lib/TraceContext.jsx';
 import { HomeScreen } from './screens/HomeScreen.jsx';
 import { DissectionScreen } from './screens/DissectionScreen.jsx';
 import { BuildStage } from './screens/BuildStage.jsx';
@@ -240,22 +241,22 @@ function BuildPreview({ problem, devAutoRun }) {
   const trace = useTrace(sessionId);
   const record = (d) => setGrading((s) => recordDecision(s, d));
 
-  if (screen === 'eval') {
-    return <EvalScreen problem={problem} sessionId={sessionId} graph={builtGraph} onDecision={record} onSubmit={(o) => { setEvalOutcome(o); setScreen('report'); }} />;
-  }
-  if (screen === 'report') {
-    return <ReportScreen problem={problem} grading={grading} runResult={runResult} evalOutcome={evalOutcome} graph={builtGraph} />;
-  }
-  return (
-    <BuildStage
-      problem={problem}
-      sessionId={sessionId}
-      trace={trace}
-      devAutoRun={devAutoRun}
-      onDecision={record}
-      onComplete={(r) => { if (r) { setRunResult(r.validation); setBuiltGraph(r.graph); } setScreen('eval'); }}
-    />
-  );
+  const screenEl =
+    screen === 'eval' ? (
+      <EvalScreen problem={problem} sessionId={sessionId} graph={builtGraph} onDecision={record} onSubmit={(o) => { setEvalOutcome(o); setScreen('report'); }} />
+    ) : screen === 'report' ? (
+      <ReportScreen problem={problem} grading={grading} runResult={runResult} evalOutcome={evalOutcome} graph={builtGraph} />
+    ) : (
+      <BuildStage
+        problem={problem}
+        sessionId={sessionId}
+        devAutoRun={devAutoRun}
+        onDecision={record}
+        onComplete={(r) => { if (r) { setRunResult(r.validation); setBuiltGraph(r.graph); } setScreen('eval'); }}
+      />
+    );
+
+  return <TraceProvider trace={trace} sessionId={sessionId}>{screenEl}</TraceProvider>;
 }
 
 function MainApp({ problem }) {
@@ -286,12 +287,12 @@ function MainApp({ problem }) {
   }, [trace]);
 
   return (
+    <TraceProvider trace={trace} sessionId={sessionId}>
     <div style={{ height: '100vh' }}>
       {screen === SCREEN.STATEMENT ? (
         <DissectionScreen
           problem={problem}
           sessionId={sessionId}
-          trace={trace}
           onDecision={record}
           onComplete={(result) => {
             setDissection(result);
@@ -343,5 +344,6 @@ function MainApp({ problem }) {
         <ReportScreen problem={problem} grading={grading} dissection={dissection} runResult={runResult} evalOutcome={evalOutcome} graph={builtGraph} serverReport={serverReport} />
       ) : null}
     </div>
+    </TraceProvider>
   );
 }

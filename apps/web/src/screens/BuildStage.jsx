@@ -11,6 +11,7 @@ import { N8nEditor } from '../n8n/N8nEditor.jsx';
 import { validateGraph } from '@judge/engine/validateGraph.js';
 import { simulateAll, roleOf } from '@judge/engine/simulate.js';
 import { checkAnswer } from '../lib/grader.js';
+import { useTraceContext } from '../lib/TraceContext.jsx';
 
 const STEP_ICON = { email: EnvelopeSimpleOpen, trigger: EnvelopeSimpleOpen, classify: Sparkle, parse: BracketsCurly, switch: ArrowsSplit, action: PaperPlaneTilt, dead: XCircle };
 
@@ -54,7 +55,8 @@ function sequenceProbe(meta) {
   };
 }
 
-export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessionId, trace = () => {} }) {
+export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessionId }) {
+  const { trace } = useTraceContext();
   const phases = problem.buildPhases;
 
   const [phaseIndex, setPhaseIndex] = useState(0);
