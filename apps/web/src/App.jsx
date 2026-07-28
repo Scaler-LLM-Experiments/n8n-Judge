@@ -206,16 +206,38 @@ function Landing() {
 
 // Preview wrapper for the #build / #run-story routes: build → eval → report,
 // so the "Move to Stress Testing" CTA actually advances.
+// One Session per attempt. It pins the ProblemVersion the learner is graded
+// against and gives the answer-check endpoint somewhere to record every attempt.
+// Screens render while this is in flight — a slow round trip should not hold up
+// the opening screen.
+//
+// The dev routes use this too, deliberately. Without a session every check
+// returns "could not verify", because the browser holds no answers to grade
+// against — so #build could not verify a single field, and every screenshot
+// taken from it was of a broken grader.
+function useSession(problemId) {
+  const [sessionId, setSessionId] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    createSession(problemId)
+      .then((s) => { if (!cancelled) setSessionId(s.sessionId); })
+      .catch((err) => console.error('[session] could not start:', err));
+    return () => { cancelled = true; };
+  }, [problemId]);
+  return sessionId;
+}
+
 function BuildPreview({ problem, devAutoRun }) {
   const [screen, setScreen] = useState('build');
   const [grading, setGrading] = useState(() => createStore());
   const [runResult, setRunResult] = useState(null);
   const [builtGraph, setBuiltGraph] = useState(null);
   const [evalOutcome, setEvalOutcome] = useState(null);
+  const sessionId = useSession(problem.id);
   const record = (d) => setGrading((s) => recordDecision(s, d));
 
   if (screen === 'eval') {
-    return <EvalScreen problem={problem} graph={builtGraph} onDecision={record} onSubmit={(o) => { setEvalOutcome(o); setScreen('report'); }} />;
+    return <EvalScreen problem={problem} sessionId={sessionId} graph={builtGraph} onDecision={record} onSubmit={(o) => { setEvalOutcome(o); setScreen('report'); }} />;
   }
   if (screen === 'report') {
     return <ReportScreen problem={problem} grading={grading} runResult={runResult} evalOutcome={evalOutcome} graph={builtGraph} />;
@@ -223,6 +245,7 @@ function BuildPreview({ problem, devAutoRun }) {
   return (
     <BuildStage
       problem={problem}
+      sessionId={sessionId}
       devAutoRun={devAutoRun}
       onDecision={record}
       onComplete={(r) => { if (r) { setRunResult(r.validation); setBuiltGraph(r.graph); } setScreen('eval'); }}
@@ -237,24 +260,10 @@ function MainApp({ problem }) {
   const [builtGraph, setBuiltGraph] = useState(null);
   const [evalOutcome, setEvalOutcome] = useState(null);
   const [grading, setGrading] = useState(() => createStore());
-  const [sessionId, setSessionId] = useState(null);
   const [gradingReport, setGradingReport] = useState(false);
   const [serverReport, setServerReport] = useState(null);
   const record = (d) => setGrading((s) => recordDecision(s, d));
-
-  // One Session per attempt, created up front. It pins the ProblemVersion the
-  // learner is being graded against and gives the answer-check endpoint
-  // somewhere to record every attempt. Screens still render while this is in
-  // flight — a slow round trip should not hold up the opening screen — and a
-  // failure leaves sessionId null, which the check client treats as
-  // "unverified" rather than guessing a verdict.
-  useEffect(() => {
-    let cancelled = false;
-    createSession(problem.id)
-      .then((s) => { if (!cancelled) setSessionId(s.sessionId); })
-      .catch((err) => console.error('[session] could not start:', err));
-    return () => { cancelled = true; };
-  }, [problem.id]);
+  const sessionId = useSession(problem.id);
 
   return (
     <div style={{ height: '100vh' }}>

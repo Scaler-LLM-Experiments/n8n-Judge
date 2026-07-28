@@ -18,7 +18,33 @@ import { CaretDown, Lightning } from '@phosphor-icons/react';
 // Grading: `select` matches on option.correct; everything else compares the
 // typed value against the field's `correct`, normalised.
 
+/**
+ * Does this field carry the data needed to grade it at all?
+ *
+ * In the browser it usually does not. `toPublicProblem` strips `correct`, `why`,
+ * `accepts`, `whyCorrect` and `whyWrong` at the API boundary, so the client
+ * holds option text and nothing else. Grading against that returns "wrong" for
+ * every answer including the right one — which is exactly the bug this guards:
+ * the same answer read as correct when the server verdict arrived and as WRONG
+ * whenever it did not.
+ *
+ * Absence is detected with `in` rather than truthiness, because `correct: false`
+ * is a legitimate answer for a boolean and must count as data being present.
+ */
+function hasAnswerData(field) {
+  const kind = field.kind ?? 'select';
+  if (kind === 'select') return (field.options ?? []).some((o) => 'correct' in o);
+  return 'correct' in field || Array.isArray(field.accepts);
+}
+
+/**
+ * @returns {boolean|null} true/false, or **null when it cannot be judged here**.
+ *   null is not "wrong" — callers must not paint it red, must not record it as a
+ *   decision, and should defer to the server.
+ */
 export function isCorrectValue(field, value) {
+  if (!hasAnswerData(field)) return null;
+
   if (field.kind === 'select' || !field.kind) {
     return Boolean(field.options?.find((o) => o.value === value)?.correct);
   }

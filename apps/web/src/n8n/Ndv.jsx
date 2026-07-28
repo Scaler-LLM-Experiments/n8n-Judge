@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
-import { X, LockSimple, CaretDown, CheckCircle, XCircle, Lightning, Sparkle, Lock, CircleNotch } from '@phosphor-icons/react';
+import { X, LockSimple, CaretDown, CheckCircle, XCircle, Lightning, Sparkle, Lock, CircleNotch, Warning } from '@phosphor-icons/react';
 import { NodeIcon, metaOf, typeCategory } from '../nodes/nodeIcons.js';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
 import { seededShuffle } from '../lib/shuffle.js';
@@ -192,10 +192,21 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
         const why = {};
         fields.forEach((f, i) => {
           const server = serverResults[i];
+          // `isCorrectValue` returns null when it cannot judge — which is the
+          // normal case in the browser, because the payload carries no answers.
+          // Three states, not two: treating "could not judge" as "wrong" is what
+          // made the same answer read correct on one attempt and wrong on the
+          // next, with Iris appearing and having nothing to say.
           const ok = server ? server.correct : isCorrectValue(f, values[f.key]);
-          next[f.key] = ok ? 'correct' : 'wrong';
-          why[f.key] = server ? server.why : whyForField(f, values[f.key], ok ? 'correct' : 'wrong');
-          if (onDecision) onDecision({ id: `${node.nodeType}:${f.key}`, kind: 'field', label: f.label, correct: ok, firstTry: server ? server.firstTry : firstTry });
+          const verdict = ok === true ? 'correct' : ok === false ? 'wrong' : 'unverified';
+          next[f.key] = verdict;
+          why[f.key] = server ? server.why : whyForField(f, values[f.key], verdict);
+          // An unverified field is not a decision. Recording it as `correct:
+          // false` would put a wrong answer the learner never gave into the
+          // grading store.
+          if (onDecision && verdict !== 'unverified') {
+            onDecision({ id: `${node.nodeType}:${f.key}`, kind: 'field', label: f.label, correct: ok, firstTry: server ? server.firstTry : firstTry });
+          }
         });
         setResults(next);
         setFieldWhy(why);
@@ -511,7 +522,16 @@ function FieldForm({ nodeType, inputKeys, setup, fields, values, results, feedba
                 inputKeys={inputKeys}
               />
             </div>
-            {verdict ? (
+            {/* Three states. "Could not check" says so plainly instead of
+                claiming the answer was wrong — and offers no "ask Iris why",
+                because there is nothing to explain and an empty bubble reads as
+                a broken app. */}
+            {verdict === 'unverified' ? (
+              <div style={{ marginTop: 7, display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--fg-3)' }}>
+                <Warning size={15} weight="fill" />
+                Could not check this — your answer was not marked wrong
+              </div>
+            ) : verdict ? (
               <button type="button" onClick={() => onExplain(f, verdict)} style={{ marginTop: 7, display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 600, color: verdict === 'correct' ? 'var(--status-success)' : 'var(--status-danger)' }}>
                 {verdict === 'correct' ? <CheckCircle size={15} weight="fill" /> : <XCircle size={15} weight="fill" />}
                 {verdict === 'correct' ? 'Correct — ask Iris why' : 'Not right — ask Iris why'}
