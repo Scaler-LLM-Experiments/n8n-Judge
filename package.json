@@ -23,7 +23,8 @@
     "db:seed": "node --env-file=.env packages/db/seed.mjs",
     "db:seed:rubric": "node packages/db/seed-rubric.mjs",
     "typecheck:packages": "tsc -p tsconfig.json --noEmit",
-    "typecheck:web": "tsc -p apps/web/tsconfig.json --noEmit"
+    "typecheck:web": "tsc -p apps/web/tsconfig.json --noEmit",
+    "db:seed:demo": "node --env-file=.env packages/db/seed-demo.mjs"
   },
   "devDependencies": {
     "@types/node": "^26.1.1",

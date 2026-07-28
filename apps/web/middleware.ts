@@ -14,6 +14,7 @@ export const config = {
     '/',
     '/login',
     '/signup',
+    '/admin/:path*',
     '/api/problems/:path*',
   ],
 };
