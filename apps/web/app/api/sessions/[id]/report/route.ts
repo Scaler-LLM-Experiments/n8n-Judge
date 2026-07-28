@@ -72,17 +72,33 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     data: { status: 'COMPLETED', completedAt: new Date(), currentScreen: 'REPORT' },
   });
 
+  const rubric = await prisma.rubricVersion.findFirst({
+    orderBy: [{ rubric: { createdAt: 'asc' } }, { version: 'desc' }],
+    select: { id: true, systemPrompt: true },
+  });
+
+  // Persist the SCORE before going anywhere near Claude.
+  //
+  // It used to be written only inside the Claude-succeeded branch, so a session
+  // graded without an API key — or with a failed call — kept its score on screen
+  // and stored nothing. Both databases had zero GradingReport rows as a result,
+  // which means analytics had no scores to average. The number is engine
+  // arithmetic and always valid; the narrative is the optional part.
+  //
+  // One row per session, updated rather than appended: reaching the Result screen
+  // twice (a reload is enough) would otherwise double-count that learner in every
+  // average.
+  const reportRow = rubric ? await upsertReport(sessionId, rubric.id, score.total) : null;
+  if (!rubric) {
+    console.error('[report] no RubricVersion exists — score not persisted. Run `npm run db:seed:rubric`.');
+  }
+
   // ---- the words: Claude, over the same replayed decisions ------------------
   // No key configured is a normal state, not an error: the score is the part the
   // learner cannot do without, so serve it and let the UI omit the narrative.
   if (!process.env.ANTHROPIC_API_KEY) {
     return Response.json({ ...scorePayload, report: null, reason: 'llm_unconfigured' });
   }
-
-  const rubric = await prisma.rubricVersion.findFirst({
-    orderBy: [{ rubric: { createdAt: 'asc' } }, { version: 'desc' }],
-    select: { id: true, systemPrompt: true },
-  });
 
   const decisions = trace
     .filter((e) => e.type === 'decision')
@@ -153,26 +169,63 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
       schema,
     });
 
-    // Persisted so the report is stable on reload and auditable later — it
-    // records WHICH rubric version produced these words.
-    if (rubric) {
-      await prisma.gradingReport.create({
+    // Fill in the narrative on the row that already holds the score.
+    if (reportRow) {
+      await prisma.gradingReport.update({
+        where: { id: reportRow.id },
         data: {
-          sessionId,
-          rubricVersionId: rubric.id,
           status: 'SUCCEEDED',
-          understandingScore: score.total,
           reportJson: data as unknown as object,
           promptTokens: usage.inputTokens,
           completionTokens: usage.outputTokens,
+          completedAt: new Date(),
         },
       });
     }
 
     return Response.json({ ...scorePayload, report: data });
   } catch (err) {
-    // A failed narrative must never cost the learner their score.
+    // A failed narrative must never cost the learner their score — which is
+    // already stored, so record why the words are missing and move on.
     console.error('[report] grading call failed', err);
+    if (reportRow) {
+      await prisma.gradingReport
+        .update({
+          where: { id: reportRow.id },
+          data: { status: 'FAILED', error: String(err).slice(0, 500) },
+        })
+        .catch(() => {});
+    }
     return Response.json({ ...scorePayload, report: null, reason: 'llm_failed' });
   }
+}
+
+/**
+ * One grading report per session, created on first sight and updated after.
+ *
+ * There is no unique index on sessionId to upsert against, and adding one would
+ * block M4's "re-grade with a new rubric" (which wants a second row on purpose).
+ * So: find, then update or create. `status: QUEUED` means the score is stored and
+ * the narrative has not been written yet — which is exactly the state a session
+ * graded without an API key is in.
+ */
+async function upsertReport(sessionId: string, rubricVersionId: string, understandingScore: number) {
+  const existing = await prisma.gradingReport.findFirst({
+    where: { sessionId, rubricVersionId },
+    orderBy: { createdAt: 'desc' },
+    select: { id: true },
+  });
+
+  if (existing) {
+    return prisma.gradingReport.update({
+      where: { id: existing.id },
+      data: { understandingScore },
+      select: { id: true },
+    });
+  }
+
+  return prisma.gradingReport.create({
+    data: { sessionId, rubricVersionId, status: 'QUEUED', understandingScore },
+    select: { id: true },
+  });
 }
