@@ -278,6 +278,43 @@ After the 2026-07-27 flatten the root Dockerfile **is** the Next.js one, so Root
 The Railway **MCP** holds a stale token and reports `Unauthorized` even though the CLI is
 logged in; it needs a Claude Code restart. The CLI works, so this is not blocking.
 
+### Fixed: the same answer graded correct sometimes and wrong other times ✅
+
+The worst class of bug a grading tool can have, and it was two bugs stacked — which
+is why it presented as random.
+
+1. **A race on the trace sequence number.** The NDV verifies every field of a node in
+   ONE `Promise.all`, so one "Verify setup" press fires several concurrent POSTs to
+   `/check`. `seq` was allocated read-`MAX`-then-insert, so two requests read the same
+   value; `TraceEvent` has a unique index on `(sessionId, seq)`, one insert violated it,
+   and the request **500'd**. Reproduced before fixing: 2 concurrent checks → 1 failed,
+   6 → 2 failed. Now serialised with a per-session `pg_advisory_xact_lock` inside the
+   transaction — 0 failures at 2, 6 and 12 concurrent.
+   The **attempt count** moved inside the same lock: it was also unsynchronised, so
+   concurrent checks of one id all counted zero priors and all claimed `firstTry`.
+   Verified: 5 concurrent checks of one question now number 1,2,3,4,5 with exactly one
+   `firstTry`.
+2. **The client turned that 500 into a wrong answer.** `checkAnswer` returns null on a
+   non-ok response and the NDV fell back to local grading — but the browser holds no
+   answers, because `toPublicProblem` strips `correct`/`why`/`accepts`/`whyCorrect`/
+   `whyWrong`. So the fallback graded *every* answer including the right one as WRONG,
+   with no explanation: the empty "NOT QUITE" bubble in the screenshots.
+   `isCorrectValue` now returns **null for "cannot judge here"** and the NDV renders
+   three states. Absence is detected with `in`, not truthiness, because `correct: false`
+   is a real answer for a boolean. An unverified field is no longer recorded as a
+   decision — that was writing an answer the learner never gave into the grading store.
+
+**The dev routes had no session at all**, so `#build` could not verify a single field and
+every screenshot taken from it was of a broken grader. Session creation is now a shared
+`useSession` hook used by both the real journey and `BuildPreview`.
+
+**A trap this exposed:** `npm run typecheck` runs against the root tsconfig, which
+**excludes `apps`** — it never type-checks the web app. Only `next build` does, and that
+cannot run while `next dev` is running (they share `.next`). An app-level type error is
+therefore invisible to every check that is safe to run during development, and one of
+them broke the Railway build this session. Stop dev and run a real build before pushing
+route or component changes.
+
 ## Known issues
 
 1. **No component tests.** `npm test` covers engine, schema and problem data only. Always
