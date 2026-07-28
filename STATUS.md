@@ -106,6 +106,67 @@ Progress:
   expression field with drag-to-map plus an "Insert field…" picker.
   **Still uniform 2-select shapes:** the Gmail trigger, Switch, Send Reply, and
   everything in `lead-triage` and `meeting-notes`. That is the remaining fan-out.
+- **Scoring rubric — built and unit-tested, NOT yet wired to the journey.**
+  [packages/engine/rubric.ts](packages/engine/rubric.ts) replaces "share of decisions
+  correct on the first try", which had two defects: every decision weighed the same (so
+  email-triage's 13 dropdowns outweighed its 6 node placements), and clicking through a
+  3-option field until it went green cost nothing traceable.
+  - **Attempt decay tied to the option count.** On an N-option question the Nth attempt is
+    forced correct by elimination, so it earns ZERO. 4 options → 100/66/33/0; 3 options →
+    100/50/0; open-ended (expression, number, node placement) → 100/50/0. Verified:
+    answering everything by elimination now scores **0%**, where the old model scored it
+    the same as answering correctly.
+  - **Weights** 30 dissection / 25 placement / 25 config / 20 edge-case. The even build
+    split is deliberate — without it config would carry 13/19ths of the build score purely
+    because the problem has more dropdowns. Consequence: one placement is worth ~2.2 config
+    items on email-triage, ~1.25 on meeting-notes, so equal scores across problems are not
+    quite the same mix.
+  - Denominator is **every decision the problem requires**, enumerated from problem data,
+    so an abandoned session cannot look like a short perfect one. Empty buckets
+    redistribute their weight rather than capping the maximum.
+  - Probes are deliberately **not** scored items: the wrong placement already paid via
+    decay, so scoring the probe would charge one mistake twice.
+  - Item ids match the recorded decision keys, so an M3 trace replay needs no mapping.
+  - `scoreBand()` supplies the plain-English meaning of the number; `problemComplexity()`
+    orders the catalogue easiest-first for recommendations, so no authored `difficulty`
+    field has to be kept in sync.
+- **Grading prompt rewritten** ([packages/llm/gradingPrompt.ts](packages/llm/gradingPrompt.ts)).
+  The schema no longer lets Claude emit `understandingScore` — the engine computes it and
+  Claude explains it, which is the locked M3 decision now actually enforced by the schema.
+  Output is `scoreDefinition`, `strengths` (positives), `focusAreas` (negatives),
+  `nextSteps` (2-4 concrete actions naming a specific next challenge, easiest-first when the
+  score is low), plus misconceptions and narrative. The rubric text states the decay maths so
+  the narrative cannot contradict the number. **Seeded as `RubricVersion` v1** — re-running
+  `db:seed` after editing the prompt appends v2 rather than mutating v1, because a
+  GradingReport points at the exact version that produced it.
+- **Placement is now recorded, so the Build score has a data source.** `placement` is a
+  sixth check kind; `BuildStage` records every placement, right or wrong, and a wrong pick is
+  charged to the SLOT it was standing in for (`meta.expectedTypes[0]` from the editor) so the
+  attempt count lands on the scored item. The server independently verifies the placed type is
+  one the problem requires — which catches a distractor. Slot *ordering* is still client-asserted,
+  because `expectedNext` traversal lives in the editor.
+- **The Result screen is server-authoritative and shows four things**
+  (`POST /api/sessions/[id]/report`): total marks, the breakdown across the three phases the
+  learner walked (Understand / Build / Stress Testing — Build folds placement + config via
+  `phaseBreakdown`), then positives, negatives and next steps written by Claude.
+  - The score is replayed from this session's own `TraceEvent` rows by `attemptsFromTrace()`.
+    The browser's grading store is **not consulted**, which closes the "fabricate the store,
+    reach a fake Report" hole. Verified end to end: a partial journey scored 53/100 with
+    Understand 28/30, Build 24.8/50, Stress 0/20, all matching hand arithmetic.
+  - Recorded keys and rubric item ids are NOT the same string (`setting:classify:onError` vs
+    `classify:settings.onError`); the translation lives in one place, in `rubricItemId()`.
+  - No `ANTHROPIC_API_KEY` is a normal state, not an error: the route returns the score with
+    `report: null, reason: 'llm_unconfigured'` and the screen omits the written sections
+    rather than failing. Same for a failed Claude call — a missing narrative must never cost
+    a learner their score.
+  - `GradingReport` rows are written with the rubric version that produced them.
+- **Fixed a smoke coverage hole found while verifying this:** `#report-demo` matched the hash
+  by *equality*, so `#report-demo?problem=lead-triage` fell through to Landing — all three of
+  smoke's report-demo checks were rendering email-triage. Now `startsWith`, like `#build`.
+  `#run-demo` and `#playground` still use equality and are unverified in this respect.
+- Still to wire: the score is computed on demand in the request rather than by the M3 worker,
+  and `runOutcome`/`timeline` are passed to Claude as `null`/`[]` — the Run result and session
+  chronology are not yet in the digest.
 - Still to do: rest of B6, B2/B3 (cluster Agent, Text Classifier etc.), B4 (full
   INPUT/Params/OUTPUT NDV), A3/A5 (widened answer space, assessed mode), C2/C3 (run
   narration, coach copy), D1/D2 (de-clone lead-triage).
