@@ -1,9 +1,10 @@
 // app/src/App.jsx
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { fetchProblemList, fetchProblem, slugFromUrl } from './data/problemsApi.js';
 import { AsyncGate } from './components/AsyncGate.jsx';
 import { GradingLoader } from './components/GradingLoader.jsx';
 import { createSession, fetchReport } from './lib/grader.js';
+import { useTrace } from './lib/useTrace.js';
 import { HomeScreen } from './screens/HomeScreen.jsx';
 import { DissectionScreen } from './screens/DissectionScreen.jsx';
 import { BuildStage } from './screens/BuildStage.jsx';
@@ -236,6 +237,7 @@ function BuildPreview({ problem, devAutoRun }) {
   const [builtGraph, setBuiltGraph] = useState(null);
   const [evalOutcome, setEvalOutcome] = useState(null);
   const sessionId = useSession(problem.id);
+  const trace = useTrace(sessionId);
   const record = (d) => setGrading((s) => recordDecision(s, d));
 
   if (screen === 'eval') {
@@ -248,6 +250,7 @@ function BuildPreview({ problem, devAutoRun }) {
     <BuildStage
       problem={problem}
       sessionId={sessionId}
+      trace={trace}
       devAutoRun={devAutoRun}
       onDecision={record}
       onComplete={(r) => { if (r) { setRunResult(r.validation); setBuiltGraph(r.graph); } setScreen('eval'); }}
@@ -266,6 +269,21 @@ function MainApp({ problem }) {
   const [serverReport, setServerReport] = useState(null);
   const record = (d) => setGrading((s) => recordDecision(s, d));
   const sessionId = useSession(problem.id);
+  const trace = useTrace(sessionId);
+
+  // One place for screen changes, so a new screen cannot be added without being
+  // traced. The admin timeline's "who is stuck where" is built from these.
+  //
+  // The current screen is read from a ref rather than inside a setState updater:
+  // React calls updaters twice in development strict mode, which would report
+  // every transition twice.
+  const screenRef = useRef(screen);
+  screenRef.current = screen;
+  const goTo = useCallback((to) => {
+    const from = screenRef.current;
+    if (from !== to) trace('screen_transition', { from, to });
+    setScreen(to);
+  }, [trace]);
 
   return (
     <div style={{ height: '100vh' }}>
@@ -273,10 +291,11 @@ function MainApp({ problem }) {
         <DissectionScreen
           problem={problem}
           sessionId={sessionId}
+          trace={trace}
           onDecision={record}
           onComplete={(result) => {
             setDissection(result);
-            setScreen(SCREEN.DASHBOARD);
+            goTo(SCREEN.DASHBOARD);
           }}
         />
       ) : null}
@@ -291,7 +310,7 @@ function MainApp({ problem }) {
               setRunResult(result.validation);
               setBuiltGraph(result.graph);
             }
-            setScreen(SCREEN.EVAL);
+            goTo(SCREEN.EVAL);
           }}
         />
       ) : null}
@@ -309,7 +328,8 @@ function MainApp({ problem }) {
             // recorded decisions and the narrative is a Claude call, so this
             // wait is real work, not a staged delay.
             setGradingReport(true);
-            setScreen(SCREEN.REPORT);
+            goTo(SCREEN.REPORT);
+            trace('session_complete', {});
             fetchReport(sessionId)
               .then((r) => setServerReport(r))
               .finally(() => setGradingReport(false));

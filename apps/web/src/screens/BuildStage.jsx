@@ -54,7 +54,7 @@ function sequenceProbe(meta) {
   };
 }
 
-export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessionId }) {
+export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessionId, trace = () => {} }) {
   const phases = problem.buildPhases;
 
   const [phaseIndex, setPhaseIndex] = useState(0);
@@ -125,11 +125,33 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
   // ---- graph plumbing -----------------------------------------------------
   const handleGraph = useCallback((nodes, edges) => {
     setNodesState(nodes.map((n) => ({ id: n.id, type: n.type, configured: !!n.data.configured, wrong: !!n.data.wrong })));
-    graphRef.current = {
+    const next = {
       nodes: nodes.map((n) => ({ id: n.id, type: n.type, data: n.data })),
       edges: edges.map((e) => ({ id: e.id, source: e.source, target: e.target, sourceHandle: e.sourceHandle, targetHandle: e.targetHandle })),
     };
-  }, []);
+
+    // Report the shape change, not every React re-render. The canvas is what an
+    // admin replays to see how someone built their flow, so the op and the full
+    // post-change snapshot both matter — but a graph that did not change is noise.
+    const before = graphRef.current;
+    if (before) {
+      const grew = next.nodes.length > before.nodes.length;
+      const shrank = next.nodes.length < before.nodes.length;
+      const wired = next.edges.length > before.edges.length;
+      const unwired = next.edges.length < before.edges.length;
+      const op = grew ? 'add_node' : shrank ? 'remove_node' : wired ? 'connect' : unwired ? 'disconnect' : null;
+      if (op) {
+        const added = next.nodes.find((n) => !before.nodes.some((b) => b.id === n.id));
+        trace('graph_mutation', {
+          op,
+          ...(added ? { nodeType: added.type } : {}),
+          graph: { nodes: next.nodes.map((n) => ({ id: n.id, type: n.type })), edges: next.edges },
+        });
+      }
+    }
+
+    graphRef.current = next;
+  }, [trace]);
 
   const flashNudge = (msg) => { clearTimeout(nudgeTimer.current); setNudge(msg); nudgeTimer.current = setTimeout(() => setNudge(null), 3200); };
   const saysIris = (msg) => { clearTimeout(sayTimer.current); setIrisSay(msg); sayTimer.current = setTimeout(() => setIrisSay(null), 4200); };
@@ -161,6 +183,7 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
     // Charged to the slot the learner was trying to fill, not to the node they
     // wrongly reached for — that slot is the scored item.
     recordPlacement(meta?.expectedTypes?.[0], type);
+    trace('probe_shown', { nodeType: type });
     const authored = problem.nodeProbes[type];
     setProbe({ type, nodeId, data: authored || sequenceProbe(meta || {}), anchor: null });
   }, [problem, recordPlacement]);
@@ -250,6 +273,7 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
   const continueFromClear = () => {
     setMascotVisible(false);
     if (clearInfo?.next) {
+      trace('phase_transition', { phaseId: clearInfo.next.id, label: clearInfo.next.label });
       setPhaseIndex((i) => i + 1);
       setClearInfo(null);
       setStage('building');
@@ -413,7 +437,7 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
                 <RunNote step={activeStep} caseInfo={run.cases[runPos.ci].case} side={noteSide} />
               </div>
             ) : null}
-            {runFinished && run.success ? <RunCelebration onContinue={() => onComplete({ validation: run.val, graph: graphRef.current })} /> : null}
+            {runFinished && run.success ? <RunCelebration onContinue={() => { trace('run_result', { graph: { nodes: (graphRef.current?.nodes ?? []).map((n) => ({ id: n.id, type: n.type })), edges: graphRef.current?.edges ?? [] }, validation: { allPassed: !!run.val?.allPassed, ...run.val } }); onComplete({ validation: run.val, graph: graphRef.current }); }} /> : null}
             {runFinished && !run.success ? (
               <div className="fade-in" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 46, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, padding: '14px 16px', background: 'var(--surface-0)', borderTop: '1px solid var(--border-strong)' }}>
                 <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--fg-1)' }}>Some emails never reached a reply. Head back and finish wiring the flow.</span>
