@@ -2,9 +2,19 @@ import { z } from 'zod';
 import { decisionSchema } from '@judge/problem-schema';
 
 // The trace-event contract: every learner interaction the client reports to
-// the backend. Append-only on the server (TraceEvent table). The client
-// assigns a monotonic per-session `seq`; (sessionId, seq) is the idempotency
-// key so re-sent batches after a dropped connection are safe.
+// the backend. Append-only on the server (TraceEvent table).
+//
+// The client numbers its own events with `clientSeq`, monotonic per session, and
+// (sessionId, clientSeq) is the idempotency key so a batch re-sent after a
+// dropped connection is safe.
+//
+// It does NOT assign `seq`. That was the original design, and it cannot stand:
+// the check endpoint records its own decisions — the recording is what stops it
+// being a free answer oracle — so the server writes rows too, and the client
+// must not choose the ordering of something it is graded on. With both sides
+// numbering, a client counter would collide with server inserts on the
+// (sessionId, seq) unique index. The server allocates `seq` under a per-session
+// advisory lock; `clientSeq` is null on anything the server recorded itself.
 //
 // These events are BOTH the admin session-map source AND the input the
 // grading worker replays (decision events through the engine's grading store;
@@ -72,11 +82,14 @@ export type TraceEventType = keyof typeof tracePayloadSchemas;
 
 export const traceEventSchema = z
   .object({
-    seq: z.number().int().min(0),
+    clientSeq: z.number().int().min(0),
     type: z.string(),
     payload: z.unknown(),
     clientTs: z.string().datetime({ offset: true }).or(z.string().datetime()),
   })
+  // strip, not passthrough: a client that sends `seq` gets it dropped rather
+  // than smuggled through into the write.
+  .strip()
   .superRefine((event, ctx) => {
     const schema = tracePayloadSchemas[event.type as TraceEventType];
     if (!schema) {
@@ -98,3 +111,32 @@ export const traceBatchSchema = z.object({
 
 export type TraceEventInput = z.infer<typeof traceEventSchema>;
 export type TraceBatchInput = z.infer<typeof traceBatchSchema>;
+
+/**
+ * Event types the client is NOT allowed to report.
+ *
+ * `decision` is recorded by POST /api/sessions/[id]/check, server-side. That
+ * recording is the security property — a check endpoint with no side effect is a
+ * free answer oracle — so accepting decisions here would both duplicate every
+ * graded row and hand the client a way to narrate its own grading.
+ */
+export const CLIENT_FORBIDDEN_TYPES = ['decision'] as const;
+
+/** The batch schema for client-submitted events. Use this at the ingest route. */
+export const clientTraceBatchSchema = z.object({
+  events: z
+    .array(
+      traceEventSchema.superRefine((event, ctx) => {
+        if ((CLIENT_FORBIDDEN_TYPES as readonly string[]).includes(event.type)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `"${event.type}" events are recorded server-side and cannot be submitted by the client`,
+          });
+        }
+      })
+    )
+    .min(1)
+    .max(500),
+});
+
+export type ClientTraceBatchInput = z.infer<typeof clientTraceBatchSchema>;

@@ -196,9 +196,31 @@ export type SampleCase = z.infer<typeof sampleCaseSchema>;
 export type EvalQuestion = z.infer<typeof evalQuestionSchema>;
 
 // Decision shape recorded by the grading store (mirrors packages/engine/grading.js).
+/**
+ * Every kind of graded decision that can appear in a trace.
+ *
+ * Two vocabularies meet here, and both are real:
+ *   - what the CLIENT store records — `nodePick` for a node choice
+ *   - what the CHECK API records    — `placement` for the same thing, plus
+ *                                     `probe` for the follow-up question
+ * The union has to cover both, because the grading worker replays rows written
+ * by either. `setting` and `placement` shipped after this enum was first written
+ * and were missing, so events for two of the five graded surfaces would have
+ * been rejected at ingest.
+ */
+export const DECISION_KINDS = [
+  'dissection',
+  'nodePick',
+  'placement',
+  'field',
+  'setting',
+  'probe',
+  'stress',
+] as const;
+
 export const decisionSchema = z.object({
   id: z.string().min(1),
-  kind: z.enum(['dissection', 'nodePick', 'field', 'stress']),
+  kind: z.enum(DECISION_KINDS),
   label: z.string(),
   correct: z.boolean(),
   firstTry: z.boolean(),

@@ -194,16 +194,30 @@ model Session {
 // Append-only. Carries the interactions the prototype's grading store missed
 // (run results, graph mutations) so the worker can replay/regrade deterministically.
 model TraceEvent {
-  id         BigInt   @id @default(autoincrement())
-  session    Session  @relation(fields: [sessionId], references: [id])
-  sessionId  String
-  seq        Int      // client-assigned, monotonic per session
+  id        BigInt  @id @default(autoincrement())
+  session   Session @relation(fields: [sessionId], references: [id])
+  sessionId String
+  // SERVER-assigned, monotonic per session, allocated under a per-session
+  // advisory lock. It was client-assigned in the original design, but the check
+  // endpoint has to record its own decisions — the recording is what stops it
+  // being a free answer oracle — and the client cannot be allowed to choose the
+  // ordering of something it is graded on. With both sides numbering rows, a
+  // client counter would collide with server inserts on the unique index below.
+  seq       Int
+  // Client-assigned, monotonic per session, for the events the CLIENT reports
+  // (screen transitions, graph mutations, run results…). Null on anything the
+  // server recorded itself. This is the idempotency key for batch re-sends after
+  // a dropped connection: Postgres treats NULLs as distinct in a unique index,
+  // so every server-written row coexists happily with null here.
+  clientSeq Int?
+
   type       String
   payload    Json
   clientTs   DateTime
   receivedAt DateTime @default(now())
 
-  @@unique([sessionId, seq]) // idempotent batch re-send
+  @@unique([sessionId, seq])
+  @@unique([sessionId, clientSeq]) // idempotent batch re-send
   @@index([sessionId, seq])
 }
 
