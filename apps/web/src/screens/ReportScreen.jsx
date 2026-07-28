@@ -55,16 +55,24 @@ function findSampleCase(problem, decisionId) {
   return problem.sampleCases?.find((c) => c.id === q.caseId) || null;
 }
 
-export function ReportScreen({ problem, grading, dissection, runResult, evalOutcome, graph }) {
+export function ReportScreen({ problem, grading, dissection, runResult, evalOutcome, graph, serverReport }) {
   const [showStatement, setShowStatement] = useState(false);
 
-  const score = grading ? understandingScore(grading) : null;
+  // The server's replayed score wins whenever there is one. The local store is
+  // the fallback for the dev hash routes, which run without a session — it is
+  // NOT a second opinion, and the two are never blended.
+  const localScore = grading ? understandingScore(grading) : null;
+  const score = serverReport ? serverReport.total : localScore;
   const counts = grading ? countsByKind(grading) : {};
   const misconceptions = grading ? misconceptionsHit(grading) : [];
   const verdict = verdictFor(score);
+  // Claude writes the next steps when it is available; the canned per-area line
+  // is what a session without a narrative falls back to.
   const nextStep = grading ? nextStepFor(counts) : null;
   const decisions = grading?.decisions || [];
   const kindsPresent = KIND_ORDER.filter((k) => decisions.some((d) => d.kind === k));
+
+  const written = serverReport?.report || null;
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
@@ -75,16 +83,67 @@ export function ReportScreen({ problem, grading, dissection, runResult, evalOutc
             Result
           </div>
 
+          {/* 1 — total marks gained */}
           {verdict ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
               <div style={{ width: 56, height: 56, flex: 'none' }}>
                 <MascotPlayer clip={verdict.clip} once={false} onceDone={() => {}} />
               </div>
-              <div>
-                <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--fg-1)', marginBottom: 2 }}>{verdict.message}</div>
-                <div style={{ fontSize: 13, color: 'var(--fg-2)' }}>{score}% understanding, first try</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 2 }}>
+                  <span style={{ fontFamily: 'var(--font-display, inherit)', fontSize: 34, fontWeight: 700, lineHeight: 1, color: 'var(--fg-1)' }}>{score}</span>
+                  <span style={{ fontSize: 15, color: 'var(--fg-3)' }}>/ 100</span>
+                </div>
+                <div style={{ fontSize: 13, color: 'var(--fg-2)' }}>
+                  {serverReport?.definition || verdict.message}
+                </div>
               </div>
             </div>
+          ) : null}
+
+          {/* 2 — breakdown across the three phases the learner walked */}
+          {serverReport?.phases?.length ? (
+            <div style={{ marginBottom: 24 }}>
+              <h3 style={{ margin: '0 0 10px' }}>Where the marks came from</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {serverReport.phases.map((p) => (
+                  <PhaseRow key={p.key} phase={p} />
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {/* 3 — positives and negatives, written by Claude from the trace */}
+          {written?.strengths?.length ? (
+            <PointList
+              title="What you did well"
+              tone="success"
+              items={written.strengths}
+            />
+          ) : null}
+
+          {written?.focusAreas?.length ? (
+            <PointList
+              title="Where you lost marks"
+              tone="warning"
+              items={written.focusAreas}
+            />
+          ) : null}
+
+          {/* 4 — next steps */}
+          {written?.nextSteps?.length ? (
+            <div style={{ marginBottom: 24 }}>
+              <h3 style={{ margin: '0 0 8px' }}>What to do next</h3>
+              <ol style={{ margin: 0, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {written.nextSteps.map((s, i) => (
+                  <li key={i} style={{ fontSize: 13.5, color: 'var(--fg-1)', lineHeight: 1.5 }}>{s}</li>
+                ))}
+              </ol>
+            </div>
+          ) : null}
+
+          {written?.narrative ? (
+            <Alert tone="info" style={{ marginBottom: 24 }}>{written.narrative}</Alert>
           ) : null}
 
           {misconceptions.length ? (
@@ -98,7 +157,9 @@ export function ReportScreen({ problem, grading, dissection, runResult, evalOutc
             </>
           ) : null}
 
-          {nextStep ? (
+          {/* Canned fallback — only when Claude wrote nothing (no key, or the
+              call failed). Never shown alongside the written next steps. */}
+          {!written && nextStep ? (
             <>
               <h3 style={{ margin: '0 0 8px' }}>What to try next</h3>
               <Alert tone="info" style={{ marginBottom: 24 }}>{nextStep}</Alert>
@@ -134,6 +195,45 @@ export function ReportScreen({ problem, grading, dissection, runResult, evalOutc
         </Card>
       </div>
       {showStatement && problem ? <ProblemStatementPanel problem={problem} onClose={() => setShowStatement(false)} /> : null}
+    </div>
+  );
+}
+
+// One phase of the journey: marks earned out of what the phase is worth, with a
+// bar so the shortfall is visible without reading the numbers.
+function PhaseRow({ phase }) {
+  const tone =
+    phase.score >= 85 ? 'var(--status-success)' : phase.score >= 50 ? 'var(--status-warning)' : 'var(--status-danger)';
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 5 }}>
+        <span style={{ flex: 1, fontSize: 13.5, fontWeight: 600, color: 'var(--fg-1)' }}>{phase.label}</span>
+        <span style={{ fontSize: 13, color: 'var(--fg-1)', fontVariantNumeric: 'tabular-nums' }}>
+          {phase.earned} <span style={{ color: 'var(--fg-3)' }}>/ {phase.weight}</span>
+        </span>
+      </div>
+      <div style={{ height: 4, background: 'var(--surface-2)', overflow: 'hidden' }}>
+        <div style={{ width: `${Math.max(0, Math.min(100, phase.score))}%`, height: '100%', background: tone }} />
+      </div>
+    </div>
+  );
+}
+
+// Positives / negatives. Plain bulleted prose — these are Claude's sentences and
+// they carry their own evidence, so no badge or score is added on top.
+function PointList({ title, tone, items }) {
+  const dot = tone === 'success' ? 'var(--status-success)' : 'var(--status-warning)';
+  return (
+    <div style={{ marginBottom: 24 }}>
+      <h3 style={{ margin: '0 0 8px' }}>{title}</h3>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {items.map((text, i) => (
+          <div key={i} style={{ display: 'flex', gap: 9, alignItems: 'flex-start' }}>
+            <span style={{ width: 5, height: 5, background: dot, flex: 'none', marginTop: 7 }} />
+            <span style={{ fontSize: 13.5, color: 'var(--fg-1)', lineHeight: 1.5 }}>{text}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

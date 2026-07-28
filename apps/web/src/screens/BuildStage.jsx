@@ -144,19 +144,33 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
     setEditorKey((k) => k + 1); // remount the editor → empty canvas
   };
 
+  // Every placement is recorded, right or wrong — this is the Build score's only
+  // data source. Before this, a correct pick recorded nothing at all and only
+  // wrong picks appeared (via the probe), so "chose the right node" was
+  // ungraded. Fire-and-forget: the UI already knows the verdict, the round trip
+  // exists so the SERVER has the attempt on record.
+  const recordPlacement = useCallback((slotType, placedType) => {
+    if (!slotType) return;
+    checkAnswer(sessionId, 'placement', slotType, placedType);
+  }, [sessionId]);
+
   const handleWrongPick = useCallback((type, nodeId, meta) => {
     setIrisSay(null);
     setProbeWhy(null);
     setProbeResolving(false);
+    // Charged to the slot the learner was trying to fill, not to the node they
+    // wrongly reached for — that slot is the scored item.
+    recordPlacement(meta?.expectedTypes?.[0], type);
     const authored = problem.nodeProbes[type];
     setProbe({ type, nodeId, data: authored || sequenceProbe(meta || {}), anchor: null });
-  }, [problem]);
+  }, [problem, recordPlacement]);
 
-  const handlePlaceCorrect = useCallback(() => {
+  const handlePlaceCorrect = useCallback((type) => {
+    recordPlacement(type, type);
     setIrisSay('Nice pick! Now click the glowing node to set it up.');
     clearTimeout(sayTimer.current);
     sayTimer.current = setTimeout(() => setIrisSay(null), 4200);
-  }, []);
+  }, [recordPlacement]);
 
   // once a probed node is on screen (and any auto-focus has settled), travel Iris
   // to it and anchor the widget beside it

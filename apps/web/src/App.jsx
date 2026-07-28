@@ -3,7 +3,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { fetchProblemList, fetchProblem, slugFromUrl } from './data/problemsApi.js';
 import { AsyncGate } from './components/AsyncGate.jsx';
 import { GradingLoader } from './components/GradingLoader.jsx';
-import { createSession } from './lib/grader.js';
+import { createSession, fetchReport } from './lib/grader.js';
 import { HomeScreen } from './screens/HomeScreen.jsx';
 import { DissectionScreen } from './screens/DissectionScreen.jsx';
 import { BuildStage } from './screens/BuildStage.jsx';
@@ -25,6 +25,42 @@ const SCREEN = {
 
 // A finished reference flow, used by the dev demo routes so the Stress Testing
 // and Report screens have a real graph to replay sample cases against.
+// Shape-accurate stand-in for POST /api/sessions/[id]/report, used by the
+// #report-demo dev route only. Mirrors the real response exactly so the route is
+// a faithful preview of the Result screen.
+const DEMO_SERVER_REPORT = {
+  total: 74,
+  band: 'solid',
+  definition:
+    'You reached the right answer nearly everywhere, but needed a second try on several decisions. The understanding is there; the details are still settling.',
+  phases: [
+    { key: 'understand', label: 'Understand', weight: 30, earned: 26, score: 87 },
+    { key: 'build', label: 'Build', weight: 50, earned: 34.5, score: 69 },
+    { key: 'stress', label: 'Stress Testing', weight: 20, earned: 13.3, score: 67 },
+  ],
+  report: {
+    scoreDefinition: 'A 74 means you knew the shape of this workflow and hesitated on the details.',
+    areaBreakdown: [],
+    misconceptions: [],
+    strengths: [
+      'You picked the Gmail Trigger and the Switch correctly on the first attempt — the overall shape of the flow was clear to you before you started building.',
+      'You set the Chat Model temperature to 0 straight away, which shows you understood that triage has to be repeatable.',
+    ],
+    focusAreas: [
+      'The Text Classifier needed three attempts. The pattern suggests you were choosing between options rather than reading what each one points at.',
+      'You turned on Always Output Data on the Switch, which sends a blank reply instead of leaving an unmatched email visibly unanswered.',
+    ],
+    nextSteps: [
+      'Run Meeting Notes Summarizer next — it is a shorter, linear flow and will let you practise node configuration without a router in the way.',
+      'Before that, reopen the Text Classifier in this challenge and read what the Text field is pointing at.',
+      'Then come back to Email Triage and aim to configure every node on the first verify.',
+    ],
+    narrative:
+      'You built a working triage flow and understood why it needs a router. Most of the marks you lost were in configuration rather than structure, which is the easier gap to close. Spend a little time on what each field actually references, then try a second challenge.',
+    insufficientEvidence: [],
+  },
+};
+
 const DEMO_GRAPH = {
   nodes: [
     { id: 't', type: 'trigger', data: { label: 'New Email' } },
@@ -98,7 +134,10 @@ export default function App() {
       </DevProblem>
     );
   }
-  if (hash === '#report-demo') {
+  // startsWith, not equality: `#report-demo?problem=lead-triage` silently fell
+  // through to Landing before, so smoke's three report-demo checks were all
+  // rendering email-triage.
+  if (hash.startsWith('#report-demo')) {
     return (
       <DevProblem>
         {(problem) => {
@@ -116,7 +155,21 @@ export default function App() {
           const g = DEMO_GRAPH;
           const runResult = validateGraph(g, problem);
           const evalOutcome = scoreEval({ 'general-question-gap': 1, 'why-fixed-path': 0 }, problem.evalQuestions);
-          return <ReportScreen problem={problem} grading={s} runResult={runResult} evalOutcome={evalOutcome} graph={g} />;
+          // A representative server payload, so this route exercises the marks
+          // total, the phase breakdown and Claude's three written sections. The
+          // live route needs a session and an API key; without a fixture here
+          // those branches would render nowhere and smoke could not catch a
+          // break in them.
+          return (
+            <ReportScreen
+              problem={problem}
+              grading={s}
+              runResult={runResult}
+              evalOutcome={evalOutcome}
+              graph={g}
+              serverReport={DEMO_SERVER_REPORT}
+            />
+          );
         }}
       </DevProblem>
     );
@@ -186,6 +239,7 @@ function MainApp({ problem }) {
   const [grading, setGrading] = useState(() => createStore());
   const [sessionId, setSessionId] = useState(null);
   const [gradingReport, setGradingReport] = useState(false);
+  const [serverReport, setServerReport] = useState(null);
   const record = (d) => setGrading((s) => recordDecision(s, d));
 
   // One Session per attempt, created up front. It pins the ProblemVersion the
@@ -240,10 +294,14 @@ function MainApp({ problem }) {
           onSubmit={(outcome) => {
             setEvalOutcome(outcome);
             // Hold on a loader while the report is put together, rather than
-            // snapping to a score — grading is server-side work now.
+            // snapping to a score — the score is replayed from this session's
+            // recorded decisions and the narrative is a Claude call, so this
+            // wait is real work, not a staged delay.
             setGradingReport(true);
             setScreen(SCREEN.REPORT);
-            setTimeout(() => setGradingReport(false), 2600);
+            fetchReport(sessionId)
+              .then((r) => setServerReport(r))
+              .finally(() => setGradingReport(false));
           }}
         />
       ) : null}
@@ -251,7 +309,7 @@ function MainApp({ problem }) {
       {screen === SCREEN.REPORT && gradingReport ? <GradingLoader /> : null}
 
       {screen === SCREEN.REPORT && !gradingReport ? (
-        <ReportScreen problem={problem} grading={grading} dissection={dissection} runResult={runResult} evalOutcome={evalOutcome} graph={builtGraph} />
+        <ReportScreen problem={problem} grading={grading} dissection={dissection} runResult={runResult} evalOutcome={evalOutcome} graph={builtGraph} serverReport={serverReport} />
       ) : null}
     </div>
   );

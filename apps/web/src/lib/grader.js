@@ -22,6 +22,29 @@ export async function createSession(slug) {
 }
 
 /**
+ * The Result screen's data. The score is replayed server-side from this
+ * session's recorded decisions — the local grading store is NOT consulted, so a
+ * tampered store cannot produce a score.
+ *
+ * Returns null without a session (dev hash routes), and the caller falls back to
+ * the local store so those routes keep working offline.
+ *
+ * @returns {Promise<{total:number, band:string, definition:string,
+ *                    phases:Array<{key:string,label:string,weight:number,earned:number,score:number}>,
+ *                    report:object|null, reason?:string} | null>}
+ */
+export async function fetchReport(sessionId) {
+  if (!sessionId) return null;
+  try {
+    const res = await fetch(`/api/sessions/${sessionId}/report`, { method: 'POST' });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Ask the server to grade one answer.
  *
  * @returns {Promise<{correct:boolean, why:string|null, unlocks:string[]|null,

@@ -12,7 +12,7 @@
 
 type Rec = Record<string, unknown>;
 
-export type CheckKind = 'dissection' | 'field' | 'setting' | 'probe' | 'stress';
+export type CheckKind = 'dissection' | 'field' | 'setting' | 'probe' | 'stress' | 'placement';
 
 export interface CheckRequest {
   kind: CheckKind;
@@ -51,6 +51,15 @@ function fieldIsCorrect(field: Rec, answer: unknown): boolean {
   const accepts = field.accepts as string[] | undefined;
   if (Array.isArray(accepts)) return accepts.some((a) => norm(a) === norm(answer));
   return norm(field.correct) === norm(answer);
+}
+
+/** Every node type the problem's build phases ask for. */
+function requiredNodeTypes(problem: Rec): string[] {
+  const out = new Set<string>();
+  for (const phase of (problem.buildPhases as Rec[]) ?? []) {
+    for (const type of (phase.nodeTypes as string[]) ?? []) out.add(type);
+  }
+  return [...out];
 }
 
 export function checkAnswer(problem: Rec, req: CheckRequest): CheckResult {
@@ -124,6 +133,27 @@ export function checkAnswer(problem: Rec, req: CheckRequest): CheckResult {
       const index = options.indexOf(String(req.answer));
       if (index < 0) return { correct: false, unknown: true };
       return { correct: index === q.correctIndex, why: q.explanation as string };
+    }
+
+    case 'placement': {
+      // `id` is the slot being filled — the node type the flow expects at that
+      // point. `answer` is what the learner actually dropped in.
+      //
+      // Placement had no server check before this, which is why the Build score
+      // had no data: a correct pick recorded nothing at all, and only wrong
+      // picks showed up (via the probe).
+      const required = requiredNodeTypes(problem);
+      if (!required.includes(String(req.id))) {
+        // A slot this problem never declares was never offered to this learner.
+        return { correct: false, unknown: true };
+      }
+      const placed = String(req.answer);
+      // Correct only if the node belongs to this workflow AND went where the
+      // flow expects it. Ordering is asserted by the client (it owns `flow`
+      // traversal); what the server independently enforces is that the type is
+      // one this problem actually needs, which is what catches a distractor.
+      const correct = required.includes(placed) && placed === String(req.id);
+      return { correct };
     }
 
     default:

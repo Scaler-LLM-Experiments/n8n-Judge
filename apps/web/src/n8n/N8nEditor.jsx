@@ -138,7 +138,10 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
       const sourceLabel = ctx.modelSlot ? `${source ? source.data.label : 'this node'}’s Chat Model port`
         : ctx.branch ? 'a Switch branch'
         : source ? source.data.label : 'the start of the flow';
-      if (onWrongPick) onWrongPick(catalogType, id, { sourceLabel, expectedLabel });
+      // `expectedTypes` goes through raw as well as prettified: the caller
+      // records the attempt against the SLOT the learner was filling, so a
+      // wrong pick costs the node it was standing in for.
+      if (onWrongPick) onWrongPick(catalogType, id, { sourceLabel, expectedLabel, expectedTypes: expected || [] });
     } else if (onPlaceCorrect) {
       onPlaceCorrect(catalogType, id);
     }

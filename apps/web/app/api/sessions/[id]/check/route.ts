@@ -16,7 +16,7 @@ import { getVersionById } from '../../../../../src/server/problemVersions';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const KINDS: CheckKind[] = ['dissection', 'field', 'setting', 'probe', 'stress'];
+const KINDS: CheckKind[] = ['dissection', 'field', 'setting', 'probe', 'stress', 'placement'];
 
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const authed = await auth();
