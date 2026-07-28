@@ -82,12 +82,66 @@ Progress:
 - **A2 — authoring lint. Done.** `validateProblem()` rejects escape-hatch option text
   and probes with fewer than 3 options, and warns when a wrong option carries no
   misconception code (it would never reach the report).
-- **A4 + C1 — probe rewrite.** Every probe used to end with "Added it by mistake"
+- **A4 + C1 — probe rewrite. Done.** Every probe used to end with "Added it by mistake"
   flagged `correct: true`: a free correct grading record, no misconception logged.
   Rewritten under three rules — never name the correct node, every option is a real
   position, and the correct answer describes what the *wrong* node actually does.
-- Still to do: B1 (real n8n connections model) and the rest of Part B, A3/A5
-  (widened answer space, assessed mode), C2/C3 (run narration, coach copy), D1/D2.
+  The probe panel is also no longer scored green/red: the placement is already known to
+  be wrong, so colouring the accurate answer green read as "you were right" and then
+  the node vanished. Selection is neutral; the explanation carries the meaning.
+- **B1 — canonical n8n graph model. Done.** `@judge/workflow` holds the real shape:
+  connections keyed by source node NAME, `main` as an array-per-output, sub-nodes on
+  typed `ai_*` connectors. `engine/simulate.js` and `validateGraph.js` reason in it;
+  `asWorkflow()` normalises at the boundary so the editor still hands over React Flow
+  and reference graphs stay authored as they are. A branch is now an OUTPUT INDEX, and
+  a Chat Model is found over `ai_languageModel` — both were string comparisons before.
+- **B5 — Settings tab. Done.** Was hard-disabled. Now sequenced: Settings unlocks only
+  once Parameters verify green, and setup needs BOTH. Only what the problem grades is
+  editable; the rest render at real n8n defaults but locked. Settings **change the Run** —
+  On Error produces three different narrations on a failing AI node, and Always Output
+  Data turns an unmatched email from "unanswered" into "blank reply sent".
+- **B6 — parameter kinds. Partly done.** `FieldControl` adds text/number/boolean/
+  expression alongside select. The Chat Model went from ZERO fields (temperature was
+  *locked at the answer*) to a graded number field; `classify.text` became a real
+  expression field with drag-to-map plus an "Insert field…" picker.
+  **Still uniform 2-select shapes:** the Gmail trigger, Switch, Send Reply, and
+  everything in `lead-triage` and `meeting-notes`. That is the remaining fan-out.
+- Still to do: rest of B6, B2/B3 (cluster Agent, Text Classifier etc.), B4 (full
+  INPUT/Params/OUTPUT NDV), A3/A5 (widened answer space, assessed mode), C2/C3 (run
+  narration, coach copy), D1/D2 (de-clone lead-triage).
+
+### Security — answers and grading moved server-side ✅
+
+`GET /api/problems/[slug]` used to return `ProblemVersion.data` verbatim: ~25KB of which
+~24KB was answer material. Any signed-in learner could read every answer with one fetch
+in devtools. Option shuffling did nothing about this.
+
+Now:
+- `toPublicProblem()` strips every marker of correctness at the API boundary.
+- `POST /api/sessions` creates an attempt pinned to a ProblemVersion.
+- `POST /api/sessions/[id]/check` grades one answer **and records it** as a TraceEvent.
+  The recording is the security property: a check that only evaluates is a free oracle,
+  and guessing would be cheaper than reading the answers ever was. Because every attempt
+  is recorded, guessing is allowed and scores like guessing.
+- All five graded surfaces (dissection, field, setting, probe, stress) call it.
+- Verified: the extraction script that pulled every answer now returns `[]` for all of
+  them, and a real journey still renders the server's hint on a wrong pick and the
+  explanation on the retry, with both rows in `TraceEvent`.
+
+**Still client-side, deliberately:**
+1. The **final score tally**. `/check` fixes "what is the answer", not "what did I
+   score" — a learner can still fabricate the grading store and reach a fake Report.
+   Closes when the worker tallies its own recorded decisions (M3).
+2. `referenceGraph`, `testCases`, `flow`, `sampleCases` — listed in
+   `KNOWN_REMAINING_LEAKS` with a test pinning the list. They can only go once the Run
+   moves server-side, because the client cannot simulate without the expected outcomes.
+
+**Decided for M3:** the Understanding score is engine arithmetic replayed from recorded
+decisions, NOT a Claude output — it has to be auditable, reproducible, and cheap to
+re-run when an admin edits rubric weights. Claude writes the narrative, area summaries
+and misconception explanations around that number. `GradingReport` already encodes the
+split: `understandingScore` is a column, `reportJson` is the LLM part, and the token/cost
+columns meter only the latter.
 
 Judge currently cannot fail a learner. An audit of the three shipped problems found the
 correct option at index 0 in **25/25** NDV fields and **13/13** dissection items, every
@@ -178,7 +232,13 @@ logged in; it needs a Claude Code restart. The CLI works, so this is not blockin
 5. **Next.js can pollute the root `tsconfig.json`** if `next dev` runs from the monorepo
    root — it injects `jsx`/`plugins`/`.next/types`, which belong in `apps/web/tsconfig.json`.
    Revert if it appears in a diff.
-6. **A stray `package-lock.json` sits one level above the repo**, which makes Next infer
+6. **Never run `npm run build` while `next dev` is running** — they share `.next` and
+   it corrupts the running server. Symptoms are alarming and misleading: every route
+   500s, smoke fails on all 19 screens, and API calls return HTML. Kill dev first.
+   Recover with `rm -rf apps/web/.next` and restart.
+7. **Problems are served from Postgres.** Editing `packages/problems/*/index.js` changes
+   nothing in the app until you run `npm run db:seed`. This bites every content change.
+8. **A stray `package-lock.json` sits one level above the repo**, which makes Next infer
    the wrong workspace root. Harmless in dev; can affect output file tracing on build.
 7. **`#run-story` shows a leftover "General question" case label** for `meeting-notes` —
    cosmetic, dev route only.
