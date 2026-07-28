@@ -13,7 +13,7 @@
     "start": "npm run start --workspace @judge/web",
     "test": "vitest run",
     "smoke": "node apps/web/scripts/smoke.mjs",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "npm run typecheck:packages && npm run typecheck:web",
     "db:up": "docker compose up -d db 2>/dev/null || docker-compose up -d db",
     "db:down": "docker compose down 2>/dev/null || docker-compose down",
     "db:migrate": "prisma migrate deploy --schema packages/db/prisma/schema.prisma",
@@ -21,7 +21,9 @@
     "db:generate": "prisma generate --schema packages/db/prisma/schema.prisma",
     "db:studio": "prisma studio --schema packages/db/prisma/schema.prisma",
     "db:seed": "node --env-file=.env packages/db/seed.mjs",
-    "db:seed:rubric": "node packages/db/seed-rubric.mjs"
+    "db:seed:rubric": "node packages/db/seed-rubric.mjs",
+    "typecheck:packages": "tsc -p tsconfig.json --noEmit",
+    "typecheck:web": "tsc -p apps/web/tsconfig.json --noEmit"
   },
   "devDependencies": {
     "@types/node": "^26.1.1",

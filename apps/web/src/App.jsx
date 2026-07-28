@@ -107,7 +107,9 @@ function DevProblem({ children }) {
 export default function App() {
   const hash = typeof window === 'undefined' ? '' : window.location.hash;
 
-  if (hash === '#playground') {
+  // startsWith, not equality: `#playground?problem=lead-triage` fell through to
+  // Landing, so the route silently ignored the problem you asked for.
+  if (hash.startsWith('#playground')) {
     return <div style={{ height: '100vh' }}><PlaygroundScreen /></div>;
   }
   if (hash.startsWith('#build')) {
@@ -119,7 +121,7 @@ export default function App() {
   if (hash.startsWith('#eval-demo')) {
     return <DevProblem>{(problem) => <EvalScreen problem={problem} graph={DEMO_GRAPH} onSubmit={() => {}} onDecision={() => {}} />}</DevProblem>;
   }
-  if (hash === '#run-demo') {
+  if (hash.startsWith('#run-demo')) {
     return (
       <DevProblem>
         {(problem) => {
@@ -143,14 +145,14 @@ export default function App() {
         {(problem) => {
           let s = createStore();
           [
-            { id: 'dissection:trigger', kind: 'dissection', correct: true, firstTry: true },
-            { id: 'dissection:classify', kind: 'dissection', correct: true, firstTry: false },
-            { id: 'classify:classify-brain', kind: 'field', correct: true, firstTry: false },
-            { id: 'classify:classify-text', kind: 'field', correct: true, firstTry: true },
-            { id: 'switch:switch-field', kind: 'field', correct: true, firstTry: true },
-            { id: 'nodePick:chat-trigger', kind: 'nodePick', correct: false, firstTry: false, misconception: 'chat-trigger-is-email' },
-            { id: 'stress:general-question-gap', kind: 'stress', correct: true, firstTry: true },
-            { id: 'stress:why-fixed-path', kind: 'stress', correct: false, firstTry: true },
+            { id: 'dissection:trigger', kind: 'dissection', label: 'Which node should start this flow?', correct: true, firstTry: true },
+            { id: 'dissection:classify', kind: 'dissection', label: 'What decides which reply an email gets?', correct: true, firstTry: false },
+            { id: 'classify:classify-brain', kind: 'field', label: 'Classify with AI — Chat Model', correct: true, firstTry: false },
+            { id: 'classify:classify-text', kind: 'field', label: 'Classify with AI — Text to classify', correct: true, firstTry: true },
+            { id: 'switch:switch-field', kind: 'field', label: 'Switch — Route on', correct: true, firstTry: true },
+            { id: 'nodePick:chat-trigger', kind: 'nodePick', label: 'Placed a Chat Trigger to receive email', correct: false, firstTry: false, misconception: 'chat-trigger-is-email' },
+            { id: 'stress:general-question-gap', kind: 'stress', label: 'What happens to an email that matches no branch?', correct: true, firstTry: true, correctLabel: 'It is left unanswered — visibly, so you can fix it' },
+            { id: 'stress:why-fixed-path', kind: 'stress', label: 'Why does the same email always take the same path?', correct: false, firstTry: true, correctLabel: 'Because temperature 0 makes the model deterministic' },
           ].forEach((d) => { s = recordDecision(s, d); });
           const g = DEMO_GRAPH;
           const runResult = validateGraph(g, problem);

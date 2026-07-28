@@ -260,23 +260,36 @@ Do not re-litigate these.
 
 ---
 
-## Deployment state — needs attention
+## Deployment state — live
 
-**`https://n8n-judge-production.up.railway.app` is serving the DEAD Vite prototype**, not
-the Next.js app. Its title is `Judge — Email Triage` and there is no `X-Powered-By: Next.js`.
-The service's Root Directory was never switched to `innate`, so it kept building the old
-root Dockerfile. Anyone who has been shown that URL has been looking at the prototype.
+**`https://n8n-judge-production.up.railway.app` is the Next.js app and it is healthy.**
+`/api/health` returns `{"status":"ok","db":"up"}`. The earlier note here — that the URL
+served the dead Vite prototype — is obsolete; that was fixed by the 2026-07-27 flatten.
 
-After the 2026-07-27 flatten the root Dockerfile **is** the Next.js one, so Root Directory
-= repo root is now correct and needs no change. What's still required:
+| | |
+|---|---|
+| Project / service | `n8n Judge` / `n8n-Judge` (plus a `Postgres` service) |
+| **Deploys from** | **`sudhanva/nextjs`** — *not* `main`. A push to this branch deploys. |
+| `main` | ~42 commits behind, still the old prototype. Nothing deploys from it. |
+| Root Directory | repo root (correct — the root Dockerfile *is* the Next.js one) |
+| Health check | `/api/health` |
+| Variables set | `DATABASE_URL`, `AUTH_SECRET`, `AUTH_TRUST_HOST`, `AUTH_URL`, `ANTHROPIC_API_KEY` |
 
-1. Get this branch onto whatever branch the service deploys from (merge `sudhanva/nextjs`,
-   or repoint the service at it).
-2. Set `ANTHROPIC_API_KEY` on the app service — it is not set, so Ask-AI returns 503 in
-   production.
+Production data: the three problems at v1 `PUBLISHED`, and the default rubric at v1
+(installed with `npm run db:seed:rubric`, pointed at `DATABASE_PUBLIC_URL`).
 
-The Railway **MCP** holds a stale token and reports `Unauthorized` even though the CLI is
-logged in; it needs a Claude Code restart. The CLI works, so this is not blocking.
+**Traps this cost us, both worth remembering:**
+
+1. **A Railway variable name with a trailing newline is invisible in the dashboard.**
+   `ANTHROPIC_API_KEY` was stored as `'ANTHROPIC_API_KEY\n'`, so `process.env` could not
+   see it and Ask-AI kept returning 503 while the UI showed the variable as present.
+   `railway variables --json | python3 -c "...print(repr(k))"` is how you catch it.
+2. **A push deploys.** Because the service tracks this branch, a type error that
+   `npm run typecheck` used to miss went straight to a failed production build. That gap
+   is now closed — see `typecheck:web` below.
+
+The Railway **MCP** still holds a stale token and reports `Unauthorized` even though the
+CLI is logged in; it needs a Claude Code restart. The CLI works, so this is not blocking.
 
 ### Fixed: the same answer graded correct sometimes and wrong other times ✅
 
@@ -314,6 +327,35 @@ cannot run while `next dev` is running (they share `.next`). An app-level type e
 therefore invisible to every check that is safe to run during development, and one of
 them broke the Railway build this session. Stop dev and run a real build before pushing
 route or component changes.
+
+### Fixed: ProblemVersions are immutable again ✅
+
+`seedProblems` used to refresh version 1's `data` **in place**, which is the one thing
+[problemVersions.ts](apps/web/src/server/problemVersions.ts) says must never happen — a
+Session pins its version, and the server caches versions with no invalidation *because*
+they cannot change. Editing v1 silently rewrote what "correct" meant underneath anyone
+mid-attempt and left every running server serving the stale copy from cache.
+
+Publishing now lives in [packages/db/publishProblem.mjs](packages/db/publishProblem.mjs)
+and **appends**: identical content is a no-op, changed content mints the next version,
+publishes it, archives the one it replaced and moves `currentPublishedVersionId`. Old
+versions are never touched. Comparison is key-sorted, because Postgres `jsonb` does not
+preserve key order and a plain `JSON.stringify` compare made every re-seed look like a
+change. Verified: unchanged → no-op, reordered keys → no-op, changed → v2 published with
+v1 archived and v1's `data` byte-identical to what it was.
+
+`npm run db:seed` is therefore safe against production now. It was not before.
+
+### Fixed: typecheck covers the web app ✅
+
+`npm run typecheck` ran only the root tsconfig, which **excludes `apps`** — so it never
+type-checked the web app. Combined with "never build while `next dev` is running", an
+app-level type error was invisible to every check safe to run during development, and one
+went straight to a failed production build (`status: 'DONE'` where the enum wanted
+`SUCCEEDED`).
+
+Now `typecheck` = `typecheck:packages` + `typecheck:web`. Confirmed by reintroducing that
+exact error and watching `typecheck:web` catch it.
 
 ## Known issues
 

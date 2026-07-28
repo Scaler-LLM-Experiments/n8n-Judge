@@ -6,6 +6,7 @@
 import { PrismaClient } from '@prisma/client';
 import { problemList } from '@judge/problems';
 import { DEFAULT_RUBRIC_SYSTEM_PROMPT } from '@judge/llm/gradingPrompt.ts';
+import { publishProblem } from './publishProblem.mjs';
 
 const prisma = new PrismaClient();
 
@@ -46,42 +47,20 @@ async function seedBatches(programs) {
   console.log(`batches:  ${BATCHES.length} (invite codes: ${BATCHES.map((b) => b.inviteCode).join(', ')})`);
 }
 
-// Publish each in-repo problem as version 1. If a published version already
-// exists we refresh its `data` in place rather than minting a new version —
-// seeding is not authoring, and a running Session pins its version.
+/**
+ * Publish each in-repo problem, APPENDING a version when the content changed.
+ * The rule and the reasoning live in publishProblem.mjs — the short version is
+ * that a ProblemVersion is immutable, because Sessions pin one and the server
+ * caches them without invalidation.
+ */
 async function seedProblems() {
   for (const p of problemList) {
-    const problem = await prisma.problem.upsert({
-      where: { slug: p.id },
-      update: { title: p.title },
-      create: { slug: p.id, title: p.title },
-    });
-
-    const existing = await prisma.problemVersion.findFirst({
-      where: { problemId: problem.id, version: 1 },
-    });
-
-    const version = existing
-      ? await prisma.problemVersion.update({
-          where: { id: existing.id },
-          data: { data: p, status: 'PUBLISHED' },
-        })
-      : await prisma.problemVersion.create({
-          data: {
-            problemId: problem.id,
-            version: 1,
-            status: 'PUBLISHED',
-            data: p,
-            authoredBy: 'seed',
-          },
-        });
-
-    await prisma.problem.update({
-      where: { id: problem.id },
-      data: { currentPublishedVersionId: version.id },
-    });
-
-    console.log(`problem:  ${p.id} @ v${version.version} (${version.status})`);
+    const r = await publishProblem(prisma, p);
+    console.log(
+      r.changed
+        ? `problem:  ${p.id} @ v${r.version} (PUBLISHED${r.archived ? `, v${r.archived} archived` : ''})`
+        : `problem:  ${p.id} @ v${r.version} (unchanged)`
+    );
   }
 }
 

@@ -19,7 +19,9 @@ let ndvVignetteSeen = false;
 // disabled, and only the field the learner must set is highlighted (blue, pulsing)
 // as an editable select. "Verify setup" marks it green or red; clicking the field
 // brings Iris close with a chat bubble explaining it. All green → "Complete setup".
-// The Settings tab is locked — nothing there matters for this problem.
+// Settings is the second stage, not a locked tab: it unlocks once Parameters
+// verify green, and setup needs BOTH. Only what the problem grades is editable;
+// the rest render at real n8n defaults but locked.
 export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete, onClose, sessionId }) {
   const [tab, setTab] = useState('params');
   const rootRef = useRef(null);
