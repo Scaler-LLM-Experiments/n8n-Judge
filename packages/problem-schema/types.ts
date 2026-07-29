@@ -254,6 +254,20 @@ export const problemSchema = z
     title: z.string().min(1),
     tagline: z.string().min(1),
     statement: z.string().min(1),
+    /**
+     * How hard this challenge is, as the author intends it to be read.
+     *
+     * Separate from `problemComplexity()`, which counts graded decisions and orders
+     * the catalogue easiest-first. That number is right for "what should I practise
+     * next" and wrong for a card badge: it is derived, so it moves when the rubric
+     * moves, and it cannot say that a problem is long rather than subtle. A learner
+     * choosing a challenge wants to know what they are in for before they start.
+     *
+     * Optional, and absent means no badge — the three original problems predate it.
+     */
+    difficulty: z.enum(['easy', 'moderate', 'difficult']).optional(),
+    /** A short note on why it earns that label, shown under the badge. */
+    difficultyNote: z.string().optional(),
     dissection: z.array(dissectionQuestionSchema).min(1),
     nodePalette: z.array(paletteNodeSchema).min(2),
     referenceGraph: referenceGraphSchema,

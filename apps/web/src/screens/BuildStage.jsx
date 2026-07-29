@@ -5,11 +5,11 @@ import { TopBar } from '../components/TopBar.jsx';
 import { ProblemStatementPanel } from '../components/ProblemStatementPanel.jsx';
 import { Button } from '../design-system/Button.jsx';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
-import { VoiceGlowLayer } from '../components/VoiceBubble.jsx';
 import { Confetti } from '../components/Confetti.jsx';
 import { N8nEditor } from '../n8n/N8nEditor.jsx';
 import { validateGraph } from '@judge/engine/validateGraph.js';
 import { simulateAll, roleOf } from '@judge/engine/simulate.js';
+import { allBranchesWired } from '@judge/engine/branchReach.js';
 import { checkAnswer } from '../lib/grader.js';
 import { useTraceContext } from '../lib/TraceContext.jsx';
 import { useVoiceActions } from '../lib/VoiceContext.jsx';
@@ -336,17 +336,15 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
     const needConfig = nodesState.filter((n) => !n.wrong && phase.nodeTypes.includes(n.type) && (problem.nodeSetup?.[n.type]?.fields?.length > 0));
     const allConfigured = needConfig.length === 0 || needConfig.every((n) => n.configured);
 
-    // a Switch phase isn't done until every branch is wired to a configured reply
-    let branchesOk = true;
-    if (phase.nodeTypes.includes('switch')) {
-      const g = graphRef.current;
-      const sw = g.nodes.find((n) => n.type === 'switch');
-      branchesOk = !!sw && (problem.branches || []).every(({ id }) => {
-        const e = g.edges.find((ed) => ed.source === sw.id && ed.sourceHandle === id);
-        const target = e && g.nodes.find((n) => n.id === e.target);
-        return target && target.type === 'action' && target.data?.configured;
-      });
-    }
+    // A routing phase isn't done until every branch reaches a configured reply.
+    // The walk lives in the engine (`allBranchesWired`) because it has to agree
+    // with the simulator's: a branch may pass through configured passthrough nodes,
+    // and a reply is anything the catalog calls an action — Slack and Notion end a
+    // run as surely as Send Reply. Asserting `type === 'action'` on the immediate
+    // target here made correct flows unable to finish the stage.
+    const branchesOk = phase.nodeTypes.includes('switch')
+      ? allBranchesWired(graphRef.current, problem)
+      : true;
     if (!allPlaced || !allConfigured || !branchesOk) return;
 
     advancing.current = true;
@@ -493,10 +491,9 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
 
         {/* traveling Iris */}
         <div ref={mascotRef} style={{ position: 'absolute', left: 24, top: 400, width: 68, height: 68, zIndex: 30, pointerEvents: 'none', opacity: mascotVisible ? 1 : 0, transition: 'opacity 0.3s ease' }}>
-          {/* A glow layer BEHIND the mascot, as its own element. It is not wrapped
-              around the mascot: doing that changed the mascot's box and resized it
-              on every screen. This paints under and never touches layout. */}
-          <VoiceGlowLayer />
+          {/* No glow here. "Iris is speaking" is one screen-level indicator now
+              (VoiceoverIndicator, mounted once in App), blooming from this corner.
+              A second glow inside the mascot's own 68px box read as a border. */}
           <div style={{ position: 'relative', width: '100%', height: '100%' }}>
             <MascotPlayer clip={mascotClip} once={false} onceDone={() => {}} />
           </div>

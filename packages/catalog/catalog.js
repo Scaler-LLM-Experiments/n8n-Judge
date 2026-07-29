@@ -127,6 +127,37 @@ export const NODE_CATALOG = {
   if: { type: 'if', n8nType: 'n8n-nodes-base.if', n8nVersion: 2.3, label: 'If', subtitle: 'True / false', category: 'core', params: [{ key: 'cond', label: 'Condition', value: '', kind: 'text' }], output: {} },
   merge: { type: 'merge', n8nType: 'n8n-nodes-base.merge', n8nVersion: 3.2, label: 'Merge', subtitle: 'Combine two inputs', category: 'core', params: [{ key: 'mode', label: 'Mode', value: 'Append', kind: 'select' }], output: {} },
   filter: { type: 'filter', n8nType: 'n8n-nodes-base.filter', n8nVersion: 2.3, label: 'Filter', subtitle: 'Drop non-matching items', category: 'core', params: [{ key: 'cond', label: 'Condition', value: '', kind: 'text' }], output: {} },
+  // Added for `order-desk`, which needs a spine long enough to be genuinely hard.
+  // Each of these is a real n8n node a learner will meet, and each carries one
+  // decision the existing vocabulary could not express: what makes two items the
+  // same, how a flow waits, and calling your own API as opposed to searching the web.
+  'remove-duplicates': {
+    type: 'remove-duplicates', n8nType: 'n8n-nodes-base.removeDuplicates', n8nVersion: 2,
+    label: 'Remove Duplicates',
+    subtitle: 'Drop items already seen',
+    description: 'Drops items it has seen before, comparing on the field you choose',
+    category: 'core',
+    params: [{ key: 'compare', label: 'Compare', value: 'Selected fields', kind: 'select' }],
+    output: { threadId: 'thr_8891', from: 'priya@acme.io' },
+  },
+  wait: {
+    type: 'wait', n8nType: 'n8n-nodes-base.wait', n8nVersion: 1.1,
+    label: 'Wait',
+    subtitle: 'Pause the flow',
+    description: 'Pauses this item for a time, until a date, or until something calls back',
+    category: 'core',
+    params: [{ key: 'resume', label: 'Resume', value: 'After time interval', kind: 'select' }],
+    output: {},
+  },
+  'http-request': {
+    type: 'http-request', n8nType: 'n8n-nodes-base.httpRequest', n8nVersion: 4.2,
+    label: 'HTTP Request',
+    subtitle: 'Call an API',
+    description: 'Calls a URL and brings the response back into the flow',
+    category: 'core',
+    params: [{ key: 'url', label: 'URL', value: '', kind: 'text', mappable: true }],
+    output: { order: { id: 'ORD-4471', value: 8990, trackingId: 'BLR91772', placedAt: '2026-07-19' } },
+  },
 };
 
 /**

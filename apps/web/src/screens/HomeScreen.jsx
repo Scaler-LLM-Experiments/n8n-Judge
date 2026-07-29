@@ -7,6 +7,46 @@ import { TopBar } from '../components/TopBar.jsx';
 // A Phosphor icon per problem (falls back to a generic agent icon).
 const ICONS = { 'email-triage': EnvelopeSimpleOpen, 'lead-triage': UsersThree };
 
+// Difficulty, as the author declared it. Deliberately NOT derived from
+// `problemComplexity()`: that counts graded decisions to order the catalogue, which
+// is the right input for "practise this next" and the wrong one for a badge, since
+// it moves whenever the rubric moves and cannot say "long" as opposed to "subtle".
+//
+// Status colours, not brand blue — this is a property of the work, and blue is the
+// colour of things you click.
+const DIFFICULTY = {
+  easy: { label: 'Easy', fg: 'var(--status-success-fg, #1a7f37)', bg: 'var(--status-success-bg, rgba(26,127,55,0.10))' },
+  moderate: { label: 'Moderate', fg: 'var(--status-warning-fg, #9a6700)', bg: 'var(--status-warning-bg, rgba(154,103,0,0.10))' },
+  difficult: { label: 'Difficult', fg: 'var(--status-danger-fg, #b3261e)', bg: 'var(--status-danger-bg, rgba(179,38,30,0.10))' },
+};
+
+function DifficultyBadge({ level, note }) {
+  const spec = DIFFICULTY[level];
+  // No badge rather than a guessed one. The original three problems have no
+  // `difficulty`, and inventing one for them would be putting a number on the card
+  // that nobody authored.
+  if (!spec) return null;
+  return (
+    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+      <span
+        style={{
+          fontSize: 10.5,
+          fontWeight: 700,
+          textTransform: 'uppercase',
+          letterSpacing: '0.06em',
+          padding: '3px 7px',
+          color: spec.fg,
+          background: spec.bg,
+          flex: 'none',
+        }}
+      >
+        {spec.label}
+      </span>
+      {note ? <span style={{ fontSize: 12, color: 'var(--fg-3, var(--fg-2))', lineHeight: 1.45 }}>{note}</span> : null}
+    </div>
+  );
+}
+
 // Landing page: pick a challenge, each launches its own build journey.
 export function HomeScreen({ problems, onSelect }) {
   return (
@@ -45,6 +85,7 @@ export function HomeScreen({ problems, onSelect }) {
                   <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--fg-1)', marginBottom: 6 }}>{p.title}</div>
                   <div style={{ fontSize: 13.5, color: 'var(--fg-2)', lineHeight: 1.55 }}>{p.tagline || p.statement}</div>
                 </div>
+                <DifficultyBadge level={p.difficulty} note={p.difficultyNote} />
                 {/* data-problem is how smoke enters a SPECIFIC challenge. Without it the
                     test could only click the first card, so `?problem=lead-triage` and
                     `meeting-notes` silently re-tested email-triage's Understand screen. */}

@@ -26,6 +26,10 @@ export async function GET() {
         slug: p.slug,
         title: p.title,
         tagline: data.tagline ?? null,
+        // Card-level too: the badge is part of choosing, so it cannot wait for the
+        // full problem fetch that happens after a learner has already committed.
+        difficulty: data.difficulty ?? null,
+        difficultyNote: data.difficultyNote ?? null,
         version: p.versions[0]?.version ?? null,
       };
     });

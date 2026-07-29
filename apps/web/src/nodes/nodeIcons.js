@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkle, BracketsCurly, ArrowsSplit, ChatCircle, Lightning, Plug, FlowArrow, Brain, Clock, Code, GitBranch, ArrowsMerge, FunnelSimple, Prohibit, Broadcast } from '@phosphor-icons/react';
+import { Sparkle, BracketsCurly, ArrowsSplit, ChatCircle, Lightning, Plug, FlowArrow, Brain, Clock, Code, GitBranch, ArrowsMerge, FunnelSimple, Prohibit, Broadcast, CopySimple, HourglassMedium, Globe } from '@phosphor-icons/react';
 
 // Real, full-color app icons (favicons / product branding), background stripped
 // with ImageMagick. Preferred over abstract glyphs for any node that maps to a
@@ -57,6 +57,11 @@ export const nodeIcons = {
   if: GitBranch,
   merge: ArrowsMerge,
   filter: FunnelSimple,
+  // order-desk's spine nodes. A missing entry here renders a blank chip, which is
+  // why the catalog and this map are the one coupling a new node type still has.
+  'remove-duplicates': CopySimple,
+  wait: HourglassMedium,
+  'http-request': Globe,
   noop: Prohibit,
 };
 
