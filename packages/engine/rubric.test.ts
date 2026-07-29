@@ -342,3 +342,55 @@ describe('attemptsFromTrace', () => {
     expect(scoreSession(p, attemptsFromTrace(events)).total).toBe(100);
   });
 });
+
+// Conditional parameters (`showWhen`). Real n8n reveals and hides fields as you
+// configure a node, and states the grading consequence explicitly: a required
+// parameter that is currently HIDDEN is not "missing". The rubric has to agree,
+// or a learner is marked down for a field the NDV correctly never showed them.
+describe('enumerateItems — conditional fields', () => {
+  const conditional = {
+    dissection: [{ id: 'q', prompt: 'q?', options: [{}, {}] }],
+    buildPhases: [{ nodeTypes: ['switch'] }],
+    nodeSetup: {
+      switch: {
+        fields: [
+          { key: 'fallback', label: 'Unmatched', options: [{}, {}, {}] },
+          // only shown when fallback === 'separate'
+          { key: 'fallbackLabel', label: 'Name it', kind: 'text', correct: 'Unrouted', showWhen: { fallback: ['separate'] } },
+        ],
+      },
+    },
+    evalQuestions: [],
+  };
+
+  it('omits a conditional field that was never answered', () => {
+    const ids = enumerateItems(conditional).config.map((i) => i.id);
+    expect(ids).toContain('switch:fallback');
+    expect(ids).not.toContain('switch:fallbackLabel');
+  });
+
+  it('includes it once an attempt exists', () => {
+    const ids = enumerateItems(conditional, { 'switch:fallbackLabel': 1 }).config.map((i) => i.id);
+    expect(ids).toContain('switch:fallbackLabel');
+  });
+
+  it('always counts unconditional fields, answered or not', () => {
+    expect(enumerateItems(conditional).config.map((i) => i.id)).toContain('switch:fallback');
+  });
+
+  it('does not penalise a learner for the branch they did not take', () => {
+    // Answers everything shown, first try, and never reveals the follow-up.
+    const attempts = { 'dissection:q': 1, 'nodePick:switch': 1, 'switch:fallback': 1 };
+    expect(scoreSession(conditional, attempts).total).toBe(100);
+  });
+
+  it('still scores the follow-up when it WAS revealed and got wrong', () => {
+    const attempts = {
+      'dissection:q': 1,
+      'nodePick:switch': 1,
+      'switch:fallback': 1,
+      'switch:fallbackLabel': null, // revealed, never got it right
+    };
+    expect(scoreSession(conditional, attempts).total).toBeLessThan(100);
+  });
+});

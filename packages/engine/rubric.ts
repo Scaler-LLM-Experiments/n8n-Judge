@@ -80,8 +80,12 @@ function settingOptionCount(setting: Rec): number | null {
  * its count is unknowable up front — and the wrong placement has already been
  * paid for through the placement decay. Scoring the probe too would charge the
  * same mistake twice. It stays a teaching moment, not a scored item.
+ *
+ * `attempts` is optional and only affects CONDITIONAL fields (`showWhen`), which
+ * are in the denominator only if they were answered — see the note below. Pass
+ * it whenever you are scoring; omit it to enumerate a problem's full shape.
  */
-export function enumerateItems(problem: Rec): RubricItems {
+export function enumerateItems(problem: Rec, attempts: Record<string, unknown> = {}): RubricItems {
   const understand: RubricItem[] = (problem.dissection ?? []).map((q: Rec) => ({
     id: `dissection:${q.id}`,
     label: q.prompt ?? q.id,
@@ -102,6 +106,18 @@ export function enumerateItems(problem: Rec): RubricItems {
   const config: RubricItem[] = [];
   for (const [type, setup] of Object.entries((problem.nodeSetup ?? {}) as Record<string, Rec>)) {
     for (const field of setup.fields ?? []) {
+      // A CONDITIONAL field (`showWhen`) is only shown for certain values of
+      // another field, so it is not part of every learner's setup. Counting it
+      // unconditionally would put a question in the denominator that this
+      // learner was never asked, and score it zero — marking them down for a
+      // field the NDV correctly never displayed. n8n draws the same line:
+      // a hidden required parameter is not "missing" (node-helpers.ts:1532).
+      //
+      // So a conditional field scores ONLY if it was actually answered. It
+      // cannot be gamed for marks: the empty bucket's weight redistributes
+      // rather than capping the maximum, and choosing the parent value that
+      // reveals fewer follow-ups is itself a graded decision.
+      if (field.showWhen && attempts[`${type}:${field.key}`] === undefined) continue;
       config.push({
         id: `${type}:${field.key}`,
         label: `${type} — ${field.label ?? field.key}`,
@@ -190,7 +206,7 @@ export function scoreSession(
   attempts: Record<string, number | null | undefined>,
   weights: Record<BucketKey, number> = DEFAULT_WEIGHTS
 ): SessionScore {
-  const items = enumerateItems(problem);
+  const items = enumerateItems(problem, attempts);
 
   // A bucket with no items must not silently cap the maximum — a problem with
   // no stress questions has to still be able to reach 100. Redistribute its

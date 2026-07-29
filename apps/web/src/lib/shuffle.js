@@ -1,17 +1,24 @@
-// Deterministic option shuffling.
+// Deterministic option shuffling — now used ONLY by the Stress Testing screen.
 //
-// Why: an audit of the three shipped problems found the correct option at
-// index 0 in 25/25 NDV fields and 13/13 dissection items, and never at index 0
-// in any probe. Always clicking the top option scored 38/38 on the two
-// surfaces that gate the build. Shuffling removes the positional tell without
-// asking every author to remember to vary it.
+// It used to shuffle the NDV fields, the Understand quiz and the probes too.
+// That is gone, and the reason is worth keeping: the browser cannot see which
+// option is correct (`toPublicProblem` strips `correct` and `correctType`), so
+// shuffling here was randomising blind. It could not balance anything, and
+// because each list was drawn independently, a single tab session could put the
+// answer on top of nearly every question at once — measured at 18 of 24 fields
+// in the unluckiest of 400 simulated sessions. Averages don't help a learner who
+// only ever sees one session.
 //
-// Why deterministic rather than Math.random per render: the order must be
-// stable for the life of a question. A plain random shuffle re-runs on every
-// React re-render, so options would reorder under the learner's cursor while
-// they read. Seeding by (session, questionKey) also means a reload inside the
-// same tab shows the same order, and — once sessions are persisted (M2) — the
-// admin session map can reconstruct exactly what the learner saw.
+// Those three surfaces are now arranged server-side, before the answer key is
+// stripped, by `balanceProblemOptions` in @judge/problem-schema. Stress
+// questions stay here because their `correctIndex` points into the authored
+// array and `scoreEval` grades against it — reordering them server-side would
+// silently mark the wrong answer correct — so they are shuffled per session with
+// `originalIndex` carried through instead.
+//
+// Why deterministic rather than Math.random per render: the order must be stable
+// for the life of a question. A plain random shuffle re-runs on every React
+// re-render, so options would reorder under the learner's cursor while they read.
 //
 // Grading is unaffected: decisions record the chosen *value*, never an index.
 

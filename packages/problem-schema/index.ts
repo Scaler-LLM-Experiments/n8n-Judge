@@ -5,3 +5,5 @@ export { toPublicProblem, findLeakedAnswers, KNOWN_REMAINING_LEAKS } from './pub
 export type { PublicProblem } from './publicProjection.ts';
 export { checkAnswer } from './answerCheck.ts';
 export type { CheckKind, CheckRequest, CheckResult } from './answerCheck.ts';
+export { isFieldVisible, visibleFields, pruneHidden } from './fieldVisibility.ts';
+export type { ConditionalField } from './fieldVisibility.ts';

@@ -6,7 +6,6 @@ import { ProblemStatementPanel } from '../components/ProblemStatementPanel.jsx';
 import { Button } from '../design-system/Button.jsx';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
 import { Confetti } from '../components/Confetti.jsx';
-import { seededShuffle } from '../lib/shuffle.js';
 import { N8nEditor } from '../n8n/N8nEditor.jsx';
 import { validateGraph } from '@judge/engine/validateGraph.js';
 import { simulateAll, roleOf } from '@judge/engine/simulate.js';
@@ -552,7 +551,9 @@ function FloatingProbe({ probe, onAnswer, onClose, resolvedWhy, resolving }) {
   const pick = (opt, i) => { if (picked !== null) return; setPicked(i); onAnswer(opt); };
   // Shuffled: probe answers were never at index 0 and almost always at
   // index 1, so "always pick the second" beat 16 of 18 probes.
-  const options = useMemo(() => seededShuffle(data.options, `probe:${type}`), [data, type]);
+  // Server-balanced order — see the note in DissectionScreen. The browser cannot
+  // see which probe option is correct, so shuffling here was randomising blind.
+  const options = data.options ?? [];
   const chosen = picked !== null ? options[picked] : null;
 
   return (

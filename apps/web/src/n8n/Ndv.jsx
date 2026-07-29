@@ -1,9 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { visibleFields, pruneHidden } from '@judge/problem-schema';
 import gsap from 'gsap';
 import { X, LockSimple, CaretDown, CheckCircle, XCircle, Lightning, Sparkle, Lock, CircleNotch, Warning } from '@phosphor-icons/react';
 import { NodeIcon, metaOf, typeCategory } from '../nodes/nodeIcons.js';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
-import { seededShuffle } from '../lib/shuffle.js';
 import { SettingsForm } from './SettingsForm.jsx';
 import { IrisBubble } from './IrisBubble.jsx';
 import { FieldControl, isCorrectValue, expressionFor, whyForField } from './FieldControl.jsx';
@@ -35,7 +35,7 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
   // nothing truthful to show — it was claiming "this node starts the flow".
   const isSubNode = typeCategory[node.nodeType] === 'model';
 
-  const fields = setup?.fields || [];
+  const allFields = setup?.fields || [];
   // Settings the problem actually grades. The tab always renders the full n8n
   // set; this is just the subset that counts.
   const gradedSettings = setup?.settings || [];
@@ -67,7 +67,14 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
     gsap.to(rootRef.current, { opacity: 0, duration: 0.24, ease: 'power2.in', onComplete: onClose });
   };
 
-  const noVerify = fields.length === 0 && gradedSettings.length === 0;
+  // Conditional parameters: n8n reveals and hides fields as you configure a
+  // node, and a HIDDEN required field is never "missing" (see
+  // docs/n8n-reference/00-how-n8n-actually-works.md §5). So every gate below —
+  // what renders, what Verify submits, what "all chosen" means, whether the
+  // Settings tab unlocks — reads `fields`, the visible subset, never `allFields`.
+  const fields = useMemo(() => visibleFields(allFields, values), [allFields, values]);
+
+  const noVerify = allFields.length === 0 && gradedSettings.length === 0;
   const optionFor = (field, value) => (field.options ?? []).find((o) => o.value === value);
 
   // A node is configured in two stages, in order: Parameters, then Settings.
@@ -95,7 +102,10 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
   const isComplete = noVerify || (paramsOk && settingsOk);
 
   const setValue = (key, value) => {
-    setValues((v) => ({ ...v, [key]: value }));
+    // Prune values for fields this change just hid. n8n stores only displayed
+    // parameters, so a follow-up filled in for a branch the learner then
+    // abandoned must not be submitted — it answers a question no longer asked.
+    setValues((v) => pruneHidden(allFields, { ...v, [key]: value }));
     setResults(null);
     setFieldWhy(null);
     setSettingsResults(null);
@@ -361,6 +371,8 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
                 onChange={setSetting}
                 onExplain={explainSetting}
                 feedback={feedback}
+                /* A sub-node carries only Notes in real n8n — see nodeSettings.js */
+                subNode={isSubNode}
               />
             ) : (
               <FieldForm
@@ -462,6 +474,11 @@ function FieldForm({ nodeType, inputKeys, setup, fields, values, results, feedba
   const locked = setup?.locked || [];
   const [hoveredKey, setHoveredKey] = useState(null);
   const [dropKey, setDropKey] = useState(null);
+  // No client-side shuffle. Option order arrives already balanced from
+  // `balanceProblemOptions`, which runs server-side while the answer key still
+  // exists — the browser cannot see `correct`, so it could only re-randomise,
+  // and independent per-field randomisation is what allowed a session to stack
+  // the answers on top. Render what the server sent.
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
       {setup?.credential ? (
@@ -517,10 +534,8 @@ function FieldForm({ nodeType, inputKeys, setup, fields, values, results, feedba
                 border={border}
                 bg={bg}
                 onChange={onChange}
-                /* Shuffled: authored data put the correct option first in every
-                   field, which made the whole build clickable blind. Only
-                   select fields have options to shuffle. */
-                shuffledOptions={seededShuffle(f.options ?? [], `ndv:${nodeType}:${f.key}`)}
+                /* Server-balanced order; see the note by `orders` above. */
+                shuffledOptions={f.options ?? []}
                 inputKeys={inputKeys}
               />
             </div>

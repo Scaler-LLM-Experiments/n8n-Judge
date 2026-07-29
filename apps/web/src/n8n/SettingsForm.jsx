@@ -1,6 +1,6 @@
 import React from 'react';
 import { CheckCircle, XCircle, WarningCircle, LockSimple } from '@phosphor-icons/react';
-import { SETTINGS_SPEC, isActive } from './nodeSettings.js';
+import { settingsSpecFor, isActive, isVisible } from './nodeSettings.js';
 import { IrisBubble } from './IrisBubble.jsx';
 
 // The Settings tab. Renders the full real n8n set every time, so the learner
@@ -120,19 +120,30 @@ function Row({ spec, value, onChange, graded, verdict, why, disabled, onExplain,
   );
 }
 
-export function SettingsForm({ values, graded = [], results, onChange, onExplain, feedback }) {
+export function SettingsForm({ values, graded = [], results, onChange, onExplain, feedback, subNode = false }) {
   const gradedKeys = new Set(graded.map((g) => g.key));
   const byKey = Object.fromEntries((results ?? []).map((r) => [r.key, r]));
+  const rows = settingsSpecFor({ subNode }).filter((s) => isVisible(s, values, gradedKeys));
 
   return (
     <div>
       <div style={{ fontSize: 11.5, color: 'var(--fg-3)', lineHeight: 1.55, marginBottom: 10 }}>
-        Every n8n node carries these. Only the ones this task turns on are editable —
-        the rest are shown so you know the shape of a node, and locked so they
-        can’t distract you.
+        {subNode ? (
+          <>
+            A sub-node like this one isn’t in the data flow — it’s supplied to the node
+            above it. So it carries only these two settings in n8n: there’s no output
+            to always emit, and nothing downstream to continue to.
+          </>
+        ) : (
+          <>
+            Every n8n node carries these. Only the ones this task turns on are editable —
+            the rest are shown so you know the shape of a node, and locked so they
+            can’t distract you.
+          </>
+        )}
       </div>
 
-      {SETTINGS_SPEC.map((spec) => {
+      {rows.map((spec) => {
         const isGraded = gradedKeys.has(spec.key);
         // A dependent field (Max Tries) is editable only when its parent is
         // graded AND switched on — mirroring how n8n reveals it.

@@ -124,6 +124,22 @@ export const nodeSetupSchema = z.object({
         min: z.number().optional(),
         max: z.number().optional(),
         step: z.number().optional(),
+        /**
+         * Show this field only when other fields hold certain values — n8n's
+         * `displayOptions.show`, in the same shape: every named key must match
+         * one of its listed values (AND across keys, OR within one).
+         *
+         *   showWhen: { fallback: ['separate'] }
+         *
+         * Real nodes reveal and hide fields as you configure them, and that is
+         * a large part of why the real NDV feels dense. It also carries a
+         * grading rule: in n8n a required parameter that is currently HIDDEN is
+         * never "missing" (node-helpers.ts:1532), so a hidden field must not be
+         * demanded here either — and must not be scored against a learner who
+         * was never shown it. See `enumerateItems` in packages/engine/rubric.ts
+         * and docs/n8n-reference/00-how-n8n-actually-works.md §5.
+         */
+        showWhen: z.record(z.array(z.union([z.string(), z.number(), z.boolean()]))).optional(),
       })
         .refine((f) => (f.kind ?? 'select') === 'select' ? Array.isArray(f.options) : f.correct !== undefined, {
           message: 'A select field needs `options`; any other kind needs a `correct` value',

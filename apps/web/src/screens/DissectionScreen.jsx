@@ -6,7 +6,6 @@ import { TopBar } from '../components/TopBar.jsx';
 import { ConceptFlow } from '../components/ConceptFlow.jsx';
 import { ProblemNote } from '../components/ProblemNote.jsx';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
-import { seededShuffle } from '../lib/shuffle.js';
 import { N8nNodeView } from '../n8n/N8nNodeView.jsx';
 import { NodeIcon } from '../nodes/nodeIcons.js';
 import { checkAnswer } from '../lib/grader.js';
@@ -66,15 +65,14 @@ export function DissectionScreen({ problem, sessionId, onComplete, onDecision })
     }
   }, [phase]);
 
-  // Shuffled once per question: the authored data lists the correct option
-  // first in every dissection item, so the quiz was answerable without
-  // reading. Memoised so re-renders don't reorder options mid-read, and
-  // derived here so the pick handler, the verdict and QuizBody all index into
-  // the same array. Correctness is by `type`, never by position.
-  const q = useMemo(() => {
-    const base = questions[index];
-    return { ...base, options: seededShuffle(base.options, `dissection:${base.id}`) };
-  }, [questions, index]);
+  // Option order arrives already balanced from the server
+  // (`balanceProblemOptions`, run inside `toPublicProblem` while the answer key
+  // still exists). We used to shuffle here per tab session, which could not
+  // work: `correctType` is stripped before the browser sees the problem, so this
+  // was randomising blind — and independent per-question randomisation is what
+  // let one session put the answer on top of nearly every question at once.
+  // Correctness is by `type`, never by position, so rendering as-sent is safe.
+  const q = questions[index];
   const pickedOption = picked !== null ? q.options[picked] : null;
   // "answered" = settled (verdict landed); "pending" = picked but awaiting the
   // server. Only `answered` unlocks Continue / shows the explanation.

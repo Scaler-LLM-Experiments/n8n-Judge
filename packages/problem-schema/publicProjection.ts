@@ -1,3 +1,5 @@
+import { balanceProblemOptions } from './balanceOptions.ts';
+
 // What a learner's browser is allowed to see.
 //
 // `GET /api/problems/[slug]` used to return `ProblemVersion.data` verbatim —
@@ -41,7 +43,12 @@ const omit = <T extends Rec>(obj: T, keys: string[]): Rec => {
 };
 
 export function toPublicProblem(problem: Rec): PublicProblem {
-  const p = { ...problem };
+  // Spread the answer positions FIRST. This has to happen while the correctness
+  // markers still exist — a moment later they are stripped and no one can tell
+  // which option to move. Authored data puts the correct option first in every
+  // graded list (13/13 dissection, 24/24 fields, 18/18 probes), which the client
+  // cannot fix because it cannot see correctness. See balanceOptions.ts.
+  const p = { ...balanceProblemOptions(problem) };
 
   // Understand: the option list is needed to render; which one is right, and
   // the explanation for it, are not. `unlocks` names the correct node type,

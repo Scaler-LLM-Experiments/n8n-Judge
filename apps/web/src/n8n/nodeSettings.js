@@ -92,9 +92,47 @@ export const SETTINGS_SPEC = [
     kind: 'boolean',
     default: false,
     hint: 'Show the note as a caption under the node on the canvas.',
-    dependsOn: 'notes',
+    // No `dependsOn`: n8n declares no displayOptions on this one, so it is
+    // always visible even with an empty note. We used to gate it on `notes`,
+    // which is tidier and not what the real NDV does.
   },
 ];
+
+/**
+ * The settings a SUB-NODE carries. Real n8n builds this tab from
+ * `createCommonNodeSettings(isToolOrModelNode)`, and for a tool or model node it
+ * emits only these two — the whole Always Output Data / Execute Once / Retry /
+ * On Error block is absent.
+ *
+ * That is not an oversight in n8n: a sub-node is not in the data flow. It is
+ * supplied to a root node over an `ai_*` connector, so it has no output to
+ * "always emit" and no downstream to "continue" to. Showing those controls on a
+ * Chat Model taught a shape that does not exist.
+ * See docs/n8n-reference/00-how-n8n-actually-works.md §5.
+ */
+export const SUB_NODE_SETTING_KEYS = ['notes', 'notesInFlow'];
+
+/** The spec rows this node type actually has. */
+export function settingsSpecFor({ subNode = false } = {}) {
+  return subNode ? SETTINGS_SPEC.filter((s) => SUB_NODE_SETTING_KEYS.includes(s.key)) : SETTINGS_SPEC;
+}
+
+/**
+ * Is this row displayed at all?
+ *
+ * n8n HIDES a dependent parameter rather than dimming it — Max Tries does not
+ * exist on the tab until Retry On Fail is on (`displayOptions.show`). We dimmed
+ * it instead, which reads as "you may set this" and isn't the real shape.
+ *
+ * One exception, deliberately: a setting the PROBLEM GRADES always stays
+ * visible. Grading something a learner cannot see is the hidden-required-field
+ * trap, and here it would also deadlock the Settings stage.
+ */
+export function isVisible(spec, values, gradedKeys = new Set()) {
+  if (!spec.dependsOn) return true;
+  if (gradedKeys.has(spec.key)) return true;
+  return isActive(spec, values);
+}
 
 export const SETTINGS_BY_KEY = Object.fromEntries(SETTINGS_SPEC.map((s) => [s.key, s]));
 
