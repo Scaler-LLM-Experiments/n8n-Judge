@@ -3,17 +3,17 @@ import { Handle, Position } from 'reactflow';
 import { Plus, Warning, Wrench, Trash } from '@phosphor-icons/react';
 import { N8nNodeView, variantOf } from './N8nNodeView.jsx';
 import { categoryMeta } from '../nodes/nodeIcons.js';
+import { AI_SUB_NODE_PORTS } from '@judge/catalog';
 import { useEditor } from './EditorContext.js';
 
 const portStyle = { width: 12, height: 12, background: 'var(--surface-0)', border: '2px solid #9AA2AE' };
 
-// n8n AI cluster sub-node ports. Only Chat Model is used in this problem; Memory
-// and Tool are shown greyed out (present for fidelity, but not interactive here).
-const AI_PORTS = [
-  { id: 'chatModel', label: 'Chat Model', required: true },
-  { id: 'memory', label: 'Memory', required: false },
-  { id: 'tool', label: 'Tool', required: false },
-];
+// n8n AI cluster sub-node ports, from the catalog rather than hardcoded here —
+// they carry the real connector name and n8n's own `maxConnections`, which is not
+// uniform (one model, one memory, unlimited tools). Only Chat Model is wired up
+// in these problems; the others are shown inert, and now say why on hover
+// instead of being silently greyed out.
+const AI_PORTS = AI_SUB_NODE_PORTS;
 
 export function N8nFlowNode({ id, type, data, selected }) {
   const { openPicker, openNdv, branches, removeNode } = useEditor();
@@ -156,7 +156,7 @@ export function N8nFlowNode({ id, type, data, selected }) {
                   <button
                     type="button"
                     className={needsModel ? 'pulse-plus' : undefined}
-                    title={active ? 'Attach a Chat Model' : `${p.label} — not needed here`}
+                    title={active ? `Attach a Chat Model — ${p.why}` : `${p.label} — ${p.why}`}
                     onClick={(e) => { e.stopPropagation(); if (active) openPicker({ sourceId: id, modelSlot: true }); }}
                     style={{ width: needsModel ? 28 : 24, height: needsModel ? 28 : 24, borderRadius: 5, border: `${needsModel ? 2 : 1.5}px solid ${active ? categoryMeta.model.color : 'var(--border-strong)'}`, background: needsModel ? categoryMeta.model.tint : 'var(--surface-0)', color: active ? categoryMeta.model.color : 'var(--fg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: active ? 'pointer' : 'default' }}
                   >

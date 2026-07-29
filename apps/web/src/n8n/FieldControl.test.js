@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isCorrectValue, expressionFor, whyForField } from './FieldControl.jsx';
+import { isCorrectValue, expressionFor, whyForField, resourceValue, emptyResource } from './FieldControl.jsx';
 import { toPublicProblem } from '@judge/problem-schema';
 import { problems } from '@judge/problems';
 
@@ -110,5 +110,58 @@ describe('grading a problem as the browser actually receives it', () => {
 
   it('has no explanation to offer — this is the empty Iris bubble in the report', () => {
     expect(whyForField(selectField, 'word', 'wrong')).toBeUndefined();
+  });
+});
+
+// resourceLocator — n8n's "which record?" control. The stored value is
+// `{ __rl: true, mode, value }`: the resource PLUS how it was chosen.
+describe('resourceLocator', () => {
+  const field = {
+    key: 'mailbox',
+    label: 'Mailbox',
+    kind: 'resourceLocator',
+    modes: ['list', 'id'],
+    correct: 'INBOX',
+    options: [{ value: 'INBOX', label: 'Inbox' }, { value: 'SPAM', label: 'Spam' }],
+  };
+
+  it('unwraps the value', () => {
+    expect(resourceValue({ __rl: true, mode: 'list', value: 'INBOX' })).toBe('INBOX');
+  });
+
+  it('passes a plain value straight through', () => {
+    expect(resourceValue('INBOX')).toBe('INBOX');
+    expect(resourceValue(undefined)).toBe(undefined);
+  });
+
+  // The MODE is not graded. Picking the inbox off a list and pasting its ID are
+  // the same answer; marking one wrong would test picker familiarity, not
+  // understanding.
+  it('grades the resource, not the route to it', () => {
+    expect(isCorrectValue(field, { __rl: true, mode: 'list', value: 'INBOX' })).toBe(true);
+    expect(isCorrectValue(field, { __rl: true, mode: 'id', value: 'INBOX' })).toBe(true);
+  });
+
+  it('marks the wrong resource wrong whatever the mode', () => {
+    expect(isCorrectValue(field, { __rl: true, mode: 'list', value: 'SPAM' })).toBe(false);
+    expect(isCorrectValue(field, { __rl: true, mode: 'id', value: 'SPAM' })).toBe(false);
+  });
+
+  it('treats an untouched locator as not-yet-answered, not wrong', () => {
+    const empty = emptyResource(field);
+    expect(empty).toEqual({ __rl: true, mode: 'list', value: '' });
+    expect(isCorrectValue(field, empty)).toBe(false);
+  });
+
+  it('accepts alternatives via `accepts`', () => {
+    const f = { ...field, correct: undefined, accepts: ['INBOX', 'Inbox'] };
+    expect(isCorrectValue(f, { __rl: true, mode: 'id', value: 'Inbox' })).toBe(true);
+  });
+
+  // The browser holds no answer key for a served problem, so it must say "cannot
+  // judge" rather than guessing wrong — the bug that made right answers red.
+  it('returns null when the answer key was stripped', () => {
+    const served = { key: 'mailbox', kind: 'resourceLocator', modes: ['list'], options: [{ value: 'INBOX', label: 'Inbox' }] };
+    expect(isCorrectValue(served, { __rl: true, mode: 'list', value: 'INBOX' })).toBe(null);
   });
 });

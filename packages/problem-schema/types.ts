@@ -113,7 +113,15 @@ export const nodeSetupSchema = z.object({
         // one that carries `options`; the rest compare a typed value against
         // `correct`, so they carry their own explanations instead of
         // per-option ones.
-        kind: z.enum(['select', 'text', 'number', 'boolean', 'expression']).optional(),
+        // `resourceLocator` is n8n's "which record?" control and it is
+        // structurally different from a select: the stored value is
+        // `{ __rl: true, mode, value }` — the thing chosen PLUS how it was
+        // chosen. Modelling it as a dropdown loses the mode, which is the part
+        // that teaches "you can point at a resource by picking it, by pasting
+        // its ID, or by URL". See docs/n8n-reference §4.
+        kind: z.enum(['select', 'text', 'number', 'boolean', 'expression', 'resourceLocator']).optional(),
+        /** resourceLocator: which lookup modes this field offers. */
+        modes: z.array(z.enum(['list', 'id', 'url'])).min(1).optional(),
         options: z.array(nodeSetupFieldOptionSchema).min(2).optional(),
         correct: z.union([z.string(), z.number(), z.boolean()]).optional(),
         /** Alternative spellings that should also be accepted (expressions). */

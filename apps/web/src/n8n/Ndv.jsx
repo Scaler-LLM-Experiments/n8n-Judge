@@ -6,7 +6,7 @@ import { NodeIcon, metaOf, typeCategory } from '../nodes/nodeIcons.js';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
 import { SettingsForm } from './SettingsForm.jsx';
 import { IrisBubble } from './IrisBubble.jsx';
-import { FieldControl, isCorrectValue, expressionFor, whyForField } from './FieldControl.jsx';
+import { FieldControl, isCorrectValue, expressionFor, whyForField, resourceValue } from './FieldControl.jsx';
 import { defaultSettings, gradeSettings } from './nodeSettings.js';
 import { checkAnswer } from '../lib/grader.js';
 
@@ -94,6 +94,10 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
     const v = values[f.key];
     if (f.kind === 'boolean') return v !== undefined;
     if (f.kind === 'number') return v !== undefined && v !== '';
+    // A resourceLocator is `{ __rl, mode, value }`: it always has an object as
+    // soon as the mode is touched, so String(v) would be "[object Object]" and
+    // read as filled in. What matters is whether a resource was actually chosen.
+    if (f.kind === 'resourceLocator') return String(resourceValue(v) ?? '').trim() !== '';
     return v !== undefined && String(v).trim() !== '';
   };
   const allChosen = stage === 'params' ? fields.every(hasValue) : true;

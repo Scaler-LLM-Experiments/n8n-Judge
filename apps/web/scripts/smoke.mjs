@@ -144,28 +144,36 @@ for (const p of PROBLEMS) {
     // Enter the journey from THIS problem's card, landing on its Understand screen.
     // Clicking `.first()` used to mean every problem's journey-start check actually
     // opened email-triage, so two of the three Understand screens were never tested.
+    // WAIT for each step rather than sleeping and hoping. Fixed delays made this
+    // check timing-dependent: it passed at a 3s settle and started failing
+    // intermittently at 2.2s with four pages loading at once, because a beat's
+    // button simply had not rendered yet. A flaky check on a grading surface is
+    // worse than no check — you learn to ignore it.
     const card = page.locator(`button[data-problem="${p}"]`);
-    if ((await card.count().catch(() => 0)) === 0) {
+    try {
+      await card.waitFor({ state: 'visible', timeout: 15000 });
+    } catch {
       errs.push(`no home card for "${p}" — cannot enter its journey`);
       return;
     }
     await card.click().catch(() => {});
-    await page.waitForTimeout(1200);
 
     // Understand opens on two narrated beats (Iris greeting, then the problem
-    // statement) before the quiz. Clicking the card alone left us on the
-    // greeting, so the quiz itself — options, server verdicts, the node canvas —
-    // was never actually rendered by this check for ANY problem.
-    // The two beats advance on differently-labelled buttons ("Continue", then
-    // "Let's dissect it"), so match both rather than assuming one word.
+    // statement) before the quiz, and they advance on differently-labelled
+    // buttons ("Continue", then "Let's dissect it").
     for (let beat = 0; beat < 2; beat++) {
       const cont = page.getByRole('button', { name: /continue|dissect/i }).first();
-      if ((await cont.count().catch(() => 0)) === 0) break;
+      try {
+        await cont.waitFor({ state: 'visible', timeout: 10000 });
+      } catch {
+        break; // already past the beats
+      }
       await cont.click().catch(() => {});
-      await page.waitForTimeout(1400);
     }
 
-    if (!(await page.getByText(/question 1 of \d+/i).count().catch(() => 0))) {
+    try {
+      await page.getByText(/question 1 of \d+/i).first().waitFor({ state: 'visible', timeout: 10000 });
+    } catch {
       errs.push('never reached the Understand quiz (still on an intro beat?)');
     }
   } });
@@ -180,16 +188,20 @@ for (const p of PROBLEMS) {
   // is exactly how a `node is not defined` in FieldForm shipped.
   jobs.push({ name: `${p}--ndv`, url: `${base}/#run-story?problem=${p}`, extra: async (page, errs) => {
     const node = page.locator('.react-flow__node').first();
-    if ((await node.count().catch(() => 0)) === 0) {
+    try {
+      await node.waitFor({ state: 'visible', timeout: 15000 });
+    } catch {
       errs.push('no nodes on the canvas — could not open the NDV');
       return;
     }
     await node.dblclick().catch((e) => errs.push(`dblclick: ${e.message}`));
-    await page.waitForTimeout(1200);
     // The NDV is the only thing with a Parameters tab. If it isn't there the
     // modal failed to mount, which is the failure we care about.
-    const opened = await page.getByText('Parameters', { exact: true }).count().catch(() => 0);
-    if (opened === 0) errs.push('node detail view did not open');
+    try {
+      await page.getByText('Parameters', { exact: true }).first().waitFor({ state: 'visible', timeout: 10000 });
+    } catch {
+      errs.push('node detail view did not open');
+    }
   } });
 }
 

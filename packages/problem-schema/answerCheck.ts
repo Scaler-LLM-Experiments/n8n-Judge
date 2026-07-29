@@ -40,6 +40,15 @@ const norm = (v: unknown) =>
     .replace(/\{\{\s*/g, '{{ ')
     .replace(/\s*\}\}/g, ' }}');
 
+/**
+ * A resourceLocator answer arrives as n8n's `{ __rl: true, mode, value }`.
+ * Only `value` is graded — the resource, not the route taken to it. Mirrors
+ * `resourceValue` in FieldControl.jsx; the two are kept in sync deliberately.
+ */
+function resourceValue(v: unknown): unknown {
+  return v && typeof v === 'object' && '__rl' in (v as Rec) ? (v as Rec).value : v;
+}
+
 /** Mirrors FieldControl.isCorrectValue — kept in sync deliberately, see tests. */
 function fieldIsCorrect(field: Rec, answer: unknown): boolean {
   const kind = (field.kind as string) ?? 'select';
@@ -48,6 +57,12 @@ function fieldIsCorrect(field: Rec, answer: unknown): boolean {
   }
   if (kind === 'boolean') return Boolean(answer) === Boolean(field.correct);
   if (kind === 'number') return Number(answer) === Number(field.correct);
+  if (kind === 'resourceLocator') {
+    const picked = resourceValue(answer);
+    const accepts = field.accepts as string[] | undefined;
+    if (Array.isArray(accepts)) return accepts.some((a) => String(a) === String(picked ?? ''));
+    return String(field.correct) === String(picked ?? '');
+  }
   const accepts = field.accepts as string[] | undefined;
   if (Array.isArray(accepts)) return accepts.some((a) => norm(a) === norm(answer));
   return norm(field.correct) === norm(answer);

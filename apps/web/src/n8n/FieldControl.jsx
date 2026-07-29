@@ -38,6 +38,28 @@ function hasAnswerData(field) {
 }
 
 /**
+ * A resourceLocator's answer is the RESOURCE, not the route taken to it.
+ *
+ * n8n stores `{ __rl: true, mode, value }` — the thing chosen plus how it was
+ * chosen. We grade only `value`, deliberately: picking the right mailbox off a
+ * list and pasting its ID are the same answer to the same question, and marking
+ * one wrong would be testing familiarity with the picker rather than
+ * understanding of the flow. The mode is still real, still stored, and still
+ * visible in the trace, so it can be reported on later without changing grading.
+ *
+ * Exported because `answerCheck.ts` must unwrap identically — the two are kept
+ * in sync deliberately and there are tests on both sides.
+ */
+export function resourceValue(v) {
+  return v && typeof v === 'object' && '__rl' in v ? v.value : v;
+}
+
+/** An empty resourceLocator, in n8n's shape. */
+export function emptyResource(field) {
+  return { __rl: true, mode: (field.modes ?? ['list'])[0], value: '' };
+}
+
+/**
  * @returns {boolean|null} true/false, or **null when it cannot be judged here**.
  *   null is not "wrong" — callers must not paint it red, must not record it as a
  *   decision, and should defer to the server.
@@ -50,6 +72,11 @@ export function isCorrectValue(field, value) {
   }
   if (field.kind === 'boolean') return Boolean(value) === Boolean(field.correct);
   if (field.kind === 'number') return Number(value) === Number(field.correct);
+  if (field.kind === 'resourceLocator') {
+    const picked = resourceValue(value);
+    if (Array.isArray(field.accepts)) return field.accepts.some((a) => String(a) === String(picked ?? ''));
+    return String(field.correct) === String(picked ?? '');
+  }
   // Text and expressions: ignore surrounding whitespace and, for expressions,
   // the spacing inside the braces — `{{$json.body}}` and `{{ $json.body }}`
   // are the same answer and it would be cruel to mark one wrong.
@@ -131,6 +158,57 @@ export function FieldControl({ field, value, border, bg, onChange, shuffledOptio
         }}
         style={baseInput(border, bg)}
       />
+    );
+  }
+
+  if (kind === 'resourceLocator') {
+    // n8n's "which record?" control: a mode selector, then a value control whose
+    // shape depends on the mode. From List gives you a picker; By ID and By URL
+    // are free text. The point of showing all three is that they answer the same
+    // question — real n8n uses this everywhere you name a mailbox, sheet, channel
+    // or document, and the mode is why it looks different every time.
+    const modes = field.modes ?? ['list', 'id'];
+    const current = value && typeof value === 'object' && '__rl' in value ? value : emptyResource(field);
+    const set = (patch) => onChange(field.key, { __rl: true, mode: current.mode, value: current.value, ...patch });
+    const LABEL = { list: 'From List', id: 'By ID', url: 'By URL' };
+    const PLACEHOLDER = { id: 'Paste the ID', url: 'https://…' };
+
+    return (
+      <div style={{ display: 'flex', gap: 8 }}>
+        <select
+          aria-label={`How to choose ${field.label}`}
+          value={current.mode}
+          onChange={(e) => set({ mode: e.target.value, value: '' })}
+          style={{ ...baseInput(border, bg), width: 'auto', flex: 'none', minWidth: 108, appearance: 'none', paddingRight: 22, cursor: 'pointer' }}
+        >
+          {modes.map((m) => (
+            <option key={m} value={m}>{LABEL[m] ?? m}</option>
+          ))}
+        </select>
+
+        {current.mode === 'list' ? (
+          <select
+            aria-label={field.label}
+            value={current.value ?? ''}
+            onChange={(e) => set({ value: e.target.value })}
+            style={{ ...baseInput(border, bg), appearance: 'none', paddingRight: 30, cursor: 'pointer', color: current.value ? 'var(--fg-1)' : 'var(--fg-3)' }}
+          >
+            <option value="" disabled>Choose…</option>
+            {(shuffledOptions ?? []).map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+        ) : (
+          <input
+            aria-label={field.label}
+            value={current.value ?? ''}
+            placeholder={PLACEHOLDER[current.mode] ?? ''}
+            spellCheck={false}
+            onChange={(e) => set({ value: e.target.value })}
+            style={baseInput(border, bg)}
+          />
+        )}
+      </div>
     );
   }
 
