@@ -358,7 +358,9 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
                   <CircleNotch size={15} weight="bold" className="spin" /> Running…
                 </span>
               ) : (
-                <button type="button" disabled={!allChosen} onClick={verify} style={ctaStyle(allChosen ? 'var(--brand-primary)' : 'var(--n-200)', !allChosen)}>
+                // A disabled button with no reason is a dead end, so name the
+                // cause — in n8n's own words for the same state.
+                <button type="button" disabled={!allChosen} title={allChosen ? undefined : 'Complete required fields first'} onClick={verify} style={ctaStyle(allChosen ? 'var(--brand-primary)' : 'var(--n-200)', !allChosen)}>
                   <Sparkle size={14} weight="fill" />
                   {stage === 'settings' ? 'Verify settings' : 'Verify setup'}
                 </button>
@@ -408,6 +410,12 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
             <JsonView data={node.output} />
           ) : results && !allCorrect ? (
             <Empty icon={<XCircle size={22} color="var(--status-danger)" />} title="No output" text="A field isn’t right yet — fix the highlighted one and Verify setup again." />
+          ) : isSubNode ? (
+            // n8n's own wording for exactly this state. A sub-node produces
+            // nothing on its own — it is supplied to the node above it and only
+            // does anything when THAT node runs. "Verify the setup to run this
+            // node" was quietly wrong here: this node never runs by itself.
+            <Empty icon={<Lightning size={22} color="var(--fg-3)" />} title="No output yet" text="Output will appear here once the parent node is run." />
           ) : (
             <Empty icon={<Lightning size={22} color="var(--fg-3)" />} title="No output yet" text="Verify the setup to run this node and see what it produces." />
           )}

@@ -1012,6 +1012,41 @@ engine writes it back only when `__dataChanged` is set (`workflow-execute.ts:pro
     populate until auth exists. Judge's `credential` + fields ordering already matches this;
     worth keeping when the NDV changes.
 
+### Progress on the gaps below (2026-07-29)
+
+| Gap | State |
+|---|---|
+| Sub-node reduced Settings tab | ✅ done |
+| Dependent settings hidden, not dimmed | ✅ done |
+| Hidden required field not demanded / not scored | ✅ done — `showWhen`, and the rubric skips unanswered conditional fields |
+| `typeVersion` recorded in the catalogue | ✅ done — `n8nType` / `n8nVersion` per entry, with tests |
+| `maxConnections` | ✅ enforced (no drag-to-connect; the `+` hides at the cap) and now stated as catalogue data with n8n's real, non-uniform caps |
+| Sub-node wire geometry | ✅ done — no main ports, top connector, diamond accepts from below |
+| Copy adopted where the state matches | ✅ partial, deliberately — see the note below |
+| `resourceLocator` | ✅ done — `{ __rl, mode, value }`, graded on the value |
+| `fixedCollection` · `filter` · `assignmentCollection` | ⬜ **not started — one feature, and a large one.** See below |
+| Dynamic outputs | ⬜ blocked on `fixedCollection` |
+| Browsable runs/branches in OUTPUT | ⬜ deliberately not doing — see below |
+
+**On copy:** adopting n8n's strings wholesale is wrong, because several of the
+states are not the same states. Judge's "Verify setup" is a *graded* check, not
+n8n's "Execute step"; its empty INPUT pane offers test data rather than asking you
+to execute upstream nodes. Adopted where the state genuinely matches: the
+sub-node's OUTPUT pane ("Output will appear here once the parent node is run") and
+the disabled-run reason ("Complete required fields first").
+
+**On `fixedCollection` and dynamic outputs:** these are one piece of work and it is
+the biggest thing left in M1.5. A Switch rule is a `fixedCollection` of `filter`s,
+so the three remaining structural types collapse into one editor — and once rules
+are editable, outputs must derive from them, which is the "the node's shape is a
+consequence of its configuration" idea. It also needs a **new grading shape**: the
+rubric currently assumes one scored item per field, and a variable-length list of
+rules is not that. Worth doing, not worth half-doing.
+
+**On browsable runs/branches:** skipped on purpose. It is how real debugging feels,
+but Judge's Run is a narrated single pass by design, and a run history would
+compete with the narration rather than add to it.
+
 ### Fidelity gaps worth a decision
 
 - **`typeVersion` is absent from Judge's model entirely.** Right call for now — one shipped
