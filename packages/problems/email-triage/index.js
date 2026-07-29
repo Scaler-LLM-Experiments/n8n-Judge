@@ -379,23 +379,80 @@ export const emailTriage = {
         },
       ],
       locked: [
-        { label: 'Mode', value: 'Rules — 3 outputs (Bug Report · Feature Request · Urgent Complaint)' },
+        // Just "Rules", which is what n8n shows. It used to read
+        // "Rules — 3 outputs (Bug Report · Feature Request · Urgent Complaint)",
+        // which was harmless when the branches were hardcoded and is an outright
+        // answer leak now that building them IS the question.
+        { label: 'Mode', value: 'Rules' },
       ],
       fields: [
         {
-          key: 'routeOn',
-          label: 'Value to route on',
-          subtitle: 'The Switch reads this to decide which branch an email takes.',
-          options: [
-            { value: 'category', label: '{{ $json.category }}', correct: true, why: 'The label the AI assigned — Bug / Feature / Complaint. Route on this.' },
-            { value: 'urgency', label: '{{ $json.urgency }}', correct: false, why: 'How urgent, not what type — a secondary signal, not the split.' },
-            { value: 'body', label: '{{ $json.body }}', correct: false, why: 'Raw text — the Switch needs a clean, predictable value.' },
+          // A rule LIST, not a dropdown: this is n8n's real `rules` parameter, a
+          // repeatable group where each entry names an output and states what that
+          // output tests. The learner builds the branches, and each one they add
+          // appears on the node — which is the thing a hardcoded branch list can
+          // never teach: in n8n a node's shape follows its configuration.
+          //
+          // `outputKey` values are the problem's branch IDs, so the wires the
+          // learner then draws line up with `referenceGraph` and `testCases`.
+          key: 'rules',
+          label: 'Routing rules',
+          kind: 'ruleList',
+          addLabel: 'Add Routing Rule',
+          subtitle: 'One rule per branch. Each rule names an output and says which emails go down it.',
+          branchOptions: [
+            { value: 'bug_report', label: 'Bug Report', correct: true, why: 'One of the three categories the AI assigns.' },
+            { value: 'feature_request', label: 'Feature Request', correct: true, why: 'One of the three categories the AI assigns.' },
+            { value: 'urgent_complaint', label: 'Urgent Complaint', correct: true, why: 'One of the three categories the AI assigns.' },
+            { value: 'newsletter', label: 'Newsletter', correct: false, why: 'Nothing upstream ever produces this label, so the branch could never fire.' },
+            { value: 'spam', label: 'Spam', correct: false, why: 'Not one of the categories this flow classifies into.' },
           ],
+          leftOptions: [
+            { value: 'category', label: '{{ $json.category }}', correct: true, why: 'The label the AI assigned — Bug / Feature / Complaint. This is the split.' },
+            { value: 'urgency', label: '{{ $json.urgency }}', correct: false, why: 'How urgent, not what type — a secondary signal, not the split.' },
+            { value: 'body', label: '{{ $json.body }}', correct: false, why: 'Raw text. The Switch needs a clean, predictable value to match on.' },
+            { value: 'from', label: '{{ $json.from }}', correct: false, why: 'Who sent it, not what it is about.' },
+          ],
+          operatorOptions: [
+            { value: 'equals', label: 'is equal to', correct: true, why: 'The category is one exact label, so an exact match is what you want.' },
+            { value: 'contains', label: 'contains', correct: false, why: 'Looser than you need here, and it would let "Bug Report" also match a longer label.' },
+            { value: 'notEquals', label: 'is not equal to', correct: false, why: 'That routes everything EXCEPT this category down the branch.' },
+          ],
+          rightOptions: [
+            { value: 'Bug Report', label: 'Bug Report', correct: true, why: 'Matches the label the AI produces.' },
+            { value: 'Feature Request', label: 'Feature Request', correct: true, why: 'Matches the label the AI produces.' },
+            { value: 'Urgent Complaint', label: 'Urgent Complaint', correct: true, why: 'Matches the label the AI produces.' },
+            { value: 'HIGH', label: 'HIGH', correct: false, why: 'That is an urgency, not a category.' },
+          ],
+          expect: {
+            rules: [
+              { outputKey: 'bug_report', left: 'category', operator: 'equals', right: 'Bug Report' },
+              { outputKey: 'feature_request', left: 'category', operator: 'equals', right: 'Feature Request' },
+              { outputKey: 'urgent_complaint', left: 'category', operator: 'equals', right: 'Urgent Complaint' },
+            ],
+          },
+          // One explanation per aspect, per verdict — so a learner is told what is
+          // wrong with the thing that is actually wrong, rather than "your Switch
+          // is incorrect".
+          why: {
+            count: {
+              correct: 'Three branches for the three categories the AI can produce. Every category has somewhere to go.',
+              wrong: 'Count what the classifier can output — three categories — and give each one its own branch. Too few and some emails have nowhere to go; too many and a branch can never fire.',
+            },
+            categories: {
+              correct: 'These are exactly the labels the AI assigns, so each branch can actually match something.',
+              wrong: 'A branch can only fire if something upstream produces its label. Look at what the Classify step actually outputs, and name the branches after those.',
+            },
+            conditions: {
+              correct: 'Each branch tests the category the AI assigned, matched exactly. That is what makes the routing predictable.',
+              wrong: 'Check what each branch is testing. The value to route on is the label the AI assigned — not how urgent it is, and not the raw text — and it should match exactly.',
+            },
+          },
         },
         {
           key: 'fallback',
           label: 'Emails matching no rule',
-          subtitle: 'What happens to an email that fits none of the three categories.',
+          subtitle: 'What happens to an email that matches none of your rules.',
           options: [
             { value: 'none', label: 'Fall through — no reply sent', correct: true, why: 'With only three branches, anything else silently falls through — that’s the gap the stress test asks about.' },
             { value: 'first', label: 'Send it down the first branch', correct: false, why: 'That would mislabel unrelated mail as a bug report.' },

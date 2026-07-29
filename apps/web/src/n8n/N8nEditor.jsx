@@ -18,6 +18,7 @@ import { Ndv } from './Ndv.jsx';
 import { variantOf } from './N8nNodeView.jsx';
 import { NODE_CATALOG } from '@judge/catalog/catalog.js';
 import { useTraceContext } from '../lib/TraceContext.jsx';
+import { asRules } from '@judge/problem-schema';
 
 const nodeTypes = Object.fromEntries(Object.keys(NODE_CATALOG).map((t) => [t, N8nFlowNode]));
 
@@ -46,6 +47,28 @@ function seedEdges(ig) {
     if (e.targetHandle === 'ai_model') return { ...base, sourceHandle: 'ai_out', targetHandle: 'ai_model', type: 'smoothstep', animated: true, style: { stroke: '#0E9488', strokeWidth: 1.75, strokeDasharray: '6 4' } };
     if (e.branch) return { ...base, sourceHandle: e.branch };
     return base;
+  });
+}
+
+/**
+ * A node's labelled outputs, derived from the rule list the learner built.
+ *
+ * Returns null when this node has no rule-list parameter, or has one that is
+ * still empty — the caller then falls back to the problem's declared branches, so
+ * problems that do not use a rule list behave exactly as before.
+ *
+ * The branch ID is the authored option VALUE, so a wire survives renaming the
+ * label, and it matches what `referenceGraph` edges and `problem.branches` use.
+ */
+function branchesFromRules(setup, values) {
+  const field = (setup?.fields ?? []).find((f) => f.kind === 'ruleList');
+  if (!field) return null;
+  const rules = asRules(values?.[field.key]);
+  const named = rules.filter((r) => String(r.outputKey ?? '').trim());
+  if (!named.length) return null;
+  return named.map((r) => {
+    const opt = (field.branchOptions ?? []).find((o) => o.value === r.outputKey);
+    return { id: r.outputKey, label: opt?.label ?? r.outputKey };
   });
 }
 
@@ -91,8 +114,14 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
   // modal closing — otherwise the tab grades a decision that never has a
   // consequence.
   const completeNode = useCallback(
-    (id, settings) =>
-      setNodes((ns) => ns.map((n) => (n.id === id ? { ...n, data: { ...n.data, configured: true, settings: settings ?? n.data.settings } } : n))),
+    (id, settings, values) =>
+      setNodes((ns) =>
+        ns.map((n) =>
+          n.id === id
+            ? { ...n, data: { ...n.data, configured: true, settings: settings ?? n.data.settings, values: values ?? n.data.values } }
+            : n
+        )
+      ),
     []
   );
 
@@ -186,12 +215,24 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
       const needsSetup = !n.data.configured && !n.data.wrong && hasEditable;
       const modelReady = isAi ? hasModel : true;
       const awaitingNext = !n.data.wrong && flowNext.length > 0 && !hasMainOut && modelReady && (hasEditable ? n.data.configured : true);
-      const openBranches = type === 'switch'
-        ? branchIds.filter((b) => !edges.some((e) => e.source === n.id && e.sourceHandle === b))
+      // OUTPUTS FROM CONFIGURATION. In n8n a Switch's outputs are a function of
+      // its rules — add a rule, get an output — and Judge used to hardcode them
+      // from problem data, so a learner never saw a node change shape. Where a
+      // node has a rule-list parameter, its branches come from what the learner
+      // actually built; everything else still falls back to the problem's
+      // declared branches (that is the whole existing behaviour, untouched).
+      //
+      // Safe for everything downstream: setup must verify green before the phase
+      // completes, and green means the rules match what was authored — so by the
+      // time validateGraph or the Run reads branches, these ARE the problem's.
+      const nodeBranches = branchesFromRules(nodeSetup?.[type], n.data.values) ?? branches ?? [];
+      const nodeBranchIds = nodeBranches.map((b) => b.id);
+      const openBranches = nodeBranchIds.length
+        ? nodeBranchIds.filter((b) => !edges.some((e) => e.source === n.id && e.sourceHandle === b))
         : undefined;
       const running = !!runActiveId && (n.id === runActiveId || n.id === activeModelId);
       const dimmed = !!runActiveId && !running;
-      return { ...n, data: { ...n.data, hasModel, needsSetup, awaitingNext, openBranches, running, dimmed } };
+      return { ...n, data: { ...n.data, hasModel, needsSetup, awaitingNext, openBranches, branches: nodeBranches, running, dimmed } };
     }),
     [nodes, edges, flow, nodeSetup, runActiveId, activeModelId]
   );
@@ -256,7 +297,7 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
             onDecision={onDecision}
             /* Server-authoritative grading: the NDV asks the API for each verdict. */
             sessionId={sessionId}
-            onComplete={(settings) => completeNode(ndvNode.id, settings)}
+            onComplete={(settings, values) => completeNode(ndvNode.id, settings, values)}
             onClose={() => setNdvId(null)}
           />
         ) : null}

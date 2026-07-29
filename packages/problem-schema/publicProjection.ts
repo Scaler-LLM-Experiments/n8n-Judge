@@ -42,6 +42,36 @@ const omit = <T extends Rec>(obj: T, keys: string[]): Rec => {
   return out;
 };
 
+/**
+ * Answer material on a FIELD itself. `expect` is a rule list's entire answer key
+ * and `why` its per-aspect explanations, so both leave with `correct`.
+ */
+const FIELD_ANSWER_KEYS = ['correct', 'accepts', 'whyCorrect', 'whyWrong', 'expect', 'why'];
+
+/**
+ * Every option list a field can carry — and it is not just `options`.
+ *
+ * A rule list's vocabulary lives in four more (`branchOptions`, `leftOptions`,
+ * `operatorOptions`, `rightOptions`), each entry carrying `correct` and a `why`.
+ * Scrubbing only `options` shipped the whole Switch answer key to the browser;
+ * `findLeakedAnswers` caught it, which is exactly why that test scans blindly for
+ * markers instead of checking a known list of places.
+ *
+ * Matching by SUFFIX rather than by name, so a future authoring field called
+ * `somethingOptions` is scrubbed without anyone remembering to add it here.
+ */
+function scrubFieldOptions(field: Rec): Rec {
+  const out: Rec = { ...field };
+  for (const [key, value] of Object.entries(field)) {
+    if (!Array.isArray(value)) continue;
+    if (key !== 'options' && !key.endsWith('Options')) continue;
+    out[key] = (value as Rec[]).map((o) =>
+      o && typeof o === 'object' ? omit(o, ['correct', 'why']) : o
+    );
+  }
+  return out;
+}
+
 export function toPublicProblem(problem: Rec): PublicProblem {
   // Spread the answer positions FIRST. This has to happen while the correctness
   // markers still exist — a moment later they are stripped and no one can tell
@@ -75,17 +105,7 @@ export function toPublicProblem(problem: Rec): PublicProblem {
       type,
       {
         ...omit(setup, ['fields', 'settings']),
-        fields: ((setup.fields as Rec[]) ?? []).map((f) =>
-          omit(
-            {
-              ...f,
-              options: ((f.options as Rec[]) ?? []).map((o) => omit(o, ['correct', 'why'])),
-            },
-            // `expect` is a ruleList's whole answer key, and `why` its
-            // per-aspect explanations — both must go the same way `correct` does.
-            ['correct', 'accepts', 'whyCorrect', 'whyWrong', 'expect', 'why']
-          )
-        ),
+        fields: ((setup.fields as Rec[]) ?? []).map((f) => omit(scrubFieldOptions(f), FIELD_ANSWER_KEYS)),
         // Which settings are GRADED stays visible — that is the "Set this"
         // badge, and hiding it would just make the tab unusable. The correct
         // value and the reasoning do not.

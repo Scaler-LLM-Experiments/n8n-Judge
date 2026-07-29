@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { visibleFields, pruneHidden } from '@judge/problem-schema';
+import { visibleFields, pruneHidden, RULE_ASPECTS, RULE_ASPECT_LABEL, gradeRuleAspect, rulesReady } from '@judge/problem-schema';
 import gsap from 'gsap';
 import { X, LockSimple, CaretDown, CheckCircle, XCircle, Lightning, Sparkle, Lock, CircleNotch, Warning } from '@phosphor-icons/react';
 import { NodeIcon, metaOf, typeCategory } from '../nodes/nodeIcons.js';
@@ -7,6 +7,7 @@ import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
 import { SettingsForm } from './SettingsForm.jsx';
 import { IrisBubble } from './IrisBubble.jsx';
 import { FieldControl, isCorrectValue, expressionFor, whyForField, resourceValue } from './FieldControl.jsx';
+import { RuleListControl } from './RuleListControl.jsx';
 import { defaultSettings, gradeSettings } from './nodeSettings.js';
 import { checkAnswer } from '../lib/grader.js';
 
@@ -74,6 +75,28 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
   // Settings tab unlocks — reads `fields`, the visible subset, never `allFields`.
   const fields = useMemo(() => visibleFields(allFields, values), [allFields, values]);
 
+  // One entry per graded QUESTION on the Parameters tab. Almost every field is
+  // one question, but a rule list is three (count / categories / conditions) —
+  // see packages/problem-schema/ruleList.ts for why it is scored that way. The
+  // verify loop, the results map and the "all green?" gate all read this rather
+  // than `fields`, so a field contributing several questions needs no special
+  // casing anywhere below.
+  const paramChecks = useMemo(
+    () =>
+      fields.flatMap((f) =>
+        f.kind === 'ruleList'
+          ? RULE_ASPECTS.map((aspect) => ({
+              field: f,
+              key: `${f.key}#${aspect}`,
+              id: `${node.nodeType}:${f.key}#${aspect}`,
+              aspect,
+              label: `${f.label} — ${RULE_ASPECT_LABEL[aspect]}`,
+            }))
+          : [{ field: f, key: f.key, id: `${node.nodeType}:${f.key}`, aspect: null, label: f.label }]
+      ),
+    [fields, node.nodeType]
+  );
+
   const noVerify = allFields.length === 0 && gradedSettings.length === 0;
   const optionFor = (field, value) => (field.options ?? []).find((o) => o.value === value);
 
@@ -82,7 +105,7 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
   // parameters are still wrong has nothing meaningful to say about how it
   // should behave when it fails. Setup is only complete when BOTH are green —
   // clearing the first tab is not finishing the node.
-  const paramsOk = fields.length === 0 || (results !== null && fields.every((f) => results[f.key] === 'correct'));
+  const paramsOk = paramChecks.length === 0 || (results !== null && paramChecks.every((c) => results[c.key] === 'correct'));
   const hasSettings = gradedSettings.length > 0;
   const settingsOk = !hasSettings || (settingsResults !== null && settingsResults.every((r) => r.correct));
   const settingsUnlocked = paramsOk;
@@ -98,6 +121,9 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
     // soon as the mode is touched, so String(v) would be "[object Object]" and
     // read as filled in. What matters is whether a resource was actually chosen.
     if (f.kind === 'resourceLocator') return String(resourceValue(v) ?? '').trim() !== '';
+    // Every rule filled in, and at least one rule. A half-built rule would be
+    // submitted as a wrong answer to a question the learner had not finished.
+    if (f.kind === 'ruleList') return rulesReady(v);
     return v !== undefined && String(v).trim() !== '';
   };
   const allChosen = stage === 'params' ? fields.every(hasValue) : true;
@@ -164,7 +190,7 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
 
     const pending = gradingSettings
       ? Promise.all(gradedSettings.map((g) => checkAnswer(sessionId, 'setting', `${node.nodeType}:${g.key}`, settings[g.key])))
-      : Promise.all(fields.map((f) => checkAnswer(sessionId, 'field', `${node.nodeType}:${f.key}`, values[f.key])));
+      : Promise.all(paramChecks.map((c) => checkAnswer(sessionId, 'field', c.id, values[c.field.key])));
 
     runTimer.current = setTimeout(() => {
       pending.then((serverResults) => {
@@ -206,31 +232,33 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
         // --- Stage 1: grade the parameters.
         const next = {};
         const why = {};
-        fields.forEach((f, i) => {
+        paramChecks.forEach((c, i) => {
+          const f = c.field;
           const server = serverResults[i];
           // `isCorrectValue` returns null when it cannot judge — which is the
           // normal case in the browser, because the payload carries no answers.
           // Three states, not two: treating "could not judge" as "wrong" is what
           // made the same answer read correct on one attempt and wrong on the
           // next, with Iris appearing and having nothing to say.
-          const ok = server ? server.correct : isCorrectValue(f, values[f.key]);
+          const local = c.aspect ? gradeRuleAspect(f, c.aspect, values[f.key]) : isCorrectValue(f, values[f.key]);
+          const ok = server ? server.correct : local;
           const verdict = ok === true ? 'correct' : ok === false ? 'wrong' : 'unverified';
-          next[f.key] = verdict;
-          why[f.key] = server ? server.why : whyForField(f, values[f.key], verdict);
+          next[c.key] = verdict;
+          why[c.key] = server ? server.why : c.aspect ? undefined : whyForField(f, values[f.key], verdict);
           // An unverified field is not a decision. Recording it as `correct:
           // false` would put a wrong answer the learner never gave into the
           // grading store.
           if (onDecision && verdict !== 'unverified') {
-            onDecision({ id: `${node.nodeType}:${f.key}`, kind: 'field', label: f.label, correct: ok, firstTry: server ? server.firstTry : firstTry });
+            onDecision({ id: c.id, kind: 'field', label: c.label, correct: ok, firstTry: server ? server.firstTry : firstTry });
           }
         });
         setResults(next);
         setFieldWhy(why);
 
-        const paramsPassed = fields.every((f) => next[f.key] === 'correct');
+        const paramsPassed = paramChecks.every((c) => next[c.key] === 'correct');
         if (!paramsPassed) {
           setPhase('idle');
-          const firstWrong = fields.find((f) => next[f.key] === 'wrong');
+          const firstWrong = paramChecks.find((c) => next[c.key] === 'wrong');
           if (firstWrong) setFeedback({ key: firstWrong.key, verdict: 'wrong', why: why[firstWrong.key] });
           return;
         }
@@ -256,6 +284,13 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
     setFeedback((f) => (f && f.key === `settings.${key}` ? null : { key: `settings.${key}`, verdict, why }));
   };
 
+  // A rule list's rows are keyed `<fieldKey>#<aspect>`, so they read their
+  // explanation from the same banked map under that key.
+  const explainAspect = (key, verdict) => {
+    const why = fieldWhy?.[key];
+    setFeedback((f) => (f && f.key === key ? null : { key, verdict, why }));
+  };
+
   const explain = (field, verdict) => {
     // Read the explanation banked at Verify time, not recomputed here — the
     // server doesn't ship `option.why`/`whyCorrect`/`whyWrong` for a fresh
@@ -272,7 +307,11 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
     if (phase === 'done' && outputRef.current) gsap.fromTo(outputRef.current, { clipPath: 'inset(0 0 100% 0)', opacity: 0 }, { clipPath: 'inset(0 0 0% 0)', opacity: 1, duration: 0.55, ease: 'power2.out' });
   }, [phase]);
 
-  const finishAndClose = () => { if (isComplete && onComplete) onComplete(settings); requestClose(); };
+  // Hand back the parameter values too, not just the settings: a Switch's OUTPUTS
+  // are derived from the rules the learner built, so the canvas needs them. In
+  // n8n the NDV covers the canvas as well, so the new output appears when you
+  // close the panel — same beat as the real thing.
+  const finishAndClose = () => { if (isComplete && onComplete) onComplete(settings, values); requestClose(); };
 
   return (
     <div ref={rootRef} onMouseDown={(e) => { if (e.target === e.currentTarget) finishAndClose(); }} style={{ position: 'absolute', inset: 0, zIndex: 45, background: 'rgba(6,20,50,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2vh 1.5vw' }}>
@@ -395,6 +434,7 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
                 onChange={setValue}
                 onDrop={dropField}
                 onExplain={explain}
+                onExplainAspect={explainAspect}
                 allCorrect={allCorrect}
               />
             )}
@@ -482,7 +522,7 @@ function ctaStyle(bg, disabled) {
 // `nodeType` is only used to seed the option shuffle — FieldForm has no other
 // reason to know which node it is rendering, so it is passed rather than
 // reaching for the parent's `node`, which is not in scope here.
-function FieldForm({ nodeType, inputKeys, setup, fields, values, results, feedback, optionFor, onChange, onDrop, onExplain, allCorrect }) {
+function FieldForm({ nodeType, inputKeys, setup, fields, values, results, feedback, optionFor, onChange, onDrop, onExplain, onExplainAspect, allCorrect }) {
   const locked = setup?.locked || [];
   const [hoveredKey, setHoveredKey] = useState(null);
   const [dropKey, setDropKey] = useState(null);
@@ -517,7 +557,22 @@ function FieldForm({ nodeType, inputKeys, setup, fields, values, results, feedba
       {/* the field(s) the learner must set */}
       {fields.map((f) => {
         const value = values[f.key];
-        const verdict = results?.[f.key];
+        const isRules = f.kind === 'ruleList';
+        // A rule list has three verdicts, not one. The field's border rolls them
+        // up — any wrong is wrong, any unverified is unverified — and the three
+        // are then listed individually underneath, because "your Switch is wrong"
+        // is useless feedback next to "the branch names are right, what they test
+        // is not".
+        const aspectVerdicts = isRules ? RULE_ASPECTS.map((a) => results?.[`${f.key}#${a}`]) : [];
+        const verdict = isRules
+          ? aspectVerdicts.some((v) => v === undefined)
+            ? undefined
+            : aspectVerdicts.includes('wrong')
+              ? 'wrong'
+              : aspectVerdicts.includes('unverified')
+                ? 'unverified'
+                : 'correct'
+          : results?.[f.key];
         const border = verdict === 'correct' ? 'var(--status-success)' : verdict === 'wrong' ? 'var(--status-danger)' : 'var(--brand-primary)';
         const bg = verdict === 'correct' ? 'var(--status-success-bg)' : verdict === 'wrong' ? 'var(--status-danger-bg)' : 'var(--brand-blue-50, rgba(0,85,255,0.05))';
         const showBubble = feedback?.key === f.key;
@@ -540,17 +595,51 @@ function FieldForm({ nodeType, inputKeys, setup, fields, values, results, feedba
               onDrop={(e) => { e.preventDefault(); const key = e.dataTransfer.getData('application/x-ndv-field'); setDropKey(null); if (key && onDrop) onDrop(f, key); }}
               style={{ position: 'relative', outline: dropKey === f.key ? '2px dashed var(--brand-primary)' : 'none', outlineOffset: 2 }}
             >
-              <FieldControl
-                field={f}
-                value={value}
-                border={border}
-                bg={bg}
-                onChange={onChange}
-                /* Server-balanced order; see the note by `orders` above. */
-                shuffledOptions={f.options ?? []}
-                inputKeys={inputKeys}
-              />
+              {isRules ? (
+                <RuleListControl field={f} value={value} border={border} onChange={onChange} />
+              ) : (
+                <FieldControl
+                  field={f}
+                  value={value}
+                  border={border}
+                  bg={bg}
+                  onChange={onChange}
+                  /* Server-balanced order; see the note by `orders` above. */
+                  shuffledOptions={f.options ?? []}
+                  inputKeys={inputKeys}
+                />
+              )}
             </div>
+
+            {/* A rule list's three verdicts, itemised. */}
+            {isRules && results ? (
+              <div style={{ marginTop: 9, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {RULE_ASPECTS.map((aspect) => {
+                  const v = results[`${f.key}#${aspect}`];
+                  if (!v) return null;
+                  const key = `${f.key}#${aspect}`;
+                  return (
+                    <div key={aspect}>
+                      {v === 'unverified' ? (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--fg-3)' }}>
+                          <Warning size={14} weight="fill" /> {RULE_ASPECT_LABEL[aspect]} — could not check
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => onExplainAspect?.(key, v)}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 600, textDecoration: 'underline', textUnderlineOffset: 2, color: v === 'correct' ? 'var(--status-success)' : 'var(--status-danger)' }}
+                        >
+                          {v === 'correct' ? <CheckCircle size={14} weight="fill" /> : <XCircle size={14} weight="fill" />}
+                          {RULE_ASPECT_LABEL[aspect]} — {v === 'correct' ? 'right' : 'not right'}
+                        </button>
+                      )}
+                      {feedback?.key === key && feedback.why ? <IrisBubble tone={v}>{feedback.why}</IrisBubble> : null}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : null}
             {/* Three states. "Could not check" says so plainly instead of
                 claiming the answer was wrong — and offers no "ask Iris why",
                 because there is nothing to explain and an empty bubble reads as

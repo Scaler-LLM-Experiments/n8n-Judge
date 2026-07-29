@@ -72,7 +72,10 @@ describe('enumerateItems', () => {
     const items = enumerateItems(emailTriage);
     expect(items.understand).toHaveLength(5);
     expect(items.placement).toHaveLength(6);
-    expect(items.config).toHaveLength(13); // 11 graded fields + 2 graded settings
+    // 10 plain fields + 3 rule-list aspects + 2 graded settings. The Switch's
+    // single "route on" dropdown became a learner-built rule list, which is
+    // deliberately worth three items rather than one.
+    expect(items.config).toHaveLength(15);
     expect(items.stress).toHaveLength(2);
   });
 
@@ -99,7 +102,12 @@ describe('enumerateItems', () => {
     const byId = Object.fromEntries(enumerateItems(emailTriage).config.map((i) => [i.id, i]));
     expect(byId['classify:text'].optionCount).toBe(null); // expression
     expect(byId['chat-gemini:temperature'].optionCount).toBe(null); // number
-    expect(byId['switch:routeOn'].optionCount).toBe(3); // select
+    expect(byId['switch:fallback'].optionCount).toBe(3); // select
+    // A rule list has no closed option set to eliminate through, so all three of
+    // its aspects are open-ended.
+    expect(byId['switch:rules#count'].optionCount).toBe(null);
+    expect(byId['switch:rules#categories'].optionCount).toBe(null);
+    expect(byId['switch:rules#conditions'].optionCount).toBe(null);
   });
 
   it('derives a setting option count from its authored explanations', () => {
@@ -147,10 +155,10 @@ describe('scoreSession', () => {
     expect(byKey.stress.weight).toBe(20);
   });
 
-  it('makes one node placement worth ~2.2 config items on email-triage', () => {
+  it('makes one node placement worth ~2.5 config items on email-triage', () => {
     const { buckets } = scoreSession(emailTriage, allAt(emailTriage, 1));
     const byKey = Object.fromEntries(buckets.map((b) => [b.key, b]));
-    expect(byKey.placement.pointsPerItem / byKey.config.pointsPerItem).toBeCloseTo(2.17, 1);
+    expect(byKey.placement.pointsPerItem / byKey.config.pointsPerItem).toBeCloseTo(2.5, 1);
   });
 
   it('costs more to miss a placement than to miss a field', () => {
@@ -160,7 +168,7 @@ describe('scoreSession', () => {
     const placementLoss = 100 - scoreSession(emailTriage, missPlacement).totalRaw;
     const configLoss = 100 - scoreSession(emailTriage, missConfig).totalRaw;
     expect(placementLoss).toBeGreaterThan(configLoss);
-    expect(placementLoss / configLoss).toBeCloseTo(2.17, 1);
+    expect(placementLoss / configLoss).toBeCloseTo(2.5, 1);
   });
 
   it('scores the documented worked example at 89', () => {

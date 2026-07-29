@@ -132,6 +132,15 @@ export const nodeSetupSchema = z.object({
         leftOptions: z.array(nodeSetupFieldOptionSchema).min(2).optional(),
         operatorOptions: z.array(nodeSetupFieldOptionSchema).min(2).optional(),
         rightOptions: z.array(nodeSetupFieldOptionSchema).min(2).optional(),
+        /**
+         * ruleList: one explanation per graded aspect, per verdict. A separate
+         * shape from a select's per-option `why` because the three aspects are
+         * three different questions, and from `whyCorrect`/`whyWrong` because
+         * there are three of them.
+         */
+        why: z
+          .record(z.object({ correct: z.string().min(1), wrong: z.string().min(1) }))
+          .optional(),
         /** ruleList: the authored answer — the rules the flow actually needs. */
         expect: z
           .object({

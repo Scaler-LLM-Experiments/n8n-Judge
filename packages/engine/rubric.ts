@@ -173,7 +173,7 @@ export function enumerateItems(problem: Rec, attempts: Record<string, unknown> =
  * and setting it up correctly are worth the same in aggregate.
  *
  * A consequence worth knowing: because the pots are fixed and the item counts
- * are not, one placement is worth ~2.2 config items on email-triage and ~1.25
+ * are not, one placement is worth ~2.5 config items on email-triage and ~1.25
  * on meeting-notes. Within a problem that is intended. ACROSS problems it means
  * two equal scores are not quite the same mix of skills.
  */

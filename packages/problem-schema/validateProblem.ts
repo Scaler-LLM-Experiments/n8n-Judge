@@ -157,6 +157,32 @@ export function validateProblem(input: unknown): ValidateProblemResult {
         }
         continue;
       }
+      // A rule list is graded as three aspects, so it explains itself through a
+      // per-aspect `why` map rather than one whyCorrect/whyWrong pair. Each aspect
+      // needs BOTH sides: "your branches are wrong" with no guidance is the kind of
+      // feedback that teaches nothing, and a wrong answer is where the teaching is.
+      if (kind === 'ruleList') {
+        for (const aspect of ['count', 'categories', 'conditions']) {
+          const w = (field.why as Record<string, { correct?: string; wrong?: string }> | undefined)?.[aspect];
+          if (!w?.correct || !w?.wrong) {
+            warn(
+              `nodeSetup.${type}.${field.key}`,
+              `A ruleList needs why.${aspect}.correct and why.${aspect}.wrong — without both, one of the three verdicts has nothing to say`
+            );
+          }
+        }
+        // Every branch the answer names must be offered, or the question is unanswerable.
+        const offered = new Set((field.branchOptions ?? []).map((o: { value: string }) => o.value));
+        for (const rule of field.expect?.rules ?? []) {
+          if (!offered.has(rule.outputKey)) {
+            err(
+              `nodeSetup.${type}.${field.key}`,
+              `expect names branch "${rule.outputKey}" but branchOptions does not offer it — the learner could never build the right answer`
+            );
+          }
+        }
+        continue;
+      }
       // Typed fields grade against `correct`, so they need their own
       // explanations — there are no per-option `why` strings to fall back on.
       if (!field.whyCorrect || !field.whyWrong) {

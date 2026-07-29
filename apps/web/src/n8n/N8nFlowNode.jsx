@@ -17,7 +17,9 @@ const AI_PORTS = AI_SUB_NODE_PORTS;
 
 export function N8nFlowNode({ id, type, data, selected }) {
   const { openPicker, openNdv, branches, removeNode } = useEditor();
-  const SWITCH_BRANCHES = branches || [];
+  // The node's OWN outputs when it has a rule list (derived from what the learner
+  // built), otherwise the problem's declared branches.
+  const SWITCH_BRANCHES = data.branches ?? branches ?? [];
   const [hover, setHover] = useState(false);
   const [warnHover, setWarnHover] = useState(false);
   const variant = variantOf(type);

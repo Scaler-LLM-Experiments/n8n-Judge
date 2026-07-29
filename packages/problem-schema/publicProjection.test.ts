@@ -99,9 +99,27 @@ describe('checkAnswer', () => {
   });
 
   it('grades a select field and returns only the chosen option\'s why', () => {
-    const r = checkAnswer(p, { kind: 'field', id: 'switch:routeOn', answer: 'category' });
+    const r = checkAnswer(p, { kind: 'field', id: 'switch:fallback', answer: 'none' });
     expect(r.correct).toBe(true);
     expect(typeof r.why).toBe('string');
+  });
+
+  // The Switch's routing is a rule LIST now, graded as three aspects.
+  it('grades each aspect of a rule list', () => {
+    const rules = {
+      values: [
+        { outputKey: 'bug_report', left: 'category', operator: 'equals', right: 'Bug Report' },
+        { outputKey: 'feature_request', left: 'category', operator: 'equals', right: 'Feature Request' },
+        { outputKey: 'urgent_complaint', left: 'category', operator: 'equals', right: 'Urgent Complaint' },
+      ],
+    };
+    for (const aspect of ['count', 'categories', 'conditions']) {
+      expect(checkAnswer(p, { kind: 'field', id: `switch:rules#${aspect}`, answer: rules }).correct, aspect).toBe(true);
+    }
+    // Routing on urgency instead of the category keeps the shape but breaks the logic.
+    const wrongTest = { values: rules.values.map((r) => ({ ...r, left: 'urgency' })) };
+    expect(checkAnswer(p, { kind: 'field', id: 'switch:rules#count', answer: wrongTest }).correct).toBe(true);
+    expect(checkAnswer(p, { kind: 'field', id: 'switch:rules#conditions', answer: wrongTest }).correct).toBe(false);
   });
 
   it('grades a typed number field, including 0 as a real answer', () => {
