@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 
 // Where rendered voice clips live.
@@ -17,21 +17,17 @@ import { dirname, join } from 'node:path';
 // rendering; this module is the storage.
 //
 // ---------------------------------------------------------------------------
-// Content addressing, and why there is no manifest
+// Keys, and why there is no manifest
 // ---------------------------------------------------------------------------
-// A clip's name IS the hash of what produced it: the voice, the model, and the
-// exact spoken text including its audio tags. That has three consequences worth
-// the trouble:
+// A clip's key is its slug path — see `clipPath` in src/lib/voicePath.js, which
+// also records why that replaced a content hash. Both schemes share the property
+// that matters here: the key is DERIVED, by the generator and the playback route
+// alike, from data both already hold. So there is no `manifest.json` mapping
+// moments to keys, and therefore no second source of truth to drift from the
+// phrase book.
 //
-//   * No manifest to keep in sync. The porting guide's design keeps a
-//     `manifest.json` mapping moments to clip keys, which is a second source of
-//     truth that can disagree with the phrase book. Here the route derives the
-//     same key the generator did, from the same text, so they cannot drift.
-//   * Editing one line invalidates exactly that line. Change the wording and the
-//     hash changes, so the old clip is simply never asked for again and the new
-//     one is generated on the next run. No versioning, no cache busting.
-//   * The same sentence is stored once. "Correct." shared across three problems is
-//     one object, not three.
+// `clipKey` below is the old content-addressed scheme, kept only for reading
+// clips generated before the change.
 //
 // ---------------------------------------------------------------------------
 // Backends
@@ -96,6 +92,41 @@ export async function readClip(key: string): Promise<Buffer | null> {
   }
 
   return await s3Read(key);
+}
+
+/**
+ * Whether a clip is stored, WITHOUT downloading it.
+ *
+ * The generator asks this about every clip on every batch, and it used to ask via
+ * `readClip` — which fetches the bytes. So a run downloaded every already-stored
+ * MP3 in full just to learn it existed, and got slower with every clip it saved.
+ * That, not the vendor, was why generation crawled.
+ *
+ * `HeadObject` is one round trip and no body. Never throws: a miss and a broken
+ * bucket both mean "not stored", and the caller's next move is the same either way.
+ */
+export async function hasClip(key: string): Promise<boolean> {
+  const backend = clipBackend();
+  if (backend === 'none') return false;
+
+  if (backend === 'local') {
+    try {
+      return (await stat(localPath(key))).size > 0;
+    } catch {
+      return false;
+    }
+  }
+
+  const b = bucket();
+  if (!b) return false;
+  try {
+    const { HeadObjectCommand } = await import('@aws-sdk/client-s3');
+    const c = await client();
+    await c.send(new HeadObjectCommand({ Bucket: b, Key: s3Key(key) }));
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /**

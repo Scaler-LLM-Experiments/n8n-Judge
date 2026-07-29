@@ -2,7 +2,7 @@ import { auth } from '../../../../auth';
 import { problems } from '@judge/problems';
 import { NODE_CATALOG } from '@judge/catalog';
 import { enumerateSpeakable } from '../../../../src/lib/voiceCatalogue.js';
-import { clipBackend, readClip } from '../../../../src/server/voiceStore';
+import { clipBackend, hasClip } from '../../../../src/server/voiceStore';
 import { clipPath } from '../../../../src/lib/voicePath.js';
 
 // "Why is narration slow?", answerable without opening devtools.
@@ -32,12 +32,13 @@ async function sample(slug: string, _voiceId: string, _modelId: string, size = 1
   const step = Math.max(1, Math.floor(all.length / size));
   const picked = all.filter((_, i) => i % step === 0).slice(0, size);
 
-  let stored = 0;
-  const missing: string[] = [];
-  for (const item of picked) {
-    if (await readClip(clipPath(slug, item.moment, item.vars, 0))) stored += 1;
-    else missing.push(item.caption.slice(0, 60));
-  }
+  // HEAD, not GET, and all at once: this is a diagnostic, so it must not itself be
+  // slow enough to be the thing you are diagnosing.
+  const results = await Promise.all(
+    picked.map(async (item) => ({ item, ok: await hasClip(clipPath(slug, item.moment, item.vars, 0)) }))
+  );
+  const stored = results.filter((r) => r.ok).length;
+  const missing = results.filter((r) => !r.ok).map((r) => r.item.caption.slice(0, 60));
 
   return { total: all.length, checked: picked.length, stored, missing: missing.slice(0, 5) };
 }

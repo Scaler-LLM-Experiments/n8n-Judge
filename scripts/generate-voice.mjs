@@ -18,7 +18,7 @@
 import { problems } from '@judge/problems';
 import { NODE_CATALOG } from '@judge/catalog';
 import { enumerateSpeakable } from '../apps/web/src/lib/voiceCatalogue.js';
-import { clipBackend, readClip, writeClip } from '../apps/web/src/server/voiceStore.ts';
+import { clipBackend, hasClip, writeClip } from '../apps/web/src/server/voiceStore.ts';
 import { clipPath } from '../apps/web/src/lib/voicePath.js';
 
 const API_KEY = process.env.ELEVENLABS_API_KEY;
@@ -93,8 +93,9 @@ for (const [key, { spoken, where }] of wanted) {
   chars.total += spoken.length;
 
   // Checked even on a dry run: "how many are already stored" is the question
-  // being asked when narration is unexpectedly slow.
-  if (await readClip(key)) {
+  // being asked when narration is unexpectedly slow. HEAD, not GET — asking via
+  // `readClip` downloaded every stored clip just to count it.
+  if (await hasClip(key)) {
     skipped += 1;
     continue;
   }
