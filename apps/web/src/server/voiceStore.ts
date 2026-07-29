@@ -129,6 +129,66 @@ export async function hasClip(key: string): Promise<boolean> {
   }
 }
 
+/** Validators for a stored clip, so a conditional request can be answered cheaply. */
+export interface ClipMeta {
+  etag: string;
+  lastModified?: string;
+  size: number;
+}
+
+/**
+ * A clip's validators WITHOUT its bytes.
+ *
+ * The playback route dropped S3's ETag and Last-Modified, which meant a browser
+ * holding a cached copy but no fresh `max-age` had no way to revalidate: it could
+ * only re-download the whole clip. Passing them through makes that a 304 with an
+ * empty body — and because this is a HEAD, a revalidation costs one metadata
+ * round trip instead of a full GET plus egress on both hops.
+ *
+ * Null when the clip is not stored, which is the same signal `hasClip` gives.
+ */
+export async function clipMeta(key: string): Promise<ClipMeta | null> {
+  const backend = clipBackend();
+  if (backend === 'none') return null;
+
+  if (backend === 'local') {
+    try {
+      const st = await stat(localPath(key));
+      if (!st.size) return null;
+      // MD5 of the content, NOT size-and-mtime. It has to be the same value the
+      // serving path puts in its ETag header, or a conditional request could never
+      // match and revalidation would silently never happen. S3 gives us the
+      // content MD5 for a single-part upload, so matching it here keeps one
+      // definition of a clip's identity across both backends. Reading the file is
+      // acceptable: this backend is local disk with no egress.
+      const bytes = await readFile(localPath(key));
+      return {
+        etag: `"${createHash('md5').update(bytes).digest('hex')}"`,
+        lastModified: st.mtime.toUTCString(),
+        size: st.size,
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  const b = bucket();
+  if (!b) return null;
+  try {
+    const { HeadObjectCommand } = await import('@aws-sdk/client-s3');
+    const c = await client();
+    const res = await c.send(new HeadObjectCommand({ Bucket: b, Key: s3Key(key) }));
+    if (!res.ETag) return null;
+    return {
+      etag: res.ETag,
+      lastModified: res.LastModified?.toUTCString(),
+      size: Number(res.ContentLength ?? 0),
+    };
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Store a clip. Never throws — this is a cache, and a learner should still hear a
  * line that could not be saved.

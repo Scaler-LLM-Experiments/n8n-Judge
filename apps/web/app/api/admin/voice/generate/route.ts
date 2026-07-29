@@ -3,6 +3,14 @@ import { problems } from '@judge/problems';
 import { NODE_CATALOG } from '@judge/catalog';
 import { enumerateSpeakable } from '../../../../../src/lib/voiceCatalogue.js';
 import { clipBackend, hasClip, writeClip } from '../../../../../src/server/voiceStore';
+import {
+  clipHash,
+  clipState,
+  problemOfPath,
+  readManifest,
+  writeManifest,
+  type Manifest,
+} from '../../../../../src/server/voiceManifest';
 import { clipPath } from '../../../../../src/lib/voicePath.js';
 
 // Render the missing voice clips and store them, from the deployed app.
@@ -97,21 +105,81 @@ function wantedClips(slugs: string[]): Map<string, string> {
   return wanted;
 }
 
-/** Split into what is stored and what still needs rendering, checked concurrently. */
-async function partition(wanted: Map<string, string>) {
+/**
+ * Split into what is already correct and what needs rendering.
+ *
+ * The manifest answers most of this with no storage traffic at all: a path whose
+ * recorded hash still matches the sentence we would render is current, full stop.
+ * Storage is only consulted for paths the manifest has never heard of.
+ *
+ * Three outcomes per clip:
+ *   current  recorded hash matches            -> skip, free
+ *   stale    recorded hash differs            -> re-render, the words changed
+ *   unknown  nothing recorded                 -> ask storage, then adopt or render
+ *
+ * ADOPTION is the migration path. Every clip is `unknown` the first time this runs,
+ * and treating unknown-but-stored as stale would re-render the entire library on a
+ * guess, for real money, to fix a problem that may not exist. So a stored clip with
+ * no recorded hash is adopted: we record the current hash and leave the audio
+ * alone. That assumes the stored audio matches today's text, which is true unless
+ * a line was edited before manifests existed. `?force=1` is the override.
+ */
+async function partition(
+  wanted: Map<string, string>,
+  manifests: Map<string, Manifest>,
+  voiceId: string,
+  modelId: string,
+  force: boolean
+) {
   const entries = [...wanted];
-  const missing = new Array<[string, string] | null>(entries.length);
+  const decided = new Array<{ entry: [string, string]; render: boolean; adopt: boolean; stale: boolean } | null>(
+    entries.length
+  );
+
   await pooled(
     entries.map((entry, i) => ({ entry, i })),
     CHECK_POOL,
     async ({ entry, i }) => {
-      missing[i] = (await hasClip(entry[0])) ? null : entry;
+      const [path, spoken] = entry;
+      const hash = clipHash(spoken, voiceId, modelId);
+      const manifest = manifests.get(problemOfPath(path)) ?? {};
+      const state = force ? 'stale' : clipState(manifest, path, hash);
+
+      if (state === 'current') {
+        decided[i] = { entry, render: false, adopt: false, stale: false };
+        return;
+      }
+      if (state === 'stale') {
+        decided[i] = { entry, render: true, adopt: false, stale: !force };
+        return;
+      }
+      // Unknown: this is the only case that costs a request, and only until the
+      // manifest has been back-filled once.
+      const stored = await hasClip(path);
+      decided[i] = { entry, render: !stored, adopt: stored, stale: false };
     }
   );
+
   // Index order, not completion order, so batches stay stable between calls and a
   // resumed run walks the same sequence.
-  const todo = missing.filter((e): e is [string, string] => e !== null);
-  return { todo, alreadyStored: entries.length - todo.length };
+  const settled = decided.filter((d): d is NonNullable<typeof d> => d !== null);
+  return {
+    todo: settled.filter((d) => d.render).map((d) => d.entry),
+    adopted: settled.filter((d) => d.adopt).map((d) => d.entry),
+    staleCount: settled.filter((d) => d.stale).length,
+    alreadyCurrent: settled.filter((d) => !d.render && !d.adopt).length,
+  };
+}
+
+/** Load every manifest a set of problems could touch, one GET each. */
+async function loadManifests(slugs: string[]): Promise<Map<string, Manifest>> {
+  const out = new Map<string, Manifest>();
+  await Promise.all(
+    slugs.map(async (slug) => {
+      out.set(slug, await readManifest(slug));
+    })
+  );
+  return out;
 }
 
 /** Which problems to work on, or an error Response if one was named and is unknown. */
@@ -148,16 +216,25 @@ export async function GET(req: Request) {
   const slugs = slugsFrom(new URL(req.url));
   if (slugs instanceof Response) return slugs;
 
+  const voiceId = process.env.ELEVENLABS_VOICE_ID ?? '';
+  const modelId = process.env.ELEVENLABS_MODEL_ID || 'eleven_v3';
+
   const wanted = wantedClips(slugs);
-  const { alreadyStored } = await partition(wanted);
+  const manifests = await loadManifests(slugs);
+  const { todo, adopted, staleCount, alreadyCurrent } = await partition(wanted, manifests, voiceId, modelId, false);
   const total = wanted.size;
+  const stored = alreadyCurrent + adopted.length;
   return Response.json({
     backend,
     total,
-    stored: alreadyStored,
-    remaining: total - alreadyStored,
-    percent: total ? Math.round((alreadyStored / total) * 100) : 100,
-    done: alreadyStored === total,
+    stored,
+    // Split out, because they mean different things to whoever is watching: `stale`
+    // is copy that changed and needs re-rendering, `remaining` includes clips that
+    // never existed.
+    stale: staleCount,
+    remaining: todo.length,
+    percent: total ? Math.round((stored / total) * 100) : 100,
+    done: todo.length === 0,
   });
 }
 
@@ -185,9 +262,20 @@ export async function POST(req: Request) {
 
   const slugs = slugsFrom(url);
   if (slugs instanceof Response) return slugs;
+  // Re-render everything regardless of what the manifest says. The escape hatch for
+  // "the recorded hashes are wrong", which adoption can cause exactly once.
+  const force = url.searchParams.get('force') === '1';
 
   const wanted = wantedClips(slugs);
-  const { todo, alreadyStored } = await partition(wanted);
+  const manifests = await loadManifests(slugs);
+  const { todo, adopted, staleCount, alreadyCurrent } = await partition(wanted, manifests, voiceId, modelId, force);
+
+  // Record the hash for anything already stored but unrecorded. Free, and it is
+  // what makes the next run cost one GET per problem instead of one request per clip.
+  for (const [path, spoken] of adopted) {
+    const m = manifests.get(problemOfPath(path));
+    if (m) m[path] = clipHash(spoken, voiceId, modelId);
+  }
 
   const batch = todo.slice(0, limit);
   let rendered = 0;
@@ -199,29 +287,57 @@ export async function POST(req: Request) {
       const bytes = await render(spoken, apiKey, voiceId, modelId);
       // `writeClip` reports whether it landed. A run against a bucket it can read
       // but not write to would otherwise look like a success and store nothing.
-      if (await writeClip(key, bytes)) rendered += 1;
-      else unstored += 1;
+      if (await writeClip(key, bytes)) {
+        rendered += 1;
+        // Recorded only AFTER the bytes are stored. Recording first would mark a
+        // clip current that does not exist, and the next run would skip it forever.
+        const m = manifests.get(problemOfPath(key));
+        if (m) m[key] = clipHash(spoken, voiceId, modelId);
+      } else {
+        unstored += 1;
+      }
     } catch (err) {
       failures.push(`${spoken.slice(0, 50)}: ${err instanceof Error ? err.message : String(err)}`);
     }
   });
 
+  // One write per problem per batch, after the renders, so a batch that dies
+  // mid-flight leaves the manifest describing strictly less than what is stored —
+  // which costs a re-check, never a wrong skip.
+  const manifestWrites = await Promise.all(
+    [...manifests].map(async ([slug, m]) => (Object.keys(m).length ? writeManifest(slug, m) : true))
+  );
+  const manifestSaved = manifestWrites.every(Boolean);
+
   const remaining = todo.length - batch.length;
-  const stored = alreadyStored + rendered;
+  const stored = alreadyCurrent + adopted.length + rendered;
   return Response.json({
     backend,
     total: wanted.size,
     stored,
     percent: wanted.size ? Math.round((stored / wanted.size) * 100) : 100,
-    alreadyStored,
+    alreadyStored: alreadyCurrent,
+    // Back-filled hashes for clips that already existed. Non-zero only on the first
+    // run after manifests landed, or after a new problem's clips were generated by
+    // the playback route's self-heal.
+    adopted: adopted.length,
+    // Clips whose text CHANGED since they were rendered. This is the number that
+    // was previously invisible: a reworded line used to keep its old audio silently.
+    stale: staleCount,
     rendered,
     unstored,
     remaining,
     failures: failures.slice(0, 5),
     done: remaining === 0 && unstored === 0 && failures.length === 0,
-    next: remaining > 0 ? 'Call again to continue; already-stored clips are skipped.' : null,
+    next: remaining > 0 ? 'Call again to continue; clips whose text has not changed are skipped.' : null,
     ...(unstored
       ? { warning: `${unstored} clip(s) rendered but NOT stored. Those characters were billed. Check bucket write permissions.` }
       : {}),
+    ...(manifestSaved
+      ? {}
+      : {
+          warning:
+            'Clips stored but the manifest could NOT be written, so the next run will re-check every clip against storage. Check bucket write permissions.',
+        }),
   });
 }

@@ -95,6 +95,11 @@ for (const [key, { spoken, where }] of wanted) {
   // Checked even on a dry run: "how many are already stored" is the question
   // being asked when narration is unexpectedly slow. HEAD, not GET — asking via
   // `readClip` downloaded every stored clip just to count it.
+  //
+  // NOTE: this only asks "does it exist", so it does NOT notice a line whose words
+  // changed since it was rendered. `POST /api/admin/voice/generate` does, via the
+  // manifest (src/server/voiceManifest.ts), and it runs where the credentials
+  // already are. Prefer it after editing copy; this script is for a local backend.
   if (await hasClip(key)) {
     skipped += 1;
     continue;

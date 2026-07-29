@@ -2,7 +2,8 @@ import { auth } from '../../../../../auth';
 import { problems } from '@judge/problems';
 import { pickLine, fillLine, captionFor } from '../../../../../src/lib/voiceLines.js';
 import { SAFE_CLIP_PATH, clipPath } from '../../../../../src/lib/voicePath.js';
-import { clipBackend, readClip, writeClip } from '../../../../../src/server/voiceStore';
+import { createHash } from 'node:crypto';
+import { clipBackend, clipMeta, readClip, writeClip } from '../../../../../src/server/voiceStore';
 
 // One voice clip, at a stable URL the browser can cache.
 //
@@ -29,6 +30,20 @@ export const dynamic = 'force-dynamic';
 
 /** A year, immutable. The path pins the content, so nothing can go stale under it. */
 const CACHE = 'private, max-age=31536000, immutable';
+
+/**
+ * Does an `If-None-Match` header cover this ETag?
+ *
+ * Handles the comma-separated list and `*`, and compares weakly by stripping any
+ * `W/` prefix — the distinction between a strong and weak validator only matters
+ * for range requests on mutable content, and a clip's bytes never change under its
+ * path.
+ */
+function etagMatches(ifNoneMatch: string, etag: string): boolean {
+  const norm = (v: string) => v.trim().replace(/^W\//, '');
+  if (ifNoneMatch.trim() === '*') return true;
+  return ifNoneMatch.split(',').some((candidate) => norm(candidate) === norm(etag));
+}
 
 /**
  * Render a missing clip once, so a line added since the last generation run still
@@ -122,7 +137,28 @@ export async function GET(req: Request, ctx: { params: Promise<{ path: string[] 
   // Two segments, an mp3, nothing that climbs out of the prefix.
   if (!SAFE_CLIP_PATH.test(rel)) return new Response('not found', { status: 404 });
 
-  let bytes = clipBackend() === 'none' ? null : await readClip(rel);
+  const configured = clipBackend() !== 'none';
+
+  // Answer a conditional request before fetching anything. A browser that has the
+  // clip but no longer trusts its freshness sends If-None-Match; without this it
+  // had to re-download the whole file, and we had to re-download it from S3 to
+  // serve it. Now that costs one HEAD and returns an empty body.
+  const inm = req.headers.get('if-none-match');
+  if (configured && inm) {
+    const meta = await clipMeta(rel);
+    if (meta && etagMatches(inm, meta.etag)) {
+      return new Response(null, {
+        status: 304,
+        headers: {
+          ETag: meta.etag,
+          'Cache-Control': CACHE,
+          ...(meta.lastModified ? { 'Last-Modified': meta.lastModified } : {}),
+        },
+      });
+    }
+  }
+
+  let bytes = configured ? await readClip(rel) : null;
   let source = 'stored';
   if (!bytes) {
     bytes = await renderAndStore(rel);
@@ -136,6 +172,11 @@ export async function GET(req: Request, ctx: { params: Promise<{ path: string[] 
     'Cache-Control': CACHE,
     'Accept-Ranges': 'bytes',
     'X-Voice-Source': source,
+    // Computed from the bytes we are about to send rather than read back from
+    // storage: it is free here, it is correct for a clip that was just rendered
+    // (which has no stored metadata yet), and it is the value the next
+    // If-None-Match will carry.
+    ETag: `"${createHash('md5').update(bytes).digest('hex')}"`,
   });
 
   // Range support, so the browser can seek and start before the whole file lands.

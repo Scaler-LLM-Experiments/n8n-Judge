@@ -61,9 +61,30 @@ export function clipPath(problem, moment, vars = {}, variant = 0) {
   return `${dir}/${slugify(moment)}${tail}--v${variant}.mp3`;
 }
 
+/**
+ * Where clips are served from.
+ *
+ * Defaults to this app's own route. `NEXT_PUBLIC_VOICE_CDN_BASE` points playback at
+ * a CDN instead, which is the one remaining structural cost in this path: today
+ * every learner's first play of a clip is an S3 GET whose bytes transit the Next
+ * server, so the app is on the byte path for all narration egress. A distribution
+ * in front collapses that to one origin fetch per clip per edge TTL, and needs no
+ * invalidation strategy because the paths are already served `immutable`.
+ *
+ * NOT free, and the reason it is off by default: this route is AUTHENTICATED and
+ * responds `Cache-Control: private`, both deliberately. Narration includes
+ * explanations of correct answers, so an open clip endpoint is an answer key
+ * anybody can enumerate. A shared cache in front of it means either dropping that
+ * check or moving to signed URLs. Set this only alongside that decision.
+ */
+function clipBase() {
+  const base = typeof process !== 'undefined' ? process.env?.NEXT_PUBLIC_VOICE_CDN_BASE : null;
+  return base ? String(base).replace(/\/+$/, '') : '/api/voice/clip';
+}
+
 /** Same path, as a URL the browser can fetch and cache. */
 export function clipUrl(problem, moment, vars, variant) {
-  return `/api/voice/clip/${clipPath(problem, moment, vars, variant)}`;
+  return `${clipBase()}/${clipPath(problem, moment, vars, variant)}`;
 }
 
 /**
