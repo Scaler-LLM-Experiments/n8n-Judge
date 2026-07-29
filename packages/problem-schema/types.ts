@@ -119,9 +119,34 @@ export const nodeSetupSchema = z.object({
         // chosen. Modelling it as a dropdown loses the mode, which is the part
         // that teaches "you can point at a resource by picking it, by pasting
         // its ID, or by URL". See docs/n8n-reference §4.
-        kind: z.enum(['select', 'text', 'number', 'boolean', 'expression', 'resourceLocator']).optional(),
+        kind: z.enum(['select', 'text', 'number', 'boolean', 'expression', 'resourceLocator', 'ruleList']).optional(),
         /** resourceLocator: which lookup modes this field offers. */
         modes: z.array(z.enum(['list', 'id', 'url'])).min(1).optional(),
+        /**
+         * ruleList: the vocabulary a learner builds rules from. Each list should
+         * carry plausible wrong choices as well as the right ones — a picker
+         * containing only correct answers is not a question.
+         */
+        addLabel: z.string().optional(),
+        branchOptions: z.array(nodeSetupFieldOptionSchema).min(2).optional(),
+        leftOptions: z.array(nodeSetupFieldOptionSchema).min(2).optional(),
+        operatorOptions: z.array(nodeSetupFieldOptionSchema).min(2).optional(),
+        rightOptions: z.array(nodeSetupFieldOptionSchema).min(2).optional(),
+        /** ruleList: the authored answer — the rules the flow actually needs. */
+        expect: z
+          .object({
+            rules: z
+              .array(
+                z.object({
+                  outputKey: z.string().min(1),
+                  left: z.string().min(1),
+                  operator: z.string().min(1),
+                  right: z.string().min(1),
+                })
+              )
+              .min(1),
+          })
+          .optional(),
         options: z.array(nodeSetupFieldOptionSchema).min(2).optional(),
         correct: z.union([z.string(), z.number(), z.boolean()]).optional(),
         /** Alternative spellings that should also be accepted (expressions). */
@@ -149,9 +174,20 @@ export const nodeSetupSchema = z.object({
          */
         showWhen: z.record(z.array(z.union([z.string(), z.number(), z.boolean()]))).optional(),
       })
-        .refine((f) => (f.kind ?? 'select') === 'select' ? Array.isArray(f.options) : f.correct !== undefined, {
-          message: 'A select field needs `options`; any other kind needs a `correct` value',
-        })
+        .refine(
+          (f) => {
+            const kind = f.kind ?? 'select';
+            if (kind === 'select' || kind === 'resourceLocator') return Array.isArray(f.options);
+            // A rule list's answer is a STRUCTURE, so it carries `expect` rather
+            // than a single `correct` value.
+            if (kind === 'ruleList') return Array.isArray(f.expect?.rules);
+            return f.correct !== undefined;
+          },
+          {
+            message:
+              'A select/resourceLocator field needs `options`; a ruleList needs `expect.rules`; any other kind needs a `correct` value',
+          }
+        )
     )
     .optional(),
 });

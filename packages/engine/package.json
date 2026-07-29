@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@judge/catalog": "*",
-    "@judge/workflow": "*"
+    "@judge/workflow": "*",
+    "@judge/problem-schema": "*"
   }
 }

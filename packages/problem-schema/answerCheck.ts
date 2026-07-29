@@ -10,6 +10,8 @@
 // turns that into a graded signal instead: guessing is allowed, and it scores
 // like guessing, because `firstTry` is what Understanding is built on.
 
+import { parseRuleAspectId, gradeRuleAspect, whyForAspect } from './ruleList.ts';
+
 type Rec = Record<string, unknown>;
 
 export type CheckKind = 'dissection' | 'field' | 'setting' | 'probe' | 'stress' | 'placement';
@@ -95,9 +97,22 @@ export function checkAnswer(problem: Rec, req: CheckRequest): CheckResult {
 
     case 'field': {
       const [type, key] = req.id.split(':');
-      const field = (((problem.nodeSetup as Record<string, Rec>) ?? {})[type]?.fields as Rec[] | undefined)?.find(
-        (f) => f.key === key
-      );
+      const fields = ((problem.nodeSetup as Record<string, Rec>) ?? {})[type]?.fields as Rec[] | undefined;
+
+      // A RULE LIST is graded as three separate items — count, categories,
+      // conditions — so its checks arrive as `<type>:<fieldKey>#<aspect>`. Each
+      // one is its own scored decision with its own attempt count, which is what
+      // keeps a variable-length structure gradable without the denominator moving.
+      const aspectId = parseRuleAspectId(key ?? '');
+      if (aspectId) {
+        const ruleField = fields?.find((f) => f.key === aspectId.fieldKey);
+        if (!ruleField) return { correct: false, unknown: true };
+        const verdict = gradeRuleAspect(ruleField, aspectId.aspect, req.answer);
+        if (verdict === null) return { correct: false, unknown: true };
+        return { correct: verdict, why: whyForAspect(ruleField, aspectId.aspect, verdict) };
+      }
+
+      const field = fields?.find((f) => f.key === key);
       if (!field) return { correct: false, unknown: true };
       const correct = fieldIsCorrect(field, req.answer);
       const chosen = ((field.options as Rec[]) ?? []).find((o) => o.value === req.answer);

@@ -81,7 +81,9 @@ export function toPublicProblem(problem: Rec): PublicProblem {
               ...f,
               options: ((f.options as Rec[]) ?? []).map((o) => omit(o, ['correct', 'why'])),
             },
-            ['correct', 'accepts', 'whyCorrect', 'whyWrong']
+            // `expect` is a ruleList's whole answer key, and `why` its
+            // per-aspect explanations — both must go the same way `correct` does.
+            ['correct', 'accepts', 'whyCorrect', 'whyWrong', 'expect', 'why']
           )
         ),
         // Which settings are GRADED stays visible — that is the "Set this"

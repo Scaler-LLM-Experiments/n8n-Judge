@@ -394,3 +394,69 @@ describe('enumerateItems — conditional fields', () => {
     expect(scoreSession(conditional, attempts).total).toBeLessThan(100);
   });
 });
+
+// A rule list is a variable-length structure. It must still contribute a FIXED
+// number of items, or the denominator moves between learners and config quietly
+// outweighs everything else on that problem.
+describe('enumerateItems — rule lists', () => {
+  const withRules = {
+    dissection: [{ id: 'q', prompt: 'q?', options: [{}, {}] }],
+    buildPhases: [{ nodeTypes: ['switch'] }],
+    nodeSetup: {
+      switch: {
+        fields: [
+          {
+            key: 'rules',
+            label: 'Routing rules',
+            kind: 'ruleList',
+            expect: { rules: [{ outputKey: 'A', left: 'category', operator: 'equals', right: 'A' }] },
+          },
+        ],
+      },
+    },
+    evalQuestions: [],
+  };
+
+  it('contributes exactly three items', () => {
+    const ids = enumerateItems(withRules).config.map((i) => i.id);
+    expect(ids).toEqual(['switch:rules#count', 'switch:rules#categories', 'switch:rules#conditions']);
+  });
+
+  it('contributes the same three however many rules the learner built', () => {
+    const many = { ...withRules, nodeSetup: { switch: { fields: [{ ...withRules.nodeSetup.switch.fields[0], expect: { rules: [
+      { outputKey: 'A', left: 'category', operator: 'equals', right: 'A' },
+      { outputKey: 'B', left: 'category', operator: 'equals', right: 'B' },
+      { outputKey: 'C', left: 'category', operator: 'equals', right: 'C' },
+    ] } }] } } };
+    expect(enumerateItems(many).config).toHaveLength(3);
+  });
+
+  // Open-ended: there is no option set to eliminate your way through, so the
+  // curve is the gentler 100/50/0 one, same as an expression field.
+  it('scores each aspect as open-ended', () => {
+    for (const item of enumerateItems(withRules).config) {
+      expect(item.optionCount).toBe(null);
+      expect(itemScore(1, item.optionCount)).toBe(1);
+      expect(itemScore(2, item.optionCount)).toBe(0.5);
+      expect(itemScore(3, item.optionCount)).toBe(0);
+    }
+  });
+
+  it('names the aspect in the label, so the report is readable', () => {
+    const labels = enumerateItems(withRules).config.map((i) => i.label);
+    expect(labels[0]).toMatch(/Number of branches/);
+    expect(labels[1]).toMatch(/Branch names/);
+    expect(labels[2]).toMatch(/What each branch tests/);
+  });
+
+  // Getting two of three aspects right must land strictly between all and nothing.
+  it('gives partial credit across the three aspects', () => {
+    const all = { 'dissection:q': 1, 'nodePick:switch': 1, 'switch:rules#count': 1, 'switch:rules#categories': 1, 'switch:rules#conditions': 1 };
+    const some = { ...all, 'switch:rules#conditions': null };
+    const none = { 'dissection:q': 1, 'nodePick:switch': 1 };
+    const score = (a: Record<string, number | null>) => scoreSession(withRules, a).total;
+    expect(score(all)).toBe(100);
+    expect(score(some)).toBeLessThan(100);
+    expect(score(some)).toBeGreaterThan(score(none));
+  });
+});

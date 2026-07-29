@@ -12,6 +12,8 @@
 // exhaustion is not knowledge. That single property is what stops guessing from
 // paying, and it holds at any option count without re-tuning.
 
+import { RULE_ASPECTS, RULE_ASPECT_LABEL } from '@judge/problem-schema';
+
 /** Item value curve for items with no closed option set. */
 const OPEN_ENDED_STEP = 0.5;
 
@@ -118,6 +120,25 @@ export function enumerateItems(problem: Rec, attempts: Record<string, unknown> =
       // rather than capping the maximum, and choosing the parent value that
       // reveals fewer follow-ups is itself a graded decision.
       if (field.showWhen && attempts[`${type}:${field.key}`] === undefined) continue;
+
+      // A RULE LIST is a variable-length structure, so it cannot be one item with
+      // one correct value. It contributes a FIXED three — count, categories,
+      // conditions — whatever the learner builds. Scoring per rule would make the
+      // denominator move between attempts, so two learners' Switches would be
+      // worth different amounts and config would quietly outweigh the rest of the
+      // problem. All three are open-ended (no option count), so they decay
+      // 100/50/0 like an expression field. See packages/problem-schema/ruleList.ts.
+      if (field.kind === 'ruleList') {
+        for (const aspect of RULE_ASPECTS) {
+          config.push({
+            id: `${type}:${field.key}#${aspect}`,
+            label: `${type} — ${field.label ?? field.key}: ${RULE_ASPECT_LABEL[aspect]}`,
+            optionCount: null,
+          });
+        }
+        continue;
+      }
+
       config.push({
         id: `${type}:${field.key}`,
         label: `${type} — ${field.label ?? field.key}`,
