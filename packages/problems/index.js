@@ -5,11 +5,15 @@
 import { emailTriage } from './email-triage/index.js';
 import { leadTriage } from './lead-triage/index.js';
 import { meetingNotes } from './meeting-notes/index.js';
+import { orderDesk } from './order-desk/index.js';
 
 export const problems = {
   [emailTriage.id]: emailTriage,
   [leadTriage.id]: leadTriage,
   [meetingNotes.id]: meetingNotes,
+  // Last, and deliberately: the registry's order is the catalogue's order, and this
+  // one is the long haul.
+  [orderDesk.id]: orderDesk,
 };
 
 export const problemList = Object.values(problems);

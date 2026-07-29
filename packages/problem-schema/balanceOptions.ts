@@ -71,6 +71,28 @@ export function balanceGroup<T>(
   optionsOf: (item: T) => unknown[] | undefined
 ): T[] {
   const offset = hash32(groupKey) % 997;
+
+  // The cap, computed over the whole group before anything moves.
+  //
+  // `(offset + i) % options.length` alone does NOT guarantee distinct targets when
+  // the items in a group have DIFFERENT option counts, because each one takes a
+  // different modulus: a 4-option field at i=0 and a 3-option field at i=1 both
+  // land on 2 whenever offset is 2 mod 4 and 1 mod 3. The three original problems
+  // happened to give every field in a node the same number of options, so the
+  // collision was invisible until a problem mixed 3-option and 4-option fields on
+  // one node. Rotation is still what spreads the positions; this is what makes the
+  // spread a guarantee rather than a tendency.
+  const lengths = items
+    .map((item) => {
+      const options = optionsOf(item);
+      if (!Array.isArray(options) || options.length < 2) return 0;
+      const from = correctIndexOf(item);
+      return from >= 0 && from < options.length ? options.length : 0;
+    })
+    .filter((n) => n > 0);
+  const cap = lengths.length ? Math.ceil(lengths.length / Math.min(...lengths)) : 1;
+  const used = new Map<number, number>();
+
   return items.map((item, i) => {
     const options = optionsOf(item);
     if (!Array.isArray(options) || options.length < 2) return item;
@@ -79,7 +101,16 @@ export function balanceGroup<T>(
     // don't understand): leave the order exactly as authored rather than
     // inventing a position and risking a silent mis-grade.
     if (from < 0 || from >= options.length) return item;
-    const target = (offset + i) % options.length;
+
+    // Walk forward from the rotated position until this slot is not over the cap.
+    // Always terminates: cap * options.length >= cap * min(lengths) >= the number of
+    // items being placed, so some slot has room.
+    let target = (offset + i) % options.length;
+    for (let step = 0; step < options.length && (used.get(target) ?? 0) >= cap; step += 1) {
+      target = (target + 1) % options.length;
+    }
+    used.set(target, (used.get(target) ?? 0) + 1);
+
     if (target === from) return item;
     return setOptions(item, placeAt(options, from, target));
   });

@@ -13,7 +13,7 @@ const exe = process.env.SMOKE_CHROME ?? '/opt/pw-browsers/chromium-1194/chrome-l
 const out = process.argv[2] ?? null;
 if (out) mkdirSync(out, { recursive: true });
 
-const PROBLEMS = ['email-triage', 'lead-triage', 'meeting-notes'];
+const PROBLEMS = ['email-triage', 'lead-triage', 'meeting-notes', 'order-desk'];
 const ROUTES = ['#build', '#run-story', '#eval-demo', '#report-demo'];
 
 // Ignore noise that isn't an app defect: the mascot wasm/asset fetches, and a
