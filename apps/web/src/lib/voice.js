@@ -77,8 +77,22 @@ export function createVoice({ fetchImpl, onMoment, problemSlug, problem } = {}) 
    * Bounded and one-shot, per the porting guide: consumed on play so variants
    * still rotate, and capped so a long session cannot accumulate blobs.
    */
-  const warmed = new Map(); // moment -> { variant, caption, blob }
-  const MAX_WARM = 4;
+  const warmed = new Map(); // warmKey -> { variant, caption, blob }
+  // Room for both verdicts across a question's options, since a warmed clip is
+  // per WORDING and a line naming the learner's choice has one per choice.
+  const MAX_WARM = 12;
+
+  /**
+   * A warmed clip is keyed by everything that changes the words, not just the
+   * moment.
+   *
+   * This was the bug behind "it does not say the node name". `verify_pass` was
+   * warmed on NDV open with no vars, so the server rendered "Yes, {node} is set up
+   * right" with an empty node — and `play` then consumed that clip, so the name
+   * never appeared however carefully it was passed in. Keying by moment alone
+   * silently discards the variables.
+   */
+  const warmKey = (moment, vars = {}) => `${moment}|${vars.key ?? ''}|${vars.node ?? ''}|${vars.answer ?? ''}`;
 
   let audioEl = null;
   let ctx = null;
@@ -214,19 +228,20 @@ export function createVoice({ fetchImpl, onMoment, problemSlug, problem } = {}) 
     }
   }
 
-  function remember(moment, entry) {
+  function remember(key, entry) {
     if (warmed.size >= MAX_WARM) {
       const oldest = warmed.keys().next().value;
       if (oldest !== undefined) warmed.delete(oldest);
     }
-    warmed.set(moment, entry);
+    warmed.set(key, entry);
   }
 
   async function start(moment, vars) {
     // A warmed clip is consumed here, which is what makes the common path
     // instant: no fetch, no vendor call, straight to playback.
-    const hit = warmed.get(moment);
-    if (hit) warmed.delete(moment);
+    const wk = warmKey(moment, vars);
+    const hit = warmed.get(wk);
+    if (hit) warmed.delete(wk);
 
     const picked = hit ? { index: hit.variant, line: null } : pickLine(moment, undefined, { problem, key: vars?.key });
     if (!picked) return;
@@ -321,19 +336,20 @@ export function createVoice({ fetchImpl, onMoment, problemSlug, problem } = {}) 
      * time costs one request and no vendor billing.
      */
     prefetch(moment, vars = {}) {
-      if (!hasMoment(moment) || muted || warmed.has(moment)) return;
+      const wk = warmKey(moment, vars);
+      if (!hasMoment(moment) || muted || warmed.has(wk)) return;
       const picked = pickLine(moment, undefined, { problem, key: vars?.key });
       if (!picked) return;
       // Reserve the slot immediately so two callers cannot both fetch it.
-      remember(moment, { variant: picked.index, caption: captionFor(fillLine(picked.line, vars)), blob: null });
+      remember(wk, { variant: picked.index, caption: captionFor(fillLine(picked.line, vars)), blob: null });
       fetchLine(moment, picked.index, vars).then((got) => {
         if (!got) {
-          warmed.delete(moment);
+          warmed.delete(wk);
           return;
         }
         // Keep the entry even with no blob: the server's caption is still better
         // than the locally-picked one, and it records that there is no audio.
-        remember(moment, { variant: picked.index, caption: got.caption ?? captionFor(fillLine(picked.line, vars)), blob: got.blob });
+        remember(wk, { variant: picked.index, caption: got.caption ?? captionFor(fillLine(picked.line, vars)), blob: got.blob });
       });
     },
 

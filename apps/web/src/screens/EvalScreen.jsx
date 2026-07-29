@@ -7,7 +7,7 @@ import { ProblemStatementPanel } from '../components/ProblemStatementPanel.jsx';
 import { NodeFlowRow } from '../components/NodeFlowRow.jsx';
 import { NodeReplay } from '../components/NodeReplay.jsx';
 import { shuffledEvalOptions } from '../lib/shuffle.js';
-import { useVoice } from '../lib/VoiceContext.jsx';
+import { useVoiceActions } from '../lib/VoiceContext.jsx';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
 import { simulateCase } from '@judge/engine/simulate.js';
 import { scoreEval } from '@judge/engine/evalScore.js';
@@ -47,7 +47,7 @@ function resolveVerdict(q, chosen, result) {
 }
 
 export function EvalScreen({ problem, sessionId, graph, onDecision, onSubmit }) {
-  const voice = useVoice();
+  const voice = useVoiceActions();
   const said = useRef(false);
   useEffect(() => {
     if (said.current) return;

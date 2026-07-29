@@ -1,6 +1,7 @@
 import { auth } from '../../../auth';
 import { pickLine, captionFor, fillLine, hasMoment } from '../../../src/lib/voiceLines.js';
 import { getPublishedVersion } from '../../../src/server/problemVersions';
+import { clipBackend, clipKey, readClip, writeClip } from '../../../src/server/voiceStore';
 
 // Iris's voice: render one moment's line through ElevenLabs and hand back the audio.
 //
@@ -13,6 +14,17 @@ import { getPublishedVersion } from '../../../src/server/problemVersions';
 // voices are robotic and different on every machine, so the product would sound
 // like a different person depending on the laptop. One voice, chosen once, is
 // part of the character.
+//
+// ---------------------------------------------------------------------------
+// Where the bytes come from, in order
+// ---------------------------------------------------------------------------
+//   1. the in-process cache      same line, same server, already played
+//   2. stored clips              pre-rendered by scripts/generate-voice.mjs
+//   3. a live vendor render      anything missing, then written through to (2)
+//
+// Step 2 is what removes the latency properly. Step 3 exists so a line that was
+// added or reworded since the last generation run still speaks, just slowly the
+// first time, instead of going silent.
 //
 // ---------------------------------------------------------------------------
 // Cost, and why the cache is not optional
@@ -137,15 +149,33 @@ export async function GET(req: Request) {
   const hit = cache.get(cacheKey);
   if (hit) {
     headers.set('Content-Type', 'audio/mpeg');
-    headers.set('X-Voice-Cache', 'hit');
+    headers.set('X-Voice-Cache', 'memory');
     return new Response(hit, { headers });
+  }
+
+  // Pre-rendered, addressed by the text itself — so the key here is derived the
+  // same way the generator derived it, with no manifest in between to fall out of
+  // sync. See apps/web/src/server/voiceStore.ts.
+  const storeKey = clipKey(spoken, voiceId, modelId);
+  if (clipBackend() !== 'none') {
+    const stored = await readClip(storeKey);
+    if (stored) {
+      const bytes = stored.buffer.slice(stored.byteOffset, stored.byteOffset + stored.byteLength) as ArrayBuffer;
+      remember(cacheKey, bytes);
+      headers.set('Content-Type', 'audio/mpeg');
+      headers.set('X-Voice-Cache', 'stored');
+      return new Response(bytes, { headers });
+    }
   }
 
   try {
     const bytes = await render(spoken, apiKey, voiceId, modelId);
     remember(cacheKey, bytes);
+    // Write through, so a line added since the last generation run is only ever
+    // rendered once across the whole fleet rather than once per server.
+    void writeClip(storeKey, Buffer.from(bytes));
     headers.set('Content-Type', 'audio/mpeg');
-    headers.set('X-Voice-Cache', 'miss');
+    headers.set('X-Voice-Cache', 'rendered');
     return new Response(bytes, { headers });
   } catch (err) {
     // A vendor failure must not cost the learner the line. Log it so a wrong

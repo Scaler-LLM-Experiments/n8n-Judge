@@ -16,3 +16,5 @@ shots/
 # throwaway verification scripts — never commit these
 tmp-*.mjs
 *_tmp.mjs
+
+.voice-clips/

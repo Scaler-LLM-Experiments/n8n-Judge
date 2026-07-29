@@ -77,3 +77,52 @@ npm run build
 
 Preview routes (dev): `#build`, `#run-story` (auto-runs the finished flow),
 `#eval-demo`, `#report-demo` — all honor `?problem=<id>`.
+
+---
+
+## Giving the problem a voice
+
+Iris narrates the journey, and by default she uses the shared phrase book in
+[apps/web/src/lib/voiceLines.js](../apps/web/src/lib/voiceLines.js). That works with
+no work from you: a problem with no `voice` block still speaks.
+
+The defaults are the floor, though, not the target. A shared line cannot know what
+your flow is FOR, so it has to say "now open it and set it up". An authored one can
+say what the node actually decides:
+
+```js
+voice: {
+  'node_placed:switch': ['[calm] This is where the kinds of email split apart.'],
+  'answer_wrong:trigger': ['[thoughtful] Would {answer} start on its own? Nobody is pressing anything.'],
+  phase_complete: ['[excited] That is the routing done.'],
+}
+```
+
+Keys are `moment` or `moment:key`, resolved most-specific-first. The `key` is a
+question id for the answer moments, a node type for the node moments, and a phase
+id for `phase_complete`. Moments are listed in `LINES`.
+
+**The rules, which `validateProblem()` checks:**
+
+- **No em dashes.** They do not read aloud.
+- **Under about 22 words**, which is roughly seven seconds spoken. Longer and the
+  line is still talking after the moment it described has passed.
+- **Never reveal an answer the learner has not given.** Naming what they just chose
+  is good (`{answer}`, `{node}`); naming the answer to a question still open is not.
+  Anything that plays before a decision must give nothing away.
+- **Do not read the screen.** If the words are already on the page, saying them
+  competes with reading instead of adding to it.
+- **Open with a delivery tag** (`[warm]`, `[calm]`, `[thoughtful]`, `[excited]`).
+  These are ElevenLabs v3 direction and are not spoken.
+
+Variables must come from a **closed set** — a node label, an option label — because
+every possible line is pre-rendered ahead of time
+([voiceCatalogue.js](../apps/web/src/lib/voiceCatalogue.js)). A variable that could
+hold anything cannot be pre-rendered, so it would be slow on every play.
+
+After authoring, render the clips:
+
+```bash
+DRY_RUN=1 npm run voice:generate -- your-problem   # what it would cost, spends nothing
+npm run voice:generate -- your-problem
+```

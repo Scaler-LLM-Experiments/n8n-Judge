@@ -11,7 +11,7 @@ import { N8nNodeView } from '../n8n/N8nNodeView.jsx';
 import { NodeIcon } from '../nodes/nodeIcons.js';
 import { checkAnswer } from '../lib/grader.js';
 import { resolveServerVerdict, UNVERIFIED_MESSAGE } from '../lib/verdict.js';
-import { useVoice } from '../lib/VoiceContext.jsx';
+import { useVoiceActions } from '../lib/VoiceContext.jsx';
 
 const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 
@@ -45,7 +45,7 @@ function resolveVerdict(q, opt, result) {
 
 export function DissectionScreen({ problem, sessionId, onComplete, onDecision }) {
   const questions = problem.dissection;
-  const voice = useVoice();
+  const voice = useVoiceActions();
   const [phase, setPhase] = useState('greet'); // greet | problem | quiz | done
   const [index, setIndex] = useState(0);
   const [picked, setPicked] = useState(null); // option index
@@ -74,12 +74,6 @@ export function DissectionScreen({ problem, sessionId, onComplete, onDecision })
   // Warm BOTH verdicts while the learner is still reading the question. Without
   // this, the line is rendered only after they click, so Iris answers a second or
   // two late — by which time they have already read the explanation themselves.
-  useEffect(() => {
-    if (phase !== 'quiz') return;
-    voice.prefetch('answer_correct');
-    voice.prefetch('answer_wrong');
-  }, [phase, index, voice]);
-
   // ease the whole quiz screen in when arriving from the problem beat
   useEffect(() => {
     if (phase === 'quiz' && quizRef.current) {
@@ -95,6 +89,18 @@ export function DissectionScreen({ problem, sessionId, onComplete, onDecision })
   // let one session put the answer on top of nearly every question at once.
   // Correctness is by `type`, never by position, so rendering as-sent is safe.
   const q = questions[index];
+
+  // Warm a clip per possible verdict, AFTER `q` exists: this effect used to sit
+  // above the declaration and threw "Cannot access 'q' before initialization",
+  // which took the whole Understand screen down. Every option is on screen, so
+  // every wording the verdict can use is known before they click.
+  useEffect(() => {
+    if (phase !== 'quiz') return;
+    for (const opt of q.options ?? []) {
+      voice.prefetch('answer_correct', { key: q.id, answer: opt.label });
+      voice.prefetch('answer_wrong', { key: q.id, answer: opt.label });
+    }
+  }, [phase, index, voice, q]);
   const pickedOption = picked !== null ? q.options[picked] : null;
   // "answered" = settled (verdict landed); "pending" = picked but awaiting the
   // server. Only `answered` unlocks Continue / shows the explanation.

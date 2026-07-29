@@ -12,7 +12,7 @@ import { validateGraph } from '@judge/engine/validateGraph.js';
 import { simulateAll, roleOf } from '@judge/engine/simulate.js';
 import { checkAnswer } from '../lib/grader.js';
 import { useTraceContext } from '../lib/TraceContext.jsx';
-import { useVoice } from '../lib/VoiceContext.jsx';
+import { useVoiceActions } from '../lib/VoiceContext.jsx';
 
 /** What a learner calls this node, for a spoken line. */
 function nodeLabel(type) {
@@ -63,7 +63,7 @@ function sequenceProbe(meta) {
 
 export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessionId }) {
   const { trace } = useTraceContext();
-  const voice = useVoice();
+  const voice = useVoiceActions();
   const phases = problem.buildPhases;
 
   const [phaseIndex, setPhaseIndex] = useState(0);

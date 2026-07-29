@@ -10,7 +10,7 @@ import { FieldControl, isCorrectValue, expressionFor, whyForField, resourceValue
 import { RuleListControl } from './RuleListControl.jsx';
 import { defaultSettings, gradeSettings } from './nodeSettings.js';
 import { checkAnswer } from '../lib/grader.js';
-import { useVoice } from '../lib/VoiceContext.jsx';
+import { useVoiceActions } from '../lib/VoiceContext.jsx';
 
 // Shown once per session: the first time a node verifies, Iris spotlights the
 // close button so the learner learns that closing a green NDV finishes the node.
@@ -31,7 +31,7 @@ const VOICE_LEAD_MS = 1150;
 // verify green, and setup needs BOTH. Only what the problem grades is editable;
 // the rest render at real n8n defaults but locked.
 export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete, onClose, sessionId }) {
-  const voice = useVoice();
+  const voice = useVoiceActions();
   const [tab, setTab] = useState('params');
   const rootRef = useRef(null);
   const panelRef = useRef(null);
@@ -69,9 +69,12 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
   // Warm both outcomes on open, so the verdict is spoken the instant Verify
   // lands rather than a beat later.
   useEffect(() => {
-    voice.prefetch('verify_pass');
-    voice.prefetch('verify_fail');
-  }, [voice]);
+    // WITH the node, because the line names it. Warming without the vars renders
+    // "Yes, is set up right" and then plays that.
+    const said = { key: node.nodeType, node: node.label };
+    voice.prefetch('verify_pass', said);
+    voice.prefetch('verify_fail', said);
+  }, [voice, node.nodeType, node.label]);
 
   useEffect(() => {
     gsap.fromTo(rootRef.current, { opacity: 0 }, { opacity: 1, duration: 0.24, ease: 'power2.out' });

@@ -637,50 +637,50 @@ export const emailTriage = {
     // Still no answers. Each one describes the shape of the problem, not the node
     // that solves it.
     'answer_correct:trigger': [
-      '[warm] Yes. The flow has to wake up on its own, every time mail arrives.',
+      '[warm] Yes. {answer} wakes this up on its own, every time mail arrives.',
     ],
     'answer_wrong:trigger': [
-      '[thoughtful] Would that start on its own though? Nobody is sitting here pressing anything.',
+      '[thoughtful] Would {answer} start on its own? Nobody is sitting here pressing anything.',
     ],
     'answer_wrong_again:trigger': [
       '[calm] Think about who or what begins this. The mail arrives without anyone asking.',
     ],
 
     'answer_correct:classify': [
-      '[warm] Right. Something has to read the words and decide what kind of message it is.',
+      '[warm] Right. {answer} reads the words and decides what kind of message it is.',
     ],
     'answer_wrong:classify': [
-      '[thoughtful] Could that actually judge what the email is about? Read it again.',
+      '[thoughtful] Could {answer} actually judge what the email is about? Have another look.',
     ],
     'answer_wrong_again:classify': [
       '[calm] The email is free text. You need something that can understand meaning, not match a rule.',
     ],
 
     'answer_correct:parse': [
-      '[warm] Yes. A blob of text is no use to the next step. It needs separate fields.',
+      '[warm] Yes. {answer} turns that blob of text into separate, usable fields.',
     ],
     'answer_wrong:parse': [
-      '[thoughtful] The answer is one lump of text right now. Does that step help with that?',
+      '[thoughtful] The answer is one lump of text right now. Does {answer} help with that?',
     ],
     'answer_wrong_again:parse': [
       '[calm] Ask what shape the next node needs its input in, then work backwards.',
     ],
 
     'answer_correct:switch': [
-      '[warm] Exactly. One email in, and it has to leave down one of several paths.',
+      '[warm] Exactly. {answer} takes one email in and sends it out down one path.',
     ],
     'answer_wrong:switch': [
-      '[thoughtful] That takes one path though. You need one input and three ways out.',
+      '[thoughtful] {answer} gives you one way out. You need one in and three out.',
     ],
     'answer_wrong_again:switch': [
       '[calm] Count the outputs you need. Three categories means three separate exits.',
     ],
 
     'answer_correct:action': [
-      '[warm] Yes. Something has to actually reach the customer at the end.',
+      '[warm] Yes. {answer} is what actually reaches the customer at the end.',
     ],
     'answer_wrong:action': [
-      '[thoughtful] Would the person who wrote in ever see that? They are waiting on a reply.',
+      '[thoughtful] Would the person who wrote in ever see {answer}? They want a reply.',
     ],
 
     // ---- reasoning, per node setup -----------------------------------------
