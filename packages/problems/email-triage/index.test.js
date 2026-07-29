@@ -47,25 +47,29 @@ describe('emailTriage problem spec', () => {
             expect(typeof o.why).toBe('string');
             expect(typeof o.label).toBe('string');
           }
-        } else if (kind === 'ruleList') {
+        } else if (kind === 'ruleList' || kind === 'assignmentList') {
           // A rule list is graded as three aspects, so it carries the answer as a
           // STRUCTURE (`expect.rules`) and one explanation per aspect per verdict.
-          expect(Array.isArray(field.expect?.rules), `${type}/${field.key} needs expect.rules`).toBe(true);
-          for (const aspect of ['count', 'categories', 'conditions']) {
+          const isRules = kind === 'ruleList';
+          const entries = isRules ? field.expect?.rules : field.expect?.assignments;
+          expect(Array.isArray(entries), `${type}/${field.key} needs its expected entries`).toBe(true);
+          for (const aspect of isRules ? ['count', 'categories', 'conditions'] : ['count', 'names', 'values']) {
             expect(typeof field.why?.[aspect]?.correct, `${type}/${field.key} why.${aspect}.correct`).toBe('string');
             expect(typeof field.why?.[aspect]?.wrong, `${type}/${field.key} why.${aspect}.wrong`).toBe('string');
           }
           // Every vocabulary list needs real wrong choices as well as right ones —
           // a picker containing only correct answers is not a question.
-          for (const listKey of ['branchOptions', 'leftOptions', 'operatorOptions', 'rightOptions']) {
+          for (const listKey of isRules
+            ? ['branchOptions', 'leftOptions', 'operatorOptions', 'rightOptions']
+            : ['nameOptions', 'valueOptions']) {
             const list = field[listKey] ?? [];
             expect(list.length, `${type}/${field.key} ${listKey}`).toBeGreaterThan(1);
             expect(list.some((o) => o.correct === false), `${type}/${field.key} ${listKey} needs a wrong option`).toBe(true);
             for (const o of list) expect(typeof o.why, `${type}/${field.key} ${listKey} why`).toBe('string');
           }
           // The answer must be buildable from what is offered.
-          const offered = new Set(field.branchOptions.map((o) => o.value));
-          for (const r of field.expect.rules) expect(offered.has(r.outputKey), r.outputKey).toBe(true);
+          const offered = new Set((isRules ? field.branchOptions : field.nameOptions).map((o) => o.value));
+          for (const e of entries) expect(offered.has(isRules ? e.outputKey : e.name), isRules ? e.outputKey : e.name).toBe(true);
         } else {
           // Typed fields (number, expression, text, boolean) grade against
           // `correct` and carry one explanation for each outcome, since there

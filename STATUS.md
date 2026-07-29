@@ -131,7 +131,7 @@ Progress:
     the same as answering correctly.
   - **Weights** 30 dissection / 25 placement / 25 config / 20 edge-case. The even build
     split is deliberate — without it config would carry 13/19ths of the build score purely
-    because the problem has more dropdowns. Consequence: one placement is worth ~2.5 config
+    because the problem has more dropdowns. Consequence: one placement is worth ~2.8 config
     items on email-triage, ~1.25 on meeting-notes, so equal scores across problems are not
     quite the same mix.
   - Denominator is **every decision the problem requires**, enumerated from problem data,

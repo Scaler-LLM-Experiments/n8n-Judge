@@ -119,7 +119,9 @@ export const nodeSetupSchema = z.object({
         // chosen. Modelling it as a dropdown loses the mode, which is the part
         // that teaches "you can point at a resource by picking it, by pasting
         // its ID, or by URL". See docs/n8n-reference §4.
-        kind: z.enum(['select', 'text', 'number', 'boolean', 'expression', 'resourceLocator', 'ruleList']).optional(),
+        kind: z
+          .enum(['select', 'text', 'number', 'boolean', 'expression', 'resourceLocator', 'ruleList', 'assignmentList'])
+          .optional(),
         /** resourceLocator: which lookup modes this field offers. */
         modes: z.array(z.enum(['list', 'id', 'url'])).min(1).optional(),
         /**
@@ -132,6 +134,12 @@ export const nodeSetupSchema = z.object({
         leftOptions: z.array(nodeSetupFieldOptionSchema).min(2).optional(),
         operatorOptions: z.array(nodeSetupFieldOptionSchema).min(2).optional(),
         rightOptions: z.array(nodeSetupFieldOptionSchema).min(2).optional(),
+        /**
+         * assignmentList: n8n's Edit Fields, a repeatable list of name → value
+         * assignments. Same machinery as a rule list, simpler entries.
+         */
+        nameOptions: z.array(nodeSetupFieldOptionSchema).min(2).optional(),
+        valueOptions: z.array(nodeSetupFieldOptionSchema).min(2).optional(),
         /**
          * ruleList: one explanation per graded aspect, per verdict. A separate
          * shape from a select's per-option `why` because the three aspects are
@@ -153,7 +161,12 @@ export const nodeSetupSchema = z.object({
                   right: z.string().min(1),
                 })
               )
-              .min(1),
+              .min(1)
+              .optional(),
+            assignments: z
+              .array(z.object({ name: z.string().min(1), value: z.string().min(1) }))
+              .min(1)
+              .optional(),
           })
           .optional(),
         options: z.array(nodeSetupFieldOptionSchema).min(2).optional(),
@@ -190,6 +203,7 @@ export const nodeSetupSchema = z.object({
             // A rule list's answer is a STRUCTURE, so it carries `expect` rather
             // than a single `correct` value.
             if (kind === 'ruleList') return Array.isArray(f.expect?.rules);
+            if (kind === 'assignmentList') return Array.isArray(f.expect?.assignments);
             return f.correct !== undefined;
           },
           {

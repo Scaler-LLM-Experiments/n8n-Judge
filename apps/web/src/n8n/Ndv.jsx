@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { visibleFields, pruneHidden, RULE_ASPECTS, RULE_ASPECT_LABEL, gradeRuleAspect, rulesReady } from '@judge/problem-schema';
+import { visibleFields, pruneHidden, isListKind, aspectsFor, aspectLabel, gradeListAspect, listReady } from '@judge/problem-schema';
 import gsap from 'gsap';
 import { X, LockSimple, CaretDown, CheckCircle, XCircle, Lightning, Sparkle, Lock, CircleNotch, Warning } from '@phosphor-icons/react';
 import { NodeIcon, metaOf, typeCategory } from '../nodes/nodeIcons.js';
@@ -84,13 +84,13 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
   const paramChecks = useMemo(
     () =>
       fields.flatMap((f) =>
-        f.kind === 'ruleList'
-          ? RULE_ASPECTS.map((aspect) => ({
+        isListKind(f.kind)
+          ? aspectsFor(f.kind).map((aspect) => ({
               field: f,
               key: `${f.key}#${aspect}`,
               id: `${node.nodeType}:${f.key}#${aspect}`,
               aspect,
-              label: `${f.label} — ${RULE_ASPECT_LABEL[aspect]}`,
+              label: `${f.label} — ${aspectLabel(f.kind, aspect)}`,
             }))
           : [{ field: f, key: f.key, id: `${node.nodeType}:${f.key}`, aspect: null, label: f.label }]
       ),
@@ -123,7 +123,7 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
     if (f.kind === 'resourceLocator') return String(resourceValue(v) ?? '').trim() !== '';
     // Every rule filled in, and at least one rule. A half-built rule would be
     // submitted as a wrong answer to a question the learner had not finished.
-    if (f.kind === 'ruleList') return rulesReady(v);
+    if (isListKind(f.kind)) return listReady(f.kind, v);
     return v !== undefined && String(v).trim() !== '';
   };
   const allChosen = stage === 'params' ? fields.every(hasValue) : true;
@@ -240,7 +240,7 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
           // Three states, not two: treating "could not judge" as "wrong" is what
           // made the same answer read correct on one attempt and wrong on the
           // next, with Iris appearing and having nothing to say.
-          const local = c.aspect ? gradeRuleAspect(f, c.aspect, values[f.key]) : isCorrectValue(f, values[f.key]);
+          const local = c.aspect ? gradeListAspect(f, c.aspect, values[f.key]) : isCorrectValue(f, values[f.key]);
           const ok = server ? server.correct : local;
           const verdict = ok === true ? 'correct' : ok === false ? 'wrong' : 'unverified';
           next[c.key] = verdict;
@@ -557,13 +557,13 @@ function FieldForm({ nodeType, inputKeys, setup, fields, values, results, feedba
       {/* the field(s) the learner must set */}
       {fields.map((f) => {
         const value = values[f.key];
-        const isRules = f.kind === 'ruleList';
+        const isRules = isListKind(f.kind);
         // A rule list has three verdicts, not one. The field's border rolls them
         // up — any wrong is wrong, any unverified is unverified — and the three
         // are then listed individually underneath, because "your Switch is wrong"
         // is useless feedback next to "the branch names are right, what they test
         // is not".
-        const aspectVerdicts = isRules ? RULE_ASPECTS.map((a) => results?.[`${f.key}#${a}`]) : [];
+        const aspectVerdicts = isRules ? aspectsFor(f.kind).map((a) => results?.[`${f.key}#${a}`]) : [];
         const verdict = isRules
           ? aspectVerdicts.some((v) => v === undefined)
             ? undefined
@@ -614,7 +614,7 @@ function FieldForm({ nodeType, inputKeys, setup, fields, values, results, feedba
             {/* A rule list's three verdicts, itemised. */}
             {isRules && results ? (
               <div style={{ marginTop: 9, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {RULE_ASPECTS.map((aspect) => {
+                {aspectsFor(f.kind).map((aspect) => {
                   const v = results[`${f.key}#${aspect}`];
                   if (!v) return null;
                   const key = `${f.key}#${aspect}`;
@@ -622,7 +622,7 @@ function FieldForm({ nodeType, inputKeys, setup, fields, values, results, feedba
                     <div key={aspect}>
                       {v === 'unverified' ? (
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--fg-3)' }}>
-                          <Warning size={14} weight="fill" /> {RULE_ASPECT_LABEL[aspect]} — could not check
+                          <Warning size={14} weight="fill" /> {aspectLabel(f.kind, aspect)} — could not check
                         </span>
                       ) : (
                         <button
@@ -631,7 +631,7 @@ function FieldForm({ nodeType, inputKeys, setup, fields, values, results, feedba
                           style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 600, textDecoration: 'underline', textUnderlineOffset: 2, color: v === 'correct' ? 'var(--status-success)' : 'var(--status-danger)' }}
                         >
                           {v === 'correct' ? <CheckCircle size={14} weight="fill" /> : <XCircle size={14} weight="fill" />}
-                          {RULE_ASPECT_LABEL[aspect]} — {v === 'correct' ? 'right' : 'not right'}
+                          {aspectLabel(f.kind, aspect)} — {v === 'correct' ? 'right' : 'not right'}
                         </button>
                       )}
                       {feedback?.key === key && feedback.why ? <IrisBubble tone={v}>{feedback.why}</IrisBubble> : null}

@@ -72,10 +72,10 @@ describe('enumerateItems', () => {
     const items = enumerateItems(emailTriage);
     expect(items.understand).toHaveLength(5);
     expect(items.placement).toHaveLength(6);
-    // 10 plain fields + 3 rule-list aspects + 2 graded settings. The Switch's
-    // single "route on" dropdown became a learner-built rule list, which is
-    // deliberately worth three items rather than one.
-    expect(items.config).toHaveLength(15);
+    // 9 plain fields + 3 rule-list aspects (Switch routing) + 3 assignment-list
+    // aspects (Parse's fields) + 2 graded settings. Two dropdowns became
+    // learner-built structured lists, each deliberately worth three items.
+    expect(items.config).toHaveLength(17);
     expect(items.stress).toHaveLength(2);
   });
 
@@ -155,10 +155,10 @@ describe('scoreSession', () => {
     expect(byKey.stress.weight).toBe(20);
   });
 
-  it('makes one node placement worth ~2.5 config items on email-triage', () => {
+  it('makes one node placement worth ~2.8 config items on email-triage', () => {
     const { buckets } = scoreSession(emailTriage, allAt(emailTriage, 1));
     const byKey = Object.fromEntries(buckets.map((b) => [b.key, b]));
-    expect(byKey.placement.pointsPerItem / byKey.config.pointsPerItem).toBeCloseTo(2.5, 1);
+    expect(byKey.placement.pointsPerItem / byKey.config.pointsPerItem).toBeCloseTo(2.83, 1);
   });
 
   it('costs more to miss a placement than to miss a field', () => {
@@ -168,7 +168,7 @@ describe('scoreSession', () => {
     const placementLoss = 100 - scoreSession(emailTriage, missPlacement).totalRaw;
     const configLoss = 100 - scoreSession(emailTriage, missConfig).totalRaw;
     expect(placementLoss).toBeGreaterThan(configLoss);
-    expect(placementLoss / configLoss).toBeCloseTo(2.5, 1);
+    expect(placementLoss / configLoss).toBeCloseTo(2.83, 1);
   });
 
   it('scores the documented worked example at 89', () => {

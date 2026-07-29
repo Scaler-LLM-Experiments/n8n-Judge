@@ -161,23 +161,28 @@ export function validateProblem(input: unknown): ValidateProblemResult {
       // per-aspect `why` map rather than one whyCorrect/whyWrong pair. Each aspect
       // needs BOTH sides: "your branches are wrong" with no guidance is the kind of
       // feedback that teaches nothing, and a wrong answer is where the teaching is.
-      if (kind === 'ruleList') {
-        for (const aspect of ['count', 'categories', 'conditions']) {
+      if (kind === 'ruleList' || kind === 'assignmentList') {
+        const aspects = kind === 'ruleList' ? ['count', 'categories', 'conditions'] : ['count', 'names', 'values'];
+        for (const aspect of aspects) {
           const w = (field.why as Record<string, { correct?: string; wrong?: string }> | undefined)?.[aspect];
           if (!w?.correct || !w?.wrong) {
             warn(
               `nodeSetup.${type}.${field.key}`,
-              `A ruleList needs why.${aspect}.correct and why.${aspect}.wrong — without both, one of the three verdicts has nothing to say`
+              `A ${kind} needs why.${aspect}.correct and why.${aspect}.wrong — without both, one of the three verdicts has nothing to say`
             );
           }
         }
-        // Every branch the answer names must be offered, or the question is unanswerable.
-        const offered = new Set((field.branchOptions ?? []).map((o: { value: string }) => o.value));
-        for (const rule of field.expect?.rules ?? []) {
-          if (!offered.has(rule.outputKey)) {
+        // Every key the answer names must be offered, or the question is
+        // unanswerable — the learner could never construct the right answer.
+        const keyList = kind === 'ruleList' ? field.branchOptions : field.nameOptions;
+        const offered = new Set((keyList ?? []).map((o: { value: string }) => o.value));
+        const entries = kind === 'ruleList' ? (field.expect?.rules ?? []) : (field.expect?.assignments ?? []);
+        for (const entry of entries as Array<Record<string, string>>) {
+          const key = kind === 'ruleList' ? entry.outputKey : entry.name;
+          if (!offered.has(key)) {
             err(
               `nodeSetup.${type}.${field.key}`,
-              `expect names branch "${rule.outputKey}" but branchOptions does not offer it — the learner could never build the right answer`
+              `expect names "${key}" but the options do not offer it — the learner could never build the right answer`
             );
           }
         }

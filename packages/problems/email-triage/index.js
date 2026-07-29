@@ -343,14 +343,48 @@ export const emailTriage = {
           ],
         },
         {
+          // Edit Fields' `assignments` — n8n's other repeatable group. This was a
+          // dropdown of pre-baked combinations ("category, urgency"), which tested
+          // recognition: the right answer was sitting there to be spotted. Now the
+          // learner builds the list, one field at a time, and has to decide what
+          // each one should hold.
           key: 'fields',
           label: 'Fields to pull out',
-          subtitle: 'What Parse should extract into clean values.',
-          options: [
-            { value: 'cat-urg', label: 'category, urgency', correct: true, why: 'Exactly what the Switch and the replies need downstream.' },
-            { value: 'from-subj', label: 'from, subject', correct: false, why: 'Those already exist on the email — not what the AI produced.' },
-            { value: 'body-time', label: 'body, receivedAt', correct: false, why: 'Raw email fields, not the classification result.' },
+          kind: 'assignmentList',
+          addLabel: 'Add Field',
+          subtitle: 'Name each value you want, and say where it comes from. The nodes after this can only use what you extract here.',
+          nameOptions: [
+            { value: 'category', label: 'category', correct: true, why: 'The Switch routes on this, so it has to exist as a clean field.' },
+            { value: 'urgency', label: 'urgency', correct: true, why: 'The AI assigns it, and the replies read it.' },
+            { value: 'from', label: 'from', correct: false, why: 'Already on the email — it survives without being extracted.' },
+            { value: 'summary', label: 'summary', correct: false, why: 'Nothing upstream produces a summary, so this would always be empty.' },
           ],
+          valueOptions: [
+            { value: 'text.category', label: '{{ $json.text.category }}', correct: true, why: 'Reaches into the AI’s parsed answer for the category it assigned.' },
+            { value: 'text.urgency', label: '{{ $json.text.urgency }}', correct: true, why: 'Reaches into the AI’s parsed answer for the urgency it assigned.' },
+            { value: 'body', label: '{{ $json.body }}', correct: false, why: 'The original email text, not the AI’s answer about it.' },
+            { value: 'subject', label: '{{ $json.subject }}', correct: false, why: 'The email’s title — the AI’s answer is not in here.' },
+          ],
+          expect: {
+            assignments: [
+              { name: 'category', value: 'text.category' },
+              { name: 'urgency', value: 'text.urgency' },
+            ],
+          },
+          why: {
+            count: {
+              correct: 'Two fields — exactly what the rest of the flow reads. Nothing spare, nothing missing.',
+              wrong: 'Work backwards: what do the nodes AFTER this one actually need? Extract those, and only those.',
+            },
+            names: {
+              correct: 'These names are what the Switch and the replies look for, so they line up.',
+              wrong: 'A field the later nodes never read is wasted work, and one they need but you did not extract leaves them empty. Look at what the Switch routes on.',
+            },
+            values: {
+              correct: 'Each field reaches into the AI’s parsed answer, so it holds the label the AI actually assigned.',
+              wrong: 'Check where each value comes from. The AI’s answer is what you want here — not the original email text it was reading.',
+            },
+          },
         },
       ],
     },

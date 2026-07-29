@@ -8,15 +8,27 @@ export type { CheckKind, CheckRequest, CheckResult } from './answerCheck.ts';
 export { isFieldVisible, visibleFields, pruneHidden } from './fieldVisibility.ts';
 export type { ConditionalField } from './fieldVisibility.ts';
 export {
-  RULE_ASPECTS,
-  RULE_ASPECT_LABEL,
+  // Structured lists: n8n's repeatable-group parameters (Switch rules, Edit
+  // Fields assignments). One algorithm, per-kind vocabulary — see ruleList.ts.
+  LIST_SPECS,
+  isListKind,
+  aspectsFor,
+  aspectLabel,
+  asListItems,
+  emptyListItem,
+  isListItemComplete,
+  listReady,
+  gradeListAspect,
   ruleAspectId,
   parseRuleAspectId,
+  whyForAspect,
+  // Rule-list-specific aliases, kept because most callers name them directly.
+  RULE_ASPECTS,
+  RULE_ASPECT_LABEL,
   asRules,
   emptyRule,
   isRuleComplete,
   rulesReady,
   gradeRuleAspect,
-  whyForAspect,
 } from './ruleList.ts';
-export type { RuleAspect, LearnerRule } from './ruleList.ts';
+export type { RuleAspect, LearnerRule, LearnerAssignment } from './ruleList.ts';
