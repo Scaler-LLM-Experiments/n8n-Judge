@@ -28,7 +28,17 @@ import { createVoice } from './voice.js';
 // spoken line, never a crash.
 
 const noop = () => {};
-const DEFAULT_ACTIONS = { play: noop, setUpcoming: noop, stop: noop, setMuted: noop, setRate: noop };
+const DEFAULT_ACTIONS = {
+  play: noop,
+  setUpcoming: noop,
+  stop: noop,
+  setMuted: noop,
+  setRate: noop,
+  // Getters, not state, so an animation can read the waveform every frame without
+  // any of it going through React. See `getAnalyser` in voice.js.
+  getAnalyser: () => null,
+  getAmplitude: () => 0,
+};
 const DEFAULT_STATE = { speaking: false, caption: null, amplitude: 0, muted: false, rate: 1, clip: null };
 
 const VoiceActionsContext = createContext(DEFAULT_ACTIONS);
@@ -74,6 +84,8 @@ export function VoiceProvider({ children, problem }) {
       stop: call('stop'),
       setMuted: call('setMuted'),
       setRate: call('setRate'),
+      getAnalyser: () => voiceRef.current?.getAnalyser?.() ?? null,
+      getAmplitude: () => voiceRef.current?.getAmplitude?.() ?? 0,
     };
   }, []);
 
@@ -90,6 +102,18 @@ export function VoiceProvider({ children, problem }) {
  */
 export function useVoiceActions() {
   return useContext(VoiceActionsContext);
+}
+
+/**
+ * Just "is Iris talking, and is she muted".
+ *
+ * For the indicator, which needs to know when to appear and nothing else. It reads
+ * the waveform itself through `getAnalyser`, so pulling the whole state object in
+ * would subscribe it to caption changes it does not use.
+ */
+export function useVoiceSpeaking() {
+  const { speaking, muted } = useContext(VoiceStateContext);
+  return { speaking, muted };
 }
 
 /**

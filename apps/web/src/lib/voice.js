@@ -141,6 +141,10 @@ export function createVoice({ onMoment, problemSlug, problem } = {}) {
   let audioEl = null;
   let ctx = null;
   let analyser = null;
+  // How often the meter publishes to React. Roughly 12/sec: enough for anything
+  // reading `amplitude` out of context, far below the frame rate that made every
+  // consumer re-render on every tick.
+  const EMIT_INTERVAL_MS = 80;
   let rafId = null;
   let fallbackTimer = null;
 
@@ -200,6 +204,7 @@ export function createVoice({ onMoment, problemSlug, problem } = {}) {
   const runMeter = () => {
     if (!analyser) return;
     const buf = new Uint8Array(analyser.fftSize);
+    let lastEmit = 0;
     const tick = () => {
       if (!analyser) return;
       analyser.getByteTimeDomainData(buf);
@@ -209,7 +214,15 @@ export function createVoice({ onMoment, problemSlug, problem } = {}) {
         sum += v * v;
       }
       amplitude = amplitude * 0.6 + Math.min(1, Math.sqrt(sum / buf.length) * 3.2) * 0.4;
-      emit();
+      // Throttled, NOT per frame. `amplitude` is kept current every frame for
+      // `getAmplitude`, but publishing it to React sixty times a second re-renders
+      // every context consumer that often. The indicator reads the analyser itself
+      // and writes to the DOM directly, so nothing needs frame-rate state.
+      const now = performance.now();
+      if (now - lastEmit > EMIT_INTERVAL_MS) {
+        lastEmit = now;
+        emit();
+      }
       rafId = requestAnimationFrame(tick);
     };
     rafId = requestAnimationFrame(tick);
@@ -240,11 +253,16 @@ export function createVoice({ onMoment, problemSlug, problem } = {}) {
   /** Caption only: no audio, but the line is read and the glow still breathes. */
   const speakSilently = (text) => {
     const started = Date.now();
+    let lastEmit = 0;
     const tick = () => {
       const t = Date.now() - started;
       const target = 0.42 + 0.26 * Math.sin(t / 220) + 0.1 * Math.sin(t / 95);
       amplitude = amplitude * 0.6 + Math.max(0, Math.min(1, target)) * 0.4;
-      emit();
+      const now = performance.now();
+      if (now - lastEmit > EMIT_INTERVAL_MS) {
+        lastEmit = now;
+        emit();
+      }
       rafId = requestAnimationFrame(tick);
     };
     rafId = requestAnimationFrame(tick);
@@ -384,6 +402,26 @@ export function createVoice({ onMoment, problemSlug, problem } = {}) {
 
     getState() {
       return { speaking, caption, amplitude, muted, rate };
+    },
+
+    /**
+     * The live AnalyserNode, for anything that wants to animate off the waveform
+     * itself.
+     *
+     * Deliberately a getter rather than state. An indicator that reads this in its
+     * own requestAnimationFrame loop and writes straight to the DOM costs zero
+     * React renders; the same value delivered through context re-renders every
+     * subscriber sixty times a second, which is the bug that took out the
+     * Understand screen. Null when the audio could not be routed (no Web Audio, a
+     * blocked element) — callers fall back to a synthetic pulse.
+     */
+    getAnalyser() {
+      return analyser;
+    },
+
+    /** The smoothed RMS, for the same reason and without the loop. */
+    getAmplitude() {
+      return amplitude;
     },
 
     subscribe(fn) {

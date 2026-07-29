@@ -7,6 +7,7 @@ import { createSession, fetchReport } from './lib/grader.js';
 import { useTrace } from './lib/useTrace.js';
 import { TraceProvider } from './lib/TraceContext.jsx';
 import { VoiceProvider, useVoiceActions } from './lib/VoiceContext.jsx';
+import { VoiceoverIndicator } from './components/VoiceoverIndicator.jsx';
 import { HomeScreen } from './screens/HomeScreen.jsx';
 import { DissectionScreen } from './screens/DissectionScreen.jsx';
 import { BuildStage } from './screens/BuildStage.jsx';
@@ -259,7 +260,10 @@ function BuildPreview({ problem, devAutoRun }) {
 
   return (
     <TraceProvider trace={trace} sessionId={sessionId}>
-      <VoiceProvider problem={problem}>{screenEl}</VoiceProvider>
+      <VoiceProvider problem={problem}>
+        {screenEl}
+        <VoiceoverIndicator />
+      </VoiceProvider>
     </TraceProvider>
   );
 }
@@ -357,6 +361,9 @@ function MainApp({ problem }) {
         <ReportScreen problem={problem} grading={grading} dissection={dissection} runResult={runResult} evalOutcome={evalOutcome} graph={builtGraph} serverReport={serverReport} />
       ) : null}
     </div>
+    {/* One instance for the whole journey. It is position:fixed and pointer-events:
+        none, so it belongs to the voice scope rather than to any single screen. */}
+    <VoiceoverIndicator />
     </VoiceProvider>
     </TraceProvider>
   );

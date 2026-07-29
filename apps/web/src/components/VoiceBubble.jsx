@@ -1,80 +1,16 @@
 import React from 'react';
 import { useVoice } from '../lib/VoiceContext.jsx';
 
-// "Iris is speaking", shown as a big soft blue glow behind the mascot.
+// Small "Iris is speaking" bits that sit inline with text.
 //
-// Two earlier versions were wrong. A small dot beside her read as one more status
-// pip in a row of buttons rather than as Iris doing something. Wrapping the mascot
-// fixed the meaning but broke the layout, because MascotPlayer fills its parent
-// and the wrapper became that parent, resizing the mascot everywhere it appeared.
+// The big screen-level glow is NOT here any more — it lives in
+// VoiceoverIndicator.jsx, mounted once for the whole journey. `VoiceGlowLayer`
+// used to live in this file and paint a glow inside the mascot's own 68px box,
+// which is too small a space for light: it read as a border rather than as Iris
+// doing something. Two earlier attempts and the reasons they failed are recorded
+// in that file's header.
 //
-// So: an independent layer that paints behind and touches nothing.
-//
-// Driven by `amplitude`, the RMS of the actual audio, so it moves WITH the speech
-// rather than on a timer. On the caption-only path (no key, blocked autoplay, a
-// vendor failure) a synthetic envelope drives it instead, so it still breathes:
-// the signal means "Iris is saying something", which is true either way.
-//
-// It exists because the mascot's own animation loops whether or not there is
-// sound, so nothing on screen distinguished speaking from idle. A learner with
-// the volume down could not tell they were missing anything.
-
-/**
- * A big soft glow that pulses with Iris's voice, painted BEHIND whatever it sits
- * next to.
- *
- * Deliberately not a wrapper. The first version wrapped the mascot, which changed
- * the mascot's own box: MascotPlayer fills its parent, and the wrapper became that
- * parent, so the mascot got resized on every screen it appeared on. This is a
- * standalone absolutely-positioned sibling instead. It reads no layout and affects
- * none, so it cannot break anything by being added or removed.
- *
- * Drop it inside any positioned container, before the thing it should sit behind:
- *
- *   <div style={{ position: 'relative', width: 68, height: 68 }}>
- *     <VoiceGlowLayer />
- *     <MascotPlayer … />
- *   </div>
- *
- * `scale` grows it past its container, because a glow confined to the mascot's own
- * 68px box reads as a border rather than as light. It goes well outside.
- *
- * Driven by `amplitude`, the RMS of the real audio, so it moves with the speech.
- * On the caption-only path a synthetic envelope drives it, so it still breathes:
- * the signal is "Iris is saying something", true either way.
- */
-export function VoiceGlowLayer({ scale = 2.6, style }) {
-  const { speaking, amplitude } = useVoice();
-
-  // A floor so the glow holds steady through the natural gaps between words
-  // instead of strobing.
-  const level = speaking ? Math.max(0.32, amplitude ?? 0) : 0;
-  const size = `${(scale * (0.82 + level * 0.3) * 100).toFixed(0)}%`;
-
-  return (
-    <span
-      aria-hidden="true"
-      style={{
-        position: 'absolute',
-        // Centred on the container, then grown outwards from the middle, so the
-        // glow stays concentric with the mascot at any size.
-        top: '50%',
-        left: '50%',
-        width: size,
-        height: size,
-        transform: 'translate(-50%, -50%)',
-        borderRadius: '50%',
-        background: `radial-gradient(circle, rgba(0,85,255,${(level * 0.34).toFixed(3)}) 0%, rgba(0,85,255,${(level * 0.14).toFixed(3)}) 42%, rgba(0,85,255,0) 70%)`,
-        opacity: speaking ? 1 : 0,
-        // In fast, out slow, so the end of a line fades rather than snapping off.
-        transition: speaking ? 'opacity 140ms linear, width 90ms linear, height 90ms linear' : 'opacity 480ms ease-out',
-        pointerEvents: 'none',
-        zIndex: 0,
-        ...style,
-      }}
-    />
-  );
-}
+// What is left is the inline pair: a dot, and a dot next to the words being said.
 
 /**
  * The bare indicator, for places with no mascot to wrap. Same signal, same
