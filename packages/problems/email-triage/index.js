@@ -589,6 +589,46 @@ export const emailTriage = {
   },
 
   // Readable labels for misconception codes recorded during the run.
+  // What Iris says on THIS problem. Overrides the default phrase book, keyed by
+  // moment and optionally by node type.
+  //
+  // The reason to author these rather than take the defaults: a generic line has
+  // to say "now open it and set it up", because it does not know what the node is
+  // for. Here it can say what this particular node is deciding, which is the
+  // difference between narration and teaching. None of these give an answer away;
+  // they say what the node is FOR, never which option to pick.
+  voice: {
+    // Placing a node, per node type.
+    'node_placed:trigger': [
+      '[calm] That is the way in. Everything after this runs once per email that arrives.',
+    ],
+    'node_placed:classify': [
+      '[calm] This is the part that reads the email and decides what kind it is. It needs a model to think with.',
+    ],
+    'node_placed:chat-gemini': [
+      '[calm] That is the brain the classifier borrows. How it is set up decides whether the same email always gets the same answer.',
+    ],
+    'node_placed:parse': [
+      '[calm] The model replies as text. This turns that text into fields the next nodes can actually read.',
+    ],
+    'node_placed:switch': [
+      '[calm] This is where the kinds of email split apart. Each branch you build here is one path out.',
+    ],
+    'node_placed:action': [
+      '[calm] The reply itself. Whatever reaches this node gets an email back.',
+    ],
+
+    // Finishing a stage, per phase.
+    'phase_complete:trigger': ['[excited] The flow has a way in now. Good start.'],
+    'phase_complete:brain': ['[excited] It can read an email and understand it. That was the hard part.'],
+    build_complete: ['[excited] The whole thing is wired up. Let us throw some real emails at it.'],
+
+    // This problem's stress test is about the gap, so point at behaviour.
+    stress_start: [
+      '[calm] Now the interesting bit. What does your flow do with an email it was not expecting?',
+    ],
+  },
+
   misconceptionLabels: {
     'chat-trigger-is-email': 'Treated a chat trigger as an email trigger',
     'triggers-interchangeable': 'Assumed any trigger can start the flow',

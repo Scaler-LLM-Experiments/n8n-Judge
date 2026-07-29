@@ -25,13 +25,18 @@ const DEFAULT = {
 
 const VoiceContext = createContext(DEFAULT);
 
-export function VoiceProvider({ children }) {
+export function VoiceProvider({ children, problem }) {
   const [state, setState] = useState({ speaking: false, caption: null, amplitude: 0, muted: false, rate: 1 });
   const [clip, setClip] = useState(null);
   const voiceRef = useRef(null);
 
   if (!voiceRef.current && typeof window !== 'undefined') {
     voiceRef.current = createVoice({
+      // The problem carries its own lines (`problem.voice`), so both the caption
+      // shown before the server answers and the line the server renders resolve
+      // from the same source.
+      problem,
+      problemSlug: problem?.id ?? problem?.slug ?? null,
       // Rule 2 from voice.js: the mascot reacts even when muted, so this fires
       // from inside `play` before any audio work happens.
       onMoment: (_moment, wanted) => setClip(wanted),

@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Check, Question, ArrowCounterClockwise, ArrowClockwise, Play, FileText, SpeakerHigh, SpeakerSlash, CaretDown, Clock } from '@phosphor-icons/react';
+import { Check, Question, ArrowCounterClockwise, ArrowClockwise, Play, FileText, SpeakerHigh, SpeakerSlash, CaretDown } from '@phosphor-icons/react';
 const scalerLogo = '/brand/scaler-logo.svg';
 import { GlossaryDrawer } from './GlossaryDrawer.jsx';
 import { AskAiDrawer } from './AskAiDrawer.jsx';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
 import { useVoice } from '../lib/VoiceContext.jsx';
-import { VoiceGlow } from './VoiceBubble.jsx';
 
 const STAGES = [
   { id: 'statement', label: 'Understand' },
@@ -218,7 +217,7 @@ function VoiceControl() {
         aria-label={muted ? 'Turn voice on' : 'Mute voice'}
         aria-pressed={muted}
         style={{
-          width: 30,
+          width: 26,
           height: 32,
           display: 'flex',
           alignItems: 'center',
@@ -233,78 +232,27 @@ function VoiceControl() {
         <Icon size={15} weight={muted ? 'regular' : 'fill'} />
       </button>
 
-      <span style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', opacity: muted ? 0.45 : 1 }}>
+      {/* The select is transparent and sits ON TOP of the rendered label, so the
+          control is exactly as wide as "1.0x" plus the caret. A styled <select>
+          otherwise reserves room for its widest option and for the platform's own
+          arrow, which is where the dead space was coming from. */}
+      <span style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 3, paddingRight: 6, opacity: muted ? 0.45 : 1 }}>
+        <span style={{ fontSize: 11.5, fontWeight: 700, fontFamily: 'var(--font-body)', color: 'var(--fg-2)', fontVariantNumeric: 'tabular-nums' }}>
+          {rate.toFixed(2).replace(/0$/, '')}x
+        </span>
+        <CaretDown size={9} color="var(--fg-3)" />
         <select
           value={rate}
           disabled={muted}
           aria-label="How fast Iris talks"
           onChange={(e) => setRate(Number(e.target.value))}
-          style={{
-            appearance: 'none',
-            border: 'none',
-            borderLeft: '1px solid var(--border-subtle)',
-            background: 'none',
-            font: 'inherit',
-            fontSize: 12,
-            fontWeight: 700,
-            fontFamily: 'var(--font-body)',
-            color: 'var(--fg-2)',
-            padding: '0 20px 0 8px',
-            height: 32,
-            cursor: muted ? 'not-allowed' : 'pointer',
-          }}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, cursor: muted ? 'not-allowed' : 'pointer' }}
         >
           {RATES.map((r) => (
             <option key={r} value={r}>{r}x</option>
           ))}
         </select>
-        <CaretDown size={10} color="var(--fg-3)" style={{ position: 'absolute', right: 6, pointerEvents: 'none' }} />
       </span>
-    </div>
-  );
-}
-
-/**
- * Time spent on this problem, against a target.
- *
- * Not a countdown and nothing happens when it passes: this is a pacing signal,
- * not a limit. A learner forty minutes into a thirty minute problem should know
- * that, and a learner at eight minutes should feel fine. Turning it into a
- * deadline would change what the tool measures, from understanding to speed.
- *
- * Counted from mount, so it is time on THIS screen rather than time since the
- * session row was created. A learner who left a tab open overnight has not spent
- * the night working.
- */
-function SessionTimer({ targetMinutes = 30 }) {
-  const [seconds, setSeconds] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setSeconds((s) => s + 1), 1000);
-    return () => clearInterval(id);
-  }, []);
-
-  const mmss = (total) => `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
-  const over = seconds > targetMinutes * 60;
-
-  return (
-    <div
-      title={`You have been on this for ${mmss(seconds)}. The target is a guide, not a limit.`}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 7,
-        height: 34,
-        flex: 'none',
-        padding: '0 10px',
-        border: '1px solid var(--border-strong)',
-        background: 'var(--surface-0)',
-        fontSize: 12,
-        fontFamily: 'var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace)',
-      }}
-    >
-      <Clock size={14} color={over ? 'var(--status-warning, #B54708)' : 'var(--fg-3)'} />
-      <span style={{ fontWeight: 700, color: over ? 'var(--status-warning, #B54708)' : 'var(--fg-1)' }}>{mmss(seconds)}</span>
-      <span style={{ color: 'var(--fg-3)', letterSpacing: '0.03em' }}>TARGET {mmss(targetMinutes * 60)}</span>
     </div>
   );
 }
@@ -382,14 +330,8 @@ export function TopBar({ activeStage, problem, currentPhase, nodeContext, learne
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifySelf: 'end' }}>
-        {/* Only inside a problem: on the home screen there is nothing being timed. */}
-        {activeStage ? <SessionTimer targetMinutes={problem?.targetMinutes} /> : null}
-        {/* The glow goes on the one mascot that is always on screen, so "Iris is
-            talking" has a fixed home whichever screen you are on. */}
         <button type="button" onClick={() => setAskOpen(true)} title="Ask Iris" style={{ display: 'flex', alignItems: 'center', gap: 7, height: 34, padding: '0 12px 0 8px', border: '1px solid var(--brand-primary)', background: 'var(--brand-blue-50, rgba(0,85,255,0.06))', color: 'var(--brand-primary)', fontWeight: 700, fontSize: 12.5, cursor: 'pointer', fontFamily: 'var(--font-body)', whiteSpace: 'nowrap', flex: 'none' }}>
-          <VoiceGlow spread={1.4} style={{ width: 22, height: 22, flex: 'none' }}>
-            <span style={{ width: 22, height: 22, flex: 'none' }}><MascotPlayer clip="idle" once={false} onceDone={() => {}} /></span>
-          </VoiceGlow>
+          <span style={{ width: 22, height: 22, flex: 'none' }}><MascotPlayer clip="idle" once={false} onceDone={() => {}} /></span>
           Ask AI
         </button>
         <VoiceControl />

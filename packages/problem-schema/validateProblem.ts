@@ -294,5 +294,27 @@ export function validateProblem(input: unknown): ValidateProblemResult {
   }
 
   const valid = !issues.some((i) => i.level === 'error');
+  // Voice lines play BEFORE a learner has committed to anything, so a line that
+  // names the answer is worse than an option `why` that does: it hands the answer
+  // over unprompted. Same rule as Ask AI.
+  for (const [moment, lines] of Object.entries((p.voice ?? {}) as Record<string, string[]>)) {
+    for (const line of lines) {
+      if (/\{\{/.test(line)) {
+        err(`voice.${moment}`, 'A voice line must not contain an expression — that is an answer read out loud');
+      }
+      if (/[—–]/.test(line)) {
+        warn(`voice.${moment}`, 'Em and en dashes do not read aloud; use a full stop or a comma');
+      }
+      // The tags are direction, not speech, so length is measured on the caption.
+      const words = line.replace(/\[[^\]]*\]/g, '').trim().split(/\s+/).length;
+      if (words > 22) {
+        warn(
+          `voice.${moment}`,
+          `That line is ${words} words, about ${Math.round(words / 3)}s spoken. Long lines are still talking after the moment has passed`
+        );
+      }
+    }
+  }
+
   return { valid, issues, problem: valid ? p : undefined };
 }

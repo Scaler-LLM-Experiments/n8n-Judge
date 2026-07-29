@@ -259,7 +259,7 @@ function BuildPreview({ problem, devAutoRun }) {
 
   return (
     <TraceProvider trace={trace} sessionId={sessionId}>
-      <VoiceProvider>{screenEl}</VoiceProvider>
+      <VoiceProvider problem={problem}>{screenEl}</VoiceProvider>
     </TraceProvider>
   );
 }
@@ -293,7 +293,7 @@ function MainApp({ problem }) {
 
   return (
     <TraceProvider trace={trace} sessionId={sessionId}>
-    <VoiceProvider>
+    <VoiceProvider problem={problem}>
     <div style={{ height: '100vh' }}>
       {screen === SCREEN.STATEMENT ? (
         <DissectionScreen

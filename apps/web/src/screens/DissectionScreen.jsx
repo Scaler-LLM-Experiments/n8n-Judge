@@ -6,6 +6,7 @@ import { TopBar } from '../components/TopBar.jsx';
 import { ConceptFlow } from '../components/ConceptFlow.jsx';
 import { ProblemNote } from '../components/ProblemNote.jsx';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
+import { VoiceGlow } from '../components/VoiceBubble.jsx';
 import { N8nNodeView } from '../n8n/N8nNodeView.jsx';
 import { NodeIcon } from '../nodes/nodeIcons.js';
 import { checkAnswer } from '../lib/grader.js';
@@ -353,7 +354,7 @@ function Greet({ problem, onContinue }) {
       <TopBar activeStage="statement" problem={problem} />
       <div ref={root} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32, textAlign: 'center' }}>
         <div data-a="m" style={{ width: 108, height: 108, marginBottom: 14 }}>
-          <MascotPlayer clip="hello" once={false} onceDone={() => {}} />
+          <VoiceGlow spread={2} style={{ position: 'absolute', inset: 0 }}><MascotPlayer clip="hello" once={false} onceDone={() => {}} /></VoiceGlow>
         </div>
         <h1 data-a="r" style={{ fontFamily: 'var(--font-headline)', fontSize: 40, fontWeight: 600, margin: '0 0 14px' }}>I’m Iris, your AI mentor.</h1>
         <p data-a="r" style={{ fontSize: 18, lineHeight: 1.55, color: 'var(--fg-2)', maxWidth: 560, margin: '0 0 10px' }}>
@@ -404,7 +405,7 @@ function ProblemBeat({ problem, onContinue }) {
 
       {/* mascot resting bottom-left */}
       <div data-a="mascot" style={{ position: 'fixed', left: 28, bottom: 24, width: 84, height: 84, zIndex: 50 }}>
-        <MascotPlayer clip="presenting" once={false} onceDone={() => {}} />
+        <VoiceGlow spread={2} style={{ position: 'absolute', inset: 0 }}><MascotPlayer clip="presenting" once={false} onceDone={() => {}} /></VoiceGlow>
       </div>
     </div>
   );
@@ -416,7 +417,7 @@ function Done({ problem, unlockedTypes, onFinish }) {
       <TopBar activeStage="statement" problem={problem} />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32, textAlign: 'center' }}>
         <div style={{ width: 96, height: 96, marginBottom: 8 }}>
-          <MascotPlayer clip="celebrate" once={false} onceDone={() => {}} />
+          <VoiceGlow spread={2} style={{ position: 'absolute', inset: 0 }}><MascotPlayer clip="celebrate" once={false} onceDone={() => {}} /></VoiceGlow>
         </div>
         <h2 style={{ margin: '0 0 8px', fontFamily: 'var(--font-headline)', fontWeight: 600 }}>Nice — you’ve got the plan.</h2>
         <p style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--fg-2)', maxWidth: 560, marginBottom: 26 }}>

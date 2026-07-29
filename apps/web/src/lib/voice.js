@@ -48,7 +48,7 @@ const write = (key, value) => {
   }
 };
 
-export function createVoice({ fetchImpl, onMoment } = {}) {
+export function createVoice({ fetchImpl, onMoment, problemSlug, problem } = {}) {
   const doFetch = fetchImpl ?? (typeof fetch === 'function' ? fetch.bind(globalThis) : null);
 
   let muted = read(MUTE_KEY, 'false') === 'true';
@@ -190,7 +190,10 @@ export function createVoice({ fetchImpl, onMoment } = {}) {
     if (!doFetch) return null;
     try {
       const qs = new URLSearchParams({ moment, variant: String(variant) });
-      if (vars?.phase) qs.set('phase', vars.phase);
+      // The problem and the node decide WHICH line; `node` fills it in.
+      if (problemSlug) qs.set('problem', problemSlug);
+      if (vars?.key) qs.set('key', vars.key);
+      if (vars?.node) qs.set('node', vars.node);
       const res = await doFetch(`/api/voice?${qs}`, { cache: 'no-store' });
 
       let caption = null;
@@ -225,7 +228,7 @@ export function createVoice({ fetchImpl, onMoment } = {}) {
     const hit = warmed.get(moment);
     if (hit) warmed.delete(moment);
 
-    const picked = hit ? { index: hit.variant, line: null } : pickLine(moment);
+    const picked = hit ? { index: hit.variant, line: null } : pickLine(moment, undefined, { problem, key: vars?.key });
     if (!picked) return;
 
     const mine = ++token;
@@ -319,7 +322,7 @@ export function createVoice({ fetchImpl, onMoment } = {}) {
      */
     prefetch(moment, vars = {}) {
       if (!hasMoment(moment) || muted || warmed.has(moment)) return;
-      const picked = pickLine(moment);
+      const picked = pickLine(moment, undefined, { problem, key: vars?.key });
       if (!picked) return;
       // Reserve the slot immediately so two callers cannot both fetch it.
       remember(moment, { variant: picked.index, caption: captionFor(fillLine(picked.line, vars)), blob: null });

@@ -21,6 +21,12 @@
 //   * NEVER give the answer. Same rule as Ask AI. Iris says what happened and
 //     what it means, never which option to pick. On a wrong answer she points at
 //     where to look.
+//   * DO NOT READ THE SCREEN. If the words are already on the page, saying them
+//     adds nothing and competes with reading. The phase label, the problem
+//     statement and the explanation text are all visible: Iris says the thing
+//     that is NOT written down, or she says nothing.
+//   * Excitement is earned, and only at completion. Everywhere else it is noise;
+//     on finishing a stage it is the payoff.
 //
 // Square brackets are ElevenLabs v3 audio tags. They shape delivery and are NOT
 // spoken. `captionFor` strips them, so the caption is the clean sentence.
@@ -28,83 +34,86 @@
 // Several lines per moment where a learner will hear it repeatedly. Verifying
 // eight fields and hearing one identical sentence eight times is what makes
 // narration feel like a machine.
+//
+// Per-problem and per-node overrides live in `problem.voice` (see
+// `resolveLines`), because a generic line cannot know that this Switch is routing
+// support email rather than leads. What is here is the floor, not the target.
 
 /** @type {Record<string, string[]>} */
 export const LINES = {
   // ---- arriving -----------------------------------------------------------
+  // The greeting screen already says who Iris is, so she does not introduce
+  // herself again. She says what she will DO, which is not on the page.
   welcome: [
-    '[warm] Hello. I am Iris. I will stay with you through this one.',
-    '[warm] Hi there. I am Iris. We will build this together, one step at a time.',
+    '[warm] I will stay with you the whole way. If something is unclear, ask me.',
+    '[warm] I am here the whole time. Ask me whenever you get stuck.',
   ],
+  // The statement is on screen and the learner is reading it. One nudge about HOW
+  // to read it, then silence.
   problem_intro: [
-    '[calm] This is the problem for today. Read it slowly. Then we will break it into parts.',
-    '[calm] Here is what we have to build. Take a minute with it. Then we start.',
+    '[calm] Read it once for the shape, not the detail. We will pull it apart together.',
   ],
   understand_start: [
-    '[calm] First, a few questions. I want to be sure the flow makes sense to you before you build it.',
+    '[calm] A few questions first. I want to know how you are thinking about it.',
   ],
 
   // ---- answering ----------------------------------------------------------
-  answer_correct: [
-    '[warm] That is right.',
-    '[warm] Correct.',
-    '[warm] Yes, that is the one.',
-  ],
+  // The explanation appears on screen, so Iris marks the verdict and gets out of
+  // the way. Anything longer talks over the learner reading the reason.
+  answer_correct: ['[warm] That is right.', '[warm] Correct.', '[warm] Yes, exactly.'],
   answer_wrong: [
-    '[calm] Not this one. Read what I wrote below, then try again.',
-    '[calm] That is a fair guess, but no. Have a look at why.',
-    '[thoughtful] Not quite. The reason is just below. Read it and pick again.',
+    '[calm] Not this one. The reason is below.',
+    '[calm] No. Have a read of why.',
+    '[thoughtful] Not quite. Look at what I wrote, then pick again.',
   ],
+
+  // ---- stage completion: this is where the energy belongs -----------------
+  // Finishing something is the one moment a learner has genuinely earned a
+  // reaction, so these are the only lines allowed to be excited. Everywhere else
+  // enthusiasm is noise; here it is the payoff.
   understand_done: [
-    '[warm] Good. You know what this flow has to do. Now we build it.',
+    '[excited] Yes. You have got the shape of it. Now the fun part, we build it.',
+    '[excited] That is the thinking done. Now let us actually build the thing.',
+  ],
+  phase_complete: [
+    '[excited] That part is done. Nice.',
+    '[excited] Done. That piece works now.',
+    '[excited] Good. One more piece in place.',
+  ],
+  build_complete: [
+    '[excited] The whole flow is built. Let us see if it holds up.',
   ],
 
   // ---- building -----------------------------------------------------------
+  // The canvas and the phase label are both visible, so no line reads them out.
   build_start: [
-    '[calm] This is the canvas. You add one node at a time, and each node does one job.',
+    '[calm] One node at a time. Each one does a single job, and passes its result on.',
   ],
-  phase_intro: [
-    '[calm] Next part. {phase}.',
-    '[calm] Now for this bit. {phase}.',
-  ],
+  // `{node}` is the node just placed, so the line is about THAT node rather than
+  // being a generic "now configure it".
   node_placed: [
-    '[calm] Good. Now open it and set it up.',
-    '[calm] That is placed. Open it to fill in the settings.',
+    '[calm] Good. Now open {node} and tell it what to do.',
+    '[calm] {node} is on the board. Open it to set it up.',
   ],
   node_wrong: [
-    '[thoughtful] That node cannot do the job we need here. Let me ask you something about it.',
+    '[thoughtful] That one cannot do the job here. Let me ask you something.',
   ],
 
   // ---- verifying ----------------------------------------------------------
-  verify_pass: [
-    '[warm] That is set up correctly.',
-    '[warm] Good, this node is ready.',
-    '[warm] Correct. This one is done.',
-  ],
+  verify_pass: ['[warm] That is set up right.', '[warm] Good, that one is done.', '[warm] Correct.'],
   verify_fail: [
-    '[calm] Something here is not right yet. Look at the field I marked.',
-    '[calm] Not ready yet. Check the field in red and try again.',
+    '[calm] Not yet. Check the field I marked.',
+    '[calm] Something is off. Look at what is in red.',
   ],
 
   // ---- running ------------------------------------------------------------
-  run_start: [
-    '[calm] Let us run it now, with real examples, and watch what happens.',
-  ],
-  run_pass: [
-    '[warm] Every case came out right. Your flow works.',
-    '[warm] All of them passed. That flow does its job.',
-  ],
-  run_fail: [
-    '[calm] Some cases did not come out right. That is useful. Let us see which ones.',
-  ],
+  run_start: ['[calm] Watch what happens to each one as it goes through.'],
+  run_pass: ['[excited] Every case came out right. That flow works.', '[excited] All of them passed. Well built.'],
+  run_fail: ['[calm] Some did not come out right. That is worth knowing. Let us look.'],
 
   // ---- finishing ----------------------------------------------------------
-  stress_start: [
-    '[calm] Last part. A few questions about how the thing you built behaves.',
-  ],
-  report_ready: [
-    '[calm] Here is how it went, and what I would work on next.',
-  ],
+  stress_start: ['[calm] Now, does it still make sense when things go wrong?'],
+  report_ready: ['[calm] Here is what stood out, and what I would practise next.'],
 };
 
 /** Strip the v3 audio tags, leaving the sentence a learner reads. */
@@ -120,6 +129,32 @@ export function fillLine(line, vars = {}) {
   return String(line ?? '').replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? '').trim());
 }
 
+/**
+ * The lines for a moment, after per-problem and per-node overrides.
+ *
+ * Resolution order, most specific first:
+ *
+ *   problem.voice['node_placed:switch']   this node, on this problem
+ *   problem.voice['node_placed']          this problem
+ *   LINES['node_placed']                  the default
+ *
+ * This exists because a generic line cannot know what the flow is FOR. "Open the
+ * Switch and tell it what to do" is fine; "This is where support email splits from
+ * everything else" is better, and only the problem author can write it. The
+ * defaults are the floor, not the intended ceiling.
+ *
+ * @param moment   e.g. 'node_placed'
+ * @param options  { problem, key } — `key` is usually a node type
+ */
+export function resolveLines(moment, { problem, key } = {}) {
+  const overrides = problem?.voice ?? null;
+  if (overrides) {
+    if (key && Array.isArray(overrides[`${moment}:${key}`])) return overrides[`${moment}:${key}`];
+    if (Array.isArray(overrides[moment])) return overrides[moment];
+  }
+  return LINES[moment] ?? null;
+}
+
 /** Is this a moment we have words for? */
 export function hasMoment(moment) {
   return Object.prototype.hasOwnProperty.call(LINES, moment);
@@ -132,8 +167,8 @@ export function hasMoment(moment) {
  * audio per (moment, variant) and the client needs the same variant's words for
  * the caption. Passing the index through is what keeps the two in step.
  */
-export function pickLine(moment, index) {
-  const variants = LINES[moment];
+export function pickLine(moment, index, options) {
+  const variants = resolveLines(moment, options);
   if (!variants?.length) return null;
   const i = Number.isInteger(index) ? ((index % variants.length) + variants.length) % variants.length : Math.floor(Math.random() * variants.length);
   return { index: i, line: variants[i] };
@@ -153,6 +188,8 @@ export const MOMENT_CLIP = {
   answer_correct: 'correct',
   answer_wrong: 'shake-no',
   understand_done: 'celebrate',
+  phase_complete: 'celebrate',
+  build_complete: 'celebrate',
   build_start: 'presenting',
   phase_intro: 'presenting',
   node_placed: 'idle',

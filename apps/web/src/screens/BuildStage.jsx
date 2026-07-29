@@ -5,6 +5,7 @@ import { TopBar } from '../components/TopBar.jsx';
 import { ProblemStatementPanel } from '../components/ProblemStatementPanel.jsx';
 import { Button } from '../design-system/Button.jsx';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
+import { VoiceGlow } from '../components/VoiceBubble.jsx';
 import { Confetti } from '../components/Confetti.jsx';
 import { N8nEditor } from '../n8n/N8nEditor.jsx';
 import { validateGraph } from '@judge/engine/validateGraph.js';
@@ -12,6 +13,11 @@ import { simulateAll, roleOf } from '@judge/engine/simulate.js';
 import { checkAnswer } from '../lib/grader.js';
 import { useTraceContext } from '../lib/TraceContext.jsx';
 import { useVoice } from '../lib/VoiceContext.jsx';
+
+/** What a learner calls this node, for a spoken line. */
+function nodeLabel(type) {
+  return String(type ?? '').replace(/[-_]/g, ' ');
+}
 
 const STEP_ICON = { email: EnvelopeSimpleOpen, trigger: EnvelopeSimpleOpen, classify: Sparkle, parse: BracketsCurly, switch: ArrowsSplit, action: PaperPlaneTilt, dead: XCircle };
 
@@ -218,7 +224,12 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
     setIrisSay('Nice pick! Now click the glowing node to set it up.');
     clearTimeout(sayTimer.current);
     sayTimer.current = setTimeout(() => setIrisSay(null), 4200);
-  }, [recordPlacement]);
+    // `key` selects a per-node line from `problem.voice` when the author wrote
+    // one ("node_placed:switch"), and `node` fills the label into the default.
+    // A generic "now set it up" cannot know that this node is the one deciding
+    // where an email goes; the author can.
+    voice.play('node_placed', { key: type, node: problem.nodeSetup?.[type]?.label ?? nodeLabel(type) });
+  }, [recordPlacement, voice, problem]);
 
   // once a probed node is on screen (and any auto-focus has settled), travel Iris
   // to it and anchor the widget beside it
@@ -292,8 +303,13 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
     advancing.current = true;
     setMascotVisible(false); // the clear overlay carries its own celebratory Iris
     setClearInfo({ cleared: phase.label, next: phaseIndex < phases.length - 1 ? phases[phaseIndex + 1] : null });
+    // Finishing a stage is the one thing a learner has actually earned, so this
+    // is where the energy goes. The last phase gets its own line, because "one
+    // more piece in place" is wrong when there are no more pieces.
+    const isLast = phaseIndex >= phases.length - 1;
+    voice.play(isLast ? 'build_complete' : 'phase_complete', { key: phase.id });
     setStage('clearing');
-  }, [nodesState, stage, phase, phaseIndex, phases, probe]);
+  }, [nodesState, stage, phase, phaseIndex, phases, probe, voice]);
 
   const continueFromClear = () => {
     setMascotVisible(false);
@@ -424,9 +440,14 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
 
         {/* traveling Iris */}
         <div ref={mascotRef} style={{ position: 'absolute', left: 24, top: 400, width: 68, height: 68, zIndex: 30, pointerEvents: 'none', opacity: mascotVisible ? 1 : 0, transition: 'opacity 0.3s ease' }}>
-          <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-            <MascotPlayer clip={mascotClip} once={false} onceDone={() => {}} />
-          </div>
+          {/* The glow sits BEHIND this mascot rather than in the top bar, because
+              this is the one the learner is watching: it travels to whatever Iris
+              is talking about, so the light lands where the attention already is. */}
+          <VoiceGlow spread={2.2} style={{ position: 'absolute', inset: 0 }}>
+            <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+              <MascotPlayer clip={mascotClip} once={false} onceDone={() => {}} />
+            </div>
+          </VoiceGlow>
         </div>
 
         {/* Iris "talking" — chat bubble to the right of the parked mascot */}

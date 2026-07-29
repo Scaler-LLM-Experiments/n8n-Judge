@@ -80,13 +80,13 @@ describe('captions', () => {
 
 describe('placeholders', () => {
   it('fills a named variable', () => {
-    expect(fillLine('Next part. {phase}.', { phase: 'Route the email' })).toBe('Next part. Route the email.');
+    expect(fillLine('Open {node} next.', { node: 'the Switch' })).toBe('Open the Switch next.');
   });
 
   // A missing value must collapse to nothing, never to the word "undefined"
   // spoken out loud.
   it('collapses a missing variable', () => {
-    expect(fillLine('Next part. {phase}.', {})).toBe('Next part. .');
+    expect(fillLine('Open {node} next.', {})).toBe('Open  next.');
   });
 
   it('only uses placeholders the callers actually pass', () => {
@@ -94,7 +94,9 @@ describe('placeholders', () => {
     for (const { line } of allLines) {
       for (const m of line.matchAll(/\{(\w+)\}/g)) used.add(m[1]);
     }
-    expect([...used]).toEqual(['phase']);
+    // `{node}` is the only one now: `{phase}` went when phase_intro was removed
+    // for reading the label that is already on screen.
+    expect([...used].sort()).toEqual(['node']);
   });
 });
 

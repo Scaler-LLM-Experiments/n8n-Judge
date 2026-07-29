@@ -266,6 +266,26 @@ export const problemSchema = z
     nodeSetup: z.record(z.string(), nodeSetupSchema),
     nodeProbes: z.record(z.string(), nodeProbeSchema),
     misconceptionLabels: z.record(z.string(), z.string()),
+    /**
+     * What Iris says on this problem, overriding the default phrase book.
+     *
+     * Keys are moments, optionally suffixed with a node type for a line that only
+     * plays for that node:
+     *
+     *   voice: {
+     *     'node_placed:switch': ['[calm] This is where the three kinds of email split up.'],
+     *     phase_complete:       ['[excited] That is the routing done.'],
+     *   }
+     *
+     * The point is that generic narration cannot know what the flow is FOR. The
+     * defaults in apps/web/src/lib/voiceLines.js are the floor; these are how a
+     * problem stops sounding like every other problem.
+     *
+     * Same rule as everywhere else: a line must never give the answer. The
+     * authoring lint checks for that, because unlike an option's `why`, a voice
+     * line plays BEFORE the learner has committed to anything.
+     */
+    voice: z.record(z.string(), z.array(z.string().min(1)).min(1)).optional(),
     sampleCases: z.array(sampleCaseSchema).min(1),
     simulation: z.record(z.string(), z.string()).optional(),
     evalQuestions: z.array(evalQuestionSchema).min(1),
