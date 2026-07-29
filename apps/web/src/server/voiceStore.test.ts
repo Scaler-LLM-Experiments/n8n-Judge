@@ -7,7 +7,7 @@ import { enumerateSpeakable } from '../lib/voiceCatalogue.js';
 import { problems } from '@judge/problems';
 import { NODE_CATALOG } from '@judge/catalog';
 
-const ENV = ['VOICE_CLIP_BACKEND', 'VOICE_CLIP_DIR', 'VOICE_S3_BUCKET'];
+const ENV = ['VOICE_CLIP_BACKEND', 'VOICE_CLIP_DIR', 'AUDIO_S3_BUCKET'];
 let saved: Record<string, string | undefined> = {};
 let dir = '';
 

@@ -277,7 +277,7 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
     // one ("node_placed:switch"), and `node` fills the label into the default.
     // A generic "now set it up" cannot know that this node is the one deciding
     // where an email goes; the author can.
-    voice.play('node_placed', { key: type, node: problem.nodeSetup?.[type]?.label ?? nodeLabel(type) });
+    voice.play('node_placed', { key: type, node: problem.nodeSetup?.[type]?.label ?? nodeLabel(type), scope: `place:${type}` });
   }, [recordPlacement, voice, problem]);
 
   // once a probed node is on screen (and any auto-focus has settled), travel Iris
@@ -356,11 +356,12 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
     // is where the energy goes. The last phase gets its own line, because "one
     // more piece in place" is wrong when there are no more pieces.
     const isLast = phaseIndex >= phases.length - 1;
-    voice.play(isLast ? 'build_complete' : 'phase_complete', { key: phase.id });
+    voice.play(isLast ? 'build_complete' : 'phase_complete', { key: phase.id, scope: `phase:${phase.id}` });
     setStage('clearing');
   }, [nodesState, stage, phase, phaseIndex, phases, probe, voice]);
 
   const continueFromClear = () => {
+    voice.stop(); // moving to the next phase; the celebration is over
     setMascotVisible(false);
     if (clearInfo?.next) {
       trace('phase_transition', { phaseId: clearInfo.next.id, label: clearInfo.next.label });
@@ -382,7 +383,7 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
     const val = validateGraph(g, problem);
     setMascotVisible(false); setIrisSay(null);
     editorRef.current?.fitAll?.();
-    voice.play('run_start');
+    voice.play('run_start', { scope: 'run' });
     // The run animation takes a couple of seconds, which is exactly enough lead
     // time to render whichever verdict is coming.
     voice.prefetch('run_pass');
@@ -414,7 +415,7 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
       setRunFinished(true);
       // Spoken only once the run has actually finished animating, so the verdict
       // does not arrive while cases are still visibly running.
-      voice.play(success ? 'run_pass' : 'run_fail');
+      voice.play(success ? 'run_pass' : 'run_fail', { scope: 'run' });
     }, t + 1800));
     return () => { runTimers.current.forEach(clearTimeout); runTimers.current = []; };
   }, [run]);

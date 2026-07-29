@@ -68,7 +68,9 @@ export function DissectionScreen({ problem, sessionId, onComplete, onDecision })
     const moment = phase === 'greet' ? 'welcome' : phase === 'problem' ? 'problem_intro' : phase === 'quiz' ? 'understand_start' : null;
     if (!moment || spoken.current[moment]) return;
     spoken.current[moment] = true;
-    voice.play(moment);
+    // Each beat is its own scope, so clicking through the intro fast cuts the
+    // previous line rather than making the learner wait it out.
+    voice.play(moment, { scope: `beat:${phase}` });
   }, [phase, voice]);
 
   // Warm BOTH verdicts while the learner is still reading the question. Without
@@ -113,6 +115,8 @@ export function DissectionScreen({ problem, sessionId, onComplete, onDecision })
   // advance to the next question (or finish) — driven by the per-question
   // Continue button, so the learner reads the explanation at their own pace
   const advance = () => {
+    // They have read the explanation and moved on, so stop talking about it.
+    voice.stop();
     if (index + 1 < questions.length) {
       setIndex(index + 1);
       setPicked(null);
@@ -143,7 +147,7 @@ export function DissectionScreen({ problem, sessionId, onComplete, onDecision })
     // The option's own label, so the verdict is about their actual choice rather
     // than a generic yes or no. `key` lets a problem author a line for this
     // specific question.
-    const said = { key: q.id, answer: opt.label };
+    const said = { key: q.id, answer: opt.label, scope: `q:${q.id}` };
     if (resolved.correct === true) voice.play('answer_correct', said);
     else if (resolved.correct === false) {
       // Second miss on the same question gets a stronger pointer. An instructor

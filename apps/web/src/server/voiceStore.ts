@@ -42,10 +42,14 @@ import { dirname, join } from 'node:path';
 // credentials to manage. The cost is that regenerating needs a deploy.
 //
 // `s3` is the option to take when clips should be regenerated without shipping
-// code, or when the set outgrows an image. Set VOICE_CLIP_BACKEND=s3 plus
-// VOICE_S3_BUCKET and VOICE_S3_REGION; credentials come from the standard AWS
-// chain. The keys are identical either way, so switching backends does not
-// invalidate anything already generated.
+// code, or when the set outgrows an image. Set VOICE_CLIP_BACKEND=s3 and the
+// AUDIO_S3_* variables. The keys are identical either way, so switching backends
+// does not invalidate anything already generated.
+//
+// The AUDIO_S3_* names are the ones the platform team hands out, and they carry
+// their own key pair rather than relying on the instance role. That is deliberate
+// on their side: voice clips live in their own bucket on their own credentials, so
+// a misconfiguration here can never reach anything else.
 
 export type ClipBackend = 'local' | 's3' | 'none';
 
@@ -123,24 +127,31 @@ let s3: import('@aws-sdk/client-s3').S3Client | null = null;
 async function client() {
   if (s3) return s3;
   const { S3Client } = await import('@aws-sdk/client-s3');
-  s3 = new S3Client({ region: process.env.VOICE_S3_REGION || process.env.AWS_REGION || 'ap-south-1' });
+  const accessKeyId = process.env.AUDIO_S3_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.AUDIO_S3_SECRET_ACCESS_KEY;
+  s3 = new S3Client({
+    region: process.env.AUDIO_S3_REGION || 'ap-south-1',
+    // Explicit key pair when given; otherwise fall through to the default AWS
+    // chain, so a task role still works in an environment that has one.
+    credentials: accessKeyId && secretAccessKey ? { accessKeyId, secretAccessKey } : undefined,
+  });
   return s3;
 }
 
 function bucket(): string | null {
-  return process.env.VOICE_S3_BUCKET || null;
+  return process.env.AUDIO_S3_BUCKET || null;
 }
 
 /** Optional prefix, so voice clips can share a bucket without colliding. */
 function s3Key(key: string): string {
-  const prefix = (process.env.VOICE_S3_PREFIX || 'voice-clips').replace(/^\/+|\/+$/g, '');
+  const prefix = (process.env.AUDIO_S3_PREFIX || 'voice-clips').replace(/^\/+|\/+$/g, '');
   return prefix ? `${prefix}/${key}` : key;
 }
 
 async function s3Read(key: string): Promise<Buffer | null> {
   const b = bucket();
   if (!b) {
-    warnOnce('VOICE_CLIP_BACKEND=s3 but VOICE_S3_BUCKET is not set');
+    warnOnce('VOICE_CLIP_BACKEND=s3 but AUDIO_S3_BUCKET is not set');
     return null;
   }
   try {

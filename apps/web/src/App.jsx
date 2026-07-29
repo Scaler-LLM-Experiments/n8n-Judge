@@ -6,7 +6,7 @@ import { GradingLoader } from './components/GradingLoader.jsx';
 import { createSession, fetchReport } from './lib/grader.js';
 import { useTrace } from './lib/useTrace.js';
 import { TraceProvider } from './lib/TraceContext.jsx';
-import { VoiceProvider } from './lib/VoiceContext.jsx';
+import { VoiceProvider, useVoiceActions } from './lib/VoiceContext.jsx';
 import { HomeScreen } from './screens/HomeScreen.jsx';
 import { DissectionScreen } from './screens/DissectionScreen.jsx';
 import { BuildStage } from './screens/BuildStage.jsx';
@@ -285,11 +285,18 @@ function MainApp({ problem }) {
   // every transition twice.
   const screenRef = useRef(screen);
   screenRef.current = screen;
+  const voice = useVoiceActions();
   const goTo = useCallback((to) => {
     const from = screenRef.current;
-    if (from !== to) trace('screen_transition', { from, to });
+    if (from !== to) {
+      trace('screen_transition', { from, to });
+      // Cut whatever Iris was saying. It was about the screen being left, so
+      // finishing it would narrate something the learner can no longer see, and
+      // delay the line that belongs to where they actually are.
+      voice.stop();
+    }
     setScreen(to);
-  }, [trace]);
+  }, [trace, voice]);
 
   return (
     <TraceProvider trace={trace} sessionId={sessionId}>

@@ -14,7 +14,7 @@
 // billed. Editing one word regenerates exactly that one clip.
 //
 // Needs: ELEVENLABS_API_KEY, ELEVENLABS_VOICE_ID, and a storage backend
-// (VOICE_CLIP_DIR for local, or VOICE_CLIP_BACKEND=s3 with VOICE_S3_BUCKET).
+// (VOICE_CLIP_DIR for local, or VOICE_CLIP_BACKEND=s3 with the AUDIO_S3_* set).
 import { problems } from '@judge/problems';
 import { NODE_CATALOG } from '@judge/catalog';
 import { enumerateSpeakable } from '../apps/web/src/lib/voiceCatalogue.js';
@@ -30,7 +30,7 @@ const backend = clipBackend();
 if (backend === 'none') {
   console.error(
     'No clip storage configured. Set VOICE_CLIP_DIR=.voice-clips for local files,\n' +
-      'or VOICE_CLIP_BACKEND=s3 with VOICE_S3_BUCKET and VOICE_S3_REGION.'
+      'or VOICE_CLIP_BACKEND=s3 with AUDIO_S3_BUCKET, AUDIO_S3_REGION and the key pair.'
   );
   process.exit(1);
 }

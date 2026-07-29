@@ -71,7 +71,7 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
   useEffect(() => {
     // WITH the node, because the line names it. Warming without the vars renders
     // "Yes, is set up right" and then plays that.
-    const said = { key: node.nodeType, node: node.label };
+    const said = { key: node.nodeType, node: node.label, scope: `node:${node.id}` };
     voice.prefetch('verify_pass', said);
     voice.prefetch('verify_fail', said);
   }, [voice, node.nodeType, node.label]);
@@ -82,6 +82,9 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
     return () => { clearTimeout(runTimer.current); clearTimeout(voiceTimer.current); clearTimeout(vigTimer.current); };
   }, []);
   const requestClose = () => {
+    // Closing the panel ends the subject. A verdict about a node the learner has
+    // just walked away from is noise.
+    voice.stop();
     clearTimeout(vigTimer.current);
     gsap.to(panelRef.current, { scale: 0.97, y: 10, opacity: 0, duration: 0.22, ease: 'power2.in' });
     gsap.to(rootRef.current, { opacity: 0, duration: 0.24, ease: 'power2.in', onComplete: onClose });
@@ -213,7 +216,7 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
     if (!serverResults?.length) return;
     if (serverResults.some((r) => !r || typeof r.correct !== 'boolean')) return;
     const passed = serverResults.every((r) => r.correct);
-    voice.play(passed ? 'verify_pass' : 'verify_fail', { key: node.nodeType, node: node.label });
+    voice.play(passed ? 'verify_pass' : 'verify_fail', { key: node.nodeType, node: node.label, scope: `node:${node.id}` });
   };
 
   const verify = () => {

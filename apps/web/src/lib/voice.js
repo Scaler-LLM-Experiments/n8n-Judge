@@ -17,9 +17,15 @@ import { captionFor, clipFor, fillLine, hasMoment, pickLine } from './voiceLines
 //     A learner who turned the sound off should still see Iris react. The visual
 //     beat is the part that carries the moment; the audio is a bonus.
 //
-//  3. NEVER cut a line off for a newer one. Beats arrive in bursts, so a new
-//     moment parks in a SINGLE slot and the latest wins. A burst collapses to
-//     "what is true now" instead of queueing three stale sentences.
+//  3. QUEUE WITHIN A CONTEXT, CUT ACROSS ONE. Two beats about the same thing
+//     should not talk over each other, so a new moment in the same context parks
+//     in a SINGLE slot and the latest wins.
+//
+//     But a learner moving fast has moved ON, and finishing the old line first
+//     means the new one arrives late and the old one describes a screen they can
+//     no longer see. So a moment from a DIFFERENT context cuts the current line
+//     dead and starts immediately. Being interrupted mid-sentence is correct
+//     behaviour here: it is what a person does when you change the subject.
 //
 //  4. TEAR THE GRAPH DOWN. Web Audio nodes do not get collected while connected,
 //     so every finished line disconnects its source and analyser. Without this a
@@ -57,8 +63,10 @@ export function createVoice({ fetchImpl, onMoment, problemSlug, problem } = {}) 
   let caption = null; // { moment, text }
   /** 0..1, drives the mascot's pulse and the speaking bubble. */
   let amplitude = 0;
-  let pending = null; // single slot, latest wins
+  let pending = null; // single slot within a context, latest wins
   let token = 0; // invalidates in-flight work when muted or superseded
+  /** What the current line is about, so a change of subject can cut it. */
+  let scope = null;
 
   /**
    * Warmed clips, so `play` can start with no network wait at all.
@@ -92,6 +100,8 @@ export function createVoice({ fetchImpl, onMoment, problemSlug, problem } = {}) 
    * never appeared however carefully it was passed in. Keying by moment alone
    * silently discards the variables.
    */
+  // NOTE: `scope` is deliberately absent. It decides whether a line is cut, not
+  // what the line says, so including it would store the same audio twice.
   const warmKey = (moment, vars = {}) => `${moment}|${vars.key ?? ''}|${vars.node ?? ''}|${vars.answer ?? ''}`;
 
   let audioEl = null;
@@ -237,6 +247,7 @@ export function createVoice({ fetchImpl, onMoment, problemSlug, problem } = {}) 
   }
 
   async function start(moment, vars) {
+    scope = vars?.scope ?? null;
     // A warmed clip is consumed here, which is what makes the common path
     // instant: no fetch, no vendor call, straight to playback.
     const wk = warmKey(moment, vars);
@@ -321,10 +332,25 @@ export function createVoice({ fetchImpl, onMoment, problemSlug, problem } = {}) 
       }
 
       if (muted) return;
+
       if (speaking) {
-        pending = { moment, vars };
-        return;
+        const incoming = vars?.scope ?? null;
+        // Same subject: let the current line finish and park this one.
+        if (incoming === scope) {
+          pending = { moment, vars };
+          return;
+        }
+        // Different subject: the learner has moved on, so stop talking about the
+        // old one. Anything parked is dropped with it — it was about the old
+        // context too.
+        token += 1;
+        pending = null;
+        teardown();
+        speaking = false;
+        caption = null;
+        amplitude = 0;
       }
+
       start(moment, vars);
     },
 
@@ -357,6 +383,7 @@ export function createVoice({ fetchImpl, onMoment, problemSlug, problem } = {}) 
     stop() {
       token += 1;
       pending = null;
+      scope = null;
       teardown();
       speaking = false;
       caption = null;
