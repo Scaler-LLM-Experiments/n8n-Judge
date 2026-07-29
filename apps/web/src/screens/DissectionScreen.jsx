@@ -70,6 +70,15 @@ export function DissectionScreen({ problem, sessionId, onComplete, onDecision })
     voice.play(moment);
   }, [phase, voice]);
 
+  // Warm BOTH verdicts while the learner is still reading the question. Without
+  // this, the line is rendered only after they click, so Iris answers a second or
+  // two late — by which time they have already read the explanation themselves.
+  useEffect(() => {
+    if (phase !== 'quiz') return;
+    voice.prefetch('answer_correct');
+    voice.prefetch('answer_wrong');
+  }, [phase, index, voice]);
+
   // ease the whole quiz screen in when arriving from the problem beat
   useEffect(() => {
     if (phase === 'quiz' && quizRef.current) {

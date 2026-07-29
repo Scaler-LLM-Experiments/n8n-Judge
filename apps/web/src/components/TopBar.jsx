@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Check, Question, ArrowCounterClockwise, ArrowClockwise, Play, FileText, SpeakerHigh, SpeakerSlash } from '@phosphor-icons/react';
+import { Check, Question, ArrowCounterClockwise, ArrowClockwise, Play, FileText, SpeakerHigh, SpeakerSlash, CaretDown, Clock } from '@phosphor-icons/react';
 const scalerLogo = '/brand/scaler-logo.svg';
 import { GlossaryDrawer } from './GlossaryDrawer.jsx';
 import { AskAiDrawer } from './AskAiDrawer.jsx';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
 import { useVoice } from '../lib/VoiceContext.jsx';
-import { VoiceBubble } from './VoiceBubble.jsx';
+import { VoiceGlow } from './VoiceBubble.jsx';
 
 const STAGES = [
   { id: 'statement', label: 'Understand' },
@@ -179,39 +179,133 @@ function UserMenu() {
   );
 }
 
+const RATES = [1, 1.25, 1.5, 2];
+
 /**
- * Mute for Iris's voice.
+ * Voice control: mute on the icon, speed on the number.
+ *
+ * Both in one control because they are the same decision from the learner's side
+ * ("how much of this do I want?"), and because two separate buttons in a row of
+ * six all start to look alike.
  *
  * Always shown, even with narration unconfigured: the control is how a learner
  * discovers there IS a voice, and hiding it when the key is missing would mean
  * the feature silently does not exist in some environments.
+ *
+ * Speed matters more than it looks. A learner who has heard the verify line
+ * twenty times wants it faster, and one following in a second language wants it
+ * slower. Both are persisted, so the choice is made once.
  */
-function VoiceToggle() {
-  const { muted, setMuted, speaking } = useVoice();
+function VoiceControl() {
+  const { muted, setMuted, setRate, rate, speaking } = useVoice();
   const Icon = muted ? SpeakerSlash : SpeakerHigh;
+
   return (
-    <button
-      type="button"
-      onClick={() => setMuted(!muted)}
-      title={muted ? 'Turn Iris’s voice on' : 'Mute Iris’s voice'}
-      aria-label={muted ? 'Turn voice on' : 'Mute voice'}
-      aria-pressed={muted}
+    <div
       style={{
-        width: 34,
-        height: 34,
-        flex: 'none',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center',
-        border: '1px solid var(--border-strong)',
+        height: 34,
+        flex: 'none',
+        border: `1px solid ${speaking && !muted ? 'var(--brand-primary)' : 'var(--border-strong)'}`,
         background: 'var(--surface-0)',
-        color: muted ? 'var(--fg-3)' : speaking ? 'var(--brand-primary)' : 'var(--fg-2)',
-        cursor: 'pointer',
-        padding: 0,
       }}
     >
-      <Icon size={16} weight={muted ? 'regular' : 'fill'} />
-    </button>
+      <button
+        type="button"
+        onClick={() => setMuted(!muted)}
+        title={muted ? 'Turn Iris’s voice on' : 'Mute Iris’s voice'}
+        aria-label={muted ? 'Turn voice on' : 'Mute voice'}
+        aria-pressed={muted}
+        style={{
+          width: 30,
+          height: 32,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          border: 'none',
+          background: 'none',
+          color: muted ? 'var(--fg-3)' : speaking ? 'var(--brand-primary)' : 'var(--fg-2)',
+          cursor: 'pointer',
+          padding: 0,
+        }}
+      >
+        <Icon size={15} weight={muted ? 'regular' : 'fill'} />
+      </button>
+
+      <span style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', opacity: muted ? 0.45 : 1 }}>
+        <select
+          value={rate}
+          disabled={muted}
+          aria-label="How fast Iris talks"
+          onChange={(e) => setRate(Number(e.target.value))}
+          style={{
+            appearance: 'none',
+            border: 'none',
+            borderLeft: '1px solid var(--border-subtle)',
+            background: 'none',
+            font: 'inherit',
+            fontSize: 12,
+            fontWeight: 700,
+            fontFamily: 'var(--font-body)',
+            color: 'var(--fg-2)',
+            padding: '0 20px 0 8px',
+            height: 32,
+            cursor: muted ? 'not-allowed' : 'pointer',
+          }}
+        >
+          {RATES.map((r) => (
+            <option key={r} value={r}>{r}x</option>
+          ))}
+        </select>
+        <CaretDown size={10} color="var(--fg-3)" style={{ position: 'absolute', right: 6, pointerEvents: 'none' }} />
+      </span>
+    </div>
+  );
+}
+
+/**
+ * Time spent on this problem, against a target.
+ *
+ * Not a countdown and nothing happens when it passes: this is a pacing signal,
+ * not a limit. A learner forty minutes into a thirty minute problem should know
+ * that, and a learner at eight minutes should feel fine. Turning it into a
+ * deadline would change what the tool measures, from understanding to speed.
+ *
+ * Counted from mount, so it is time on THIS screen rather than time since the
+ * session row was created. A learner who left a tab open overnight has not spent
+ * the night working.
+ */
+function SessionTimer({ targetMinutes = 30 }) {
+  const [seconds, setSeconds] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setSeconds((s) => s + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const mmss = (total) => `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
+  const over = seconds > targetMinutes * 60;
+
+  return (
+    <div
+      title={`You have been on this for ${mmss(seconds)}. The target is a guide, not a limit.`}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 7,
+        height: 34,
+        flex: 'none',
+        padding: '0 10px',
+        border: '1px solid var(--border-strong)',
+        background: 'var(--surface-0)',
+        fontSize: 12,
+        fontFamily: 'var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace)',
+      }}
+    >
+      <Clock size={14} color={over ? 'var(--status-warning, #B54708)' : 'var(--fg-3)'} />
+      <span style={{ fontWeight: 700, color: over ? 'var(--status-warning, #B54708)' : 'var(--fg-1)' }}>{mmss(seconds)}</span>
+      <span style={{ color: 'var(--fg-3)', letterSpacing: '0.03em' }}>TARGET {mmss(targetMinutes * 60)}</span>
+    </div>
   );
 }
 
@@ -288,19 +382,17 @@ export function TopBar({ activeStage, problem, currentPhase, nodeContext, learne
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifySelf: 'end' }}>
-        {/* The speaking bubble lives under the one mascot that is always on
-            screen, so "Iris is talking" has a fixed home no matter which screen
-            you are on. */}
-        <span style={{ position: 'relative', display: 'inline-flex' }}>
-          <button type="button" onClick={() => setAskOpen(true)} title="Ask Iris" style={{ display: 'flex', alignItems: 'center', gap: 7, height: 34, padding: '0 12px 0 8px', border: '1px solid var(--brand-primary)', background: 'var(--brand-blue-50, rgba(0,85,255,0.06))', color: 'var(--brand-primary)', fontWeight: 700, fontSize: 12.5, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
+        {/* Only inside a problem: on the home screen there is nothing being timed. */}
+        {activeStage ? <SessionTimer targetMinutes={problem?.targetMinutes} /> : null}
+        {/* The glow goes on the one mascot that is always on screen, so "Iris is
+            talking" has a fixed home whichever screen you are on. */}
+        <button type="button" onClick={() => setAskOpen(true)} title="Ask Iris" style={{ display: 'flex', alignItems: 'center', gap: 7, height: 34, padding: '0 12px 0 8px', border: '1px solid var(--brand-primary)', background: 'var(--brand-blue-50, rgba(0,85,255,0.06))', color: 'var(--brand-primary)', fontWeight: 700, fontSize: 12.5, cursor: 'pointer', fontFamily: 'var(--font-body)', whiteSpace: 'nowrap', flex: 'none' }}>
+          <VoiceGlow spread={1.4} style={{ width: 22, height: 22, flex: 'none' }}>
             <span style={{ width: 22, height: 22, flex: 'none' }}><MascotPlayer clip="idle" once={false} onceDone={() => {}} /></span>
-            Ask AI
-          </button>
-          <span style={{ position: 'absolute', left: 14, bottom: -5, pointerEvents: 'none' }}>
-            <VoiceBubble size={9} />
-          </span>
-        </span>
-        <VoiceToggle />
+          </VoiceGlow>
+          Ask AI
+        </button>
+        <VoiceControl />
         {onProblemDoc ? <IconButton icon={FileText} title="Problem statement" onClick={onProblemDoc} /> : null}
         {onShowProblemStatement ? <IconButton icon={FileText} title="Problem statement" onClick={onShowProblemStatement} dataTour="problem" /> : null}
         <IconButton icon={Question} title="Node glossary" onClick={() => setGlossaryOpen(true)} />

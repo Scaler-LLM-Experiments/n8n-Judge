@@ -60,6 +60,26 @@ export function createVoice({ fetchImpl, onMoment } = {}) {
   let pending = null; // single slot, latest wins
   let token = 0; // invalidates in-flight work when muted or superseded
 
+  /**
+   * Warmed clips, so `play` can start with no network wait at all.
+   *
+   * This is the fix for the delay between a click and Iris speaking. Rendering a
+   * line takes a round trip plus the vendor's own generation time, which is
+   * one to three seconds — long enough that the verdict arrives after the learner
+   * has already moved on. Nothing can make an unrendered line instant, so the
+   * answer is to render it BEFORE it is needed.
+   *
+   * The trick is that the branch points are all predictable: when a question is on
+   * screen we know the next line is either `answer_correct` or `answer_wrong`, so
+   * both get warmed while the learner is still reading. Same for verify and for a
+   * run. By the time they click, the audio is already in memory.
+   *
+   * Bounded and one-shot, per the porting guide: consumed on play so variants
+   * still rotate, and capped so a long session cannot accumulate blobs.
+   */
+  const warmed = new Map(); // moment -> { variant, caption, blob }
+  const MAX_WARM = 4;
+
   let audioEl = null;
   let ctx = null;
   let sourceNode = null;
@@ -161,46 +181,69 @@ export function createVoice({ fetchImpl, onMoment } = {}) {
     fallbackTimer = setTimeout(finish, estimate(text));
   };
 
+  /**
+   * Fetch one line. Returns what is needed to play it, or null when there is no
+   * audio to be had (flag off, no key, vendor error, network failure) — in which
+   * case the caller shows the caption instead.
+   */
+  async function fetchLine(moment, variant, vars) {
+    if (!doFetch) return null;
+    try {
+      const qs = new URLSearchParams({ moment, variant: String(variant) });
+      if (vars?.phase) qs.set('phase', vars.phase);
+      const res = await doFetch(`/api/voice?${qs}`, { cache: 'no-store' });
+
+      let caption = null;
+      const served = res?.headers?.get?.('X-Voice-Text');
+      if (served) {
+        try {
+          caption = decodeURIComponent(served);
+        } catch {
+          caption = null;
+        }
+      }
+
+      // 204 is "no audio by design": the caption still came back.
+      if (!res.ok || res.status === 204) return { blob: null, caption };
+      return { blob: await res.blob(), caption };
+    } catch {
+      return null;
+    }
+  }
+
+  function remember(moment, entry) {
+    if (warmed.size >= MAX_WARM) {
+      const oldest = warmed.keys().next().value;
+      if (oldest !== undefined) warmed.delete(oldest);
+    }
+    warmed.set(moment, entry);
+  }
+
   async function start(moment, vars) {
-    const picked = pickLine(moment);
+    // A warmed clip is consumed here, which is what makes the common path
+    // instant: no fetch, no vendor call, straight to playback.
+    const hit = warmed.get(moment);
+    if (hit) warmed.delete(moment);
+
+    const picked = hit ? { index: hit.variant, line: null } : pickLine(moment);
     if (!picked) return;
 
     const mine = ++token;
     speaking = true;
-    caption = { moment, text: captionFor(fillLine(picked.line, vars)) };
+    caption = { moment, text: hit?.caption ?? captionFor(fillLine(picked.line, vars)) };
     amplitude = 0;
     emit();
 
-    if (!doFetch) {
-      speakSilently(caption.text);
-      return;
-    }
-
-    let res = null;
-    try {
-      const qs = new URLSearchParams({ moment, variant: String(picked.index) });
-      if (vars?.phase) qs.set('phase', vars.phase);
-      res = await doFetch(`/api/voice?${qs}`, { cache: 'no-store' });
-    } catch {
-      res = null;
-    }
+    let fetched = hit ? { blob: hit.blob, caption: hit.caption } : await fetchLine(moment, picked.index, vars);
 
     // Muted or superseded while the request was in flight.
     if (mine !== token) return;
 
-    // The server always sends the caption it rendered, so prefer it: that is the
-    // text belonging to the audio actually about to play.
-    const served = res?.headers?.get?.('X-Voice-Text');
-    if (served) {
-      try {
-        caption = { moment, text: decodeURIComponent(served) };
-      } catch {
-        /* keep the locally-picked caption */
-      }
-    }
+    // Prefer the caption the server sent: that is the text belonging to the audio
+    // actually about to play.
+    if (fetched?.caption) caption = { moment, text: fetched.caption };
 
-    // 204 means "no audio for this, by design" (flag off, no key, vendor error).
-    if (!res || !res.ok || res.status === 204) {
+    if (!fetched?.blob) {
       emit();
       speakSilently(caption.text);
       return;
@@ -208,9 +251,7 @@ export function createVoice({ fetchImpl, onMoment } = {}) {
 
     let blobUrl = null;
     try {
-      const blob = await res.blob();
-      if (mine !== token) return;
-      blobUrl = URL.createObjectURL(blob);
+      blobUrl = URL.createObjectURL(fetched.blob);
 
       audioEl = new Audio(blobUrl);
       audioEl.playbackRate = rate;
@@ -269,6 +310,30 @@ export function createVoice({ fetchImpl, onMoment } = {}) {
       start(moment, vars);
     },
 
+    /**
+     * Warm a line so the next `play` of it starts instantly.
+     *
+     * Call it at a lead point, for every outcome that is possible next. Cheap to
+     * over-call: the server caches rendered bytes, so warming a line a second
+     * time costs one request and no vendor billing.
+     */
+    prefetch(moment, vars = {}) {
+      if (!hasMoment(moment) || muted || warmed.has(moment)) return;
+      const picked = pickLine(moment);
+      if (!picked) return;
+      // Reserve the slot immediately so two callers cannot both fetch it.
+      remember(moment, { variant: picked.index, caption: captionFor(fillLine(picked.line, vars)), blob: null });
+      fetchLine(moment, picked.index, vars).then((got) => {
+        if (!got) {
+          warmed.delete(moment);
+          return;
+        }
+        // Keep the entry even with no blob: the server's caption is still better
+        // than the locally-picked one, and it records that there is no audio.
+        remember(moment, { variant: picked.index, caption: got.caption ?? captionFor(fillLine(picked.line, vars)), blob: got.blob });
+      });
+    },
+
     /** Stop now and drop anything parked. */
     stop() {
       token += 1;
@@ -283,7 +348,10 @@ export function createVoice({ fetchImpl, onMoment } = {}) {
     setMuted(next) {
       muted = Boolean(next);
       write(MUTE_KEY, muted);
-      if (muted) this.stop();
+      if (muted) {
+        warmed.clear();
+        this.stop();
+      }
       else emit();
     },
 

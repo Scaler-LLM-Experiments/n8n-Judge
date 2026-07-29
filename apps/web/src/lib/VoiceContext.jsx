@@ -10,6 +10,7 @@ import { createVoice } from './voice.js';
 const noop = () => {};
 const DEFAULT = {
   play: noop,
+  prefetch: noop,
   stop: noop,
   setMuted: noop,
   setRate: noop,
@@ -51,6 +52,7 @@ export function VoiceProvider({ children }) {
     const v = voiceRef.current;
     return {
       play: v ? (moment, vars) => v.play(moment, vars) : noop,
+      prefetch: v ? (moment, vars) => v.prefetch(moment, vars) : noop,
       stop: v ? () => v.stop() : noop,
       setMuted: v ? (m) => v.setMuted(m) : noop,
       setRate: v ? (r) => v.setRate(r) : noop,

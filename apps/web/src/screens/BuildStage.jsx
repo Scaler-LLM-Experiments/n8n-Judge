@@ -318,6 +318,10 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
     setMascotVisible(false); setIrisSay(null);
     editorRef.current?.fitAll?.();
     voice.play('run_start');
+    // The run animation takes a couple of seconds, which is exactly enough lead
+    // time to render whichever verdict is coming.
+    voice.prefetch('run_pass');
+    voice.prefetch('run_fail');
     setRun({ cases, success, val });
     setRunPos({ ci: 0, si: 0 });
     setRunFinished(false);

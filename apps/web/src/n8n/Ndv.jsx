@@ -59,6 +59,13 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
   const attempts = useRef(0);
   const vigTimer = useRef(null);
 
+  // Warm both outcomes on open, so the verdict is spoken the instant Verify
+  // lands rather than a beat later.
+  useEffect(() => {
+    voice.prefetch('verify_pass');
+    voice.prefetch('verify_fail');
+  }, [voice]);
+
   useEffect(() => {
     gsap.fromTo(rootRef.current, { opacity: 0 }, { opacity: 1, duration: 0.24, ease: 'power2.out' });
     gsap.fromTo(panelRef.current, { scale: 0.96, y: 14, opacity: 0 }, { scale: 1, y: 0, opacity: 1, duration: 0.34, ease: 'power3.out' });
