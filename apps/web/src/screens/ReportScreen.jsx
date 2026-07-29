@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { CaretDown, CaretUp } from '@phosphor-icons/react';
+import { useVoice } from '../lib/VoiceContext.jsx';
 import { Card } from '../design-system/Card.jsx';
 import { Alert } from '../design-system/Alert.jsx';
 import { Badge } from '../design-system/Badge.jsx';
@@ -56,6 +57,13 @@ function findSampleCase(problem, decisionId) {
 }
 
 export function ReportScreen({ problem, grading, dissection, runResult, evalOutcome, graph, serverReport }) {
+  const voice = useVoice();
+  const said = useRef(false);
+  useEffect(() => {
+    if (said.current) return;
+    said.current = true;
+    voice.play('report_ready');
+  }, [voice]);
   const [showStatement, setShowStatement] = useState(false);
 
   // The server's replayed score wins whenever there is one. The local store is

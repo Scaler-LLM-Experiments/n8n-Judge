@@ -6,6 +6,7 @@ import { GradingLoader } from './components/GradingLoader.jsx';
 import { createSession, fetchReport } from './lib/grader.js';
 import { useTrace } from './lib/useTrace.js';
 import { TraceProvider } from './lib/TraceContext.jsx';
+import { VoiceProvider } from './lib/VoiceContext.jsx';
 import { HomeScreen } from './screens/HomeScreen.jsx';
 import { DissectionScreen } from './screens/DissectionScreen.jsx';
 import { BuildStage } from './screens/BuildStage.jsx';
@@ -256,7 +257,11 @@ function BuildPreview({ problem, devAutoRun }) {
       />
     );
 
-  return <TraceProvider trace={trace} sessionId={sessionId}>{screenEl}</TraceProvider>;
+  return (
+    <TraceProvider trace={trace} sessionId={sessionId}>
+      <VoiceProvider>{screenEl}</VoiceProvider>
+    </TraceProvider>
+  );
 }
 
 function MainApp({ problem }) {
@@ -288,6 +293,7 @@ function MainApp({ problem }) {
 
   return (
     <TraceProvider trace={trace} sessionId={sessionId}>
+    <VoiceProvider>
     <div style={{ height: '100vh' }}>
       {screen === SCREEN.STATEMENT ? (
         <DissectionScreen
@@ -344,6 +350,7 @@ function MainApp({ problem }) {
         <ReportScreen problem={problem} grading={grading} dissection={dissection} runResult={runResult} evalOutcome={evalOutcome} graph={builtGraph} serverReport={serverReport} />
       ) : null}
     </div>
+    </VoiceProvider>
     </TraceProvider>
   );
 }

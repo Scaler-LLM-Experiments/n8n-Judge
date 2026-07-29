@@ -10,6 +10,7 @@ import { FieldControl, isCorrectValue, expressionFor, whyForField, resourceValue
 import { RuleListControl } from './RuleListControl.jsx';
 import { defaultSettings, gradeSettings } from './nodeSettings.js';
 import { checkAnswer } from '../lib/grader.js';
+import { useVoice } from '../lib/VoiceContext.jsx';
 
 // Shown once per session: the first time a node verifies, Iris spotlights the
 // close button so the learner learns that closing a green NDV finishes the node.
@@ -24,6 +25,7 @@ let ndvVignetteSeen = false;
 // verify green, and setup needs BOTH. Only what the problem grades is editable;
 // the rest render at real n8n defaults but locked.
 export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete, onClose, sessionId }) {
+  const voice = useVoice();
   const [tab, setTab] = useState('params');
   const rootRef = useRef(null);
   const panelRef = useRef(null);
@@ -220,6 +222,7 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
             }
           });
           setSettingsResults(sres);
+          voice.play(sres.every((r) => r.correct) ? 'verify_pass' : 'verify_fail');
           if (sres.every((r) => r.correct)) {
             setPhase('done');
             if (!ndvVignetteSeen) { ndvVignetteSeen = true; vigTimer.current = setTimeout(() => setShowVignette(true), 2600); }
@@ -256,6 +259,10 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
         setFieldWhy(why);
 
         const paramsPassed = paramChecks.every((c) => next[c.key] === 'correct');
+        // Nothing is said when a check could not complete: `unverified` is not a
+        // verdict, and claiming one out loud would be worse than silence.
+        const anyUnverified = paramChecks.some((c) => next[c.key] === 'unverified');
+        if (!anyUnverified) voice.play(paramsPassed ? 'verify_pass' : 'verify_fail');
         if (!paramsPassed) {
           setPhase('idle');
           const firstWrong = paramChecks.find((c) => next[c.key] === 'wrong');

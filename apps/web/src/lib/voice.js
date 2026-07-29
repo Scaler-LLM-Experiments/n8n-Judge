@@ -1,87 +1,40 @@
-// Iris speaking.
+import { captionFor, clipFor, fillLine, hasMoment, pickLine } from './voiceLines.js';
+
+// Iris speaking, client side.
 //
-// The architecture is the one in docs/mascot-system-porting-guide.md §5 — a
-// "moment" abstraction, a busy latch, a single-slot pending queue, silent
-// degradation — but the audio source is different, and deliberately so.
+// The architecture is the porting guide's (docs/mascot-system-porting-guide.md
+// §5): a "moment" abstraction, a busy latch, a single-slot pending queue, and
+// silent degradation everywhere. Callers do `voice.play('verify_pass')` and never
+// think about it again.
 //
-// The guide's system pre-generates clips with a TTS vendor and serves them from
-// S3 behind a backend. That is the right long-term answer (consistent voice,
-// no per-play cost, name splicing) and it is also a project, not an afternoon.
-// This uses the browser's own `speechSynthesis`: no key, no backend, no storage,
-// works offline, ships today. The seam is the moment registry — swapping in
-// fetched audio later means changing `speakNow()` and nothing else.
+// Four rules, all load-bearing:
 //
-// Three rules, all from the guide and all load-bearing:
+//  1. NEVER throw at the caller. Narration is the least important thing on the
+//     page. No key, a dead network, a browser that blocks autoplay: every one of
+//     them ends as "caption only", never as a broken screen.
 //
-//   1. NEVER throw at the caller. Narration is the least important thing on the
-//      page. A missing voice, a blocked autoplay, a browser without the API —
-//      every one of them degrades to "no sound" or "caption only", never to a
-//      broken screen. Callers do `speak('run_pass')` and forget it.
-//   2. NEVER cut a line off mid-sentence for a newer one. Beats arrive in
-//      bursts (a field verifies, the phase completes, the run starts). A new
-//      moment parks in a SINGLE slot — latest wins, so a burst collapses to
-//      "what is true now" instead of queueing three stale lines.
-//   3. NEVER speak the answer. Same rule as Ask-AI: these lines narrate what
-//      happened and what it means, never which option to pick.
+//  2. ALWAYS notify the mascot first, before any audio work and even when muted.
+//     A learner who turned the sound off should still see Iris react. The visual
+//     beat is the part that carries the moment; the audio is a bonus.
+//
+//  3. NEVER cut a line off for a newer one. Beats arrive in bursts, so a new
+//     moment parks in a SINGLE slot and the latest wins. A burst collapses to
+//     "what is true now" instead of queueing three stale sentences.
+//
+//  4. TEAR THE GRAPH DOWN. Web Audio nodes do not get collected while connected,
+//     so every finished line disconnects its source and analyser. Without this a
+//     long session accumulates dead graphs until audio stops working entirely.
 
 const MUTE_KEY = 'judge.voice.muted';
 const RATE_KEY = 'judge.voice.rate';
 
-/**
- * Everything speakable, keyed by moment. An array means "pick one at random",
- * so a learner who verifies eight fields doesn't hear the same sentence eight
- * times — repetition is what makes narration feel canned.
- *
- * `{name}` interpolates from the vars passed to speak().
- *
- * Kept short on purpose: Chrome has historically cut long utterances off, and a
- * spoken line that outlasts the moment it describes is worse than no line.
- */
-export const MOMENTS = {
-  welcome: [
-    "Hi, I'm Iris. I'll walk you through this one step at a time.",
-    "I'm Iris. Let's build this together — I'll explain as we go.",
-  ],
-  problem_intro: "Here's today's problem. Read it, then we'll take it apart.",
-  understand_start: "First, let's make sure you understand what this flow has to do.",
-
-  answer_correct: [
-    'That’s right.',
-    'Exactly right.',
-    'Good — that’s the one.',
-  ],
-  answer_wrong: [
-    'Not quite. Read what I’ve written, then try again.',
-    'That’s a reasonable guess, but no. Have a look at why.',
-  ],
-
-  build_start: 'Now the fun part — let’s build it on the canvas.',
-  phase_intro: 'Next: {phase}.',
-  node_placed: 'Good. Now open it and set it up.',
-  node_wrong: 'That node can’t do what we need here. Let me show you why.',
-
-  verify_pass: [
-    'Set up correctly.',
-    'That’s configured right.',
-  ],
-  verify_fail: 'Something in there isn’t right yet. Check what I’ve flagged.',
-
-  run_start: 'Let’s run it against some real cases.',
-  run_pass: 'Every case passed. That flow works.',
-  run_fail: 'Some cases didn’t come out right. That’s useful — let’s see which.',
-
-  stress_start: 'Now let’s see whether you know how what you built behaves.',
-  report_ready: 'Here’s how you did, and what I’d work on next.',
-};
-
-/** Spoken duration estimate for the caption-only path, in ms. */
-const estimate = (text) => Math.max(2200, text.split(/\s+/).length * 360);
+/** Spoken-duration estimate for the caption-only path, in ms. */
+const estimate = (text) => Math.max(2400, text.split(/\s+/).length * 380);
 
 const read = (key, fallback) => {
   if (typeof window === 'undefined') return fallback;
   try {
-    const v = window.localStorage.getItem(key);
-    return v === null ? fallback : v;
+    return window.localStorage.getItem(key) ?? fallback;
   } catch {
     return fallback;
   }
@@ -91,149 +44,239 @@ const write = (key, value) => {
   try {
     window.localStorage.setItem(key, String(value));
   } catch {
-    /* private mode / full storage must not break narration */
+    /* private mode must not break narration */
   }
 };
 
-const synth = () => (typeof window === 'undefined' ? null : window.speechSynthesis ?? null);
-
-/** Pick a line for a moment and fill its vars. */
-export function lineFor(moment, vars = {}, pick = Math.random) {
-  const entry = MOMENTS[moment];
-  if (!entry) return null;
-  const raw = Array.isArray(entry) ? entry[Math.floor(pick() * entry.length) % entry.length] : entry;
-  return raw.replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? '').trim());
-}
-
-/**
- * `speechSynthesis.getVoices()` is populated asynchronously and is empty on the
- * first call in most browsers, so a voice chosen eagerly is no voice at all.
- * Resolve lazily and cache once we actually get a list.
- */
-let cachedVoice;
-function preferredVoice() {
-  const s = synth();
-  if (!s) return null;
-  if (cachedVoice !== undefined) return cachedVoice;
-  const voices = s.getVoices();
-  if (!voices.length) return null; // try again next time; do not cache a miss
-
-  const en = voices.filter((v) => /^en(-|_|$)/i.test(v.lang));
-  const pool = en.length ? en : voices;
-  // Prefer the higher-quality voices these engines ship, by name, then fall back
-  // to whatever the platform gives us rather than refusing to speak.
-  const nice = /samantha|serena|jenny|aria|sonia|natural|google us english|google uk english female/i;
-  cachedVoice = pool.find((v) => nice.test(v.name)) ?? pool[0] ?? null;
-  return cachedVoice;
-}
-
-export function createVoice({ speechSynthesis: injected } = {}) {
-  const s = injected ?? synth();
-  const supported = Boolean(s);
+export function createVoice({ fetchImpl, onMoment } = {}) {
+  const doFetch = fetchImpl ?? (typeof fetch === 'function' ? fetch.bind(globalThis) : null);
 
   let muted = read(MUTE_KEY, 'false') === 'true';
   let rate = Number(read(RATE_KEY, '1')) || 1;
   let speaking = false;
-  let caption = null; // { moment, text, wordIndex }
-  let pending = null; // single slot — latest wins
-  let fallbackTimer = null;
-  const listeners = new Set();
+  let caption = null; // { moment, text }
+  /** 0..1, drives the mascot's pulse and the speaking bubble. */
+  let amplitude = 0;
+  let pending = null; // single slot, latest wins
+  let token = 0; // invalidates in-flight work when muted or superseded
 
+  let audioEl = null;
+  let ctx = null;
+  let sourceNode = null;
+  let analyser = null;
+  let rafId = null;
+  let fallbackTimer = null;
+
+  const listeners = new Set();
   const emit = () => {
     for (const fn of listeners) {
       try {
-        fn({ speaking, caption, muted, rate, supported });
+        fn({ speaking, caption, amplitude, muted, rate });
       } catch {
         /* a broken subscriber must not stop narration */
       }
     }
   };
 
+  const stopMeter = () => {
+    if (rafId !== null) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+  };
+
+  const teardown = () => {
+    stopMeter();
+    clearTimeout(fallbackTimer);
+    fallbackTimer = null;
+    try {
+      sourceNode?.disconnect();
+      analyser?.disconnect();
+    } catch {
+      /* already gone */
+    }
+    sourceNode = null;
+    analyser = null;
+    if (audioEl) {
+      try {
+        audioEl.pause();
+        audioEl.src = '';
+      } catch {
+        /* already gone */
+      }
+      audioEl = null;
+    }
+  };
+
   const finish = () => {
+    teardown();
     speaking = false;
     caption = null;
-    clearTimeout(fallbackTimer);
+    amplitude = 0;
     const next = pending;
     pending = null;
     emit();
-    if (next) speakNow(next.moment, next.vars);
+    if (next) start(next.moment, next.vars);
   };
 
-  function speakNow(moment, vars) {
-    const text = lineFor(moment, vars);
-    if (!text) return;
+  /**
+   * Amplitude from the time domain (RMS), not by averaging frequency bins.
+   * RMS tracks the envelope of speech, which is what makes the mascot look like
+   * it is talking; a frequency average barely moves.
+   */
+  const runMeter = () => {
+    if (!analyser) return;
+    const buf = new Uint8Array(analyser.fftSize);
+    const tick = () => {
+      if (!analyser) return;
+      analyser.getByteTimeDomainData(buf);
+      let sum = 0;
+      for (let i = 0; i < buf.length; i++) {
+        const v = (buf[i] - 128) / 128;
+        sum += v * v;
+      }
+      const rms = Math.sqrt(sum / buf.length);
+      // Boost then low-pass smooth, so the bubble breathes instead of flickering.
+      const target = Math.min(1, rms * 3.2);
+      amplitude = amplitude * 0.6 + target * 0.4;
+      emit();
+      rafId = requestAnimationFrame(tick);
+    };
+    rafId = requestAnimationFrame(tick);
+  };
 
+  /** Caption-only: no audio, but the line is still read and the bubble still moves. */
+  const speakSilently = (text) => {
+    // A slow synthetic envelope, so the mascot does not sit frozen while the
+    // caption is up. Two summed sines, smoothed exactly like the real path.
+    const started = Date.now();
+    const tick = () => {
+      const t = Date.now() - started;
+      const target = 0.42 + 0.26 * Math.sin(t / 220) + 0.1 * Math.sin(t / 95);
+      amplitude = amplitude * 0.6 + Math.max(0, Math.min(1, target)) * 0.4;
+      emit();
+      rafId = requestAnimationFrame(tick);
+    };
+    rafId = requestAnimationFrame(tick);
+    fallbackTimer = setTimeout(finish, estimate(text));
+  };
+
+  async function start(moment, vars) {
+    const picked = pickLine(moment);
+    if (!picked) return;
+
+    const mine = ++token;
     speaking = true;
-    caption = { moment, text, wordIndex: 0 };
+    caption = { moment, text: captionFor(fillLine(picked.line, vars)) };
+    amplitude = 0;
     emit();
 
-    // No API, or a voice list that hasn't loaded yet: show the line and time it
-    // out. The guide calls this "the mascot still speaks" — the learner is never
-    // left staring at a silent screen with no idea what just happened.
-    if (!supported) {
-      fallbackTimer = setTimeout(finish, estimate(text));
+    if (!doFetch) {
+      speakSilently(caption.text);
       return;
     }
 
-    let u;
+    let res = null;
     try {
-      u = new SpeechSynthesisUtterance(text);
+      const qs = new URLSearchParams({ moment, variant: String(picked.index) });
+      if (vars?.phase) qs.set('phase', vars.phase);
+      res = await doFetch(`/api/voice?${qs}`, { cache: 'no-store' });
     } catch {
-      fallbackTimer = setTimeout(finish, estimate(text));
-      return;
+      res = null;
     }
-    const voice = preferredVoice();
-    if (voice) u.voice = voice;
-    u.rate = rate;
-    u.pitch = 1;
-    // `onboundary` gives word-level progress where supported, which is what
-    // drives caption highlighting. Where it doesn't fire, the caption simply
-    // stays whole — degraded, not broken.
-    u.onboundary = (e) => {
-      if (e.name && e.name !== 'word') return;
-      const upto = text.slice(0, e.charIndex ?? 0);
-      caption = { moment, text, wordIndex: upto.trim() ? upto.trim().split(/\s+/).length : 0 };
+
+    // Muted or superseded while the request was in flight.
+    if (mine !== token) return;
+
+    // The server always sends the caption it rendered, so prefer it: that is the
+    // text belonging to the audio actually about to play.
+    const served = res?.headers?.get?.('X-Voice-Text');
+    if (served) {
+      try {
+        caption = { moment, text: decodeURIComponent(served) };
+      } catch {
+        /* keep the locally-picked caption */
+      }
+    }
+
+    // 204 means "no audio for this, by design" (flag off, no key, vendor error).
+    if (!res || !res.ok || res.status === 204) {
       emit();
-    };
-    u.onend = finish;
-    u.onerror = finish;
+      speakSilently(caption.text);
+      return;
+    }
 
-    // Belt and braces: if the engine never fires onend (it happens), don't leave
-    // the latch stuck closed forever or narration dies for the rest of the session.
-    fallbackTimer = setTimeout(finish, estimate(text) + 6000);
-
+    let blobUrl = null;
     try {
-      s.speak(u);
+      const blob = await res.blob();
+      if (mine !== token) return;
+      blobUrl = URL.createObjectURL(blob);
+
+      audioEl = new Audio(blobUrl);
+      audioEl.playbackRate = rate;
+      audioEl.onended = finish;
+      audioEl.onerror = finish;
+
+      // Route through Web Audio so the analyser can drive the mascot. If any of
+      // it fails, play the bare element instead: no pulse, but audible.
+      try {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) {
+          ctx = ctx ?? new AC();
+          if (ctx.state === 'suspended') await ctx.resume().catch(() => {});
+          sourceNode = ctx.createMediaElementSource(audioEl);
+          analyser = ctx.createAnalyser();
+          analyser.fftSize = 256;
+          analyser.smoothingTimeConstant = 0.8;
+          sourceNode.connect(analyser);
+          analyser.connect(ctx.destination);
+          runMeter();
+        }
+      } catch {
+        analyser = null;
+        sourceNode = null;
+      }
+
+      await audioEl.play();
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
     } catch {
-      finish();
+      // Autoplay refused, or a decode failure. Fall back to the caption rather
+      // than leaving the learner with a silent screen and no words.
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
+      teardown();
+      if (mine !== token) return;
+      speakSilently(caption.text);
     }
   }
 
   return {
-    /** Fire-and-forget. Safe to call from a render path, an effect, or a handler. */
-    speak(moment, vars = {}) {
-      if (!MOMENTS[moment]) return;
+    /** Fire and forget. Safe from a handler, an effect, or a render path. */
+    play(moment, vars = {}) {
+      if (!hasMoment(moment)) return;
+
+      // Rule 2: the mascot reacts first, and regardless of mute.
+      try {
+        onMoment?.(moment, clipFor(moment));
+      } catch {
+        /* a mascot failure must not stop the line */
+      }
+
       if (muted) return;
       if (speaking) {
-        pending = { moment, vars }; // latest wins
+        pending = { moment, vars };
         return;
       }
-      speakNow(moment, vars);
+      start(moment, vars);
     },
 
-    /** Stop immediately and drop anything parked — used when muting or unmounting. */
+    /** Stop now and drop anything parked. */
     stop() {
+      token += 1;
       pending = null;
-      clearTimeout(fallbackTimer);
-      if (supported) {
-        try {
-          s.cancel();
-        } catch {
-          /* nothing useful to do */
-        }
-      }
+      teardown();
       speaking = false;
       caption = null;
+      amplitude = 0;
       emit();
     },
 
@@ -247,11 +290,13 @@ export function createVoice({ speechSynthesis: injected } = {}) {
     setRate(next) {
       rate = Number(next) || 1;
       write(RATE_KEY, rate);
+      // Applied live, so a change mid-line takes effect immediately.
+      if (audioEl) audioEl.playbackRate = rate;
       emit();
     },
 
     getState() {
-      return { speaking, caption, muted, rate, supported };
+      return { speaking, caption, amplitude, muted, rate };
     },
 
     subscribe(fn) {

@@ -1,0 +1,137 @@
+import { describe, it, expect } from 'vitest';
+import { LINES, MOMENT_CLIP, captionFor, clipFor, fillLine, hasMoment, pickLine } from './voiceLines.js';
+
+const allLines = Object.entries(LINES).flatMap(([moment, variants]) => variants.map((line) => ({ moment, line })));
+
+// The writing rules ARE the feature, so they are enforced rather than trusted.
+// Spoken copy drifts silently: nobody reads the phrase book, they just hear a
+// line that does not sound like the rest.
+describe('the copy rules', () => {
+  it('never uses an em or en dash', () => {
+    for (const { moment, line } of allLines) {
+      expect(line, `${moment}: "${line}"`).not.toMatch(/[—–]/);
+    }
+  });
+
+  it('keeps every line short enough to finish inside its moment', () => {
+    for (const { moment, line } of allLines) {
+      const words = captionFor(line).split(/\s+/).length;
+      // ~22 words is about seven seconds spoken. Longer and the line is still
+      // talking after the thing it described has passed.
+      expect(words, `${moment} is ${words} words: "${captionFor(line)}"`).toBeLessThanOrEqual(22);
+    }
+  });
+
+  it('avoids the cheerleader vocabulary', () => {
+    // A calm colleague, not a hype machine. These read fine once and grate by the
+    // fifth time, and a learner hears the verify lines on every single node.
+    const banned = /\b(amazing|awesome|nailed it|brilliant|superb|fantastic|let's dive|crushed it|rockstar|perfect!)\b/i;
+    for (const { moment, line } of allLines) {
+      expect(line, `${moment}: "${line}"`).not.toMatch(banned);
+    }
+  });
+
+  it('avoids exclamation marks', () => {
+    for (const { moment, line } of allLines) {
+      expect(line, `${moment}: "${line}"`).not.toMatch(/!/);
+    }
+  });
+
+  // Iris must never say which option to pick. Same rule as Ask AI: she says what
+  // happened and where to look, never the answer.
+  it('never names a node type or a field value', () => {
+    const leaks = /\b(gmail trigger|chat trigger|switch node|edit fields|\{\{)/i;
+    for (const { moment, line } of allLines) {
+      expect(line, `${moment}: "${line}"`).not.toMatch(leaks);
+    }
+  });
+
+  it('gives the repeated moments more than one wording', () => {
+    // These fire many times per session. One fixed sentence is what makes
+    // narration sound like a recording rather than a person.
+    for (const moment of ['answer_correct', 'answer_wrong', 'verify_pass']) {
+      expect(LINES[moment].length, moment).toBeGreaterThan(1);
+    }
+  });
+});
+
+describe('captions', () => {
+  it('strips the audio tags, because they are direction and not speech', () => {
+    expect(captionFor('[warm] That is right.')).toBe('That is right.');
+    expect(captionFor('[calm] One. [thoughtful] Two.')).toBe('One. Two.');
+  });
+
+  it('leaves an untagged line alone', () => {
+    expect(captionFor('That is right.')).toBe('That is right.');
+  });
+
+  it('produces a non-empty caption for every line', () => {
+    for (const { moment, line } of allLines) {
+      expect(captionFor(line).length, moment).toBeGreaterThan(3);
+    }
+  });
+
+  it('never leaves a stray bracket in a caption', () => {
+    for (const { moment } of allLines) {
+      for (const line of LINES[moment]) expect(captionFor(line)).not.toMatch(/[[\]]/);
+    }
+  });
+});
+
+describe('placeholders', () => {
+  it('fills a named variable', () => {
+    expect(fillLine('Next part. {phase}.', { phase: 'Route the email' })).toBe('Next part. Route the email.');
+  });
+
+  // A missing value must collapse to nothing, never to the word "undefined"
+  // spoken out loud.
+  it('collapses a missing variable', () => {
+    expect(fillLine('Next part. {phase}.', {})).toBe('Next part. .');
+  });
+
+  it('only uses placeholders the callers actually pass', () => {
+    const used = new Set();
+    for (const { line } of allLines) {
+      for (const m of line.matchAll(/\{(\w+)\}/g)) used.add(m[1]);
+    }
+    expect([...used]).toEqual(['phase']);
+  });
+});
+
+describe('picking a variant', () => {
+  it('returns the exact variant asked for, so the caption matches the audio', () => {
+    const first = pickLine('answer_correct', 0);
+    expect(first.index).toBe(0);
+    expect(first.line).toBe(LINES.answer_correct[0]);
+  });
+
+  it('wraps an out-of-range index instead of failing', () => {
+    const n = LINES.answer_correct.length;
+    expect(pickLine('answer_correct', n).index).toBe(0);
+    expect(pickLine('answer_correct', -1).index).toBe(n - 1);
+  });
+
+  it('returns null for a moment that does not exist', () => {
+    expect(pickLine('no_such_moment')).toBe(null);
+    expect(hasMoment('no_such_moment')).toBe(false);
+  });
+});
+
+describe('the mascot reacts to every moment', () => {
+  it('maps each moment to a clip', () => {
+    for (const moment of Object.keys(LINES)) {
+      expect(MOMENT_CLIP[moment], moment).toBeTruthy();
+    }
+  });
+
+  it('falls back to idle rather than breaking on an unknown moment', () => {
+    expect(clipFor('no_such_moment')).toBe('idle');
+  });
+
+  it('uses only clips the mascot bundle actually has', () => {
+    const available = new Set(['idle', 'hello', 'presenting', 'thinking', 'celebrate', 'correct', 'shake-no']);
+    for (const [moment, clip] of Object.entries(MOMENT_CLIP)) {
+      expect(available.has(clip), `${moment} wants "${clip}"`).toBe(true);
+    }
+  });
+});

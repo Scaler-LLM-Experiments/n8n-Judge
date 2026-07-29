@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Check, Question, ArrowCounterClockwise, ArrowClockwise, Play, FileText } from '@phosphor-icons/react';
+import { Check, Question, ArrowCounterClockwise, ArrowClockwise, Play, FileText, SpeakerHigh, SpeakerSlash } from '@phosphor-icons/react';
 const scalerLogo = '/brand/scaler-logo.svg';
 import { GlossaryDrawer } from './GlossaryDrawer.jsx';
 import { AskAiDrawer } from './AskAiDrawer.jsx';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
+import { useVoice } from '../lib/VoiceContext.jsx';
+import { VoiceBubble } from './VoiceBubble.jsx';
 
 const STAGES = [
   { id: 'statement', label: 'Understand' },
@@ -177,6 +179,42 @@ function UserMenu() {
   );
 }
 
+/**
+ * Mute for Iris's voice.
+ *
+ * Always shown, even with narration unconfigured: the control is how a learner
+ * discovers there IS a voice, and hiding it when the key is missing would mean
+ * the feature silently does not exist in some environments.
+ */
+function VoiceToggle() {
+  const { muted, setMuted, speaking } = useVoice();
+  const Icon = muted ? SpeakerSlash : SpeakerHigh;
+  return (
+    <button
+      type="button"
+      onClick={() => setMuted(!muted)}
+      title={muted ? 'Turn Iris’s voice on' : 'Mute Iris’s voice'}
+      aria-label={muted ? 'Turn voice on' : 'Mute voice'}
+      aria-pressed={muted}
+      style={{
+        width: 34,
+        height: 34,
+        flex: 'none',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        border: '1px solid var(--border-strong)',
+        background: 'var(--surface-0)',
+        color: muted ? 'var(--fg-3)' : speaking ? 'var(--brand-primary)' : 'var(--fg-2)',
+        cursor: 'pointer',
+        padding: 0,
+      }}
+    >
+      <Icon size={16} weight={muted ? 'regular' : 'fill'} />
+    </button>
+  );
+}
+
 export function TopBar({ activeStage, problem, currentPhase, nodeContext, learnerName, onShowProblemStatement, onReset, onRun, onProblemDoc, onAskAI, onRedo }) {
   const activeIndex = STAGES.findIndex((s) => s.id === activeStage);
   const [glossaryOpen, setGlossaryOpen] = useState(false);
@@ -250,10 +288,19 @@ export function TopBar({ activeStage, problem, currentPhase, nodeContext, learne
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifySelf: 'end' }}>
-        <button type="button" onClick={() => setAskOpen(true)} title="Ask Iris" style={{ display: 'flex', alignItems: 'center', gap: 7, height: 34, padding: '0 12px 0 8px', border: '1px solid var(--brand-primary)', background: 'var(--brand-blue-50, rgba(0,85,255,0.06))', color: 'var(--brand-primary)', fontWeight: 700, fontSize: 12.5, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
-          <span style={{ width: 22, height: 22, flex: 'none' }}><MascotPlayer clip="idle" once={false} onceDone={() => {}} /></span>
-          Ask AI
-        </button>
+        {/* The speaking bubble lives under the one mascot that is always on
+            screen, so "Iris is talking" has a fixed home no matter which screen
+            you are on. */}
+        <span style={{ position: 'relative', display: 'inline-flex' }}>
+          <button type="button" onClick={() => setAskOpen(true)} title="Ask Iris" style={{ display: 'flex', alignItems: 'center', gap: 7, height: 34, padding: '0 12px 0 8px', border: '1px solid var(--brand-primary)', background: 'var(--brand-blue-50, rgba(0,85,255,0.06))', color: 'var(--brand-primary)', fontWeight: 700, fontSize: 12.5, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
+            <span style={{ width: 22, height: 22, flex: 'none' }}><MascotPlayer clip="idle" once={false} onceDone={() => {}} /></span>
+            Ask AI
+          </button>
+          <span style={{ position: 'absolute', left: 14, bottom: -5, pointerEvents: 'none' }}>
+            <VoiceBubble size={9} />
+          </span>
+        </span>
+        <VoiceToggle />
         {onProblemDoc ? <IconButton icon={FileText} title="Problem statement" onClick={onProblemDoc} /> : null}
         {onShowProblemStatement ? <IconButton icon={FileText} title="Problem statement" onClick={onShowProblemStatement} dataTour="problem" /> : null}
         <IconButton icon={Question} title="Node glossary" onClick={() => setGlossaryOpen(true)} />

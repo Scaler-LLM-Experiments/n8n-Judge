@@ -11,6 +11,7 @@ import { validateGraph } from '@judge/engine/validateGraph.js';
 import { simulateAll, roleOf } from '@judge/engine/simulate.js';
 import { checkAnswer } from '../lib/grader.js';
 import { useTraceContext } from '../lib/TraceContext.jsx';
+import { useVoice } from '../lib/VoiceContext.jsx';
 
 const STEP_ICON = { email: EnvelopeSimpleOpen, trigger: EnvelopeSimpleOpen, classify: Sparkle, parse: BracketsCurly, switch: ArrowsSplit, action: PaperPlaneTilt, dead: XCircle };
 
@@ -56,6 +57,7 @@ function sequenceProbe(meta) {
 
 export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessionId }) {
   const { trace } = useTraceContext();
+  const voice = useVoice();
   const phases = problem.buildPhases;
 
   const [phaseIndex, setPhaseIndex] = useState(0);
@@ -117,6 +119,27 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
     const r = el.getBoundingClientRect();
     return { left: r.left - cr.left, top: r.top - cr.top, width: r.width, height: r.height, cw: cr.width, ch: cr.height };
   };
+
+  // Iris introduces the canvas, then each phase as it starts. Guarded by a ref
+  // per moment key so React's development double-render does not repeat a line.
+  const spokenRef = useRef({});
+  const sayOnce = useCallback((key, moment, vars) => {
+    if (spokenRef.current[key]) return;
+    spokenRef.current[key] = true;
+    voice.play(moment, vars);
+  }, [voice]);
+
+  useEffect(() => {
+    if (stage !== 'building') return;
+    sayOnce('build_start', 'build_start');
+  }, [stage, sayOnce]);
+
+  useEffect(() => {
+    if (stage !== 'building' || !phase) return;
+    // The phase label is read out, so a new phase announces itself by name rather
+    // than with a generic "next part".
+    sayOnce(`phase:${phase.id}`, 'phase_intro', { phase: phase.label });
+  }, [stage, phase, sayOnce]);
 
   // canvas fades in on mount
   useLayoutEffect(() => {
@@ -186,6 +209,7 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
     recordPlacement(meta?.expectedTypes?.[0], type);
     trace('probe_shown', { nodeType: type });
     const authored = problem.nodeProbes[type];
+    voice.play('node_wrong');
     setProbe({ type, nodeId, data: authored || sequenceProbe(meta || {}), anchor: null });
   }, [problem, recordPlacement]);
 
@@ -293,6 +317,7 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
     const val = validateGraph(g, problem);
     setMascotVisible(false); setIrisSay(null);
     editorRef.current?.fitAll?.();
+    voice.play('run_start');
     setRun({ cases, success, val });
     setRunPos({ ci: 0, si: 0 });
     setRunFinished(false);
@@ -316,7 +341,12 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
       prevCi = f.ci;
       runTimers.current.push(setTimeout(() => setRunPos(f), t));
     });
-    runTimers.current.push(setTimeout(() => setRunFinished(true), t + 1800));
+    runTimers.current.push(setTimeout(() => {
+      setRunFinished(true);
+      // Spoken only once the run has actually finished animating, so the verdict
+      // does not arrive while cases are still visibly running.
+      voice.play(success ? 'run_pass' : 'run_fail');
+    }, t + 1800));
     return () => { runTimers.current.forEach(clearTimeout); runTimers.current = []; };
   }, [run]);
 

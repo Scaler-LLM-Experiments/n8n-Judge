@@ -10,6 +10,7 @@ import { N8nNodeView } from '../n8n/N8nNodeView.jsx';
 import { NodeIcon } from '../nodes/nodeIcons.js';
 import { checkAnswer } from '../lib/grader.js';
 import { resolveServerVerdict, UNVERIFIED_MESSAGE } from '../lib/verdict.js';
+import { useVoice } from '../lib/VoiceContext.jsx';
 
 const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 
@@ -43,6 +44,7 @@ function resolveVerdict(q, opt, result) {
 
 export function DissectionScreen({ problem, sessionId, onComplete, onDecision }) {
   const questions = problem.dissection;
+  const voice = useVoice();
   const [phase, setPhase] = useState('greet'); // greet | problem | quiz | done
   const [index, setIndex] = useState(0);
   const [picked, setPicked] = useState(null); // option index
@@ -57,6 +59,16 @@ export function DissectionScreen({ problem, sessionId, onComplete, onDecision })
   const quizRef = useRef(null);
 
   useEffect(() => () => clearTimeout(advanceTimer.current), []);
+
+  // One line per narrated beat. Keyed on `phase` and guarded by a ref so React's
+  // development double-render does not say the same sentence twice.
+  const spoken = useRef({});
+  useEffect(() => {
+    const moment = phase === 'greet' ? 'welcome' : phase === 'problem' ? 'problem_intro' : phase === 'quiz' ? 'understand_start' : null;
+    if (!moment || spoken.current[moment]) return;
+    spoken.current[moment] = true;
+    voice.play(moment);
+  }, [phase, voice]);
 
   // ease the whole quiz screen in when arriving from the problem beat
   useEffect(() => {
@@ -110,6 +122,10 @@ export function DissectionScreen({ problem, sessionId, onComplete, onDecision })
     // check did not complete: no celebration, no shake, and crucially no attempt
     // counted against the learner for a request that failed.
     setMascotClip(resolved.correct === true ? 'correct' : resolved.correct === false ? 'shake-no' : 'idle');
+    // Silent on `null`: "could not check" is not a verdict, so Iris has nothing
+    // truthful to say about it.
+    if (resolved.correct === true) voice.play('answer_correct');
+    else if (resolved.correct === false) voice.play('answer_wrong');
     if (resolved.correct === true) {
       setUnlockedTypes((prev) => [...new Set([...prev, ...resolved.unlocks])]);
       // Prefer the server's firstTry; `attempts[index] === 0` (no prior wrong
@@ -128,6 +144,7 @@ export function DissectionScreen({ problem, sessionId, onComplete, onDecision })
   }
   if (phase === 'done') {
     const finishDissection = () => {
+      voice.play('understand_done');
       questions.forEach((x, i) => onDecision && onDecision({ id: `dissection:${x.id}`, kind: 'dissection', label: x.prompt, correct: true, firstTry: firstTryByQuestion[i] ?? (attempts[i] === 0) }));
       onComplete({ attempts, unlockedTypes });
     };
@@ -334,7 +351,7 @@ function Greet({ problem, onContinue }) {
           I’ll walk you through today’s problem, step by step, and make sure you really understand it before you build anything.
         </p>
         <div data-a="r" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '6px 12px', border: '1px solid var(--border-subtle)', background: 'var(--surface-1)', fontSize: 12.5, color: 'var(--fg-2)', marginBottom: 30 }}>
-          <Microphone size={15} color="var(--brand-primary)" weight="fill" /> A voice-guided experience — voice coming in a later build.
+          <Microphone size={15} color="var(--brand-primary)" weight="fill" /> I will talk you through it. Use the speaker button up top to mute me.
         </div>
         <div data-a="r">
           <Button variant="primary" size="lg" iconRight={<ArrowRight size={16} />} onClick={onContinue}>Continue</Button>
