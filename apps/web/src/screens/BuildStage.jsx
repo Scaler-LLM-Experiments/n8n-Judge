@@ -126,6 +126,55 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
     return { left: r.left - cr.left, top: r.top - cr.top, width: r.width, height: r.height, cw: cr.width, ch: cr.height };
   };
 
+  /**
+   * Notice when the learner has gone quiet, and offer help.
+   *
+   * Armed at 60s of no interaction, then re-armed at 180s, so it offers twice at
+   * most in a long silence rather than nagging every minute. Any pointer event or
+   * keypress resets it, and it is disabled while a probe, a run or a phase
+   * transition is on screen: those are moments where the learner is meant to be
+   * reading, and interrupting them would be the opposite of helpful.
+   */
+  const idleRef = useRef({ timer: null, count: 0 });
+  useEffect(() => {
+    const busy = stage !== 'building' || Boolean(probe) || Boolean(clearInfo);
+    const state = idleRef.current;
+    const clear = () => {
+      clearTimeout(state.timer);
+      state.timer = null;
+    };
+    if (busy) {
+      clear();
+      return undefined;
+    }
+
+    const arm = () => {
+      clear();
+      // First offer after a minute; if they are still quiet, once more at three.
+      const delay = state.count === 0 ? 60000 : 180000;
+      if (state.count > 1) return;
+      state.timer = setTimeout(() => {
+        state.count += 1;
+        voice.play('idle_nudge');
+        arm();
+      }, delay);
+    };
+
+    const reset = () => {
+      // Any sign of life restarts the clock, and forgives the earlier silence.
+      state.count = 0;
+      arm();
+    };
+
+    arm();
+    const events = ['pointerdown', 'keydown', 'wheel'];
+    for (const e of events) window.addEventListener(e, reset, { passive: true });
+    return () => {
+      clear();
+      for (const e of events) window.removeEventListener(e, reset);
+    };
+  }, [stage, probe, clearInfo, voice]);
+
   // Iris introduces the canvas, then each phase as it starts. Guarded by a ref
   // per moment key so React's development double-render does not repeat a line.
   const spokenRef = useRef({});

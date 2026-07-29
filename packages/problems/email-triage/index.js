@@ -627,6 +627,75 @@ export const emailTriage = {
     stress_start: [
       '[calm] Now the interesting bit. What does your flow do with an email it was not expecting?',
     ],
+
+    // ---- reasoning, per question -------------------------------------------
+    // The generic verdict says WHICH answer was wrong. These say why it matters,
+    // in one short sentence, from a different angle to the explanation on screen.
+    // That is the handholding: not the full reason, which they are reading, but the
+    // thought that gets them there.
+    //
+    // Still no answers. Each one describes the shape of the problem, not the node
+    // that solves it.
+    'answer_correct:trigger': [
+      '[warm] Yes. The flow has to wake up on its own, every time mail arrives.',
+    ],
+    'answer_wrong:trigger': [
+      '[thoughtful] Would that start on its own though? Nobody is sitting here pressing anything.',
+    ],
+    'answer_wrong_again:trigger': [
+      '[calm] Think about who or what begins this. The mail arrives without anyone asking.',
+    ],
+
+    'answer_correct:classify': [
+      '[warm] Right. Something has to read the words and decide what kind of message it is.',
+    ],
+    'answer_wrong:classify': [
+      '[thoughtful] Could that actually judge what the email is about? Read it again.',
+    ],
+    'answer_wrong_again:classify': [
+      '[calm] The email is free text. You need something that can understand meaning, not match a rule.',
+    ],
+
+    'answer_correct:parse': [
+      '[warm] Yes. A blob of text is no use to the next step. It needs separate fields.',
+    ],
+    'answer_wrong:parse': [
+      '[thoughtful] The answer is one lump of text right now. Does that step help with that?',
+    ],
+    'answer_wrong_again:parse': [
+      '[calm] Ask what shape the next node needs its input in, then work backwards.',
+    ],
+
+    'answer_correct:switch': [
+      '[warm] Exactly. One email in, and it has to leave down one of several paths.',
+    ],
+    'answer_wrong:switch': [
+      '[thoughtful] That takes one path though. You need one input and three ways out.',
+    ],
+    'answer_wrong_again:switch': [
+      '[calm] Count the outputs you need. Three categories means three separate exits.',
+    ],
+
+    'answer_correct:action': [
+      '[warm] Yes. Something has to actually reach the customer at the end.',
+    ],
+    'answer_wrong:action': [
+      '[thoughtful] Would the person who wrote in ever see that? They are waiting on a reply.',
+    ],
+
+    // ---- reasoning, per node setup -----------------------------------------
+    'verify_fail:classify': [
+      '[calm] Not yet. Check what you pointed it at. It can only read what you hand it.',
+    ],
+    'verify_fail:switch': [
+      '[calm] Not right yet. Look at what each branch is testing, and what the AI actually produced.',
+    ],
+    'verify_fail:chat-gemini': [
+      '[calm] Not yet. Think about whether the same email should always get the same answer.',
+    ],
+    'verify_pass:chat-gemini': [
+      '[warm] Good. That setting is what makes triage repeatable instead of a guess.',
+    ],
   },
 
   misconceptionLabels: {

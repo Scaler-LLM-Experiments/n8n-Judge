@@ -139,7 +139,13 @@ export function DissectionScreen({ problem, sessionId, onComplete, onDecision })
     // specific question.
     const said = { key: q.id, answer: opt.label };
     if (resolved.correct === true) voice.play('answer_correct', said);
-    else if (resolved.correct === false) voice.play('answer_wrong', said);
+    else if (resolved.correct === false) {
+      // Second miss on the same question gets a stronger pointer. An instructor
+      // does not repeat themselves at the same volume: the first "are you sure?"
+      // becomes "here is where to look". `attempts[index]` is the count BEFORE
+      // this one, so a value of 1 or more means they have already missed once.
+      voice.play(attempts[index] >= 1 ? 'answer_wrong_again' : 'answer_wrong', said);
+    }
     if (resolved.correct === true) {
       setUnlockedTypes((prev) => [...new Set([...prev, ...resolved.unlocks])]);
       // Prefer the server's firstTry; `attempts[index] === 0` (no prior wrong

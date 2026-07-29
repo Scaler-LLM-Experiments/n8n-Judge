@@ -97,3 +97,49 @@ describe('emailTriage problem spec', () => {
     }
   });
 });
+
+// Authored voice lines are where a leak would actually sneak in: the phrase book's
+// defaults are reviewed once, but per-problem lines get written alongside content
+// and are easy to make too helpful.
+describe('emailTriage voice lines', () => {
+  const voice = emailTriage.voice ?? {};
+  const entries = Object.entries(voice);
+
+  it('authors lines for the moments a learner hears most', () => {
+    // A verdict without a reason is the generic version, which is what authoring
+    // these was for.
+    expect(entries.length).toBeGreaterThan(10);
+    expect(voice['answer_wrong:trigger']).toBeTruthy();
+    expect(voice['node_placed:switch']).toBeTruthy();
+  });
+
+  it('never names the node that answers a still-open question', () => {
+    // These play while the question is unanswered, so naming any node type in them
+    // would hand the answer over unprompted.
+    const nodeNames = /\b(gmail|chat trigger|schedule|webhook|text classifier|switch|edit fields|gemini)\b/i;
+    for (const [moment, lines] of entries) {
+      if (!/^answer_wrong/.test(moment) && !/^(idle_nudge|node_wrong|problem_intro|stress_start)/.test(moment)) continue;
+      for (const line of lines) {
+        expect(line, `${moment}: "${line}"`).not.toMatch(nodeNames);
+      }
+    }
+  });
+
+  it('holds the same copy rules as the default phrase book', () => {
+    for (const [moment, lines] of entries) {
+      for (const line of lines) {
+        expect(line, `${moment} em dash`).not.toMatch(/[—–]/);
+        expect(line, `${moment} exclamation`).not.toMatch(/!/);
+        expect(line, `${moment} expression`).not.toMatch(/\{\{/);
+        const words = line.replace(/\[[^\]]*\]/g, '').trim().split(/\s+/).length;
+        expect(words, `${moment} is ${words} words`).toBeLessThanOrEqual(22);
+      }
+    }
+  });
+
+  it('opens every line with a delivery tag, so v3 reads it in character', () => {
+    for (const [moment, lines] of entries) {
+      for (const line of lines) expect(line, `${moment}: "${line}"`).toMatch(/^\[[a-z]+\]/);
+    }
+  });
+});

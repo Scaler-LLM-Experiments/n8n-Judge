@@ -41,7 +41,13 @@ describe('the copy rules', () => {
   // narrower than "never name a node". A verdict line naming what they just chose
   // is specific rather than leaky — they chose it, and it is already on screen.
   // A line that fires BEFORE a decision must give nothing away.
-  const PRE_DECISION = ['problem_intro', 'understand_start', 'build_start', 'node_wrong', 'run_start', 'stress_start', 'welcome'];
+  // Every moment that plays while a question is still OPEN. These are the ones
+  // that must give nothing away: the escalation and the idle nudge are pointers
+  // toward the answer, which is precisely why they must not contain it.
+  const PRE_DECISION = [
+    'problem_intro', 'understand_start', 'build_start', 'node_wrong',
+    'run_start', 'stress_start', 'welcome', 'answer_wrong_again', 'idle_nudge',
+  ];
 
   it('gives nothing away in the lines that play before a decision', () => {
     const leaks = /\b(gmail trigger|chat trigger|schedule trigger|switch|edit fields|text classifier)\b/i;
@@ -70,6 +76,25 @@ describe('the copy rules', () => {
       for (const line of LINES[moment]) {
         expect(line, `${moment} should name the node`).toMatch(/\{node\}/);
       }
+    }
+  });
+
+  // A second miss should say something DIFFERENT from the first, or the escalation
+  // is just the same nudge again at the same volume.
+  it('escalates rather than repeating itself on a second miss', () => {
+    for (const a of LINES.answer_wrong) {
+      for (const b of LINES.answer_wrong_again) {
+        expect(captionFor(a), 'escalation duplicates the first miss').not.toBe(captionFor(b));
+      }
+    }
+  });
+
+  // The idle nudge is an offer, not a prod. A learner who is thinking should not
+  // be told to hurry up.
+  it('offers help when idle rather than rushing the learner', () => {
+    const pushy = /\b(hurry|quick|come on|still waiting|running out|faster)\b/i;
+    for (const line of LINES.idle_nudge) {
+      expect(line, `idle_nudge: "${line}"`).not.toMatch(pushy);
     }
   });
 

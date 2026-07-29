@@ -70,6 +70,24 @@ export const LINES = {
     '[warm] Correct, {answer} is the one.',
     '[warm] That is it, {answer}.',
   ],
+  // A SECOND wrong answer on the same question gets a stronger pointer. An
+  // instructor does not repeat themselves at the same volume: the first miss is a
+  // question, the second is a nudge toward where the answer lives. Still not the
+  // answer, and the per-question authored version is where the real pointer goes.
+  answer_wrong_again: [
+    '[thoughtful] Still not it. Go back to the problem and ask what has to happen first.',
+    '[calm] Let us slow down. What does this step actually need before it can run?',
+    '[thoughtful] Try reading the options as jobs. Which job does this flow need doing here?',
+  ],
+
+  // Iris notices when a learner has gone quiet. Not a prompt to hurry: an offer.
+  // The one thing a real instructor does that a screen never does is look up.
+  idle_nudge: [
+    '[calm] Take your time. If you are not sure what goes next, ask me.',
+    '[calm] Still thinking? Tell me what you are stuck on and I will help.',
+    '[calm] No rush. If it helps, look at what the last node hands over.',
+  ],
+
   // A QUESTION, not a correction. "No" closes the thought down; "do you really
   // think that fits here?" sends them back to look at the thing itself, which is
   // where the learning is. Names the wrong choice, never the right one, and leaves
@@ -206,6 +224,8 @@ export const MOMENT_CLIP = {
   understand_start: 'presenting',
   answer_correct: 'correct',
   answer_wrong: 'shake-no',
+  answer_wrong_again: 'thinking',
+  idle_nudge: 'idle',
   understand_done: 'celebrate',
   phase_complete: 'celebrate',
   build_complete: 'celebrate',
