@@ -86,14 +86,16 @@ const chars = { total: 0, new: 0 };
 for (const [key, { spoken, where }] of wanted) {
   chars.total += spoken.length;
 
-  if (!DRY_RUN && (await readClip(key))) {
+  // Checked even on a dry run: "how many are already stored" is the question
+  // being asked when narration is unexpectedly slow.
+  if (await readClip(key)) {
     skipped += 1;
     continue;
   }
   chars.new += spoken.length;
 
   if (DRY_RUN) {
-    console.log(`  would render  ${spoken.slice(0, 72)}`);
+    console.log(`  missing  ${spoken.slice(0, 72)}`);
     made += 1;
     continue;
   }
@@ -112,7 +114,11 @@ for (const [key, { spoken, where }] of wanted) {
 }
 
 console.log(
-  `\n${made} rendered, ${skipped} already stored, ${failed} failed.\n` +
-    `${chars.new} characters billed of ${chars.total} total.`
+  DRY_RUN
+    ? `\n${made} missing, ${skipped} already stored.\n` +
+        `${chars.new} characters would be billed of ${chars.total} total.` +
+        (made === 0 ? '\nEverything is stored: playback should not be hitting the vendor at all.' : '')
+    : `\n${made} rendered, ${skipped} already stored, ${failed} failed.\n` +
+        `${chars.new} characters billed of ${chars.total} total.`
 );
 if (failed) process.exitCode = 1;

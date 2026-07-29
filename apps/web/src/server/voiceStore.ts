@@ -56,9 +56,13 @@ export type ClipBackend = 'local' | 's3' | 'none';
 export function clipBackend(): ClipBackend {
   const explicit = process.env.VOICE_CLIP_BACKEND;
   if (explicit === 's3' || explicit === 'local' || explicit === 'none') return explicit;
-  // Default to local storage whenever a directory is configured, which is the
-  // case in both dev and the container.
-  return process.env.VOICE_CLIP_DIR ? 'local' : 'none';
+  // INFERRED, so setting the credentials is enough. Requiring a separate
+  // VOICE_CLIP_BACKEND=s3 on top of five AUDIO_S3_* variables was a footgun:
+  // everything looked configured, nothing was consulted, and the only symptom was
+  // "narration is still slow".
+  if (process.env.AUDIO_S3_BUCKET) return 's3';
+  if (process.env.VOICE_CLIP_DIR) return 'local';
+  return 'none';
 }
 
 /**

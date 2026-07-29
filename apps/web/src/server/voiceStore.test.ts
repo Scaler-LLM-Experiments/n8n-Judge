@@ -63,6 +63,20 @@ describe('backend selection', () => {
     expect(clipBackend()).toBe('none');
   });
 
+  // Setting the credentials is enough. Needing a separate VOICE_CLIP_BACKEND=s3 on
+  // top of them meant everything looked configured while nothing was consulted,
+  // and the only symptom was narration still being slow.
+  it('infers s3 from the bucket alone', () => {
+    process.env.AUDIO_S3_BUCKET = 'some-bucket';
+    expect(clipBackend()).toBe('s3');
+  });
+
+  it('prefers s3 over a local directory when both are set', () => {
+    process.env.AUDIO_S3_BUCKET = 'some-bucket';
+    process.env.VOICE_CLIP_DIR = dir;
+    expect(clipBackend()).toBe('s3');
+  });
+
   it('uses local storage as soon as a directory is set', () => {
     process.env.VOICE_CLIP_DIR = dir;
     expect(clipBackend()).toBe('local');
