@@ -20,8 +20,24 @@ import { LINES, captionFor, fillLine, resolveLines } from './voiceLines.js';
 // spliced or rendered live. That is a design constraint worth keeping: it is the
 // reason `{node}` is a node label and not, say, whatever they typed.
 
-/** Moments whose `{answer}` comes from a dissection question's options. */
-const ANSWER_MOMENTS = ['answer_correct', 'answer_wrong', 'answer_wrong_again'];
+/**
+ * Moments whose `{answer}` comes from a dissection question's options, and WHICH
+ * options each can be spoken with.
+ *
+ * This matters for the bill and for the content. `answer_correct` is only ever
+ * played when the learner was right, so it can only be filled with the correct
+ * option — enumerating it against every option renders lines that can never be
+ * spoken ("Yes, Webhook wakes this up on its own", on a problem where the answer
+ * is the Gmail trigger) and some that are not even grammatical. The inverse holds
+ * for the wrong-answer moments.
+ *
+ * Getting this wrong nearly doubled the number of clips for these moments.
+ */
+const ANSWER_MOMENTS = {
+  answer_correct: 'correct',
+  answer_wrong: 'wrong',
+  answer_wrong_again: 'wrong',
+};
 /** Moments whose `{node}` is a node in the problem. */
 const NODE_MOMENTS = ['node_placed', 'verify_pass', 'verify_fail'];
 
@@ -73,7 +89,7 @@ export function enumerateSpeakable(problem = null, catalog = {}) {
 
   // Moments with no variables: one clip per authored variant.
   const plainMoments = Object.keys(LINES).filter(
-    (m) => !ANSWER_MOMENTS.includes(m) && !NODE_MOMENTS.includes(m)
+    (m) => !(m in ANSWER_MOMENTS) && !NODE_MOMENTS.includes(m)
   );
   for (const moment of plainMoments) {
     for (const line of resolveLines(moment, { problem })) add(moment, null, {}, line);
@@ -83,7 +99,7 @@ export function enumerateSpeakable(problem = null, catalog = {}) {
     // No problem: still enumerate the variable moments so the defaults exist, with
     // the variable left empty. Better than nothing for a smoke run, useless for a
     // real learner, which is why generation takes a problem.
-    for (const moment of [...ANSWER_MOMENTS, ...NODE_MOMENTS]) {
+    for (const moment of [...Object.keys(ANSWER_MOMENTS), ...NODE_MOMENTS]) {
       for (const line of resolveLines(moment, {})) add(moment, null, {}, line);
     }
     return out;
@@ -92,14 +108,20 @@ export function enumerateSpeakable(problem = null, catalog = {}) {
   // `{answer}`: every option of every question, per question, because a question
   // may author its own wording.
   for (const q of problem.dissection ?? []) {
-    for (const moment of ANSWER_MOMENTS) {
+    for (const [moment, wants] of Object.entries(ANSWER_MOMENTS)) {
       const lines = resolveLines(moment, { problem, key: q.id });
+      // Only the options this moment can actually be spoken with. Correctness is
+      // by `type` against the question's `correctType`, the same comparison the
+      // grader makes.
+      const options = (q.options ?? []).filter((opt) =>
+        wants === 'correct' ? opt.type === q.correctType : opt.type !== q.correctType
+      );
       for (const line of lines) {
         if (!line.includes('{answer}')) {
           add(moment, q.id, {}, line);
           continue;
         }
-        for (const opt of q.options ?? []) add(moment, q.id, { answer: opt.label }, line);
+        for (const opt of options) add(moment, q.id, { answer: opt.label }, line);
       }
     }
   }

@@ -98,21 +98,31 @@ export async function readClip(key: string): Promise<Buffer | null> {
   return await s3Read(key);
 }
 
-/** Store a clip. Failures are logged, never thrown: this is a cache, not the truth. */
-export async function writeClip(key: string, bytes: Buffer | Uint8Array): Promise<void> {
+/**
+ * Store a clip. Never throws — this is a cache, and a learner should still hear a
+ * line that could not be saved.
+ *
+ * RETURNS whether it landed, which the generator needs. It used to return nothing,
+ * so a run against a bucket it could not write to printed a tick for every line
+ * and stored none of them: the whole point of the run failed while reporting
+ * success. Write-through from the route ignores the result on purpose.
+ */
+export async function writeClip(key: string, bytes: Buffer | Uint8Array): Promise<boolean> {
   const backend = clipBackend();
-  if (backend === 'none') return;
+  if (backend === 'none') return false;
 
   try {
     if (backend === 'local') {
       const path = localPath(key);
       await mkdir(dirname(path), { recursive: true });
       await writeFile(path, bytes);
-      return;
+      return true;
     }
     await s3Write(key, bytes);
+    return true;
   } catch (err) {
     console.error('[voice] could not store clip:', err instanceof Error ? err.message : err);
+    return false;
   }
 }
 

@@ -109,8 +109,15 @@ describe('local storage', () => {
 
   it('creates the shard directory rather than failing on a missing path', async () => {
     const key = clipKey('deep', 'v', 'm');
-    await expect(writeClip(key, Buffer.from('x'))).resolves.toBeUndefined();
+    // Reports whether it landed: the generator prints a tick from this, and a run
+    // against a bucket it cannot write to must not look like a success.
+    await expect(writeClip(key, Buffer.from('x'))).resolves.toBe(true);
     expect(await readClip(key)).not.toBe(null);
+  });
+
+  it('reports false when storage is off, rather than pretending it stored', async () => {
+    process.env.VOICE_CLIP_BACKEND = 'none';
+    expect(await writeClip(clipKey('x', 'v', 'm'), Buffer.from('x'))).toBe(false);
   });
 
   it('reads nothing when storage is switched off, even with clips on disk', async () => {
@@ -133,19 +140,31 @@ describe('what pre-generation has to cover', () => {
     }
   });
 
-  it('enumerates a line per option for the verdicts that name the choice', () => {
+  // A verdict is only ever spoken with the options it can apply to, and rendering
+  // the rest is both waste and nonsense: "Yes, Webhook wakes this up" on a problem
+  // whose answer is the Gmail trigger can never be played.
+  it('enumerates the right answer for answer_correct and only the wrong ones for answer_wrong', () => {
     const et = problems['email-triage'] as Record<string, any>;
     const list = enumerateSpeakable(et, NODE_CATALOG);
-    // Every question, not just the first: an authored line that forgot `{answer}`
-    // would silently stop naming the learner's choice, which is how the generic
-    // "that is right" crept back in once already.
+
     for (const q of et.dissection) {
-      for (const moment of ['answer_correct', 'answer_wrong']) {
-        const forQuestion = list.filter((i) => i.moment === moment && i.key === q.id);
-        expect(forQuestion.length, `${moment}:${q.id} should cover every option`).toBe(q.options.length);
-        for (const opt of q.options) {
-          expect(forQuestion.some((i) => i.spoken.includes(opt.label)), `${moment}:${q.id} → ${opt.label}`).toBe(true);
-        }
+      const right = q.options.filter((o: any) => o.type === q.correctType);
+      const wrong = q.options.filter((o: any) => o.type !== q.correctType);
+
+      const correctLines = list.filter((i) => i.moment === 'answer_correct' && i.key === q.id);
+      for (const opt of right) {
+        expect(correctLines.some((i) => i.spoken.includes(opt.label)), `answer_correct:${q.id} → ${opt.label}`).toBe(true);
+      }
+      for (const opt of wrong) {
+        expect(correctLines.some((i) => i.spoken.includes(opt.label)), `answer_correct:${q.id} must not name ${opt.label}`).toBe(false);
+      }
+
+      const wrongLines = list.filter((i) => i.moment === 'answer_wrong' && i.key === q.id);
+      for (const opt of wrong) {
+        expect(wrongLines.some((i) => i.spoken.includes(opt.label)), `answer_wrong:${q.id} → ${opt.label}`).toBe(true);
+      }
+      for (const opt of right) {
+        expect(wrongLines.some((i) => i.spoken.includes(opt.label)), `answer_wrong:${q.id} must not name ${opt.label}`).toBe(false);
       }
     }
   });

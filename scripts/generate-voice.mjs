@@ -81,6 +81,7 @@ console.log(`${wanted.size} distinct lines across ${slugs.length} problem(s), ba
 let made = 0;
 let skipped = 0;
 let failed = 0;
+let unstored = 0;
 const chars = { total: 0, new: 0 };
 
 for (const [key, { spoken, where }] of wanted) {
@@ -102,9 +103,11 @@ for (const [key, { spoken, where }] of wanted) {
 
   try {
     const bytes = await render(spoken);
-    await writeClip(key, bytes);
+    const stored = await writeClip(key, bytes);
     made += 1;
-    console.log(`  ✓ ${String(bytes.length).padStart(7)}b  ${spoken.slice(0, 64)}`);
+    if (!stored) unstored += 1;
+    // A tick has to mean "it is in the bucket", not "the vendor answered".
+    console.log(`  ${stored ? '✓' : '⚠ NOT STORED'} ${String(bytes.length).padStart(7)}b  ${spoken.slice(0, 60)}`);
   } catch (err) {
     failed += 1;
     // Keep going: one bad line should not abandon the run, and the route still
@@ -119,6 +122,11 @@ console.log(
         `${chars.new} characters would be billed of ${chars.total} total.` +
         (made === 0 ? '\nEverything is stored: playback should not be hitting the vendor at all.' : '')
     : `\n${made} rendered, ${skipped} already stored, ${failed} failed.\n` +
-        `${chars.new} characters billed of ${chars.total} total.`
+        `${chars.new} characters billed of ${chars.total} total.` +
+        (unstored
+          ? `\n\n⚠ ${unstored} clip(s) rendered but NOT written to storage. You have paid for them` +
+            `\n  and they will be re-rendered next time. Check write permissions on the bucket.`
+          : '')
 );
+if (unstored) process.exitCode = 1;
 if (failed) process.exitCode = 1;
