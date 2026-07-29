@@ -1,4 +1,5 @@
 import { captionFor, clipFor, fillLine, hasMoment, pickLine } from './voiceLines.js';
+import { clipUrl } from './voicePath.js';
 
 // Iris speaking, client side.
 //
@@ -33,6 +34,23 @@ import { captionFor, clipFor, fillLine, hasMoment, pickLine } from './voiceLines
 //  4. TEAR THE GRAPH DOWN. Web Audio nodes do not get collected while connected,
 //     so every finished line disconnects its source and analyser. Without this a
 //     long session accumulates dead graphs until audio stops working entirely.
+//
+// ---------------------------------------------------------------------------
+// The transport, and why it changed
+// ---------------------------------------------------------------------------
+// This used to `fetch()` a query URL, `await res.blob()`, and make an object URL.
+// That was the latency. Three problems, each enough on its own:
+//
+//   the URL was `no-store`, so the browser could never reuse a clip;
+//   awaiting the blob meant waiting for the WHOLE file before any sound;
+//   a hand-rolled warm cache was reimplementing the HTTP cache, worse.
+//
+// Now: `new Audio(stableUrl)`. The browser starts on the first few KB, streams the
+// rest, honours Range, and keeps the file for a year. The caption comes from the
+// local phrase book, so playback needs no request of its own at all.
+//
+// Preloading is `link rel=preload` on the same URL — it warms the HTTP cache, which
+// means the element finds the bytes already there. No parallel cache to maintain.
 
 const MUTE_KEY = 'judge.voice.muted';
 const RATE_KEY = 'judge.voice.rate';
@@ -57,69 +75,71 @@ const write = (key, value) => {
   }
 };
 
-export function createVoice({ fetchImpl, onMoment, problemSlug, problem } = {}) {
-  const doFetch = fetchImpl ?? (typeof fetch === 'function' ? fetch.bind(globalThis) : null);
-
+export function createVoice({ onMoment, problemSlug, problem } = {}) {
   let muted = read(MUTE_KEY, 'false') === 'true';
   let rate = Number(read(RATE_KEY, '1')) || 1;
   let speaking = false;
   let caption = null; // { moment, text }
-  /** 0..1, drives the mascot's pulse and the speaking bubble. */
+  /** 0..1, drives the glow. */
   let amplitude = 0;
-  let token = 0; // invalidates in-flight work when muted or superseded
+  let token = 0;
 
   /**
-   * Warmed clips, so `play` can start with no network wait at all.
+   * Which wording a moment uses, decided ONCE per session per line.
    *
-   * This is the fix for the delay between a click and Iris speaking. Rendering a
-   * line takes a round trip plus the vendor's own generation time, which is
-   * one to three seconds — long enough that the verdict arrives after the learner
-   * has already moved on. Nothing can make an unrendered line instant, so the
-   * answer is to render it BEFORE it is needed.
-   *
-   * The trick is that the branch points are all predictable: when a question is on
-   * screen we know the next line is either `answer_correct` or `answer_wrong`, so
-   * both get warmed while the learner is still reading. Same for verify and for a
-   * run. By the time they click, the audio is already in memory.
-   *
-   * Bounded and one-shot, per the porting guide: consumed on play so variants
-   * still rotate, and capped so a long session cannot accumulate blobs.
+   * `pickLine` with no index picks at random, and that quietly broke preloading:
+   * the URL warmed was a different variant from the one played, so every preload
+   * missed and every play was a cold fetch. Variety still matters — hearing one
+   * identical sentence twenty times is what makes narration feel canned — so the
+   * choice is seeded per browser session instead of per call. Different learners,
+   * and the same learner tomorrow, hear different wordings; within one session the
+   * preload and the play always agree.
    */
-  /**
-   * What is likely to be said next, declared by the screen.
-   *
-   * With clips pre-generated, the vendor render is gone and what is left is an S3
-   * fetch of a few tens of KB. Cheap enough to do speculatively — so while one line
-   * plays, pull the next few down. Warming DURING playback rather than only on
-   * screen entry is the point: a learner spends most of their time listening, which
-   * is exactly the window where the network is idle and what comes next is already
-   * knowable.
-   */
+  const sessionSeed = (() => {
+    if (typeof window === 'undefined') return 'ssr';
+    try {
+      const k = 'judge.voice.seed';
+      let v = window.sessionStorage.getItem(k);
+      if (!v) {
+        v = Math.random().toString(36).slice(2);
+        window.sessionStorage.setItem(k, v);
+      }
+      return v;
+    } catch {
+      return 'no-storage';
+    }
+  })();
+
+  const variantFor = (moment, vars = {}) => {
+    const id = `${sessionSeed}:${moment}:${vars.key ?? ''}:${vars.node ?? ''}:${vars.answer ?? ''}`;
+    let h = 0x811c9dc5;
+    for (let i = 0; i < id.length; i++) {
+      h ^= id.charCodeAt(i);
+      h = Math.imul(h, 0x01000193);
+    }
+    return (h >>> 0);
+  };
+
+  /** The wording for a moment: same answer every time within a session. */
+  const lineFor = (moment, vars) => pickLine(moment, variantFor(moment, vars), { problem, key: vars?.key });
+
+  /** What is likely next. The first few are preloaded into the HTTP cache. */
   let upcoming = [];
   const WARM_AHEAD = 3;
-
-  const warmed = new Map(); // warmKey -> { variant, caption, blob }
-  // Room for both verdicts across a question's options, since a warmed clip is
-  // per WORDING and a line naming the learner's choice has one per choice.
-  const MAX_WARM = 12;
+  const preloaded = new Set();
 
   /**
-   * A warmed clip is keyed by everything that changes the words, not just the
-   * moment.
+   * Set once audio has proved unavailable, and never retried this session.
    *
-   * This was the bug behind "it does not say the node name". `verify_pass` was
-   * warmed on NDV open with no vars, so the server rendered "Yes, {node} is set up
-   * right" with an empty node — and `play` then consumed that clip, so the name
-   * never appeared however carefully it was passed in. Keying by moment alone
-   * silently discards the variables.
+   * Narration off, no key, or nothing generated yet all look the same from here: a
+   * 404 on the clip. Without this the app asks again for every single line, which
+   * is a request and a console error per beat for a learner who was always going to
+   * get captions. One failure is enough to know.
    */
-  // NOTE: `scope` is absent, and now unused entirely — every new line cuts the
-  // last one, so nothing needs to know what the current subject is.
-  const warmKey = (moment, vars = {}) => `${moment}|${vars.key ?? ''}|${vars.node ?? ''}|${vars.answer ?? ''}`;
+  let audioUnavailable = false;
 
   let audioEl = null;
   let ctx = null;
-  let sourceNode = null;
   let analyser = null;
   let rafId = null;
   let fallbackTimer = null;
@@ -136,33 +156,33 @@ export function createVoice({ fetchImpl, onMoment, problemSlug, problem } = {}) 
   };
 
   const stopMeter = () => {
-    if (rafId !== null) {
-      cancelAnimationFrame(rafId);
-      rafId = null;
-    }
+    if (rafId !== null) cancelAnimationFrame(rafId);
+    rafId = null;
   };
 
+  /**
+   * Stop and dismantle. `pause()` then reset `currentTime`, which is what actually
+   * silences an element mid-stream — clearing `src` alone can leave a buffered
+   * fragment playing out.
+   */
   const teardown = () => {
     stopMeter();
     clearTimeout(fallbackTimer);
     fallbackTimer = null;
-    try {
-      sourceNode?.disconnect();
-      analyser?.disconnect();
-    } catch {
-      /* already gone */
-    }
-    sourceNode = null;
-    analyser = null;
     if (audioEl) {
       try {
         audioEl.pause();
-        audioEl.src = '';
+        audioEl.currentTime = 0;
+        audioEl.onended = null;
+        audioEl.onerror = null;
       } catch {
         /* already gone */
       }
       audioEl = null;
     }
+    // The analyser is reused across lines; only the per-element source is dropped,
+    // which happens when the element is garbage collected.
+    analyser = null;
   };
 
   const finish = () => {
@@ -174,9 +194,8 @@ export function createVoice({ fetchImpl, onMoment, problemSlug, problem } = {}) 
   };
 
   /**
-   * Amplitude from the time domain (RMS), not by averaging frequency bins.
-   * RMS tracks the envelope of speech, which is what makes the mascot look like
-   * it is talking; a frequency average barely moves.
+   * Amplitude from the time domain (RMS), not a frequency average: RMS tracks the
+   * envelope of speech, which is what makes the glow look like talking.
    */
   const runMeter = () => {
     if (!analyser) return;
@@ -189,20 +208,37 @@ export function createVoice({ fetchImpl, onMoment, problemSlug, problem } = {}) 
         const v = (buf[i] - 128) / 128;
         sum += v * v;
       }
-      const rms = Math.sqrt(sum / buf.length);
-      // Boost then low-pass smooth, so the bubble breathes instead of flickering.
-      const target = Math.min(1, rms * 3.2);
-      amplitude = amplitude * 0.6 + target * 0.4;
+      amplitude = amplitude * 0.6 + Math.min(1, Math.sqrt(sum / buf.length) * 3.2) * 0.4;
       emit();
       rafId = requestAnimationFrame(tick);
     };
     rafId = requestAnimationFrame(tick);
   };
 
-  /** Caption-only: no audio, but the line is still read and the bubble still moves. */
+  /** Route an element through the analyser. Failure costs the glow, not the audio. */
+  const wireAnalyser = (el) => {
+    try {
+      const AC = typeof window !== 'undefined' && (window.AudioContext || window.webkitAudioContext);
+      if (!AC) return;
+      ctx = ctx ?? new AC();
+      if (ctx.state === 'suspended') void ctx.resume();
+      const node = ctx.createAnalyser();
+      node.fftSize = 256;
+      node.smoothingTimeConstant = 0.85;
+      node.connect(ctx.destination);
+      ctx.createMediaElementSource(el).connect(node);
+      analyser = node;
+      runMeter();
+    } catch {
+      // createMediaElementSource throws if the element already has a source. A
+      // fresh element per line means that should not happen, and if it does the
+      // line still plays.
+      analyser = null;
+    }
+  };
+
+  /** Caption only: no audio, but the line is read and the glow still breathes. */
   const speakSilently = (text) => {
-    // A slow synthetic envelope, so the mascot does not sit frozen while the
-    // caption is up. Two summed sines, smoothed exactly like the real path.
     const started = Date.now();
     const tick = () => {
       const t = Date.now() - started;
@@ -216,154 +252,94 @@ export function createVoice({ fetchImpl, onMoment, problemSlug, problem } = {}) 
   };
 
   /**
-   * Fetch one line. Returns what is needed to play it, or null when there is no
-   * audio to be had (flag off, no key, vendor error, network failure) — in which
-   * case the caller shows the caption instead.
+   * Warm the HTTP cache with `link rel=preload`.
+   *
+   * Not a parallel cache: this asks the browser to fetch the exact URL the audio
+   * element will ask for, so the element finds it already there. The browser owns
+   * eviction, revalidation and concurrency, all of which the old JS blob cache had
+   * to fake.
    */
-  async function fetchLine(moment, variant, vars) {
-    if (!doFetch) return null;
-    try {
-      const qs = new URLSearchParams({ moment, variant: String(variant) });
-      // The problem and the node decide WHICH line; `node` fills it in.
-      if (problemSlug) qs.set('problem', problemSlug);
-      if (vars?.key) qs.set('key', vars.key);
-      // Both fills, or the server renders the line with the variable empty. `scope`
-      // is deliberately not sent: it decides whether a line is cut, not what it says.
-      if (vars?.node) qs.set('node', vars.node);
-      if (vars?.answer) qs.set('answer', vars.answer);
-      const res = await doFetch(`/api/voice?${qs}`, { cache: 'no-store' });
+  const preload = (url) => {
+    if (audioUnavailable || typeof document === 'undefined' || preloaded.has(url)) return;
+    preloaded.add(url);
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'audio';
+    link.href = url;
+    document.head.appendChild(link);
+  };
 
-      let caption = null;
-      const served = res?.headers?.get?.('X-Voice-Text');
-      if (served) {
-        try {
-          caption = decodeURIComponent(served);
-        } catch {
-          caption = null;
-        }
-      }
-
-      // 204 is "no audio by design": the caption still came back.
-      if (!res.ok || res.status === 204) return { blob: null, caption };
-      return { blob: await res.blob(), caption };
-    } catch {
-      return null;
-    }
-  }
-
-  function remember(key, entry) {
-    if (warmed.size >= MAX_WARM) {
-      const oldest = warmed.keys().next().value;
-      if (oldest !== undefined) warmed.delete(oldest);
-    }
-    warmed.set(key, entry);
-  }
-
-  /** Pull down the next few declared clips, without blocking anything. */
   function warmUpcoming() {
+    if (muted) return;
     let n = 0;
     for (const item of upcoming) {
       if (n >= WARM_AHEAD) break;
-      if (warmed.has(warmKey(item.moment, item.vars))) continue;
+      const picked = lineFor(item.moment, item.vars ?? {});
+      if (!picked) continue;
       n += 1;
-      // Fire and forget: prefetch never throws and never blocks playback.
-      api.prefetch(item.moment, item.vars);
+      // The exact URL `start` will ask for, or the warm is wasted.
+      preload(clipUrl(problemSlug ?? '', item.moment, item.vars ?? {}, picked.index));
     }
   }
 
-  async function start(moment, vars) {
-    // A warmed clip is consumed here, which is what makes the common path
-    // instant: no fetch, no vendor call, straight to playback.
-    const wk = warmKey(moment, vars);
-    const hit = warmed.get(wk);
-    if (hit) warmed.delete(wk);
-
-    const picked = hit ? { index: hit.variant, line: null } : pickLine(moment, undefined, { problem, key: vars?.key });
+  function start(moment, vars) {
+    const picked = lineFor(moment, vars ?? {});
     if (!picked) return;
 
     const mine = ++token;
     speaking = true;
-    caption = { moment, text: hit?.caption ?? captionFor(fillLine(picked.line, vars)) };
+    // Straight from the local phrase book: no request needed to know the words.
+    caption = { moment, text: captionFor(fillLine(picked.line, vars)) };
     amplitude = 0;
     emit();
 
-    // The network is idle while this line plays, and what comes next is already
-    // known. Use the window.
+    // The network is idle for the length of this line, and what comes next is known.
     warmUpcoming();
 
-    let fetched = hit ? { blob: hit.blob, caption: hit.caption } : await fetchLine(moment, picked.index, vars);
-
-    // Muted or superseded while the request was in flight.
-    if (mine !== token) return;
-
-    // Prefer the caption the server sent: that is the text belonging to the audio
-    // actually about to play.
-    if (fetched?.caption) caption = { moment, text: fetched.caption };
-
-    if (!fetched?.blob) {
-      emit();
+    if (typeof Audio === 'undefined' || audioUnavailable) {
       speakSilently(caption.text);
       return;
     }
 
-    let blobUrl = null;
-    try {
-      blobUrl = URL.createObjectURL(fetched.blob);
+    const url = clipUrl(problemSlug ?? '', moment, vars ?? {}, picked.index);
+    const el = new Audio(url);
+    el.preload = 'auto';
+    el.playbackRate = rate;
+    audioEl = el;
+    wireAnalyser(el);
 
-      audioEl = new Audio(blobUrl);
-      audioEl.playbackRate = rate;
-      audioEl.onended = finish;
-      audioEl.onerror = finish;
-
-      // Route through Web Audio so the analyser can drive the mascot. If any of
-      // it fails, play the bare element instead: no pulse, but audible.
-      try {
-        const AC = window.AudioContext || window.webkitAudioContext;
-        if (AC) {
-          ctx = ctx ?? new AC();
-          if (ctx.state === 'suspended') await ctx.resume().catch(() => {});
-          sourceNode = ctx.createMediaElementSource(audioEl);
-          analyser = ctx.createAnalyser();
-          analyser.fftSize = 256;
-          analyser.smoothingTimeConstant = 0.8;
-          sourceNode.connect(analyser);
-          analyser.connect(ctx.destination);
-          runMeter();
-        }
-      } catch {
-        analyser = null;
-        sourceNode = null;
-      }
-
-      await audioEl.play();
-      if (blobUrl) URL.revokeObjectURL(blobUrl);
-    } catch {
-      // Autoplay refused, or a decode failure. Fall back to the caption rather
-      // than leaving the learner with a silent screen and no words.
-      if (blobUrl) URL.revokeObjectURL(blobUrl);
-      teardown();
+    el.onended = () => {
+      if (mine === token) finish();
+    };
+    const fallBack = ({ permanent }) => {
       if (mine !== token) return;
-      speakSilently(caption.text);
-    }
+      // A missing clip means nothing is generated or narration is off, which will
+      // not change mid-session. An autoplay refusal might, so that one is not sticky.
+      if (permanent) audioUnavailable = true;
+      teardown();
+      speaking = true;
+      speakSilently(caption?.text ?? '');
+    };
+
+    el.onerror = () => fallBack({ permanent: true });
+    el.play().catch((err) => fallBack({ permanent: err?.name !== 'NotAllowedError' }));
   }
 
   const api = {
     /**
-     * Declare what is likely to be said next, in order. The first few are pulled
-     * down while the current line plays. Cheap to call often: already-warm entries
-     * are skipped.
+     * Declare what may be said next, in likelihood order. The first few are
+     * preloaded now and again while each line plays.
      */
     setUpcoming(list) {
       upcoming = Array.isArray(list) ? list.filter((i) => i && hasMoment(i.moment)) : [];
-      // Warm now as well, so entering a screen does not wait for a line to start.
-      if (!muted) warmUpcoming();
+      warmUpcoming();
     },
 
-    /** Fire and forget. Safe from a handler, an effect, or a render path. */
+    /** Fire and forget. Cuts whatever is playing: the newest line always wins. */
     play(moment, vars = {}) {
       if (!hasMoment(moment)) return;
 
-      // Rule 2: the mascot reacts first, and regardless of mute.
+      // The mascot reacts first, and regardless of mute.
       try {
         onMoment?.(moment, clipFor(moment));
       } catch {
@@ -372,9 +348,7 @@ export function createVoice({ fetchImpl, onMoment, problemSlug, problem } = {}) 
 
       if (muted) return;
 
-      // Cut whatever is playing. Invalidating the token first means any fetch
-      // already in flight for the old line lands on the floor rather than
-      // resurfacing after the new one has started.
+      // Whatever is playing is about a moment that has passed. Cut it.
       if (speaking) {
         token += 1;
         teardown();
@@ -382,36 +356,9 @@ export function createVoice({ fetchImpl, onMoment, problemSlug, problem } = {}) 
         caption = null;
         amplitude = 0;
       }
-
       start(moment, vars);
     },
 
-    /**
-     * Warm a line so the next `play` of it starts instantly.
-     *
-     * Call it at a lead point, for every outcome that is possible next. Cheap to
-     * over-call: the server caches rendered bytes, so warming a line a second
-     * time costs one request and no vendor billing.
-     */
-    prefetch(moment, vars = {}) {
-      const wk = warmKey(moment, vars);
-      if (!hasMoment(moment) || muted || warmed.has(wk)) return;
-      const picked = pickLine(moment, undefined, { problem, key: vars?.key });
-      if (!picked) return;
-      // Reserve the slot immediately so two callers cannot both fetch it.
-      remember(wk, { variant: picked.index, caption: captionFor(fillLine(picked.line, vars)), blob: null });
-      fetchLine(moment, picked.index, vars).then((got) => {
-        if (!got) {
-          warmed.delete(wk);
-          return;
-        }
-        // Keep the entry even with no blob: the server's caption is still better
-        // than the locally-picked one, and it records that there is no audio.
-        remember(wk, { variant: picked.index, caption: got.caption ?? captionFor(fillLine(picked.line, vars)), blob: got.blob });
-      });
-    },
-
-    /** Stop now and drop anything parked. */
     stop() {
       token += 1;
       teardown();
@@ -424,17 +371,13 @@ export function createVoice({ fetchImpl, onMoment, problemSlug, problem } = {}) 
     setMuted(next) {
       muted = Boolean(next);
       write(MUTE_KEY, muted);
-      if (muted) {
-        warmed.clear();
-        api.stop();
-      }
+      if (muted) api.stop();
       else emit();
     },
 
     setRate(next) {
       rate = Number(next) || 1;
       write(RATE_KEY, rate);
-      // Applied live, so a change mid-line takes effect immediately.
       if (audioEl) audioEl.playbackRate = rate;
       emit();
     },

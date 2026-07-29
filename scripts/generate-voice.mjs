@@ -18,7 +18,8 @@
 import { problems } from '@judge/problems';
 import { NODE_CATALOG } from '@judge/catalog';
 import { enumerateSpeakable } from '../apps/web/src/lib/voiceCatalogue.js';
-import { clipBackend, clipKey, readClip, writeClip } from '../apps/web/src/server/voiceStore.ts';
+import { clipBackend, readClip, writeClip } from '../apps/web/src/server/voiceStore.ts';
+import { clipPath } from '../apps/web/src/lib/voicePath.js';
 
 const API_KEY = process.env.ELEVENLABS_API_KEY;
 const VOICE_ID = process.env.ELEVENLABS_VOICE_ID;
@@ -69,10 +70,14 @@ async function render(text) {
 const wanted = new Map(); // key -> { spoken, where[] }
 for (const slug of slugs) {
   for (const item of enumerateSpeakable(problems[slug], NODE_CATALOG)) {
-    const key = clipKey(item.spoken, VOICE_ID ?? 'dry', MODEL_ID);
-    const entry = wanted.get(key) ?? { spoken: item.spoken, where: [] };
-    entry.where.push(`${slug}/${item.moment}${item.key ? `:${item.key}` : ''}`);
-    wanted.set(key, entry);
+    // Every variant, because which one a learner hears is decided in their browser
+    // from a session seed. All of them have to exist.
+    for (const variant of item.variants) {
+      const key = clipPath(slug, item.moment, item.vars, variant.index);
+      const entry = wanted.get(key) ?? { spoken: variant.spoken, where: [] };
+      entry.where.push(`${slug}/${item.moment}${item.key ? `:${item.key}` : ''}`);
+      wanted.set(key, entry);
+    }
   }
 }
 

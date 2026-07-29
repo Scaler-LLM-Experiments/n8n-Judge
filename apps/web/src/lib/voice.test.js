@@ -7,10 +7,16 @@ import { createVoice } from './voice.js';
 // No audio here: with no `Audio`/`AudioContext` (as in Node) the store takes its
 // caption-only path, which exercises the same latch, scope and pending logic.
 
-const noAudio = () => ({ ok: false, status: 204, headers: { get: () => null } });
-
 let voice;
+// A minimal document stand-in rather than pulling in jsdom for four assertions:
+// `preload` only ever creates a link and appends it to head.
+let appended = [];
 beforeEach(() => {
+  appended = [];
+  globalThis.document = {
+    createElement: () => ({}),  // props are assigned by preload()
+    head: { appendChild: (el) => appended.push(el) },
+  };
   vi.useFakeTimers();
   globalThis.requestAnimationFrame = () => 0;
   globalThis.cancelAnimationFrame = () => {};
@@ -20,8 +26,9 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-const make = (overrides = {}) =>
-  createVoice({ fetchImpl: vi.fn(noAudio), onMoment: vi.fn(), ...overrides });
+// No `Audio` in jsdom by default, so the store takes its caption-only path — which
+// exercises the same latch, cut and preload logic.
+const make = (overrides = {}) => createVoice({ onMoment: vi.fn(), problemSlug: 'email-triage', ...overrides });
 
 describe('one line at a time', () => {
   it('starts speaking when asked', async () => {
@@ -120,33 +127,41 @@ describe('stop', () => {
   });
 });
 
-describe('prefetch', () => {
-  it('warms a clip per wording, not per moment', async () => {
-    const fetchImpl = vi.fn(noAudio);
-    voice = make({ fetchImpl });
-    voice.prefetch('verify_pass', { node: 'A' });
-    voice.prefetch('verify_pass', { node: 'B' });
-    await vi.advanceTimersByTimeAsync(0);
-    // Two different lines, so two requests: keying by moment alone was the bug
-    // that made the verdict play without the node's name.
-    expect(fetchImpl).toHaveBeenCalledTimes(2);
+describe('preloading what is next', () => {
+  // Warming is now `link rel=preload` on the exact URL the audio element will
+  // request, so the browser's own cache does the work. The old JS blob cache was
+  // reimplementing HTTP caching, and losing it on every navigation.
+  const links = () => appended.filter((l) => l.rel === 'preload' && l.as === 'audio');
+
+  it('preloads the declared upcoming clips, capped at three', () => {
+    voice = make();
+    voice.setUpcoming([
+      { moment: 'verify_pass', vars: { node: 'A' } },
+      { moment: 'verify_fail', vars: { node: 'A' } },
+      { moment: 'answer_correct', vars: { answer: 'B' } },
+      { moment: 'answer_wrong', vars: { answer: 'C' } },
+    ]);
+    expect(links().length).toBe(3);
   });
 
-  it('does not warm the same wording twice', async () => {
-    const fetchImpl = vi.fn(noAudio);
-    voice = make({ fetchImpl });
-    voice.prefetch('verify_pass', { node: 'A' });
-    voice.prefetch('verify_pass', { node: 'A' });
-    await vi.advanceTimersByTimeAsync(0);
-    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  it('points at the same URL the player will use', () => {
+    voice = make();
+    voice.setUpcoming([{ moment: 'verify_pass', vars: { node: 'Classify with AI' } }]);
+    // A readable, cacheable path — not a query string, which could never be cached.
+    expect(links()[0].href).toMatch(/\/api\/voice\/clip\/[a-z0-9-]+\/verify-pass--classify-with-ai--v\d\.mp3$/);
   });
 
-  it('warms nothing while muted', async () => {
-    const fetchImpl = vi.fn(noAudio);
-    voice = make({ fetchImpl });
+  it('does not preload the same URL twice', () => {
+    voice = make();
+    voice.setUpcoming([{ moment: 'verify_pass', vars: { node: 'A' } }]);
+    voice.setUpcoming([{ moment: 'verify_pass', vars: { node: 'A' } }]);
+    expect(links().length).toBe(1);
+  });
+
+  it('preloads nothing while muted', () => {
+    voice = make();
     voice.setMuted(true);
-    voice.prefetch('verify_pass', { node: 'A' });
-    await vi.advanceTimersByTimeAsync(0);
-    expect(fetchImpl).not.toHaveBeenCalled();
+    voice.setUpcoming([{ moment: 'verify_pass', vars: { node: 'A' } }]);
+    expect(links().length).toBe(0);
   });
 });

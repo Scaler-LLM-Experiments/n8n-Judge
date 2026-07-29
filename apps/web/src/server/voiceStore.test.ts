@@ -176,10 +176,21 @@ describe('what pre-generation has to cover', () => {
     expect(named.every((i) => i.spoken.length > 0)).toBe(true);
   });
 
-  it('deduplicates wording shared across moments, so it is billed once', () => {
+  // Paths are per problem and per variant now, so the same wording CAN appear
+  // twice across problems. What must not repeat is the same (moment, key, vars)
+  // entry, because that would render and store the identical path twice in one run.
+  it('emits each moment-and-variables combination once', () => {
     const list = enumerateSpeakable(problems['email-triage'], NODE_CATALOG);
-    const spoken = list.map((i) => i.spoken);
-    expect(new Set(spoken).size).toBe(spoken.length);
+    const ids = list.map((i) => `${i.moment}|${i.key ?? ''}|${i.vars.node ?? ''}|${i.vars.answer ?? ''}`);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it('carries every authored variant, since the browser picks one per session', () => {
+    const list = enumerateSpeakable(problems['email-triage'], NODE_CATALOG);
+    for (const item of list) {
+      expect(item.variants.length, `${item.moment} has no variants`).toBeGreaterThan(0);
+      item.variants.forEach((v, i) => expect(v.index).toBe(i));
+    }
   });
 
   it('covers every moment the phrase book defines', async () => {

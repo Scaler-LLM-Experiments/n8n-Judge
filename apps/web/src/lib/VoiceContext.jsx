@@ -28,7 +28,7 @@ import { createVoice } from './voice.js';
 // spoken line, never a crash.
 
 const noop = () => {};
-const DEFAULT_ACTIONS = { play: noop, prefetch: noop, setUpcoming: noop, stop: noop, setMuted: noop, setRate: noop };
+const DEFAULT_ACTIONS = { play: noop, setUpcoming: noop, stop: noop, setMuted: noop, setRate: noop };
 const DEFAULT_STATE = { speaking: false, caption: null, amplitude: 0, muted: false, rate: 1, clip: null };
 
 const VoiceActionsContext = createContext(DEFAULT_ACTIONS);
@@ -70,7 +70,6 @@ export function VoiceProvider({ children, problem }) {
     const call = (name) => (...args) => voiceRef.current?.[name]?.(...args);
     return {
       play: call('play'),
-      prefetch: call('prefetch'),
       setUpcoming: call('setUpcoming'),
       stop: call('stop'),
       setMuted: call('setMuted'),

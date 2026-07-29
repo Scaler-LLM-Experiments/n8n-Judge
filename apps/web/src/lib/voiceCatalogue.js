@@ -72,35 +72,52 @@ export function labelForNodeType(problem, type, catalog = {}) {
  *
  * @param {Record<string, any>|null} [problem]
  * @param {Record<string, any>} [catalog] NODE_CATALOG, for node labels
- * @returns {Array<{moment: string, key: string|null, vars: Record<string, string>, spoken: string, caption: string}>}
+ * @returns {Array<{moment: string, key: string|null, vars: Record<string, string>, variants: Array<{index: number, spoken: string, caption: string}>, spoken: string, caption: string}>}
  */
 export function enumerateSpeakable(problem = null, catalog = {}) {
   const out = [];
   const seen = new Set();
 
-  const add = (moment, key, vars, line) => {
-    const spoken = fillLine(line, vars);
-    // The same wording can arise from several moments (a shared default line, two
-    // nodes with the same label). One clip covers all of them.
-    if (seen.has(spoken)) return;
-    seen.add(spoken);
-    out.push({ moment, key, vars, spoken, caption: captionFor(spoken) });
+  /**
+   * One entry per (moment, key, vars), carrying EVERY variant with its index.
+   *
+   * The index is part of the clip's path, and which variant a learner hears is
+   * decided in their browser from a session seed — so all of them must exist in
+   * storage. Grouping them keeps the generator's job obvious: for each entry, store
+   * each variant.
+   */
+  const add = (moment, key, vars, lines) => {
+    const id = `${moment}|${key ?? ''}|${vars.node ?? ''}|${vars.answer ?? ''}`;
+    if (seen.has(id)) return;
+    seen.add(id);
+    const variants = lines.map((line, index) => {
+      const spoken = fillLine(line, vars);
+      return { index, spoken, caption: captionFor(spoken) };
+    });
+    if (!variants.length) return;
+    out.push({
+      moment,
+      key,
+      vars,
+      variants,
+      // The first variant, kept for callers that only need an example.
+      spoken: variants[0].spoken,
+      caption: variants[0].caption,
+    });
   };
 
   // Moments with no variables: one clip per authored variant.
   const plainMoments = Object.keys(LINES).filter(
     (m) => !(m in ANSWER_MOMENTS) && !NODE_MOMENTS.includes(m)
   );
-  for (const moment of plainMoments) {
-    for (const line of resolveLines(moment, { problem })) add(moment, null, {}, line);
-  }
+  for (const moment of plainMoments) add(moment, null, {}, resolveLines(moment, { problem }) ?? []);
 
   if (!problem) {
     // No problem: still enumerate the variable moments so the defaults exist, with
     // the variable left empty. Better than nothing for a smoke run, useless for a
     // real learner, which is why generation takes a problem.
     for (const moment of [...Object.keys(ANSWER_MOMENTS), ...NODE_MOMENTS]) {
-      for (const line of resolveLines(moment, {})) add(moment, null, {}, line);
+      add(moment, null, {}, resolveLines(moment, {}) ?? []);
     }
     return out;
   }
@@ -116,12 +133,11 @@ export function enumerateSpeakable(problem = null, catalog = {}) {
       const options = (q.options ?? []).filter((opt) =>
         wants === 'correct' ? opt.type === q.correctType : opt.type !== q.correctType
       );
-      for (const line of lines) {
-        if (!line.includes('{answer}')) {
-          add(moment, q.id, {}, line);
-          continue;
-        }
-        for (const opt of options) add(moment, q.id, { answer: opt.label }, line);
+      const usesAnswer = lines.some((l) => l.includes('{answer}'));
+      if (!usesAnswer) {
+        add(moment, q.id, {}, lines);
+      } else {
+        for (const opt of options) add(moment, q.id, { answer: opt.label }, lines);
       }
     }
   }
@@ -131,21 +147,13 @@ export function enumerateSpeakable(problem = null, catalog = {}) {
     const node = labelForNodeType(problem, type, catalog);
     for (const moment of NODE_MOMENTS) {
       const lines = resolveLines(moment, { problem, key: type });
-      for (const line of lines) {
-        if (!line.includes('{node}')) {
-          add(moment, type, {}, line);
-          continue;
-        }
-        add(moment, type, { node }, line);
-      }
+      add(moment, type, lines.some((l) => l.includes('{node}')) ? { node } : {}, lines);
     }
   }
 
   // Per-phase completion lines, which key off the phase id.
   for (const phase of problem.buildPhases ?? []) {
-    for (const line of resolveLines('phase_complete', { problem, key: phase.id })) {
-      add('phase_complete', phase.id, {}, line);
-    }
+    add('phase_complete', phase.id, {}, resolveLines('phase_complete', { problem, key: phase.id }) ?? []);
   }
 
   return out;

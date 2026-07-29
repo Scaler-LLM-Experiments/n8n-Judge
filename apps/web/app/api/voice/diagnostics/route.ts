@@ -2,7 +2,8 @@ import { auth } from '../../../../auth';
 import { problems } from '@judge/problems';
 import { NODE_CATALOG } from '@judge/catalog';
 import { enumerateSpeakable } from '../../../../src/lib/voiceCatalogue.js';
-import { clipBackend, clipKey, readClip } from '../../../../src/server/voiceStore';
+import { clipBackend, readClip } from '../../../../src/server/voiceStore';
+import { clipPath } from '../../../../src/lib/voicePath.js';
 
 // "Why is narration slow?", answerable without opening devtools.
 //
@@ -21,7 +22,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /** How many of a problem's clips are actually stored, from a sample. */
-async function sample(slug: string, voiceId: string, modelId: string, size = 12) {
+async function sample(slug: string, _voiceId: string, _modelId: string, size = 12) {
   const problem = (problems as Record<string, unknown>)[slug];
   if (!problem) return null;
 
@@ -34,7 +35,7 @@ async function sample(slug: string, voiceId: string, modelId: string, size = 12)
   let stored = 0;
   const missing: string[] = [];
   for (const item of picked) {
-    if (await readClip(clipKey(item.spoken, voiceId, modelId))) stored += 1;
+    if (await readClip(clipPath(slug, item.moment, item.vars, 0))) stored += 1;
     else missing.push(item.caption.slice(0, 60));
   }
 

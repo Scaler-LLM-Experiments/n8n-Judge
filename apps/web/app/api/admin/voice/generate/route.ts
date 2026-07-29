@@ -2,7 +2,8 @@ import { auth } from '../../../../../auth';
 import { problems } from '@judge/problems';
 import { NODE_CATALOG } from '@judge/catalog';
 import { enumerateSpeakable } from '../../../../../src/lib/voiceCatalogue.js';
-import { clipBackend, clipKey, readClip, writeClip } from '../../../../../src/server/voiceStore';
+import { clipBackend, readClip, writeClip } from '../../../../../src/server/voiceStore';
+import { clipPath } from '../../../../../src/lib/voicePath.js';
 
 // Render the missing voice clips and store them, from the deployed app.
 //
@@ -74,12 +75,16 @@ export async function POST(req: Request) {
     if (!(slug in problems)) return Response.json({ error: `unknown problem: ${slug}` }, { status: 404 });
   }
 
-  // Deduplicate across problems first: many lines are shared ("Correct."), and
-  // rendering those once per problem would multiply the bill for no benefit.
-  const wanted = new Map<string, string>(); // clip key -> spoken text
+  // Paths are per problem now, so a line shared between problems is stored twice.
+  // That is the cost of a readable, cacheable URL, and it is a few hundred KB.
+  const wanted = new Map<string, string>(); // clip path -> spoken text
   for (const slug of slugs) {
     for (const item of enumerateSpeakable((problems as Record<string, Record<string, unknown>>)[slug], NODE_CATALOG)) {
-      wanted.set(clipKey(item.spoken, voiceId, modelId), item.spoken);
+      // Every variant: which one a learner hears is decided in their browser from a
+      // session seed, so all of them have to exist.
+      for (const v of item.variants as Array<{ index: number; spoken: string }>) {
+        wanted.set(clipPath(slug, item.moment, item.vars, v.index), v.spoken);
+      }
     }
   }
 
