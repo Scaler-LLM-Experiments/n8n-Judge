@@ -43,7 +43,7 @@ function seedEdges(ig) {
   if (!ig) return [];
   return ig.edges.map((e, i) => {
     const base = { id: `seed-e${i}`, source: e.source, target: e.target };
-    if (e.targetHandle === 'ai_model') return { ...base, targetHandle: 'ai_model', type: 'smoothstep', animated: true, style: { stroke: '#0E9488', strokeWidth: 1.75, strokeDasharray: '6 4' } };
+    if (e.targetHandle === 'ai_model') return { ...base, sourceHandle: 'ai_out', targetHandle: 'ai_model', type: 'smoothstep', animated: true, style: { stroke: '#0E9488', strokeWidth: 1.75, strokeDasharray: '6 4' } };
     if (e.branch) return { ...base, sourceHandle: e.branch };
     return base;
   });
@@ -114,7 +114,12 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
     const source = ctx.sourceId ? nodes.find((n) => n.id === ctx.sourceId) : null;
 
     let position = { x: 220, y: 180 };
-    if (source && ctx.modelSlot) position = { x: source.position.x + 40, y: source.position.y + 200 };
+    // Sit the model directly UNDER the Chat Model diamond so the ai_languageModel
+    // link is a straight drop rather than a dogleg. The AI body is 216 wide and
+    // the three sub-node ports (76 each, 20 gap) are centred on it, which puts the
+    // Chat Model diamond ~12px right of the body's left edge; the model body is 88
+    // wide, so its left edge lands at 12 - 44 = -32.
+    if (source && ctx.modelSlot) position = { x: source.position.x - 32, y: source.position.y + 200 };
     else if (source && ctx.branch) position = { x: source.position.x + 380, y: source.position.y + (ctx.branchIndex - 1) * 150 };
     else if (source) position = { x: source.position.x + 340, y: source.position.y };
 
@@ -129,7 +134,7 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
     if (source) {
       let edge;
       if (ctx.modelSlot) {
-        edge = { id: `e${id}`, source: id, target: source.id, targetHandle: 'ai_model', type: 'smoothstep', animated: true, style: { stroke: '#0E9488', strokeWidth: 1.75, strokeDasharray: '6 4' } };
+        edge = { id: `e${id}`, source: id, sourceHandle: 'ai_out', target: source.id, targetHandle: 'ai_model', type: 'smoothstep', animated: true, style: { stroke: '#0E9488', strokeWidth: 1.75, strokeDasharray: '6 4' } };
       } else if (ctx.branch) {
         edge = { id: `e${id}`, source: source.id, sourceHandle: ctx.branch, target: id };
       } else {
@@ -206,7 +211,7 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
     return { data: src?.data.output || null, label: src?.data.label || null };
   })();
 
-  const ctxValue = useMemo(() => ({ openPicker, openNdv, branches: branches || [] }), [openPicker, openNdv, branches]);
+  const ctxValue = useMemo(() => ({ openPicker, openNdv, removeNode, branches: branches || [] }), [openPicker, openNdv, removeNode, branches]);
 
   return (
     <EditorContext.Provider value={ctxValue}>

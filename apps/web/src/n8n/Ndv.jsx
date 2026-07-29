@@ -549,7 +549,7 @@ function FieldForm({ nodeType, inputKeys, setup, fields, values, results, feedba
                 Could not check this — your answer was not marked wrong
               </div>
             ) : verdict ? (
-              <button type="button" onClick={() => onExplain(f, verdict)} style={{ marginTop: 7, display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 600, color: verdict === 'correct' ? 'var(--status-success)' : 'var(--status-danger)' }}>
+              <button type="button" onClick={() => onExplain(f, verdict)} style={{ marginTop: 7, display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 600, textDecoration: 'underline', textUnderlineOffset: 2, color: verdict === 'correct' ? 'var(--status-success)' : 'var(--status-danger)' }}>
                 {verdict === 'correct' ? <CheckCircle size={15} weight="fill" /> : <XCircle size={15} weight="fill" />}
                 {verdict === 'correct' ? 'Correct — ask Iris why' : 'Not right — ask Iris why'}
               </button>

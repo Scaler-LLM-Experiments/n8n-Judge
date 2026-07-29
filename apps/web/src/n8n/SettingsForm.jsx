@@ -109,7 +109,7 @@ function Row({ spec, value, onChange, graded, verdict, why, disabled, onExplain,
         <button
           type="button"
           onClick={() => onExplain?.(spec.key, verdict, why)}
-          style={{ marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 600, color: verdict === 'correct' ? 'var(--status-success)' : 'var(--status-danger)' }}
+          style={{ marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 12, fontWeight: 600, textDecoration: 'underline', textUnderlineOffset: 2, color: verdict === 'correct' ? 'var(--status-success)' : 'var(--status-danger)' }}
         >
           {verdict === 'correct' ? <CheckCircle size={14} weight="fill" /> : <XCircle size={14} weight="fill" />}
           {verdict === 'correct' ? 'Correct — ask Iris why' : 'Not right — ask Iris why'}

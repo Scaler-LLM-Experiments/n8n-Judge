@@ -71,7 +71,15 @@ async function signIn() {
 
 await signIn();
 
-async function visit(name, url, extra) {
+// How long a screen gets to settle after loading, for GSAP intros and the
+// run-story animation to finish and throw anything they are going to throw.
+// Overridable so a slow machine can buy more time without editing this file.
+const SETTLE_MS = Number(process.env.SMOKE_SETTLE_MS ?? 2200);
+// How many screens are checked at once. Each gets its own page in the shared
+// signed-in context, so they are independent.
+const CONCURRENCY = Number(process.env.SMOKE_CONCURRENCY ?? 4);
+
+async function check(name, url, extra) {
   const page = await context.newPage();
   const errs = [];
   page.on('pageerror', (e) => errs.push(`pageerror: ${e.message}`));
@@ -79,9 +87,11 @@ async function visit(name, url, extra) {
     if (m.type() === 'error' && !IGNORE.test(m.text())) errs.push(`console: ${m.text()}`);
   });
 
+  // One load, not two. This used to `goto` and then immediately `reload`, both
+  // waiting for full network idle — but every check opens a FRESH page, so there
+  // was never anything stale to reload. It simply loaded all 20 screens twice.
   await page.goto(url, { waitUntil: 'networkidle' }).catch((e) => errs.push(`goto: ${e.message}`));
-  await page.reload({ waitUntil: 'networkidle' }).catch(() => {});
-  await page.waitForTimeout(3000);
+  await page.waitForTimeout(SETTLE_MS);
   if (extra) await extra(page, errs);
 
   // Next.js renders runtime errors into an error overlay — catch that too.
@@ -93,23 +103,44 @@ async function visit(name, url, extra) {
 
   if (out) await page.screenshot({ path: `${out}/${name}.png` }).catch(() => {});
   await page.close();
+  return { name, url, errs };
+}
 
-  if (errs.length) {
-    failures.push({ name, url, errs });
-    console.log(`✗ ${name}`);
-    for (const e of errs) console.log(`    ${e}`);
-  } else {
-    console.log(`✓ ${name}`);
+/**
+ * Run the checks with a small concurrency pool, reporting in the order they were
+ * queued rather than the order they finish — so the output stays readable and
+ * diffable between runs.
+ */
+async function runAll(jobs) {
+  const results = new Array(jobs.length);
+  let next = 0;
+  const worker = async () => {
+    while (next < jobs.length) {
+      const i = next++;
+      const j = jobs[i];
+      results[i] = await check(j.name, j.url, j.extra);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(CONCURRENCY, jobs.length) }, worker));
+
+  for (const r of results) {
+    if (r.errs.length) {
+      failures.push(r);
+      console.log(`✗ ${r.name}`);
+      for (const e of r.errs) console.log(`    ${e}`);
+    } else {
+      console.log(`✓ ${r.name}`);
+    }
   }
 }
 
 // The home page, and the full journey entry point for each problem (the
 // journey starts at the Understand/Dissection screen — the one a
 // #build-only spot-check never touches).
-await visit('home', `${base}/`);
+const jobs = [{ name: 'home', url: `${base}/` }];
 
 for (const p of PROBLEMS) {
-  await visit(`${p}--journey-start`, `${base}/?problem=${p}`, async (page, errs) => {
+  jobs.push({ name: `${p}--journey-start`, url: `${base}/?problem=${p}`, extra: async (page, errs) => {
     // Enter the journey from THIS problem's card, landing on its Understand screen.
     // Clicking `.first()` used to mean every problem's journey-start check actually
     // opened email-triage, so two of the three Understand screens were never tested.
@@ -137,16 +168,17 @@ for (const p of PROBLEMS) {
     if (!(await page.getByText(/question 1 of \d+/i).count().catch(() => 0))) {
       errs.push('never reached the Understand quiz (still on an intro beat?)');
     }
-  });
+  } });
+
   for (const r of ROUTES) {
-    await visit(`${p}--${r.replace('#', '')}`, `${base}/${r}?problem=${p}`);
+    jobs.push({ name: `${p}--${r.replace('#', '')}`, url: `${base}/${r}?problem=${p}` });
   }
 
   // Opening a node's detail view is the one high-traffic interaction that
   // loading a screen never exercises. A crash in there renders nothing until
   // a learner double-clicks a node, so every other check stays green — which
   // is exactly how a `node is not defined` in FieldForm shipped.
-  await visit(`${p}--ndv`, `${base}/#run-story?problem=${p}`, async (page, errs) => {
+  jobs.push({ name: `${p}--ndv`, url: `${base}/#run-story?problem=${p}`, extra: async (page, errs) => {
     const node = page.locator('.react-flow__node').first();
     if ((await node.count().catch(() => 0)) === 0) {
       errs.push('no nodes on the canvas — could not open the NDV');
@@ -158,9 +190,10 @@ for (const p of PROBLEMS) {
     // modal failed to mount, which is the failure we care about.
     const opened = await page.getByText('Parameters', { exact: true }).count().catch(() => 0);
     if (opened === 0) errs.push('node detail view did not open');
-  });
+  } });
 }
 
+await runAll(jobs);
 await browser.close();
 
 if (failures.length) {

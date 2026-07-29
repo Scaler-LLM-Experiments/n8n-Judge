@@ -4,6 +4,9 @@ import { createContext, useContext } from 'react';
 export const EditorContext = createContext({
   openPicker: () => {},
   openNdv: () => {},
+  // Nodes need to delete themselves from their hover affordance. The editor also
+  // exposes removeNode over its ref, which is how BuildStage clears a wrong pick.
+  removeNode: () => {},
 });
 
 export const useEditor = () => useContext(EditorContext);
