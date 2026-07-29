@@ -71,9 +71,12 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
   useEffect(() => {
     // WITH the node, because the line names it. Warming without the vars renders
     // "Yes, is set up right" and then plays that.
-    const said = { key: node.nodeType, node: node.label, scope: `node:${node.id}` };
-    voice.prefetch('verify_pass', said);
-    voice.prefetch('verify_fail', said);
+    const said = { key: node.nodeType, node: node.label };
+    voice.setUpcoming([
+      { moment: 'verify_pass', vars: said },
+      { moment: 'verify_fail', vars: said },
+      { moment: 'phase_complete', vars: {} },
+    ]);
   }, [voice, node.nodeType, node.label]);
 
   useEffect(() => {

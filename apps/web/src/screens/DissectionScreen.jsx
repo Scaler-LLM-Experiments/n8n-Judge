@@ -98,10 +98,14 @@ export function DissectionScreen({ problem, sessionId, onComplete, onDecision })
   // every wording the verdict can use is known before they click.
   useEffect(() => {
     if (phase !== 'quiz') return;
-    for (const opt of q.options ?? []) {
-      voice.prefetch('answer_correct', { key: q.id, answer: opt.label });
-      voice.prefetch('answer_wrong', { key: q.id, answer: opt.label });
-    }
+    // Everything that can be said next, in likelihood order. The store pulls the
+    // first few down now and tops up while each line plays, so by the time a
+    // learner clicks, the clip is already in memory.
+    voice.setUpcoming([
+      ...(q.options ?? []).map((opt) => ({ moment: 'answer_wrong', vars: { key: q.id, answer: opt.label } })),
+      ...(q.options ?? []).map((opt) => ({ moment: 'answer_correct', vars: { key: q.id, answer: opt.label } })),
+      { moment: 'understand_done', vars: {} },
+    ]);
   }, [phase, index, voice, q]);
   const pickedOption = picked !== null ? q.options[picked] : null;
   // "answered" = settled (verdict landed); "pending" = picked but awaiting the

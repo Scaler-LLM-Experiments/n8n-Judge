@@ -47,89 +47,59 @@ describe('one line at a time', () => {
   });
 });
 
-describe('within one context: queue, latest wins', () => {
-  it('parks a second line instead of cutting the first', async () => {
+describe('the newest line always wins', () => {
+  // No queue: whatever is playing is about a moment that has passed, and the new
+  // line is about now. Letting the old one finish makes the new one late and makes
+  // the learner sit through a description of a screen they have left.
+  it('cuts the current line even for the same subject', async () => {
     voice = make();
     voice.play('verify_pass', { scope: 'node:1', node: 'ZEBRA' });
     await vi.advanceTimersByTimeAsync(0);
-    const first = voice.getState().caption?.text;
+    expect(voice.getState().caption?.text).toContain('ZEBRA');
 
-    voice.play('verify_fail', { scope: 'node:1', node: 'ZEBRA' });
+    voice.play('verify_fail', { scope: 'node:1', node: 'QUOKKA' });
     await vi.advanceTimersByTimeAsync(0);
-    // Still saying the first thing: same subject, so it is allowed to finish.
-    expect(voice.getState().caption?.text).toBe(first);
+    expect(voice.getState().caption?.text).toContain('QUOKKA');
   });
 
-  it('keeps only the newest parked line, so a burst does not queue up', async () => {
+  it('cuts across subjects too', async () => {
     voice = make();
     voice.play('verify_pass', { scope: 'node:1', node: 'ZEBRA' });
     await vi.advanceTimersByTimeAsync(0);
-
-    voice.play('answer_correct', { scope: 'node:1', answer: 'QUOKKA' });
-    voice.play('answer_wrong', { scope: 'node:1', answer: 'NARWHAL' });
-
-    // Advance in steps until a new line starts, and stop there: going too far lets
-    // the parked line finish too and the caption clears again.
-    let parked = '';
-    for (let t = 0; t < 12000 && !parked; t += 400) {
-      await vi.advanceTimersByTimeAsync(400);
-      const text = voice.getState().caption?.text ?? '';
-      if (/QUOKKA|NARWHAL/.test(text)) parked = text;
-    }
-    // The LAST one parked, not the first: a burst collapses to what is true now.
-    expect(parked).toMatch(/NARWHAL/);
-    expect(parked).not.toMatch(/QUOKKA/);
-  });
-});
-
-describe('across contexts: cut immediately', () => {
-  it('cuts a line when the subject changes', async () => {
-    voice = make();
-    voice.play('verify_pass', { scope: 'node:1', node: 'A' });
+    voice.play('answer_correct', { scope: 'q:1', answer: 'NARWHAL' });
     await vi.advanceTimersByTimeAsync(0);
-    const first = voice.getState().caption?.text;
-
-    // A different node: the learner has moved on, so the old line is stale.
-    voice.play('verify_pass', { scope: 'node:2', node: 'B' });
-    await vi.advanceTimersByTimeAsync(0);
-    const second = voice.getState().caption?.text;
-
-    expect(second).not.toBe(first);
-    expect(second).toContain('B');
+    expect(voice.getState().caption?.text).toContain('NARWHAL');
   });
 
-  it('drops anything parked when the subject changes', async () => {
+  it('never lets a cut line resurface later', async () => {
     voice = make();
-    voice.play('verify_pass', { scope: 'node:1', node: 'A' });
+    voice.play('verify_pass', { node: 'ZEBRA' });
     await vi.advanceTimersByTimeAsync(0);
-    voice.play('verify_fail', { scope: 'node:1', node: 'A' }); // parked
-
-    voice.play('answer_correct', { scope: 'q:1', answer: 'Z' });
+    voice.play('answer_correct', { answer: 'NARWHAL' });
     await vi.advanceTimersByTimeAsync(0);
-    expect(voice.getState().caption?.text).toContain('Z');
 
-    // The parked node line must not surface later: it was about the old subject.
-    await vi.advanceTimersByTimeAsync(20000);
+    // Well past both lines' durations: nothing should be speaking, and certainly
+    // not the one that was cut.
+    await vi.advanceTimersByTimeAsync(30000);
+    expect(voice.getState().speaking).toBe(false);
     expect(voice.getState().caption).toBe(null);
   });
 
-  it('treats no scope as its own context', async () => {
+  it('collapses a burst to the last one', async () => {
     voice = make();
-    voice.play('welcome');
+    voice.play('verify_pass', { node: 'ZEBRA' });
+    voice.play('verify_fail', { node: 'QUOKKA' });
+    voice.play('answer_correct', { answer: 'NARWHAL' });
     await vi.advanceTimersByTimeAsync(0);
-    const first = voice.getState().caption?.text;
-    voice.play('verify_pass', { scope: 'node:1', node: 'A' });
-    await vi.advanceTimersByTimeAsync(0);
-    expect(voice.getState().caption?.text).not.toBe(first);
+    expect(voice.getState().caption?.text).toContain('NARWHAL');
   });
 });
 
 describe('stop', () => {
-  it('goes silent and drops what was parked', async () => {
+  it('goes silent immediately', async () => {
     voice = make();
-    voice.play('verify_pass', { scope: 'n', node: 'A' });
+    voice.play('verify_pass', { scope: 'n', node: 'ZEBRA' });
     await vi.advanceTimersByTimeAsync(0);
-    voice.play('verify_fail', { scope: 'n', node: 'A' });
 
     voice.stop();
     expect(voice.getState().speaking).toBe(false);

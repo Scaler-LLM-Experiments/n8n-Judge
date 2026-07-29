@@ -384,10 +384,13 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
     setMascotVisible(false); setIrisSay(null);
     editorRef.current?.fitAll?.();
     voice.play('run_start', { scope: 'run' });
-    // The run animation takes a couple of seconds, which is exactly enough lead
-    // time to render whichever verdict is coming.
-    voice.prefetch('run_pass');
-    voice.prefetch('run_fail');
+    // The run animation is a couple of seconds of lead time, and only two things
+    // can be said at the end of it.
+    voice.setUpcoming([
+      { moment: 'run_pass', vars: {} },
+      { moment: 'run_fail', vars: {} },
+      { moment: 'stress_start', vars: {} },
+    ]);
     setRun({ cases, success, val });
     setRunPos({ ci: 0, si: 0 });
     setRunFinished(false);

@@ -17,15 +17,18 @@ import { captionFor, clipFor, fillLine, hasMoment, pickLine } from './voiceLines
 //     A learner who turned the sound off should still see Iris react. The visual
 //     beat is the part that carries the moment; the audio is a bonus.
 //
-//  3. QUEUE WITHIN A CONTEXT, CUT ACROSS ONE. Two beats about the same thing
-//     should not talk over each other, so a new moment in the same context parks
-//     in a SINGLE slot and the latest wins.
+//  3. ONE LINE AT A TIME, AND THE NEWEST WINS. A new moment always cuts whatever
+//     is playing.
 //
-//     But a learner moving fast has moved ON, and finishing the old line first
-//     means the new one arrives late and the old one describes a screen they can
-//     no longer see. So a moment from a DIFFERENT context cuts the current line
-//     dead and starts immediately. Being interrupted mid-sentence is correct
-//     behaviour here: it is what a person does when you change the subject.
+//     This started as a queue — park the new line, let the old one finish — and
+//     that was wrong in practice. Whatever is being said is about a moment that has
+//     already passed; the new one is about now. Letting the old line finish makes
+//     the new one late AND makes the learner listen to a description of a screen
+//     they can no longer see. Two seconds of stale narration is worse than an
+//     interrupted sentence.
+//
+//     So there is no pending slot at all. Being cut off mid-sentence is correct
+//     behaviour: it is what a person does when you change the subject.
 //
 //  4. TEAR THE GRAPH DOWN. Web Audio nodes do not get collected while connected,
 //     so every finished line disconnects its source and analyser. Without this a
@@ -63,10 +66,7 @@ export function createVoice({ fetchImpl, onMoment, problemSlug, problem } = {}) 
   let caption = null; // { moment, text }
   /** 0..1, drives the mascot's pulse and the speaking bubble. */
   let amplitude = 0;
-  let pending = null; // single slot within a context, latest wins
   let token = 0; // invalidates in-flight work when muted or superseded
-  /** What the current line is about, so a change of subject can cut it. */
-  let scope = null;
 
   /**
    * Warmed clips, so `play` can start with no network wait at all.
@@ -85,6 +85,19 @@ export function createVoice({ fetchImpl, onMoment, problemSlug, problem } = {}) 
    * Bounded and one-shot, per the porting guide: consumed on play so variants
    * still rotate, and capped so a long session cannot accumulate blobs.
    */
+  /**
+   * What is likely to be said next, declared by the screen.
+   *
+   * With clips pre-generated, the vendor render is gone and what is left is an S3
+   * fetch of a few tens of KB. Cheap enough to do speculatively — so while one line
+   * plays, pull the next few down. Warming DURING playback rather than only on
+   * screen entry is the point: a learner spends most of their time listening, which
+   * is exactly the window where the network is idle and what comes next is already
+   * knowable.
+   */
+  let upcoming = [];
+  const WARM_AHEAD = 3;
+
   const warmed = new Map(); // warmKey -> { variant, caption, blob }
   // Room for both verdicts across a question's options, since a warmed clip is
   // per WORDING and a line naming the learner's choice has one per choice.
@@ -100,8 +113,8 @@ export function createVoice({ fetchImpl, onMoment, problemSlug, problem } = {}) 
    * never appeared however carefully it was passed in. Keying by moment alone
    * silently discards the variables.
    */
-  // NOTE: `scope` is deliberately absent. It decides whether a line is cut, not
-  // what the line says, so including it would store the same audio twice.
+  // NOTE: `scope` is absent, and now unused entirely — every new line cuts the
+  // last one, so nothing needs to know what the current subject is.
   const warmKey = (moment, vars = {}) => `${moment}|${vars.key ?? ''}|${vars.node ?? ''}|${vars.answer ?? ''}`;
 
   let audioEl = null;
@@ -157,10 +170,7 @@ export function createVoice({ fetchImpl, onMoment, problemSlug, problem } = {}) 
     speaking = false;
     caption = null;
     amplitude = 0;
-    const next = pending;
-    pending = null;
     emit();
-    if (next) start(next.moment, next.vars);
   };
 
   /**
@@ -217,7 +227,10 @@ export function createVoice({ fetchImpl, onMoment, problemSlug, problem } = {}) 
       // The problem and the node decide WHICH line; `node` fills it in.
       if (problemSlug) qs.set('problem', problemSlug);
       if (vars?.key) qs.set('key', vars.key);
+      // Both fills, or the server renders the line with the variable empty. `scope`
+      // is deliberately not sent: it decides whether a line is cut, not what it says.
       if (vars?.node) qs.set('node', vars.node);
+      if (vars?.answer) qs.set('answer', vars.answer);
       const res = await doFetch(`/api/voice?${qs}`, { cache: 'no-store' });
 
       let caption = null;
@@ -246,8 +259,19 @@ export function createVoice({ fetchImpl, onMoment, problemSlug, problem } = {}) 
     warmed.set(key, entry);
   }
 
+  /** Pull down the next few declared clips, without blocking anything. */
+  function warmUpcoming() {
+    let n = 0;
+    for (const item of upcoming) {
+      if (n >= WARM_AHEAD) break;
+      if (warmed.has(warmKey(item.moment, item.vars))) continue;
+      n += 1;
+      // Fire and forget: prefetch never throws and never blocks playback.
+      api.prefetch(item.moment, item.vars);
+    }
+  }
+
   async function start(moment, vars) {
-    scope = vars?.scope ?? null;
     // A warmed clip is consumed here, which is what makes the common path
     // instant: no fetch, no vendor call, straight to playback.
     const wk = warmKey(moment, vars);
@@ -262,6 +286,10 @@ export function createVoice({ fetchImpl, onMoment, problemSlug, problem } = {}) 
     caption = { moment, text: hit?.caption ?? captionFor(fillLine(picked.line, vars)) };
     amplitude = 0;
     emit();
+
+    // The network is idle while this line plays, and what comes next is already
+    // known. Use the window.
+    warmUpcoming();
 
     let fetched = hit ? { blob: hit.blob, caption: hit.caption } : await fetchLine(moment, picked.index, vars);
 
@@ -319,7 +347,18 @@ export function createVoice({ fetchImpl, onMoment, problemSlug, problem } = {}) 
     }
   }
 
-  return {
+  const api = {
+    /**
+     * Declare what is likely to be said next, in order. The first few are pulled
+     * down while the current line plays. Cheap to call often: already-warm entries
+     * are skipped.
+     */
+    setUpcoming(list) {
+      upcoming = Array.isArray(list) ? list.filter((i) => i && hasMoment(i.moment)) : [];
+      // Warm now as well, so entering a screen does not wait for a line to start.
+      if (!muted) warmUpcoming();
+    },
+
     /** Fire and forget. Safe from a handler, an effect, or a render path. */
     play(moment, vars = {}) {
       if (!hasMoment(moment)) return;
@@ -333,18 +372,11 @@ export function createVoice({ fetchImpl, onMoment, problemSlug, problem } = {}) 
 
       if (muted) return;
 
+      // Cut whatever is playing. Invalidating the token first means any fetch
+      // already in flight for the old line lands on the floor rather than
+      // resurfacing after the new one has started.
       if (speaking) {
-        const incoming = vars?.scope ?? null;
-        // Same subject: let the current line finish and park this one.
-        if (incoming === scope) {
-          pending = { moment, vars };
-          return;
-        }
-        // Different subject: the learner has moved on, so stop talking about the
-        // old one. Anything parked is dropped with it — it was about the old
-        // context too.
         token += 1;
-        pending = null;
         teardown();
         speaking = false;
         caption = null;
@@ -382,8 +414,6 @@ export function createVoice({ fetchImpl, onMoment, problemSlug, problem } = {}) 
     /** Stop now and drop anything parked. */
     stop() {
       token += 1;
-      pending = null;
-      scope = null;
       teardown();
       speaking = false;
       caption = null;
@@ -396,7 +426,7 @@ export function createVoice({ fetchImpl, onMoment, problemSlug, problem } = {}) 
       write(MUTE_KEY, muted);
       if (muted) {
         warmed.clear();
-        this.stop();
+        api.stop();
       }
       else emit();
     },
@@ -415,8 +445,10 @@ export function createVoice({ fetchImpl, onMoment, problemSlug, problem } = {}) 
 
     subscribe(fn) {
       listeners.add(fn);
-      fn(this.getState());
+      fn(api.getState());
       return () => listeners.delete(fn);
     },
   };
+
+  return api;
 }

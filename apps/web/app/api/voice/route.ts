@@ -99,7 +99,14 @@ export async function GET(req: Request) {
   const variantParam = url.searchParams.get('variant');
   const slug = url.searchParams.get('problem') ?? '';
   const key = url.searchParams.get('key') ?? '';
-  const vars = { node: url.searchParams.get('node') ?? '' };
+  // EVERY variable a line can use, read from one place. This used to read only
+  // `node`, so `{answer}` filled with nothing: the caption said "Not Chat Trigger"
+  // while the audio said "Not ." A variable that exists in the phrase book and not
+  // here fails silently, which is why they are listed together.
+  const vars = {
+    node: url.searchParams.get('node') ?? '',
+    answer: url.searchParams.get('answer') ?? '',
+  };
 
   // Per-problem and per-node lines are authored in `problem.voice`, so the line
   // cannot be resolved without the problem. Failing soft on a lookup miss: a
@@ -145,7 +152,7 @@ export async function GET(req: Request) {
 
   // The cache key includes everything that changes the words: the problem and
   // node decide WHICH line, the vars fill it in.
-  const cacheKey = `${voiceId}:${modelId}:${slug}:${moment}:${key}:${picked.index}:${vars.node}`;
+  const cacheKey = `${voiceId}:${modelId}:${slug}:${moment}:${key}:${picked.index}:${vars.node}:${vars.answer}`;
   const hit = cache.get(cacheKey);
   if (hit) {
     headers.set('Content-Type', 'audio/mpeg');
