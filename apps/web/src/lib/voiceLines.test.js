@@ -37,12 +37,39 @@ describe('the copy rules', () => {
     }
   });
 
-  // Iris must never say which option to pick. Same rule as Ask AI: she says what
-  // happened and where to look, never the answer.
-  it('never names a node type or a field value', () => {
-    const leaks = /\b(gmail trigger|chat trigger|switch node|edit fields|\{\{)/i;
+  // The rule is "never reveal an answer the learner has not given", which is
+  // narrower than "never name a node". A verdict line naming what they just chose
+  // is specific rather than leaky — they chose it, and it is already on screen.
+  // A line that fires BEFORE a decision must give nothing away.
+  const PRE_DECISION = ['problem_intro', 'understand_start', 'build_start', 'node_wrong', 'run_start', 'stress_start', 'welcome'];
+
+  it('gives nothing away in the lines that play before a decision', () => {
+    const leaks = /\b(gmail trigger|chat trigger|schedule trigger|switch|edit fields|text classifier)\b/i;
+    for (const moment of PRE_DECISION) {
+      for (const line of LINES[moment] ?? []) {
+        expect(line, `${moment}: "${line}"`).not.toMatch(leaks);
+      }
+    }
+  });
+
+  it('never contains an expression, which would be an answer read out loud', () => {
     for (const { moment, line } of allLines) {
-      expect(line, `${moment}: "${line}"`).not.toMatch(leaks);
+      expect(line, `${moment}: "${line}"`).not.toMatch(/\{\{/);
+    }
+  });
+
+  // The whole point of the rework: a verdict must be able to name what it is
+  // talking about, or it is a glorified screen reader.
+  it('makes the verdict lines specific to what the learner did', () => {
+    for (const moment of ['answer_correct', 'answer_wrong']) {
+      for (const line of LINES[moment]) {
+        expect(line, `${moment} should name the choice`).toMatch(/\{answer\}/);
+      }
+    }
+    for (const moment of ['verify_pass', 'verify_fail']) {
+      for (const line of LINES[moment]) {
+        expect(line, `${moment} should name the node`).toMatch(/\{node\}/);
+      }
     }
   });
 
@@ -94,9 +121,8 @@ describe('placeholders', () => {
     for (const { line } of allLines) {
       for (const m of line.matchAll(/\{(\w+)\}/g)) used.add(m[1]);
     }
-    // `{node}` is the only one now: `{phase}` went when phase_intro was removed
-    // for reading the label that is already on screen.
-    expect([...used].sort()).toEqual(['node']);
+    // `{answer}` for verdicts on a choice, `{node}` for verdicts on a node.
+    expect([...used].sort()).toEqual(['answer', 'node']);
   });
 });
 

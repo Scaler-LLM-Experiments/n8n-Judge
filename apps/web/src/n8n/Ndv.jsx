@@ -16,6 +16,12 @@ import { useVoice } from '../lib/VoiceContext.jsx';
 // close button so the learner learns that closing a green NDV finishes the node.
 let ndvVignetteSeen = false;
 
+// How long after pressing Verify the spoken verdict lands. The visuals settle at
+// 2000ms; this is deliberately earlier, so Iris reacts rather than recaps. Not
+// zero: firing the instant the request returns would talk over the "running" bar
+// that has only just appeared.
+const VOICE_LEAD_MS = 1150;
+
 // Bottom node-detail drawer. INPUT | Parameters/Settings | OUTPUT.
 // The Parameters tab is real field configuration: fixed context fields are shown
 // disabled, and only the field the learner must set is highlighted (blue, pulsing)
@@ -32,6 +38,7 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
   const inputRef = useRef(null);
   const outputRef = useRef(null);
   const runTimer = useRef(null);
+  const voiceTimer = useRef(null);
   const meta = metaOf(node.nodeType);
   // Sub-nodes (Chat Model, and later Memory/Tool/Parser) attach to a root node
   // over an ai_* connector. They are never handed items, so the INPUT pane has
@@ -69,7 +76,7 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
   useEffect(() => {
     gsap.fromTo(rootRef.current, { opacity: 0 }, { opacity: 1, duration: 0.24, ease: 'power2.out' });
     gsap.fromTo(panelRef.current, { scale: 0.96, y: 14, opacity: 0 }, { scale: 1, y: 0, opacity: 1, duration: 0.34, ease: 'power3.out' });
-    return () => { clearTimeout(runTimer.current); clearTimeout(vigTimer.current); };
+    return () => { clearTimeout(runTimer.current); clearTimeout(voiceTimer.current); clearTimeout(vigTimer.current); };
   }, []);
   const requestClose = () => {
     clearTimeout(vigTimer.current);
@@ -189,6 +196,23 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
   // check comes back null (no session, e.g. the #build/#run-story dev
   // routes, or a dropped request), that one item falls back to the local
   // logic so those routes keep working without a backend.
+  /**
+   * Speak the verdict as soon as it is known, a beat BEFORE the visuals settle.
+   *
+   * The results are applied after the ~2s "running" bar, and the line used to be
+   * spoken from inside that same callback — so Iris confirmed a result the learner
+   * had already read off the screen. Leading it slightly is the difference between
+   * a reaction and a recap.
+   *
+   * Silent when any check did not complete: "could not check" is not a verdict.
+   */
+  const speakVerdict = (serverResults) => {
+    if (!serverResults?.length) return;
+    if (serverResults.some((r) => !r || typeof r.correct !== 'boolean')) return;
+    const passed = serverResults.every((r) => r.correct);
+    voice.play(passed ? 'verify_pass' : 'verify_fail', { key: node.nodeType, node: node.label });
+  };
+
   const verify = () => {
     if (running) return;
     setInputLoaded(true);
@@ -200,6 +224,11 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
     const pending = gradingSettings
       ? Promise.all(gradedSettings.map((g) => checkAnswer(sessionId, 'setting', `${node.nodeType}:${g.key}`, settings[g.key])))
       : Promise.all(paramChecks.map((c) => checkAnswer(sessionId, 'field', c.id, values[c.field.key])));
+
+    // Voice on its own clock, ahead of the visuals.
+    voiceTimer.current = setTimeout(() => {
+      pending.then(speakVerdict).catch(() => {});
+    }, VOICE_LEAD_MS);
 
     runTimer.current = setTimeout(() => {
       pending.then((serverResults) => {
@@ -229,7 +258,6 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
             }
           });
           setSettingsResults(sres);
-          voice.play(sres.every((r) => r.correct) ? 'verify_pass' : 'verify_fail');
           if (sres.every((r) => r.correct)) {
             setPhase('done');
             if (!ndvVignetteSeen) { ndvVignetteSeen = true; vigTimer.current = setTimeout(() => setShowVignette(true), 2600); }

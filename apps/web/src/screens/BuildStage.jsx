@@ -5,7 +5,7 @@ import { TopBar } from '../components/TopBar.jsx';
 import { ProblemStatementPanel } from '../components/ProblemStatementPanel.jsx';
 import { Button } from '../design-system/Button.jsx';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
-import { VoiceGlow } from '../components/VoiceBubble.jsx';
+import { VoiceGlowLayer } from '../components/VoiceBubble.jsx';
 import { Confetti } from '../components/Confetti.jsx';
 import { N8nEditor } from '../n8n/N8nEditor.jsx';
 import { validateGraph } from '@judge/engine/validateGraph.js';
@@ -440,14 +440,13 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
 
         {/* traveling Iris */}
         <div ref={mascotRef} style={{ position: 'absolute', left: 24, top: 400, width: 68, height: 68, zIndex: 30, pointerEvents: 'none', opacity: mascotVisible ? 1 : 0, transition: 'opacity 0.3s ease' }}>
-          {/* The glow sits BEHIND this mascot rather than in the top bar, because
-              this is the one the learner is watching: it travels to whatever Iris
-              is talking about, so the light lands where the attention already is. */}
-          <VoiceGlow spread={2.2} style={{ position: 'absolute', inset: 0 }}>
-            <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-              <MascotPlayer clip={mascotClip} once={false} onceDone={() => {}} />
-            </div>
-          </VoiceGlow>
+          {/* A glow layer BEHIND the mascot, as its own element. It is not wrapped
+              around the mascot: doing that changed the mascot's box and resized it
+              on every screen. This paints under and never touches layout. */}
+          <VoiceGlowLayer />
+          <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+            <MascotPlayer clip={mascotClip} once={false} onceDone={() => {}} />
+          </div>
         </div>
 
         {/* Iris "talking" — chat bubble to the right of the parked mascot */}

@@ -181,78 +181,162 @@ function UserMenu() {
 const RATES = [1, 1.25, 1.5, 2];
 
 /**
- * Voice control: mute on the icon, speed on the number.
+ * Voice control: one small trigger, one menu.
  *
- * Both in one control because they are the same decision from the learner's side
- * ("how much of this do I want?"), and because two separate buttons in a row of
- * six all start to look alike.
+ * Speed and mute belong together because from the learner's side they are one
+ * decision ("how much of this do I want?"), and because six lookalike icon
+ * buttons in a row is how a toolbar stops being readable.
  *
- * Always shown, even with narration unconfigured: the control is how a learner
- * discovers there IS a voice, and hiding it when the key is missing would mean
- * the feature silently does not exist in some environments.
+ * A native <select> was the first attempt and it was wrong for two reasons: it
+ * reserves width for its widest option plus the platform's arrow, so the control
+ * could not be as small as it should be, and mute had to live outside it as a
+ * seventh button. A menu holds both and is exactly as wide as its content.
  *
- * Speed matters more than it looks. A learner who has heard the verify line
- * twenty times wants it faster, and one following in a second language wants it
- * slower. Both are persisted, so the choice is made once.
+ * Speed matters more than it looks. Someone who has heard the verify line twenty
+ * times wants it faster; someone following in a second language wants it slower.
+ * Both persist, so the choice is made once.
  */
 function VoiceControl() {
   const { muted, setMuted, setRate, rate, speaking } = useVoice();
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef(null);
   const Icon = muted ? SpeakerSlash : SpeakerHigh;
 
+  // Close on an outside click or Escape. Both, because a menu that only closes on
+  // one of them feels stuck the other way.
+  useEffect(() => {
+    if (!open) return undefined;
+    const onDown = (e) => {
+      if (!wrapRef.current?.contains(e.target)) setOpen(false);
+    };
+    const onKey = (e) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  const label = muted ? 'Muted' : `${rate.toFixed(2).replace(/0$/, '')}x`;
+
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        height: 34,
-        flex: 'none',
-        border: `1px solid ${speaking && !muted ? 'var(--brand-primary)' : 'var(--border-strong)'}`,
-        background: 'var(--surface-0)',
-      }}
-    >
+    <div ref={wrapRef} style={{ position: 'relative', flex: 'none' }}>
       <button
         type="button"
-        onClick={() => setMuted(!muted)}
-        title={muted ? 'Turn Iris’s voice on' : 'Mute Iris’s voice'}
-        aria-label={muted ? 'Turn voice on' : 'Mute voice'}
-        aria-pressed={muted}
+        onClick={() => setOpen((o) => !o)}
+        title="Narration"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={`Narration: ${label}`}
         style={{
-          width: 26,
-          height: 32,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
-          border: 'none',
-          background: 'none',
+          gap: 5,
+          height: 34,
+          padding: '0 8px',
+          border: `1px solid ${open || (speaking && !muted) ? 'var(--brand-primary)' : 'var(--border-strong)'}`,
+          background: 'var(--surface-0)',
           color: muted ? 'var(--fg-3)' : speaking ? 'var(--brand-primary)' : 'var(--fg-2)',
           cursor: 'pointer',
-          padding: 0,
+          fontFamily: 'var(--font-body)',
         }}
       >
         <Icon size={15} weight={muted ? 'regular' : 'fill'} />
+        <span style={{ fontSize: 11.5, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{label}</span>
+        <CaretDown size={9} color="var(--fg-3)" />
       </button>
 
-      {/* The select is transparent and sits ON TOP of the rendered label, so the
-          control is exactly as wide as "1.0x" plus the caret. A styled <select>
-          otherwise reserves room for its widest option and for the platform's own
-          arrow, which is where the dead space was coming from. */}
-      <span style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 3, paddingRight: 6, opacity: muted ? 0.45 : 1 }}>
-        <span style={{ fontSize: 11.5, fontWeight: 700, fontFamily: 'var(--font-body)', color: 'var(--fg-2)', fontVariantNumeric: 'tabular-nums' }}>
-          {rate.toFixed(2).replace(/0$/, '')}x
-        </span>
-        <CaretDown size={9} color="var(--fg-3)" />
-        <select
-          value={rate}
-          disabled={muted}
-          aria-label="How fast Iris talks"
-          onChange={(e) => setRate(Number(e.target.value))}
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, cursor: muted ? 'not-allowed' : 'pointer' }}
+      {open ? (
+        <div
+          role="menu"
+          aria-label="Narration speed"
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 6px)',
+            right: 0,
+            zIndex: 60,
+            minWidth: 170,
+            background: 'var(--surface-0)',
+            border: '1px solid var(--border-strong)',
+            boxShadow: '0 10px 28px rgba(1,24,69,0.16)',
+            padding: 6,
+          }}
         >
-          {RATES.map((r) => (
-            <option key={r} value={r}>{r}x</option>
-          ))}
-        </select>
-      </span>
+          <div style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--fg-3)', padding: '6px 8px 8px' }}>
+            Narration speed
+          </div>
+
+          {RATES.map((r) => {
+            const active = !muted && r === rate;
+            return (
+              <button
+                key={r}
+                type="button"
+                role="menuitemradio"
+                aria-checked={active}
+                onClick={() => {
+                  // Choosing a speed also unmutes: picking "1.5x" while muted and
+                  // hearing nothing would read as a broken control.
+                  setRate(r);
+                  if (muted) setMuted(false);
+                  setOpen(false);
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  width: '100%',
+                  gap: 10,
+                  padding: '7px 8px',
+                  border: 'none',
+                  background: active ? 'var(--brand-blue-50, rgba(0,85,255,0.07))' : 'none',
+                  color: active ? 'var(--fg-1)' : 'var(--fg-2)',
+                  fontFamily: 'var(--font-body)',
+                  fontSize: 12.5,
+                  fontWeight: active ? 700 : 500,
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                }}
+              >
+                <span style={{ fontVariantNumeric: 'tabular-nums' }}>{r}x</span>
+                {active ? <Check size={13} weight="bold" color="var(--brand-primary)" /> : null}
+              </button>
+            );
+          })}
+
+          <div style={{ height: 1, background: 'var(--border-subtle)', margin: '6px 2px' }} />
+
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              setMuted(!muted);
+              setOpen(false);
+            }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              width: '100%',
+              padding: '7px 8px',
+              border: 'none',
+              background: muted ? 'var(--brand-blue-50, rgba(0,85,255,0.07))' : 'none',
+              color: 'var(--fg-1)',
+              fontFamily: 'var(--font-body)',
+              fontSize: 12.5,
+              fontWeight: 600,
+              cursor: 'pointer',
+              textAlign: 'left',
+            }}
+          >
+            {muted ? <SpeakerHigh size={14} weight="fill" color="var(--brand-primary)" /> : <SpeakerSlash size={14} />}
+            {muted ? 'Unmute' : 'Mute'}
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -18,9 +18,12 @@
 //     times in one session.
 //   * Five to seven seconds spoken. Longer than that and the line is still
 //     talking after the moment it was describing has passed.
-//   * NEVER give the answer. Same rule as Ask AI. Iris says what happened and
-//     what it means, never which option to pick. On a wrong answer she points at
-//     where to look.
+//   * NEVER REVEAL AN ANSWER THE LEARNER HAS NOT GIVEN. That is the actual rule,
+//     and it is narrower than "never name a node". Naming what they just DID is
+//     not a leak, it is the difference between a person and a screen reader:
+//     "Yes, the Chat Trigger is set up right" beats "That is right". What must
+//     never happen is naming the answer to a question still open, so a wrong
+//     answer points at where to look and never at what to pick.
 //   * DO NOT READ THE SCREEN. If the words are already on the page, saying them
 //     adds nothing and competes with reading. The phase label, the problem
 //     statement and the explanation text are all visible: Iris says the thing
@@ -60,11 +63,21 @@ export const LINES = {
   // ---- answering ----------------------------------------------------------
   // The explanation appears on screen, so Iris marks the verdict and gets out of
   // the way. Anything longer talks over the learner reading the reason.
-  answer_correct: ['[warm] That is right.', '[warm] Correct.', '[warm] Yes, exactly.'],
+  // `{answer}` is what the learner picked, so the verdict is about their actual
+  // choice. Naming it is safe: they chose it, and it is already on screen marked.
+  answer_correct: [
+    '[warm] Yes, {answer} is right.',
+    '[warm] Correct, {answer} is the one.',
+    '[warm] That is it, {answer}.',
+  ],
+  // A QUESTION, not a correction. "No" closes the thought down; "do you really
+  // think that fits here?" sends them back to look at the thing itself, which is
+  // where the learning is. Names the wrong choice, never the right one, and leaves
+  // the actual teaching to the explanation on screen.
   answer_wrong: [
-    '[calm] Not this one. The reason is below.',
-    '[calm] No. Have a read of why.',
-    '[thoughtful] Not quite. Look at what I wrote, then pick again.',
+    '[thoughtful] Hmm. Do you really think {answer} belongs here?',
+    '[thoughtful] Are you sure about {answer}? Think about what it actually does.',
+    '[calm] Have another look at {answer}. Would it really work at this point?',
   ],
 
   // ---- stage completion: this is where the energy belongs -----------------
@@ -100,10 +113,16 @@ export const LINES = {
   ],
 
   // ---- verifying ----------------------------------------------------------
-  verify_pass: ['[warm] That is set up right.', '[warm] Good, that one is done.', '[warm] Correct.'],
+  // `{node}` is the node just verified. Same reasoning as the answer lines: the
+  // learner opened it and configured it, so naming it reveals nothing.
+  verify_pass: [
+    '[warm] Yes, {node} is set up right.',
+    '[warm] Good, {node} is done.',
+    '[warm] {node} is correct now.',
+  ],
   verify_fail: [
-    '[calm] Not yet. Check the field I marked.',
-    '[calm] Something is off. Look at what is in red.',
+    '[calm] {node} is not right yet. Check the field I marked.',
+    '[calm] Something in {node} is off. Look at what is in red.',
   ],
 
   // ---- running ------------------------------------------------------------

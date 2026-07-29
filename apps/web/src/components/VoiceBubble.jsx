@@ -1,12 +1,14 @@
 import React from 'react';
 import { useVoice } from '../lib/VoiceContext.jsx';
 
-// "Iris is speaking", shown as a blue glow around the mascot itself.
+// "Iris is speaking", shown as a big soft blue glow behind the mascot.
 //
-// The first version was a separate little dot beside her, which was legible but
-// wrong: it read as one more status pip in a row of buttons rather than as Iris
-// doing something. The glow reads as the character, because it is attached to the
-// character.
+// Two earlier versions were wrong. A small dot beside her read as one more status
+// pip in a row of buttons rather than as Iris doing something. Wrapping the mascot
+// fixed the meaning but broke the layout, because MascotPlayer fills its parent
+// and the wrapper became that parent, resizing the mascot everywhere it appeared.
+//
+// So: an independent layer that paints behind and touches nothing.
 //
 // Driven by `amplitude`, the RMS of the actual audio, so it moves WITH the speech
 // rather than on a timer. On the caption-only path (no key, blocked autoplay, a
@@ -18,40 +20,59 @@ import { useVoice } from '../lib/VoiceContext.jsx';
 // the volume down could not tell they were missing anything.
 
 /**
- * Wrap a mascot to make it glow while Iris talks.
+ * A big soft glow that pulses with Iris's voice, painted BEHIND whatever it sits
+ * next to.
  *
- * The glow is a sibling layer behind the children rather than a box-shadow on
- * them, so it can extend past the mascot's own bounds without the parent needing
- * spare padding, and so it never affects layout.
+ * Deliberately not a wrapper. The first version wrapped the mascot, which changed
+ * the mascot's own box: MascotPlayer fills its parent, and the wrapper became that
+ * parent, so the mascot got resized on every screen it appeared on. This is a
+ * standalone absolutely-positioned sibling instead. It reads no layout and affects
+ * none, so it cannot break anything by being added or removed.
+ *
+ * Drop it inside any positioned container, before the thing it should sit behind:
+ *
+ *   <div style={{ position: 'relative', width: 68, height: 68 }}>
+ *     <VoiceGlowLayer />
+ *     <MascotPlayer … />
+ *   </div>
+ *
+ * `scale` grows it past its container, because a glow confined to the mascot's own
+ * 68px box reads as a border rather than as light. It goes well outside.
+ *
+ * Driven by `amplitude`, the RMS of the real audio, so it moves with the speech.
+ * On the caption-only path a synthetic envelope drives it, so it still breathes:
+ * the signal is "Iris is saying something", true either way.
  */
-export function VoiceGlow({ children, spread = 1, style }) {
+export function VoiceGlowLayer({ scale = 2.6, style }) {
   const { speaking, amplitude } = useVoice();
 
-  // A floor, so the glow is steady rather than flickering out in the natural
-  // gaps between words.
-  const level = speaking ? Math.max(0.34, amplitude ?? 0) : 0;
-  const radius = (10 + level * 26) * spread;
+  // A floor so the glow holds steady through the natural gaps between words
+  // instead of strobing.
+  const level = speaking ? Math.max(0.32, amplitude ?? 0) : 0;
+  const size = `${(scale * (0.82 + level * 0.3) * 100).toFixed(0)}%`;
 
   return (
-    <span style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', ...style }}>
-      <span
-        aria-hidden="true"
-        style={{
-          position: 'absolute',
-          inset: '-14%',
-          borderRadius: '50%',
-          // Two stops so the glow falls off softly instead of ending on a hard
-          // edge, which is what makes it read as light rather than as a border.
-          background: `radial-gradient(circle, rgba(0,85,255,${(level * 0.42).toFixed(3)}) 0%, rgba(0,85,255,${(level * 0.16).toFixed(3)}) 55%, rgba(0,85,255,0) 78%)`,
-          boxShadow: speaking ? `0 0 ${radius.toFixed(1)}px rgba(0,85,255,${(0.18 + level * 0.3).toFixed(3)})` : 'none',
-          opacity: speaking ? 1 : 0,
-          // Fade in fast, out gently, so the end of a line does not snap off.
-          transition: speaking ? 'opacity 120ms linear' : 'opacity 420ms ease-out',
-          pointerEvents: 'none',
-        }}
-      />
-      <span style={{ position: 'relative', display: 'inline-flex' }}>{children}</span>
-    </span>
+    <span
+      aria-hidden="true"
+      style={{
+        position: 'absolute',
+        // Centred on the container, then grown outwards from the middle, so the
+        // glow stays concentric with the mascot at any size.
+        top: '50%',
+        left: '50%',
+        width: size,
+        height: size,
+        transform: 'translate(-50%, -50%)',
+        borderRadius: '50%',
+        background: `radial-gradient(circle, rgba(0,85,255,${(level * 0.34).toFixed(3)}) 0%, rgba(0,85,255,${(level * 0.14).toFixed(3)}) 42%, rgba(0,85,255,0) 70%)`,
+        opacity: speaking ? 1 : 0,
+        // In fast, out slow, so the end of a line fades rather than snapping off.
+        transition: speaking ? 'opacity 140ms linear, width 90ms linear, height 90ms linear' : 'opacity 480ms ease-out',
+        pointerEvents: 'none',
+        zIndex: 0,
+        ...style,
+      }}
+    />
   );
 }
 
