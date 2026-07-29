@@ -3,17 +3,30 @@
 **The single source of truth for what's built and what's next.** Update this file as work
 lands — don't start a new handoff doc.
 
-Last updated: 2026-07-27 · Branch: `sudhanva/nextjs`
+Last updated: 2026-07-29 · Branch: `sudhanva/nextjs`
 
 ---
 
 ## Where we are
 
 The frontend-only Vite prototype has been ported into a Next.js full-stack monorepo.
-**M0 is complete**, plus three things beyond it. Nothing from M1 onward has started.
+**M0, M1 and M2 are complete. M4 (admin analytics) landed early. M1.5 is the current
+workstream and M3 is half done** — grading is real and server-authoritative, but it runs
+inside the web request rather than a worker, and ratings are not built.
 
-Verified on a clean install: **63/63 unit tests**, `npm ci` in sync, `next build` clean,
-smoke green.
+Milestones have been completed out of order. What is actually true, per milestone:
+
+| | State |
+|---|---|
+| M0 foundations | ✅ complete |
+| M1 auth + problems from the DB | ✅ complete |
+| **M1.5 fidelity + assessment** | ⬅ **current.** A1, A2, A4/C1, B1, B5 done; B6 partly; rubric wired |
+| M2 persistence + tracing | ✅ complete except **resume-on-reload** (see Known issues) |
+| M3 queue + grading + ratings | ⚠️ **half done** — scoring + Claude narrative live; no worker service, no ratings |
+| M4 admin analytics | ✅ landed early — overview, cases, completion funnel, learners, admins |
+| M5 authoring · M6 voice · M7 SQS | not started |
+
+Verified 2026-07-29: **252/252 unit tests**, smoke green on all 20 screens.
 
 ---
 
@@ -214,20 +227,52 @@ config on every node).
 Sits before M2 deliberately: M2 builds the trace pipeline and M3 replays it to grade, and
 both are shaped by what a session can contain.
 
-### M2 — Persistence + tracing
-Session + event APIs (batched, idempotent on `sessionId,seq`), a client outbound event
-queue, resume-on-reload, and a read-only admin session timeline. `record()` in `App.jsx`
-is the hook point; run results and graph mutations must also be traced.
+### M2 — Persistence + tracing ✅
 
-### M3 — Queue + grading + ratings
-Worker service replays trace → engine → re-validates against the **pinned**
-ProblemVersion → digest → Claude → `GradingReport`. SSE to the Report screen with a
-polling fallback (**spike SSE through Railway's proxy early**). Seed the rubric and add
-the 1–5 rating prompt.
+Done, in three slices:
+- **The contract + ingest.** `@judge/trace` holds the event schemas; `POST /api/sessions/[id]/events`
+  ingests batches, idempotent on `(sessionId, clientSeq)`. `seq` is assigned **server-side**
+  under the same per-session advisory lock `/check` uses — a client counter cannot know about
+  server-written rows, and letting it try was what produced the intermittent grading bug.
+  `CLIENT_FORBIDDEN_TYPES` blocks the client from posting `decision` events at all.
+- **The outbound queue.** [traceQueue.js](apps/web/src/lib/traceQueue.js) never throws at the
+  caller, never renumbers, caps at 500 pending, and backs off exponentially to ~2 min on
+  consecutive failures — because a batch the server will never accept was retried every 2s,
+  each attempt taking a per-session DB lock, which starved answer checking on the same session.
+  Unsent events mirror into `sessionStorage` so a reload doesn't drop them.
+- **Full coverage.** `TraceContext` gives every screen one `trace()` without prop-threading;
+  screen transitions go through a single `goTo()` so a new screen cannot be added untraced.
+  Graph mutations, NDV opens, run results and Ask-AI turns all report.
 
-### M4 — Admin analytics
-Dashboard, per-problem funnel, learner search → session map, rubric editor with versions
-and re-grade, ratings view.
+**Remaining:** resume-on-reload is only half built — the server reuses the in-progress
+session (`resumed: true`), but the client ignores it and restarts at screen one.
+
+### M3 — Queue + grading + ratings ⚠️ half done
+
+**Done:** the Result screen is server-authoritative. `POST /api/sessions/[id]/report` replays
+the session's own `TraceEvent` rows through `attemptsFromTrace()` → `scoreSession()`, persists
+the score before calling Claude (one upserted `GradingReport` per session), and degrades to
+score-only when there is no API key.
+
+**Not done:** there is no **worker service** — grading happens inline in the request, so there
+is no queue consumer, no SSE, and no re-grade path. **Ratings are not built** (the `Rating`
+table exists; nothing writes to it). `runOutcome`/`timeline` still reach Claude as `null`/`[]`.
+
+### M4 — Admin analytics ✅ (landed early)
+
+`/admin` — Overview · Cases · Completion · Learners · Admins, over `/api/admin/analytics`
+plus a read-only timeline of any single attempt. Every number is aggregated **in SQL**
+([analytics.ts](apps/web/src/server/analytics.ts)); 60 demo learners already make ~6k trace
+events, so counting in JavaScript would stop working quietly and early. The funnel is built
+from `screen_transition` events, **not** `Session.currentScreen`, which is only written on
+completion and would report every unfinished learner as stuck on screen one.
+
+Granting admin by email writes an `AdminAllowlist` row **and** promotes the account if it
+exists, so an email added before signup is promoted when they sign up.
+`npm run db:seed:demo` fabricates learners whose scores are replayed through the real engine,
+and refuses to run against a non-local database without `ALLOW_REMOTE=1`.
+
+**Not done:** rubric editor with versions and re-grade; ratings view (nothing to show yet).
 
 ### M5 — Authoring pipeline
 `draft-with-ai` → hybrid form/JSON editor with `validateProblem()` and live
@@ -357,15 +402,54 @@ went straight to a failed production build (`status: 'DONE'` where the enum want
 Now `typecheck` = `typecheck:packages` + `typecheck:web`. Confirmed by reintroducing that
 exact error and watching `typecheck:web` catch it.
 
+### n8n behaviour is now documented from source ✅
+
+**[docs/n8n-reference/00-how-n8n-actually-works.md](docs/n8n-reference/00-how-n8n-actually-works.md)**
+is n8n's real behaviour read out of n8n's own repo (v2.33.0, commit `eb38e10`) rather than its
+docs: the connection model, the node contract, parameters and `displayOptions`, `typeVersion`,
+the NDV and the exact Settings tab, the execution and error model, expressions, cluster nodes,
+a per-node behaviour catalogue, and a section comparing all of it to Judge's model. Every claim
+cites a file and line. §1 has the sparse-clone commands to reproduce it.
+
+It immediately paid for itself. **The On Error dropdown labelled `continueRegularOutput`
+"Continue (using last valid data)", which is the opposite of what n8n does** — n8n passes the
+*error* as an item on the regular output, carrying nothing usable forward. `email-triage`
+grades that exact setting and its explanation was already correct, so the dropdown contradicted
+the feedback on the same question. Now n8n's wording, with the meaning moved into the hint.
+Two label typos fixed alongside (`Max. Tries`, `Display Note in Flow?`).
+
+The doc's §14 lists the remaining fidelity gaps in priority order — conditional fields
+(`displayOptions`), the four structurally-different parameter types, `maxConnections`, dynamic
+outputs, and the copy worth adopting verbatim.
+
+### Fixed: smoke never tested the Understand screen ✅
+
+Two bugs stacked, and together they meant the Understand quiz — options, server verdicts, the
+node canvas — was **never rendered by any check**, for any problem:
+
+1. Journey-start clicked the *first* "Try this judge" button regardless of `?problem=`, so all
+   three checks entered email-triage. Home cards now carry `data-problem`, and smoke targets
+   the right one.
+2. Even then it stopped on Iris's greeting. Understand opens on two narrated beats before the
+   quiz, and the second advances on "Let's dissect it", not "Continue" — so a
+   `/continue/i`-only match broke out of the loop. Smoke now walks both beats and **asserts it
+   reached "Question 1 of N"**, so this cannot silently regress.
+
+Verified by screenshot: `meeting-notes--journey-start` now shows the Meeting Notes quiz.
+
+---
+
 ## Known issues
 
 1. **No component tests.** `npm test` covers engine, schema and problem data only. Always
    run `npm run smoke` after touching components.
-2. **Smoke has a coverage hole.** Journey-start clicks the *first* "Try this judge" button
-   regardless of `?problem=`, so the `lead-triage` and `meeting-notes` Understand screens
-   have never actually been tested. Worth fixing before M1.5 starts.
+2. **Resume-on-reload is half built.** The server reuses an in-progress session, but the
+   browser restarts the learner at screen one. Their score is safe (decisions are recorded
+   server-side and `firstTry` is preserved), but they lose their place, and the trace fills
+   with duplicate `screen_transition` rows — which is what the admin funnel reads.
 3. **`lead-triage` is a structural clone of `email-triage`** — identical node types, field
-   keys, branch count, phase ids. M1.5 §D1 replaces it.
+   keys, branch count, phase ids. Confirmed still true 2026-07-29: both use exactly the same
+   ten node types. M1.5 §D1 replaces it.
 4. **Beware `replace_all` edits in `.jsx`.** A past `ReferenceError` came from replacing
    every `<TopBar activeStage="statement" />`, including inside inner components with no
    `problem` prop. Check enclosing function scope.
@@ -380,7 +464,11 @@ exact error and watching `typecheck:web` catch it.
    nothing in the app until you run `npm run db:seed`. This bites every content change.
 8. **A stray `package-lock.json` sits one level above the repo**, which makes Next infer
    the wrong workspace root. Harmless in dev; can affect output file tracing on build.
-7. **`#run-story` shows a leftover "General question" case label** for `meeting-notes` —
+9. **`#run-story` shows a leftover "General question" case label** for `meeting-notes` —
    cosmetic, dev route only.
-8. **Ask-AI is deliberately unhelpful about answers.** Asked "which node?", it teaches the
-   concept and asks a guiding question. Intended.
+10. **Ask-AI is deliberately unhelpful about answers.** Asked "which node?", it teaches the
+    concept and asks a guiding question. Intended.
+
+Cleared 2026-07-29: all six dev hash routes now match with `startsWith`, so every one honours
+`?problem=` — the earlier note that `#run-demo`/`#playground` still used equality is obsolete.
+The stray `tr2-tmp.mjs` at the repo root is deleted.

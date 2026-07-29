@@ -109,10 +109,34 @@ async function visit(name, url, extra) {
 await visit('home', `${base}/`);
 
 for (const p of PROBLEMS) {
-  await visit(`${p}--journey-start`, `${base}/?problem=${p}`, async (page) => {
-    // Enter the journey from the home card, landing on Understand.
-    await page.getByRole('button', { name: /try this judge/i }).first().click().catch(() => {});
-    await page.waitForTimeout(2500);
+  await visit(`${p}--journey-start`, `${base}/?problem=${p}`, async (page, errs) => {
+    // Enter the journey from THIS problem's card, landing on its Understand screen.
+    // Clicking `.first()` used to mean every problem's journey-start check actually
+    // opened email-triage, so two of the three Understand screens were never tested.
+    const card = page.locator(`button[data-problem="${p}"]`);
+    if ((await card.count().catch(() => 0)) === 0) {
+      errs.push(`no home card for "${p}" — cannot enter its journey`);
+      return;
+    }
+    await card.click().catch(() => {});
+    await page.waitForTimeout(1200);
+
+    // Understand opens on two narrated beats (Iris greeting, then the problem
+    // statement) before the quiz. Clicking the card alone left us on the
+    // greeting, so the quiz itself — options, server verdicts, the node canvas —
+    // was never actually rendered by this check for ANY problem.
+    // The two beats advance on differently-labelled buttons ("Continue", then
+    // "Let's dissect it"), so match both rather than assuming one word.
+    for (let beat = 0; beat < 2; beat++) {
+      const cont = page.getByRole('button', { name: /continue|dissect/i }).first();
+      if ((await cont.count().catch(() => 0)) === 0) break;
+      await cont.click().catch(() => {});
+      await page.waitForTimeout(1400);
+    }
+
+    if (!(await page.getByText(/question 1 of \d+/i).count().catch(() => 0))) {
+      errs.push('never reached the Understand quiz (still on an intro beat?)');
+    }
   });
   for (const r of ROUTES) {
     await visit(`${p}--${r.replace('#', '')}`, `${base}/${r}?problem=${p}`);

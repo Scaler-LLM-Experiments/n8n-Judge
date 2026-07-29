@@ -45,7 +45,7 @@ export const SETTINGS_SPEC = [
   },
   {
     key: 'maxTries',
-    label: 'Max Tries',
+    label: 'Max. Tries',
     kind: 'number',
     default: 3,
     min: 2,
@@ -67,10 +67,15 @@ export const SETTINGS_SPEC = [
     label: 'On Error',
     kind: 'select',
     default: 'stopWorkflow',
-    hint: 'What happens to the whole workflow when this node fails.',
+    // Labels are n8n's, verbatim. "Continue" used to read "Continue (using last
+    // valid data)", which is the opposite of what n8n does: it passes the ERROR
+    // as an item on the regular output, carrying nothing usable forward. The
+    // graded explanation always said so, so the dropdown contradicted the
+    // feedback on the same question. See docs/n8n-reference/00-how-n8n-actually-works.md §5.
+    hint: 'What happens when this node fails. Stop Workflow halts everything; Continue passes the error on as data; Continue (using error output) sends it down a separate error branch.',
     options: [
       { value: 'stopWorkflow', label: 'Stop Workflow' },
-      { value: 'continueRegularOutput', label: 'Continue (using last valid data)' },
+      { value: 'continueRegularOutput', label: 'Continue' },
       { value: 'continueErrorOutput', label: 'Continue (using error output)' },
     ],
   },
@@ -83,7 +88,7 @@ export const SETTINGS_SPEC = [
   },
   {
     key: 'notesInFlow',
-    label: 'Display Note in Flow',
+    label: 'Display Note in Flow?',
     kind: 'boolean',
     default: false,
     hint: 'Show the note as a caption under the node on the canvas.',

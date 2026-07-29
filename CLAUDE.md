@@ -28,8 +28,14 @@ npm run dev        # Next.js dev → http://localhost:3000
 npm run build      # production build
 npm test           # vitest — packages/** and apps/web/src/**/*.test.*
 npm run smoke      # full-journey runtime check (needs dev running)
-npm run typecheck  # tsc --noEmit over packages/
+npm run typecheck  # BOTH halves: typecheck:packages (root tsconfig) + typecheck:web
 ```
+
+**`npm run typecheck` only recently covered the web app.** The root tsconfig *excludes*
+`apps`, so for a while an app-level type error was invisible to every check safe to run
+during development — `next build` was the only thing that caught it, and it cannot run
+while `next dev` is running. One such error went straight to a failed production build.
+Both halves now run; don't drop one.
 
 Single test file: `npx vitest run packages/engine/simulate.test.js`. Watch: `npx vitest`.
 
@@ -41,11 +47,22 @@ cp .env.example .env   # set AUTH_SECRET (openssl rand -base64 32); POSTGRES_POR
 npm run db:up          # local Postgres via docker-compose.yml
 npm run db:migrate      # apply committed migrations
 npm run db:seed        # programs, batches, and the three problems as v1 PUBLISHED
+npm run db:seed:rubric # the grading rubric as RubricVersion v1 — see below, not optional
 ```
 
 Then sign up at `/signup` with a seeded invite code — `AIML-DEMO`, `DSML-DEMO` or
-`SE-DEMO`. Admin is a manual promotion:
-`UPDATE "User" SET role='ADMIN' WHERE email='…';`
+`SE-DEMO`. The **first** admin is a manual promotion
+(`UPDATE "User" SET role='ADMIN' WHERE email='…';`); after that, `/admin` → Admins grants
+by email.
+
+**`db:seed:rubric` is load-bearing, not decoration.** With no `RubricVersion` row the
+Result screen still shows a score but `POST /api/sessions/[id]/report` cannot persist a
+`GradingReport`, so admin analytics has nothing to average. The route logs exactly this.
+
+`npm run db:seed:demo` fabricates ~60 demo learners with generated traces replayed through
+the real engine, so the admin dashboard has consistent numbers before real cohorts exist.
+It **refuses to run against a non-local database** unless `ALLOW_REMOTE=1`; `-- --clear`
+removes them (they're marked by the `demo.judge.local` email domain).
 
 Other db scripts: `db:down`, `db:migrate:dev` (new migration from schema changes),
 `db:generate`, `db:studio`.
@@ -55,10 +72,16 @@ tests, so a render-time bug passes both `npm test` and `next build`. Smoke drive
 Chrome via `playwright-core`; on macOS pass
 `SMOKE_CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"`.
 
-**Dev hash routes** (isolate one screen, all honor `?problem=<id>`): `#build`,
-`#run-story`, `#eval-demo`, `#report-demo`, `#run-demo`, `#playground`. They run **without
-a session**, so grading falls back to "unverified" rather than a server verdict — see
-*Server-authoritative grading* below.
+**Dev hash routes** (isolate one screen, all honor `?problem=<id>`, all matched with
+`startsWith` — equality silently dropped the `?problem=`): `#build`, `#run-story`,
+`#eval-demo`, `#report-demo`, `#run-demo`, `#playground`.
+
+`#build` and `#run-story` go through `BuildPreview`, which **does** create a real session
+via the shared `useSession` hook — deliberately. Without one, every check returns "could
+not verify" (the browser holds no answers), so `#build` could not verify a single field and
+every screenshot taken from it was of a broken grader. `#eval-demo`, `#report-demo` and
+`#run-demo` render a screen directly with no session, so grading there is unverified by
+design — see *Server-authoritative grading* below.
 
 ## Architecture
 
@@ -68,9 +91,12 @@ around [src/App.jsx](apps/web/src/App.jsx). The whole journey (reactflow canvas,
 mascot, hash routing) is browser-only. `App.jsx` dispatches the dev hash routes, then
 renders `Landing` (home ⇄ journey); `MainApp` is the four-screen state machine
 (`STATEMENT → DASHBOARD → EVAL → REPORT`); `BuildPreview` is the same journey minus the
-intro. `MainApp` creates a **Session** on mount and threads `sessionId` plus a `record`
-callback through every screen — the first is how answers get graded, the second is the
-local grading store.
+intro. Both create a **Session** via `useSession` and wrap their screens in a
+`TraceProvider`, threading three things: `sessionId` (how answers get graded), a `record`
+callback (the local grading store, now only used for in-journey UI), and `trace` (the
+outbound event queue). Screen changes go through one `goTo()` so a new screen cannot be
+added without being traced — the admin timeline's "who is stuck where" is built from those
+events.
 
 ### Port, don't rewrite
 Prototype `.jsx` moved in untouched. **All new code is TypeScript.** Workspace packages
@@ -116,29 +142,137 @@ storage, and it has three parts:
    pinned list of what still ships, **with a test asserting the list**; those four can only
    go once the Run itself moves server-side (M3), because the client cannot simulate
    without expected outcomes.
-2. **`POST /api/sessions`** creates an attempt pinned to a `ProblemVersion`;
+2. **`POST /api/sessions`** creates an attempt pinned to a `ProblemVersion` (and reuses the
+   one in progress rather than opening a new row per page load);
    **`POST /api/sessions/[id]/check`** grades one answer via
-   [`checkAnswer()`](packages/problem-schema/answerCheck.ts) — one function for all five
-   kinds (`dissection | field | setting | probe | stress`) — **and records it as a
-   `TraceEvent`**. The recording *is* the security property: a side-effect-free check
+   [`checkAnswer()`](packages/problem-schema/answerCheck.ts) — one function for all six
+   kinds (`dissection | field | setting | probe | stress | placement`) — **and records it as
+   a `TraceEvent`**. The recording *is* the security property: a side-effect-free check
    endpoint is a free oracle, so guessing is allowed and scores like guessing, because
    `firstTry` is what Understanding is built on. An unknown id records
    `suspicious_check` and 400s. `seq` is server-assigned; the response carries only the
    verdict, the `why` for the chosen option, and (on a correct dissection pick) `unlocks`
    — the misconception code stays server-side.
-3. **[src/lib/grader.js](apps/web/src/lib/grader.js)** is the only client entry point.
-   `checkAnswer(sessionId, …)` returns `null` when there is no session (dev routes) or on
-   a network failure, and callers must treat `null` as *unverified* — never as wrong.
+3. **[src/lib/grader.js](apps/web/src/lib/grader.js)** is the only client entry point, and
+   **[src/lib/verdict.js](apps/web/src/lib/verdict.js)** (`resolveServerVerdict`) is the one
+   place that turns a response into a verdict. It returns **three** states, because
+   `correct: null` — "the check did not complete" — is a real answer the UI must show as
+   such. Both guesses have shipped and both were bugs: the NDV guessing *wrong* produced
+   the "same answer, different verdict" report, and Understand/Stress Testing guessing
+   *correct* turned every option green, unlocking progress nobody earned. An unverified pick
+   is also **not recorded as a decision** — that was writing answers the learner never gave
+   into the grading store. Only a *verified correct* answer returns `unlocks`.
 
 [src/server/problemVersions.ts](apps/web/src/server/problemVersions.ts) caches
 `ProblemVersion` rows in memory **with no invalidation**, which is sound only because a
-version is immutable by construction: publishing creates a new row and moves a pointer. If
-versions ever become editable in place, this breaks silently.
+version is immutable by construction. That is enforced by
+[packages/db/publishProblem.mjs](packages/db/publishProblem.mjs), which **appends**:
+identical content is a no-op, changed content mints the next version, publishes it, archives
+its predecessor and moves `currentPublishedVersionId`. Old rows are never touched (seeding
+used to rewrite v1's `data` in place — that silently changed what "correct" meant under
+anyone mid-attempt). Content comparison is key-sorted, because `jsonb` does not preserve key
+order and a plain `JSON.stringify` compare made every re-seed look like a change.
 
-**Still client-side, deliberately:** the final score tally. A learner can fabricate the
-grading store and reach a fake Report; that closes when the M3 worker tallies its own
-recorded decisions. When adding a graded surface, route it through `/check` — do not
-reintroduce a local answer comparison.
+**The score is server-authoritative too, now.**
+`POST /api/sessions/[id]/report` is the Result screen's only source: it replays this
+session's own `TraceEvent` rows through `attemptsFromTrace()` → `scoreSession()`, so the
+browser's grading store is **not consulted** and a fabricated store can no longer reach a
+fake Report. Two halves, deliberately split — the **number** is engine arithmetic (auditable,
+reproducible, cheap to re-run when rubric weights change) and the **words** are Claude
+(positives, negatives, next steps). Consequences worth knowing:
+
+- The score is persisted **before** Claude is called, one `GradingReport` row per session,
+  upserted not appended — reloading the Result screen would otherwise double-count that
+  learner in every average.
+- No `ANTHROPIC_API_KEY` is a normal state: the route returns the score with
+  `report: null, reason: 'llm_unconfigured'` and the screen omits the written sections. A
+  missing narrative must never cost a learner their score.
+- Reaching the report marks the session `COMPLETED`, which is what stops "reuse the session
+  in progress" from handing a learner their previous attempt forever.
+- Recorded decision keys and rubric item ids are **not** the same strings
+  (`setting:classify:onError` vs `classify:settings.onError`); the translation lives in one
+  place, `rubricItemId()`.
+
+When adding a graded surface, route it through `/check` — do not reintroduce a local answer
+comparison.
+
+### The trace pipeline (M2) — how anything gets recorded
+Everything the journey observes flows through one path, and the invariants are not
+negotiable because the grading worker replays this data.
+
+- **[src/lib/traceQueue.js](apps/web/src/lib/traceQueue.js)** — an outbound queue that sits
+  between the screens and the network. Three rules: **never throw at the caller** (a dropped
+  request must not break the Build stage; the worst outcome is a gap in the admin timeline),
+  **never renumber** (each event gets a `clientSeq` once, for life), and **never grow without
+  limit** (500 pending max). Consecutive failures back off exponentially to ~2 minutes — a
+  batch the server will never accept was retried every 2s forever, and because each attempt
+  takes a per-session database lock, the trace route **starved answer checking on the same
+  session**. That is how a missing migration turned into learners seeing no verdicts.
+- **[src/lib/useTrace.js](apps/web/src/lib/useTrace.js)** — creates the queue *before* the
+  session exists (starting a session is a round trip; anything the learner does in that
+  window would otherwise be lost) and mirrors unsent events into `sessionStorage` so a reload
+  doesn't silently drop them.
+- **[src/lib/TraceContext.jsx](apps/web/src/lib/TraceContext.jsx)** — `useTraceContext()`,
+  because the Ask-AI drawer lives inside `TopBar` and the NDV is three levels deep. The
+  default is a **no-op, not an error**: dev routes and tests must keep working.
+- **`POST /api/sessions/[id]/events`** — batch ingest, idempotent on `(sessionId, clientSeq)`,
+  validated by `clientTraceBatchSchema`. `seq` is allocated **here**, never by the client.
+  `CLIENT_FORBIDDEN_TYPES` in [packages/trace/events.ts](packages/trace/events.ts) blocks the
+  client from posting `decision` events at all — those are server-written by `/check`, and a
+  learner who could forge them could forge their own grade.
+
+**Both `/check` and `/events` write to one table with a unique `(sessionId, seq)`, and both
+serialise on `pg_advisory_xact_lock(hashtext(sessionId))` inside the transaction.** Do not
+add a third writer without taking the same lock. The NDV verifies every field of a node in
+one `Promise.all`, so concurrent checks are the normal case, not an edge case — read-`MAX`-
+then-insert produced duplicate `seq`, a 500, and a client that turned that 500 into a wrong
+answer. The **attempt count** lives inside the same lock too: unsynchronised, every
+concurrent check of one id counted zero priors and all claimed `firstTry`.
+
+### Scoring — the rubric ([packages/engine/rubric.ts](packages/engine/rubric.ts))
+Replaced "share of decisions correct on the first try", which had two defects: every decision
+weighed the same (email-triage's 13 dropdowns outweighed its 6 node placements), and clicking
+through a 3-option field until it went green cost nothing.
+
+- **Attempt decay is tied to the option count.** On an N-option question the Nth attempt is
+  forced by elimination, so it earns **zero**. 4 options → 100/66/33/0; 3 → 100/50/0;
+  open-ended (expression, number, placement) → 100/50/0. Answering everything by elimination
+  now scores 0%.
+- **Weights** 30 dissection / 25 placement / 25 config / 20 edge-case. The even build split is
+  deliberate — otherwise config carries 13/19ths of the Build score purely because the problem
+  has more dropdowns.
+- The **denominator is every decision the problem requires**, enumerated from problem data, so
+  an abandoned session cannot look like a short perfect one. Empty buckets redistribute their
+  weight rather than capping the maximum.
+- **Probes are deliberately unscored** — the wrong placement already paid via decay, and
+  scoring the probe would charge one mistake twice.
+- `scoreBand()` gives the plain-English meaning of the number; `problemComplexity()` orders
+  the catalogue easiest-first so "practise more" can name a real next challenge without an
+  authored `difficulty` field to keep in sync.
+- The grading prompt ([packages/llm/gradingPrompt.ts](packages/llm/gradingPrompt.ts)) **cannot
+  emit a score** — the schema doesn't allow it. It's seeded as `RubricVersion` v1; editing the
+  prompt and re-seeding appends v2, because a `GradingReport` points at the exact version that
+  produced it.
+
+### Admin — [/admin](apps/web/app/admin/page.tsx)
+`AdminDashboard.jsx` (Overview · Cases · Completion · Learners · Admins) over
+`/api/admin/analytics`, `/api/admin/learners/[id]/sessions` and `/api/admin/sessions/[id]`
+(a read-only timeline of one attempt). Every number is computed in
+[src/server/analytics.ts](apps/web/src/server/analytics.ts), **aggregated in SQL** — 60 demo
+learners already produce ~6k trace events, so "fetch then count in JavaScript" would stop
+working quietly and early. Nothing is derived in the browser, so no panel can disagree with
+the database.
+
+**The funnel is computed from `screen_transition` events, not `Session.currentScreen`** —
+`currentScreen` is only written when a session completes, so trusting it reports every
+unfinished learner as stuck on the first screen, which is exactly the number the funnel
+exists to get right.
+
+Admin routes each call their own `requireAdmin()` (401/403); the middleware matcher covers
+`/admin/:path*` but authorisation is per-route. Granting admin by email writes an
+`AdminAllowlist` row **and** promotes the account if it exists, so an email added before
+signup is promoted when they sign up — "ask them to sign up first, then tell me again" is a
+step everyone forgets.
 
 ### Canonical workflow model — `@judge/workflow`
 The engine reasons in **real n8n's shape**, not React Flow's. Connections are keyed by
@@ -168,15 +302,15 @@ That's by design.
 ### Packages
 | Package | What |
 |---|---|
-| `@judge/engine` | Pure, unit-tested `(studentGraph, problem)` logic: `validateGraph` (gates the Run), `simulateCase`/`simulateAll`, `scoreEval`, `grading`, `asWorkflow`/`inferBranches`, `hasConnection` |
+| `@judge/engine` | Pure, unit-tested `(studentGraph, problem)` logic: `validateGraph` (gates the Run), `simulateCase`/`simulateAll`, `scoreEval`, `grading`, `asWorkflow`/`inferBranches`, `hasConnection`, and the **rubric** (`scoreSession`, `attemptsFromTrace`, `phaseBreakdown`, `scoreBand`, `problemComplexity`, `enumerateItems`) |
 | `@judge/workflow` | The canonical n8n workflow model (TS) + React Flow ⇄ n8n conversion |
 | `@judge/catalog` | `NODE_CATALOG` — node vocabulary, params, sample I/O |
 | `@judge/problems` | The three challenges as data + registry + tests (seed source) |
 | `@judge/problem-schema` | zod `Problem` schema, `validateProblem()`, `toPublicProblem()`, `checkAnswer()` |
-| `@judge/trace` | `TraceEvent` contract — decision, screen/phase transition, ndv_open, graph_mutation, run_result, ask_ai_turn |
+| `@judge/trace` | `TraceEvent` contract + `ingest.ts` — decision, screen/phase transition, ndv_open, graph_mutation, run_result, ask_ai_turn; `CLIENT_FORBIDDEN_TYPES` |
 | `@judge/queue` | Queue interface + pg-boss driver + SQS stub |
 | `@judge/llm` | Claude client + grading / authoring / ask-ai prompt builders |
-| `@judge/db` | Prisma 6.x schema + migration + client singleton |
+| `@judge/db` | Prisma 6.x schema + migrations + client singleton + `publishProblem.mjs` and the seed scripts |
 
 `grading` is **pure functions**, not a Zustand store — the UI holds one store in React
 state and appends. `recordDecision` keeps the *earliest* decision per id, so re-answering
@@ -187,9 +321,11 @@ Split across two files because middleware runs on the edge runtime and cannot lo
 [auth.config.ts](apps/web/auth.config.ts) is the edge-safe half (JWT session, callbacks,
 session claims `id`/`role`/`batchId`) and [auth.ts](apps/web/auth.ts) adds the
 Prisma-backed Credentials provider. [middleware.ts](apps/web/middleware.ts) matches only
-`/`, `/login`, `/signup`, `/api/problems/*` — **`/api/sessions/*` is guarded inside the
-route handlers**, which also check that the session belongs to the caller. Keep both
-halves in sync when adding a claim.
+`/`, `/login`, `/signup`, `/admin/:path*`, `/api/problems/*` — **`/api/sessions/*` and
+`/api/admin/*` are guarded inside the route handlers**, which also check that the session
+belongs to the caller (writing into someone else's session would let one learner forge
+another's trace, which is the input grading replays). Keep both halves in sync when adding a
+claim.
 
 ### Screens — [apps/web/src/screens/](apps/web/src/screens/)
 - `HomeScreen` — challenge cards from `problemList`.
@@ -204,7 +340,10 @@ halves in sync when adding a claim.
 - `EvalScreen` (Stress Testing) — read-only `flowSummary` strip + `evalQuestions`. Options
   are shuffled per (tab session, question key) and carry `originalIndex`, because
   `scoreEval` grades against the authored `correctIndex`.
-- `ReportScreen` (Result) — Understanding score, per-area breakdown, misconceptions.
+- `ReportScreen` (Result) — renders what `POST /api/sessions/[id]/report` returns: total
+  marks, the per-phase breakdown (Understand / Build / Stress Testing), then Claude's
+  positives, negatives and next steps. It does **not** compute the score.
+- `AdminDashboard` — see *Admin* above.
 
 ### n8n editor layer — [apps/web/src/n8n/](apps/web/src/n8n/)
 Built from scratch (not n8n's assets), on `reactflow` v11.
@@ -270,9 +409,23 @@ once found it there in 25/25 fields and 13/13 dissection items.
 Railway builds from the root [Dockerfile](Dockerfile), so the service **Root Directory
 must be the repo root**. It runs `npm ci --include=dev` (lifecycle hooks run
 `prisma generate` and sync the dotLottie wasm into `public/`), builds `@judge/web`, and
-starts `next start -p ${PORT:-3000}`. Health check `/`. Needs `DATABASE_URL`,
-`AUTH_SECRET` and `ANTHROPIC_API_KEY`. Env template: [.env.example](.env.example).
-See STATUS.md for the current deployment state, which needs attention.
+starts [scripts/start-production.sh](scripts/start-production.sh). Health check
+`/api/health` (returns `{status, db}`). Needs `DATABASE_URL`, `AUTH_SECRET` and
+`ANTHROPIC_API_KEY`. Env template: [.env.example](.env.example). The service deploys from
+**`sudhanva/nextjs`, not `main`** — a push deploys, so a type error reaches production.
+
+**`start-production.sh` runs `prisma migrate deploy` before serving, and that is not
+optional.** A schema change and the code that needs it arrive in the same deploy, so they
+have to be applied in the same step. A deploy without it shipped code needing a column the
+database lacked: every trace batch 500'd, the client retried every 2s taking a per-session
+lock each time, answer checking contended behind those failing transactions and timed out,
+and the client — getting no verdict — fell back to calling every answer correct. Migrations
+run at **start**, not during the build, because the build has no database.
+
+Also remembered from Railway: **a variable name with a trailing newline is invisible in the
+dashboard.** `ANTHROPIC_API_KEY` was stored as `'ANTHROPIC_API_KEY\n'`, so `process.env`
+could not see it while the UI showed it as present. Catch it with
+`railway variables --json` and print `repr()` of the keys.
 
 ## Gotchas
 
@@ -289,13 +442,27 @@ See STATUS.md for the current deployment state, which needs attention.
 - **Smoke has a coverage hole** — journey-start clicks the *first* "Try this judge" button
   regardless of `?problem=`, so `lead-triage` and `meeting-notes` Understand screens are
   untested.
+- **Any new writer to `TraceEvent` must take the per-session advisory lock.** See *The trace
+  pipeline*; skipping it reproduces the worst bug this project has had.
+- **A missing `RubricVersion` silently stops scores being persisted** — run
+  `npm run db:seed:rubric`. The Result screen still looks fine, so the symptom appears as
+  empty admin analytics.
+- **A stray `package-lock.json` one level above the repo** makes Next infer the wrong
+  workspace root. Harmless in dev; can affect output file tracing on build.
 - Full list of known issues lives in [STATUS.md](STATUS.md).
 
 ## Reference docs
+
+**[docs/n8n-reference/00-how-n8n-actually-works.md](docs/n8n-reference/00-how-n8n-actually-works.md)
+— read this before touching `@judge/workflow`, `@judge/catalog`, `simulate.js` or the NDV.** It
+is n8n's real behaviour read out of n8n's own source (v2.33.0): the connection model, the node
+contract, parameters and `typeVersion`, the NDV and the exact Settings tab, the execution and
+error model, expressions, cluster nodes, and a per-node behaviour catalogue — plus a section
+comparing all of it to Judge's model.
 
 [STATUS.md](STATUS.md) · [docs/understanding.md](docs/understanding.md) (intent + locked
 decisions) · [docs/plan-production-platform.md](docs/plan-production-platform.md) ·
 [docs/plan-m1.5-fidelity-and-assessment.md](docs/plan-m1.5-fidelity-and-assessment.md) ·
 [docs/adding-a-problem.md](docs/adding-a-problem.md) ·
-[docs/research/](docs/research/) (how real n8n works — the basis for M1.5) ·
+[docs/research/](docs/research/) (how real n8n works from the docs — the basis for M1.5) ·
 [docs/n8n-reference/](docs/n8n-reference/) · [docs/reference/](docs/reference/)

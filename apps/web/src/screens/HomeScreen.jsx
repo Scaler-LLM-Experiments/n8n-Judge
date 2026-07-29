@@ -45,7 +45,10 @@ export function HomeScreen({ problems, onSelect }) {
                   <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--fg-1)', marginBottom: 6 }}>{p.title}</div>
                   <div style={{ fontSize: 13.5, color: 'var(--fg-2)', lineHeight: 1.55 }}>{p.tagline || p.statement}</div>
                 </div>
-                <Button variant="primary" size="lg" iconRight={<ArrowRight size={16} weight="bold" />} onClick={() => onSelect(p)} style={{ marginTop: 'auto', width: '100%', justifyContent: 'center' }}>
+                {/* data-problem is how smoke enters a SPECIFIC challenge. Without it the
+                    test could only click the first card, so `?problem=lead-triage` and
+                    `meeting-notes` silently re-tested email-triage's Understand screen. */}
+                <Button variant="primary" size="lg" data-problem={p.id} iconRight={<ArrowRight size={16} weight="bold" />} onClick={() => onSelect(p)} style={{ marginTop: 'auto', width: '100%', justifyContent: 'center' }}>
                   Try this judge
                 </Button>
               </div>
