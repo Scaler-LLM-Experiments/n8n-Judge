@@ -137,7 +137,12 @@ describe('emailTriage voice lines', () => {
     }
   });
 
-  it('opens every line with a delivery tag, so v3 reads it in character', () => {
+  it('opens every line with a delivery tag, which records the intended tone', () => {
+    // The tag no longer reaches the vendor — narration renders through Deepgram
+    // Aura, which has no tag concept, so `captionFor` strips it. It is kept as an
+    // authoring convention: it makes the intended tone explicit next to the line, and
+    // a line whose words do not match its own tag is usually a line worth rewriting.
+    // Delivery itself comes from sentence length; see the note in index.js.
     for (const [moment, lines] of entries) {
       for (const line of lines) expect(line, `${moment}: "${line}"`).toMatch(/^\[[a-z]+\]/);
     }

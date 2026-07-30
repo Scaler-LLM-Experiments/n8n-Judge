@@ -696,6 +696,94 @@ export const emailTriage = {
     'verify_pass:chat-gemini': [
       '[warm] Good. That setting is what makes triage repeatable instead of a guess.',
     ],
+
+    // ---- how these are made to sound like something -------------------------
+    // The `[warm]` and `[calm]` markers are notes to the author. They were audio
+    // tags once and are stripped before rendering now, so they change nothing.
+    //
+    // What DOES change delivery is punctuation, and measurably. The same twenty-five
+    // characters, through Deepgram Aura:
+    //
+    //   "That is right, well done."   1.85s   commas run it together, lightest
+    //   "That is right. Well done."   1.97s   the neutral baseline
+    //   "That is right... well done." 2.06s   an ellipsis buys a beat
+    //   "That is right! Well done!"   2.14s   lifts, about nine percent
+    //   "That is right. Well. Done."  2.45s   full stops are the strongest lever
+    //
+    // So tone is built out of sentence length. A short sentence lands heavier than a
+    // long one, and three of them in a row sound deliberate. That is used on purpose
+    // below: `verify_fail` is fragmented so it slows down and sounds careful, while
+    // `idle_nudge` uses commas so it stays light and does not nag.
+    //
+    // Note there are no exclamation marks anywhere, and that is a house rule with a
+    // test behind it. It costs nothing: a run of short sentences lifts delivery more
+    // than a "!" does (24 percent against 9), and it never reads as a cheerleader.
+    // `understand_done` and `run_pass` are the two moments a learner has actually
+    // finished something, so both are written as three short beats.
+
+    // ---- arriving -----------------------------------------------------------
+    // The screen already says who Iris is and what the challenge is called, so these
+    // say what is NOT on the page: why this problem is worth doing.
+    welcome: ['[warm] Support mail, sorted by hand, every single day. We are going to stop that.'],
+    problem_intro: ['[calm] Read it once for the shape. Three kinds of email, three replies.'],
+    understand_start: ['[calm] Before we build anything, I want to see how you are reading this.'],
+    understand_done: ['[excited] Good. That is the thinking done. Now we build it.'],
+
+    // The canvas has just opened and it is empty. This is the only line that gets to
+    // frame the whole build, so it gives the ordering principle and nothing else.
+    build_start: ['[calm] Build it in the order the email travels. Each node hands its work to the next.'],
+
+    // ---- opening a build phase ----------------------------------------------
+    // The phase title and its description are both on screen. These give the
+    // question to hold in your head while you look at the palette, and never the
+    // node that answers it.
+    'phase_intro:trigger': ['[calm] Nothing here runs until something starts it. Begin at the top.'],
+    'phase_intro:brain': ['[calm] This part has to read plain English and decide. Think about what that needs.'],
+    'phase_intro:route': ['[calm] Now the paths split. Every category needs somewhere of its own to go.'],
+
+    // ---- a node is configured correctly -------------------------------------
+    // Naming the node is safe here: they just set it up, so nothing is being given
+    // away. What each line adds is the thing the screen does not say, which is what
+    // this node now DOES inside this particular flow.
+    'verify_pass:trigger': ['[warm] Good. It is watching the inbox now. Every new email will start a run.'],
+    'verify_pass:classify': ['[warm] Set. It reads the email and picks one of your three categories.'],
+    'verify_pass:parse': ['[warm] Good. The answer is fields now, not a paragraph. The next node can read it.'],
+    'verify_pass:switch': ['[warm] Three ways out, and you decided each one. That is the routing done.'],
+    'verify_pass:action': ['[warm] That is the reply. Whatever reaches it goes back to the customer.'],
+
+    // ---- a node is not right yet --------------------------------------------
+    // Deliberately clipped: short sentences slow the delivery down and make it sound
+    // careful rather than impatient. Each one points at WHICH field to look at
+    // without saying what to put in it.
+    'verify_fail:trigger': ['[calm] Not yet. Check which inbox it watches. And which part of the mail it reads.'],
+    'verify_fail:parse': ['[calm] Not yet. Look at what it reads from, and the names you asked it for.'],
+    'verify_fail:action': ['[calm] Not right yet. Check who it replies to, and where the words come from.'],
+
+    // The wrong node, on the canvas. Never names the right one.
+    node_wrong: ['[thoughtful] That will not do this job here. Let me ask you something.'],
+
+    // ---- the run ------------------------------------------------------------
+    run_start: ['[calm] Watch each email go through. See which path it takes.'],
+    run_pass: ['[excited] All of them. Every email went where it should. That flow works.'],
+    run_fail: [
+      '[calm] Some went the wrong way. That is worth knowing. Let us look.',
+      '[calm] Not all of them landed right. Follow one that missed and see where it turned.',
+    ],
+
+    // ---- noticing they have gone quiet --------------------------------------
+    // Commas, not full stops: this one has to stay light. It is an offer, not a
+    // prod, and it is the line most likely to be heard more than once.
+    idle_nudge: [
+      '[calm] Take your time. If it helps, ask what the last node handed over.',
+      '[calm] Still thinking? Tell me what is unclear and I will help.',
+      '[calm] No rush at all. Look at what this step is given, and what it owes the next one.',
+    ],
+
+    'answer_wrong_again:action': [
+      '[calm] Think about the person who wrote in. What do they actually receive?',
+    ],
+
+    report_ready: ['[calm] Here is what stood out. And what I would practise next.'],
   },
 
   misconceptionLabels: {
