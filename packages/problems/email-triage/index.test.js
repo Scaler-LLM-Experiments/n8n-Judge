@@ -1,5 +1,35 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
 import { emailTriage } from './index.js';
+
+// The problem was one 953-line file until 2026-07-31, when it was split into seven by
+// job so that `_template/` could mirror something navigable. This snapshot was taken
+// from the assembled object BEFORE the split and is asserted against after it, which is
+// what makes a large mechanical move provable instead of hopeful.
+//
+// It also guards the assembly going forward: `index.js` wires 23 keys by hand, so a
+// value renamed in a part file but not in the assembly, or a key dropped from the
+// object entirely, shows up here rather than as a screen that quietly renders nothing.
+//
+// When you change authored content ON PURPOSE, this test fails — that is the point.
+// Re-take it deliberately:
+//   node --input-type=module -e "import {emailTriage} from './packages/problems/email-triage/index.js'; \
+//     const s=(v)=>Array.isArray(v)?v.map(s):(v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,s(v[k])])):v); \
+//     process.stdout.write(JSON.stringify(s(emailTriage)))" > packages/problems/email-triage/assembled.snapshot.json
+describe('the split is a move, not a rewrite', () => {
+  /** Key-sorted, so a reordered assembly is not a difference. */
+  const sorted = (v) =>
+    Array.isArray(v)
+      ? v.map(sorted)
+      : v && typeof v === 'object'
+        ? Object.fromEntries(Object.keys(v).sort().map((k) => [k, sorted(v[k])]))
+        : v;
+
+  it('assembles to exactly the object that existed before the file was split', () => {
+    const snapshot = JSON.parse(readFileSync(new URL('./assembled.snapshot.json', import.meta.url), 'utf8'));
+    expect(sorted(emailTriage)).toEqual(snapshot);
+  });
+});
 
 describe('emailTriage problem spec', () => {
   it('has 5 test cases and 2 eval questions', () => {
