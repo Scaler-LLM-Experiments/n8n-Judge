@@ -115,7 +115,7 @@ export function HomeScreen({ problems, onSelect, resume, onResume }) {
           two-line description. Narrowing the margin alone would not do it: the
           constraint is the per-card column width, and at 940/3 the copy wrapped to
           four lines — the same failure that pushed this to two-up in the first place. */}
-      <div style={{ maxWidth: 1360, margin: '0 auto', padding: '12px 32px 64px' }}>
+      <div style={{ maxWidth: 1360, margin: '0 auto', padding: '12px 56px 64px' }}>
         {/* hero */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 12, marginBottom: 40 }}>
           <div style={{ width: 96, height: 96 }}>
@@ -134,12 +134,19 @@ export function HomeScreen({ problems, onSelect, resume, onResume }) {
 
         {/* problem cards */}
         <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--fg-2)', fontWeight: 700, marginBottom: 12 }}>Choose a challenge</div>
-        {/* Three up. The 380px floor is what picks the count: at this container's
-            ~1296px of content, four columns would need 1520 and two would waste half
-            the row, so auto-fit lands on three at ~419px each — enough for the
-            two-line description — and still collapses to 2-up / 1-up as the viewport
-            narrows, rather than overflowing. */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: 20 }}>
+        {/* Three up. The 360px floor is what picks the count: at this container's
+            ~1248px of content, four columns would need 1520 and two would waste half
+            the row, so it lands on three at ~403px each — enough for the two-line
+            description — and still collapses to 2-up / 1-up as the viewport narrows,
+            rather than overflowing.
+
+            `auto-fill`, NOT `auto-fit`. They differ only when the row is
+            underfull, which is exactly the catalogue's current state: auto-fit
+            COLLAPSES the empty tracks, so a single problem stretched to the full
+            1248px and its 2:1 cover art became a billboard. auto-fill keeps the
+            three tracks, so one card sits in the first one at a third of the
+            width and the row stays left-aligned. */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: 20 }}>
           {/* Card order, top to bottom: cover, DIFFICULTY · TIME, title,
               description, CTA. The description is the authored two-line `brief`,
               so it cannot push the button out of line with the card beside it. */}
