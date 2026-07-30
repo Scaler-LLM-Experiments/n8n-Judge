@@ -9,6 +9,28 @@ function bundledClips() {
   return new Set([...raw.matchAll(/animations\/([a-z0-9_-]+)\.json/g)].map((m) => m[1]));
 }
 
+/**
+ * The only moments allowed an exclamation mark.
+ *
+ * The rule used to be "never", and it was right for Deepgram: with no tags, a "!" was
+ * the only lever for energy, so allowing it anywhere meant it crept in everywhere and
+ * Iris turned into a cheerleader. On ElevenLabs v3 the delivery tag carries emotion,
+ * so a "!" is now punctuation rather than the whole mechanism.
+ *
+ * It is a whitelist rather than a free-for-all because the original reason still
+ * holds: a line heard twenty times in one session must survive being heard twenty
+ * times. These are the moments a learner arrives somewhere or finishes something.
+ */
+const MAY_EXCLAIM = new Set([
+  'welcome',
+  'understand_done',
+  'phase_complete',
+  'build_complete',
+  'run_pass',
+  'stress_start',
+  'report_ready',
+]);
+
 const allLines = Object.entries(LINES).flatMap(([moment, variants]) => variants.map((line) => ({ moment, line })));
 
 // The writing rules ARE the feature, so they are enforced rather than trusted.
@@ -39,9 +61,17 @@ describe('the copy rules', () => {
     }
   });
 
-  it('avoids exclamation marks', () => {
+  it('keeps exclamation marks to the moments that earn one', () => {
     for (const { moment, line } of allLines) {
+      if (MAY_EXCLAIM.has(moment)) continue;
       expect(line, `${moment}: "${line}"`).not.toMatch(/!/);
+    }
+  });
+
+  it('never stacks exclamation marks', () => {
+    // One is warmth. Two is the "Amazing work!!" the house style exists to prevent.
+    for (const { moment, line } of allLines) {
+      expect(line, `${moment}: "${line}"`).not.toMatch(/!!|!\?|\?!/);
     }
   });
 

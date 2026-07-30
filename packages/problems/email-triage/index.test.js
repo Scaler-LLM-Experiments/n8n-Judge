@@ -102,6 +102,7 @@ describe('emailTriage problem spec', () => {
 // defaults are reviewed once, but per-problem lines get written alongside content
 // and are easy to make too helpful.
 describe('emailTriage voice lines', () => {
+  const MAY_EXCLAIM = new Set(['welcome', 'understand_done', 'phase_complete', 'build_complete', 'run_pass', 'stress_start', 'report_ready']);
   const voice = emailTriage.voice ?? {};
   const entries = Object.entries(voice);
 
@@ -129,7 +130,11 @@ describe('emailTriage voice lines', () => {
     for (const [moment, lines] of entries) {
       for (const line of lines) {
         expect(line, `${moment} em dash`).not.toMatch(/[—–]/);
-        expect(line, `${moment} exclamation`).not.toMatch(/!/);
+        // Same whitelist as the phrase book: only a moment where the learner
+        // arrives somewhere or finishes something may exclaim. See voiceLines.test.js.
+        const base = moment.split(':')[0];
+        if (!MAY_EXCLAIM.has(base)) expect(line, `${moment} exclamation`).not.toMatch(/!/);
+        expect(line, `${moment} stacked exclamation`).not.toMatch(/!!|!\?|\?!/);
         expect(line, `${moment} expression`).not.toMatch(/\{\{/);
         const words = line.replace(/\[[^\]]*\]/g, '').trim().split(/\s+/).length;
         expect(words, `${moment} is ${words} words`).toBeLessThanOrEqual(22);

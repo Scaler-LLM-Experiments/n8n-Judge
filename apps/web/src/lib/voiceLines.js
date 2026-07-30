@@ -38,16 +38,29 @@
 //   * Excitement is earned, and only at completion. Everywhere else it is noise;
 //     on finishing a stage it is the payoff.
 //
-// Square brackets — `[warm]`, `[calm]`, `[thoughtful]`, `[excited]` — are AUTHORING
-// NOTES ONLY. They were ElevenLabs v3 audio tags back when they reached the vendor;
-// narration now renders through Deepgram Aura, which has no tag concept and would
-// read them out loud, so they are stripped before anything is sent. `captionFor`
-// does the stripping, and the generator renders exactly the caption — which is why
-// what a learner hears and what they read are now provably the same words.
+// Square brackets are ElevenLabs v3 AUDIO TAGS and they are live: on v3 they reach
+// the vendor and shape delivery. `captionFor` strips them, so a learner reads the
+// clean sentence and hears the directed one.
 //
-// Keep writing them. They record the intended tone next to the line, which is worth
-// having even though nothing enforces it. To actually change delivery, change the
-// words: shorter sentences land calmer, and an ellipsis buys a beat.
+// Measured against this voice, rendering the same words each way:
+//
+//   [pause] inline        +0.95s   a real beat. THE way to buy a pause on v3.
+//   an ellipsis "..."     -0.46s   does NOT pause. It reads slightly faster.
+//   [cheerfully]          -0.35s   lifts and quickens
+//   [excited]             -0.23s   lifts
+//   [warmly]              -0.57s   softens and quickens
+//
+// Two things worth knowing from that. None of them are read aloud, so a tag is safe.
+// And the ellipsis result is the opposite of what it does on Deepgram, where there
+// are no tags and punctuation is the only lever — so do not carry pacing tricks
+// between vendors. On v3, use `[pause]`.
+//
+// `[laughs]` is deliberately unused: it changed the duration by only 0.22s, which is
+// too small to tell an executed laugh from a swallowed one without listening, and a
+// misfire is a strange noise in a learner's ear.
+//
+// If VOICE_VENDOR is deepgram the tags are stripped before sending (it reads them
+// aloud), and pacing falls back to sentence length. See voiceScript.js.
 //
 // Several lines per moment where a learner will hear it repeatedly. Verifying
 // eight fields and hearing one identical sentence eight times is what makes
@@ -72,13 +85,13 @@ export const LINES = {
   // these do not repeat any of that. What the page cannot do is sound pleased to see
   // you, so that is the job.
   welcome: [
-    '[warm] Hey, good to meet you. Let\'s have a look at what we\'re building today.',
-    '[warm] Hi there. Come on in, and let\'s see what we\'re making.',
+    "[cheerfully] Hey there! I'm Iris, your mentor. [pause] I'll be guiding you through this whole n8n simulation. Ready when you are?",
+    "[cheerfully] Hey there! I'm Iris, and I'm your mentor here. [pause] I'll guide you through the whole simulation. Shall we?",
   ],
   // The statement is on screen and the learner is reading it. One nudge about HOW
   // to read it, then silence.
   problem_intro: [
-    '[calm] Read it once for the shape, not the detail. We\'ll pull it apart together.',
+    "[calm] Okay, let's begin. Here's your problem statement, so read it once for the shape.",
   ],
   understand_start: [
     '[calm] A few questions first. I want to see how you\'re thinking about it.',
@@ -127,22 +140,22 @@ export const LINES = {
   // reaction, so these are the only lines allowed to be excited. Everywhere else
   // enthusiasm is noise; here it is the payoff.
   understand_done: [
-    '[excited] You\'ve got the shape of it. Now for the fun part, we build it.',
-    '[excited] That\'s the thinking done. Now let\'s actually build the thing.',
+    "[excited] You've got the shape of it! [pause] Now for the fun part. We build it.",
+    "[excited] That's the thinking done. Now let's go and build the thing.",
   ],
   phase_complete: [
-    '[excited] Right, that part\'s done. Nice work.',
-    '[excited] That\'s it, that piece works now.',
-    '[excited] Good, that\'s one more piece in place.',
+    "[excited] Right, that part's done. Nice work!",
+    "[excited] That's it. That piece works now!",
+    "[excited] Good, that's one more piece in place.",
   ],
   build_complete: [
-    '[excited] The whole flow\'s built. Let\'s see if it holds up.',
+    "[excited] The whole flow's built! [pause] Let's see if it holds up.",
   ],
 
   // ---- building -----------------------------------------------------------
   // The canvas and the phase label are both visible, so no line reads them out.
   build_start: [
-    '[calm] One node at a time. Each one does a single job, then hands it on.',
+    "[calm] Now that you've collected your nodes, let's start connecting them up.",
   ],
   // Spoken when a build phase opens. `BuildStage` had been playing this since the
   // mascot mapping existed, but there were no words for it, so Iris animated and
@@ -203,8 +216,8 @@ export const LINES = {
   run_fail: ["[calm] Some didn't come out right. That's worth knowing. Let's look."],
 
   // ---- finishing ----------------------------------------------------------
-  stress_start: ['[calm] Now, does it still make sense when things go wrong?'],
-  report_ready: ['[calm] Here is what stood out, and what I would practise next.'],
+  stress_start: ["[excited] Wonderful! [pause] Now let's stress test that setup of yours, right away."],
+  report_ready: ["[excited] Alright, here it is! [pause] Let's see how you did."],
 };
 
 /** Strip the v3 audio tags, leaving the sentence a learner reads. */

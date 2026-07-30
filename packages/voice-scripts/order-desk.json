@@ -220,8 +220,8 @@
       "file": "order-desk/build-complete--5a7acc0c.mp3"
     },
     "build-start--v0": {
-      "text": "[calm] One node at a time. Each one does a single job, then hands it on.",
-      "file": "shared/build-start--e1a471b3.mp3"
+      "text": "[calm] Now that you've collected your nodes, let's start connecting them up.",
+      "file": "shared/build-start--dff1c026.mp3"
     },
     "idle-nudge--v0": {
       "text": "[calm] Take your time. And if you're not sure what comes next, just ask.",
@@ -320,24 +320,24 @@
       "file": "order-desk/phase-complete--c04da406.mp3"
     },
     "phase-complete--route--v0": {
-      "text": "[excited] Right, that part's done. Nice work.",
-      "file": "shared/phase-complete--d3245d7e.mp3"
+      "text": "[excited] Right, that part's done. Nice work!",
+      "file": "shared/phase-complete--580e20f5.mp3"
     },
     "phase-complete--route--v1": {
-      "text": "[excited] That's it, that piece works now.",
-      "file": "shared/phase-complete--f7dc7557.mp3"
+      "text": "[excited] That's it. That piece works now!",
+      "file": "shared/phase-complete--90c76ac9.mp3"
     },
     "phase-complete--route--v2": {
       "text": "[excited] Good, that's one more piece in place.",
       "file": "shared/phase-complete--3e7cb79e.mp3"
     },
     "phase-complete--v0": {
-      "text": "[excited] Right, that part's done. Nice work.",
-      "file": "shared/phase-complete--d3245d7e.mp3"
+      "text": "[excited] Right, that part's done. Nice work!",
+      "file": "shared/phase-complete--580e20f5.mp3"
     },
     "phase-complete--v1": {
-      "text": "[excited] That's it, that piece works now.",
-      "file": "shared/phase-complete--f7dc7557.mp3"
+      "text": "[excited] That's it. That piece works now!",
+      "file": "shared/phase-complete--90c76ac9.mp3"
     },
     "phase-complete--v2": {
       "text": "[excited] Good, that's one more piece in place.",
@@ -404,12 +404,12 @@
       "file": "shared/phase-intro--36a5831c.mp3"
     },
     "problem-intro--v0": {
-      "text": "[calm] Read it once for the shape, not the detail. We'll pull it apart together.",
-      "file": "shared/problem-intro--2ed3ffcd.mp3"
+      "text": "[calm] Okay, let's begin. Here's your problem statement, so read it once for the shape.",
+      "file": "shared/problem-intro--9ec365f6.mp3"
     },
     "report-ready--v0": {
-      "text": "[calm] Here is what stood out, and what I would practise next.",
-      "file": "shared/report-ready--0d338bc2.mp3"
+      "text": "[excited] Alright, here it is! [pause] Let's see how you did.",
+      "file": "shared/report-ready--91ff2e51.mp3"
     },
     "run-case--access--v0": {
       "text": "[calm] Okay, here's the next one. Watch where it goes.",
@@ -472,12 +472,12 @@
       "file": "order-desk/stress-start--d20a5b75.mp3"
     },
     "understand-done--v0": {
-      "text": "[excited] You've got the shape of it. Now for the fun part, we build it.",
-      "file": "shared/understand-done--502f6671.mp3"
+      "text": "[excited] You've got the shape of it! [pause] Now for the fun part. We build it.",
+      "file": "shared/understand-done--3cbdf4f9.mp3"
     },
     "understand-done--v1": {
-      "text": "[excited] That's the thinking done. Now let's actually build the thing.",
-      "file": "shared/understand-done--d106f6b9.mp3"
+      "text": "[excited] That's the thinking done. Now let's go and build the thing.",
+      "file": "shared/understand-done--db8f2731.mp3"
     },
     "understand-start--v0": {
       "text": "[calm] A few questions first. I want to see how you're thinking about it.",
@@ -924,12 +924,12 @@
       "file": "shared/verify-pass--2f56140c.mp3"
     },
     "welcome--v0": {
-      "text": "[warm] Hey, good to meet you. Let's have a look at what we're building today.",
-      "file": "shared/welcome--c2ef9ac3.mp3"
+      "text": "[cheerfully] Hey there! I'm Iris, your mentor. [pause] I'll be guiding you through this whole n8n simulation. Ready when you are?",
+      "file": "shared/welcome--ba0dd002.mp3"
     },
     "welcome--v1": {
-      "text": "[warm] Hi there. Come on in, and let's see what we're making.",
-      "file": "shared/welcome--8ce678bb.mp3"
+      "text": "[cheerfully] Hey there! I'm Iris, and I'm your mentor here. [pause] I'll guide you through the whole simulation. Shall we?",
+      "file": "shared/welcome--e0a77c43.mp3"
     }
   }
 }

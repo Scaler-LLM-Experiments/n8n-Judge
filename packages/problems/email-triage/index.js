@@ -620,13 +620,13 @@ export const emailTriage = {
     ],
 
     // Finishing a stage, per phase.
-    'phase_complete:trigger': ["[excited] The flow's got a way in now. That's a good start."],
-    'phase_complete:brain': ["[excited] It can read an email and understand it now. That was the hard part."],
-    build_complete: ["[excited] The whole thing's wired up. Let's throw some real emails at it."],
+    'phase_complete:trigger': ["[excited] The flow's got a way in now. That's a good start!"],
+    'phase_complete:brain': ["[excited] It can read an email and understand it now! [pause] That was the hard part."],
+    build_complete: ["[excited] The whole thing's wired up! [pause] Let's throw some real emails at it."],
 
     // This problem's stress test is about the gap, so point at behaviour.
     stress_start: [
-      "[calm] Now the interesting bit. What does your flow do with an email it wasn't expecting?",
+      "[excited] Wonderful! [pause] Now let's stress test it. What does yours do with an email it wasn't expecting?",
     ],
 
     // ---- reasoning, per question -------------------------------------------
@@ -692,7 +692,7 @@ export const emailTriage = {
       "[calm] Hmm, not right yet. Look at what each branch is testing, and what the AI actually gave you.",
     ],
     'verify_fail:chat-gemini': [
-      "[calm] Hmm, not yet. Think about whether the same email should always get the same answer.",
+      "[thoughtful] Hmm. [pause] Not yet. Think about whether the same email should always get the same answer.",
     ],
     'verify_pass:chat-gemini': [
       "[warm] That's done. That setting is the difference between triage you can trust and a coin toss.",
@@ -729,14 +729,14 @@ export const emailTriage = {
     // because a greeting is the same job whichever problem you picked. This problem's
     // hook lives on the next beat, where the statement is actually on screen.
     problem_intro: [
-      "[calm] Support mail, sorted by hand, every single day. That's what we're stopping.",
+      "[calm] Okay, let's begin. Support mail, sorted by hand, every day. That's what we're stopping.",
     ],
     understand_start: ["[calm] Before we build anything, I want to see how you're reading this."],
-    understand_done: ["[excited] That's the hard part done. You worked out every piece before touching the canvas."],
+    understand_done: ["[excited] That's the hard part done! [pause] You worked out every piece before touching the canvas."],
 
     // The canvas has just opened and it is empty. This is the only line that gets to
     // frame the whole build, so it gives the ordering principle and nothing else.
-    build_start: ["[calm] Build it in the order the email travels. Each node hands its work to the next."],
+    build_start: ["[calm] Now that you've collected your nodes, let's start connecting them. Follow the order the email travels."],
 
     // ---- opening a build phase ----------------------------------------------
     // The phase title and its description are both on screen. These give the
@@ -752,7 +752,7 @@ export const emailTriage = {
     // this node now DOES inside this particular flow.
     'verify_pass:trigger': ["[warm] That's your first node working. It's watching the inbox now, and every email starts a run."],
     'verify_pass:classify': ["[warm] Ah, that one's the whole idea. It reads an email like a person would, and it calls it."],
-    'verify_pass:parse': ["[warm] Look at that. A paragraph went in, and clean fields came out. Now the Switch can read it."],
+    'verify_pass:parse': ["[warmly] Look at that. [pause] A paragraph went in, and clean fields came out. Now the Switch can read it."],
     'verify_pass:switch': ["[warm] Okay. Three ways out, and you decided every one of them. That's your routing done."],
     'verify_pass:action': ["[warm] And that's the last piece. Whatever reaches it goes back to a real person."],
 
@@ -770,12 +770,12 @@ export const emailTriage = {
     // Deliberately clipped: short sentences slow the delivery down and make it sound
     // careful rather than impatient. Each one points at WHICH field to look at
     // without saying what to put in it.
-    'verify_fail:trigger': ["[calm] Hmm, not quite. Check which inbox it's watching, and which part of the mail it reads."],
+    'verify_fail:trigger': ["[thoughtful] Hmm. [pause] Not quite. Check which inbox it's watching, and which part it reads."],
     'verify_fail:parse': ["[calm] Ah, not yet. Look at what it's reading from, and the names you asked it for."],
     'verify_fail:action': ["[calm] Ah, not right yet. Check who it's replying to, and where the words come from."],
 
     // The wrong node, on the canvas. Never names the right one.
-    node_wrong: ["[thoughtful] Hmm. That one won't do this job here. Let me ask you something."],
+    node_wrong: ["[thoughtful] Hmm. [pause] That one won't do this job here. Let me ask you something."],
 
     // ---- the run ------------------------------------------------------------
     // Says what a run IS, because nothing on screen does: four real emails, sent
@@ -792,7 +792,7 @@ export const emailTriage = {
     'run_case:feature': ["[calm] Right, next up. Nothing's broken this time, they just want something that doesn't exist yet."],
     'run_case:urgent': ["[calm] Ah, this third one is angry. They've been charged twice and nobody's helping."],
     'run_case:question': ["[calm] And the last one is just a question. No bug, no request, no complaint. But keep an eye on it."],
-    run_pass: ["[excited] All four of them. Every email went exactly where it should. That flow works."],
+    run_pass: ["[excited] All four of them! [pause] Every email went exactly where it should. That flow works."],
     run_fail: [
       "[calm] Hmm. Some didn't land where they should. That's useful to know, so let's follow one.",
       "[calm] Not all of them landed right. Follow one that missed and see where it turned.",
@@ -811,7 +811,7 @@ export const emailTriage = {
       "[calm] Think about the person who wrote in. What do they actually receive?",
     ],
 
-    report_ready: ["[calm] Here's what stood out, and what I'd practise next."],
+    report_ready: ["[excited] Alright, here it is! [pause] What stood out, and what I'd practise next."],
   },
 
   misconceptionLabels: {
