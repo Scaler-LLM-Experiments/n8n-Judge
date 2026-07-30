@@ -61,6 +61,29 @@ describe('createClipCache', () => {
     expect(results.every((r) => r?.toString() === 'x')).toBe(true);
   });
 
+  it('serves a freshly rendered clip from the render folder, with no bucket at all', async () => {
+    // The hole this closes: `voice:generate` writes into .voice-clips, the route read
+    // only .voice-cache, and with no bucket configured every clip 404'd. You had to
+    // stand up storage just to hear your own audition.
+    const rendered = await mkdtemp(join(tmpdir(), 'voice-rendered-'));
+    await mkdir(join(rendered, 'shared'), { recursive: true });
+    await writeFile(join(rendered, 'shared/a--1234.mp3'), 'just-rendered');
+    const src = counting(null);
+    const cache = createClipCache({ dir, alsoRead: [rendered], fetchObject: src.fetchObject });
+
+    expect((await cache.read('shared/a--1234.mp3'))?.toString()).toBe('just-rendered');
+    expect(src.calls).toBe(0);
+    await rm(rendered, { recursive: true, force: true });
+  });
+
+  it('still reaches storage for a clip that is in neither local folder', async () => {
+    const src = counting(Buffer.from('from-storage'));
+    const cache = createClipCache({ dir, alsoRead: [join(dir, 'does-not-exist')], fetchObject: src.fetchObject });
+
+    expect((await cache.read('shared/a--1234.mp3'))?.toString()).toBe('from-storage');
+    expect(src.calls).toBe(1);
+  });
+
   it('serves a clip already on disk without touching storage at all', async () => {
     await mkdir(join(dir, 'shared'), { recursive: true });
     await writeFile(join(dir, 'shared/a--1234.mp3'), 'from-disk');

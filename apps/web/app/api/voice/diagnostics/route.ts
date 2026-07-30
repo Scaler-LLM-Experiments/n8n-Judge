@@ -1,5 +1,5 @@
 import { stat } from 'node:fs/promises';
-import { join } from 'node:path';
+import { isAbsolute, join, resolve } from 'node:path';
 import { VALID_CLIP_FILES, voiceScriptFor } from '@judge/voice-scripts';
 import { auth } from '../../../../auth';
 
@@ -21,13 +21,33 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const CACHE_DIR = process.env.VOICE_CACHE_DIR || '.voice-cache';
+const CLIP_DIR = process.env.VOICE_CLIP_DIR || '.voice-clips';
 
-async function isWarm(file: string): Promise<boolean> {
-  try {
-    return (await stat(join(CACHE_DIR, file))).size > 0;
-  } catch {
-    return false;
+/**
+ * Same base resolution the cache uses — see `candidateBases` in voiceCache.ts. `next
+ * dev` runs from apps/web while the render scripts run from the repo root, so a
+ * relative folder means two different places and this report has to agree with what
+ * the route will actually find.
+ */
+function bases(dir: string): string[] {
+  if (isAbsolute(dir)) return [dir];
+  const here = resolve(dir);
+  const root = resolve(process.cwd(), '..', '..', dir);
+  return here === root ? [here] : [here, root];
+}
+
+/** Playable without touching storage: cached, or rendered here and not yet synced. */
+async function localSource(file: string): Promise<'cache' | 'rendered' | null> {
+  for (const [where, dir] of [['cache', CACHE_DIR], ['rendered', CLIP_DIR]] as const) {
+    for (const base of bases(dir)) {
+      try {
+        if ((await stat(join(base, file))).size > 0) return where;
+      } catch {
+        /* not here, try the next */
+      }
+    }
   }
+  return null;
 }
 
 export async function GET(req: Request) {
@@ -47,19 +67,22 @@ export async function GET(req: Request) {
   };
 
   const files = table ? [...new Set(Object.values(table.clips).map((c) => (c as { file: string }).file))] : [];
-  const warm = (await Promise.all(files.map(isWarm))).filter(Boolean).length;
+  const found = await Promise.all(files.map(localSource));
+  const cached = found.filter((f) => f === 'cache').length;
+  const rendered = found.filter((f) => f === 'rendered').length;
+  const local = cached + rendered;
 
   const verdict = !table
     ? `No clip table for "${slug}". Run \`npm run voice:generate\`; until then this problem is captions only.`
-    : !config.bucket
-      ? 'AUDIO_S3_BUCKET is not set, so no clip can be fetched. Narration is captions only.'
-      : !config.credentials
-        ? 'No key pair set, so the default AWS credential chain is used — fine with a task role, otherwise every fetch will fail.'
-        : warm === 0
-          ? 'Configured, and nothing served yet. The first play of each clip fetches it once; after that this number climbs and storage is never asked again.'
-          : warm < files.length
-            ? `Warm: ${warm} of ${files.length} clips are cached on this container. The rest are fetched once each, on first play.`
-            : 'Every clip for this problem is cached locally. Storage is not being touched at all.';
+    : local === files.length
+      ? `Every clip for this problem plays from local disk (${cached} cached, ${rendered} rendered here). Storage is not being touched at all.`
+      : !config.bucket
+        ? `AUDIO_S3_BUCKET is not set and ${files.length - local} of ${files.length} clips are not on disk, so those play as captions. Run \`npm run voice:generate\` to render them here, or configure the bucket.`
+        : !config.credentials
+          ? 'No key pair set, so the default AWS credential chain is used — fine with a task role, otherwise every fetch will fail.'
+          : local === 0
+            ? 'Configured, and nothing served yet. The first play of each clip fetches it once; after that this number climbs and storage is never asked again.'
+            : `${local} of ${files.length} clips are on local disk. The rest are fetched once each, on first play.`;
 
   return Response.json({
     verdict,
@@ -69,7 +92,12 @@ export async function GET(req: Request) {
       ? {
           lines: Object.keys(table.clips).length,
           files: files.length,
-          warmOnThisContainer: warm,
+          // Split, because they mean different things: `cached` was fetched from
+          // storage and will survive nothing but this container, `renderedLocally`
+          // is output of `voice:generate` that has probably not been synced yet.
+          playableFromDisk: local,
+          cached,
+          renderedLocally: rendered,
           renderedWith: table.renderedWith,
         }
       : null,

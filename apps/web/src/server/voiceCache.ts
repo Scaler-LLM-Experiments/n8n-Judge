@@ -1,5 +1,5 @@
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
+import { dirname, isAbsolute, join, resolve } from 'node:path';
 
 // One copy of each clip, on this container's own disk.
 //
@@ -33,10 +33,50 @@ export interface ClipCache {
   read(file: string): Promise<Buffer | null>;
 }
 
+/**
+ * Where a relative clip directory might actually be.
+ *
+ * `next dev` runs with its working directory at `apps/web`, but the scripts that
+ * write clips (`voice:generate`) run from the repo root — so a plain `.voice-clips`
+ * means two DIFFERENT folders in the two processes. Everything was rendered, nothing
+ * was found, and every clip 404'd with the diagnostics cheerfully reporting zero
+ * clips on disk.
+ *
+ * So a relative path is tried against the working directory and against the repo root
+ * two levels up. Both are one failed stat when wrong, and only on the path that is
+ * about to reach for storage anyway. An absolute path is taken as given.
+ */
+function candidateBases(dir: string): string[] {
+  if (isAbsolute(dir)) return [dir];
+  const cwd = resolve(dir);
+  const fromRepoRoot = resolve(process.cwd(), '..', '..', dir);
+  return cwd === fromRepoRoot ? [cwd] : [cwd, fromRepoRoot];
+}
+
 /** Fetch one object's bytes, or null if it is not there. Never throws. */
 export type FetchObject = (file: string) => Promise<Buffer | null>;
 
-export function createClipCache({ dir, fetchObject }: { dir: string; fetchObject: FetchObject }): ClipCache {
+/**
+ * @param dir        where fetched clips are written. The cache proper.
+ * @param alsoRead   extra read-only directories searched before storage is asked.
+ *                   This is how a freshly rendered clip plays with no bucket at all:
+ *                   `npm run voice:generate` writes into VOICE_CLIP_DIR, and in
+ *                   development that folder is right there. Without it you would have
+ *                   to stand up a bucket and sync just to hear your own audition, and
+ *                   every clip would 404 in the meantime — which is exactly what
+ *                   happened. In a deployed container the folder does not exist, the
+ *                   lookup costs one failed stat, and behaviour is unchanged.
+ * @param fetchObject how to get a clip that is not on disk anywhere.
+ */
+export function createClipCache({
+  dir,
+  alsoRead = [],
+  fetchObject,
+}: {
+  dir: string;
+  alsoRead?: string[];
+  fetchObject: FetchObject;
+}): ClipCache {
   const inFlight = new Map<string, Promise<Buffer | null>>();
 
   async function fromDisk(local: string): Promise<Buffer | null> {
@@ -50,11 +90,20 @@ export function createClipCache({ dir, fetchObject }: { dir: string; fetchObject
     }
   }
 
+  /** Every local place a clip might already be, cache first. */
+  async function anyLocal(file: string): Promise<Buffer | null> {
+    for (const base of [dir, ...alsoRead].flatMap(candidateBases)) {
+      const bytes = await fromDisk(join(base, file));
+      if (bytes) return bytes;
+    }
+    return null;
+  }
+
   return {
     async read(file: string): Promise<Buffer | null> {
       const local = join(dir, file);
 
-      const cached = await fromDisk(local);
+      const cached = await anyLocal(file);
       if (cached) return cached;
 
       const existing = inFlight.get(file);
@@ -136,6 +185,8 @@ export const s3Fetch: FetchObject = async (file) => {
 
 export const clipCache: ClipCache = createClipCache({
   dir: process.env.VOICE_CACHE_DIR || '.voice-cache',
+  // Locally rendered clips play immediately, with no bucket and no sync.
+  alsoRead: [process.env.VOICE_CLIP_DIR || '.voice-clips'],
   fetchObject: s3Fetch,
 });
 
