@@ -5,7 +5,7 @@ import { Button } from '../design-system/Button.jsx';
 import { TopBar } from '../components/TopBar.jsx';
 import { ConceptFlow } from '../components/ConceptFlow.jsx';
 import { ProblemNote } from '../components/ProblemNote.jsx';
-import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
+import { IrisMascot } from '../mascot/IrisMascot.jsx';
 import { N8nNodeView } from '../n8n/N8nNodeView.jsx';
 import { NodeIcon } from '../nodes/nodeIcons.js';
 import { checkAnswer } from '../lib/grader.js';
@@ -64,7 +64,15 @@ export function DissectionScreen({ problem, sessionId, onComplete, onDecision })
   // development double-render does not say the same sentence twice.
   const spoken = useRef({});
   useEffect(() => {
-    const moment = phase === 'greet' ? 'welcome' : phase === 'problem' ? 'problem_intro' : phase === 'quiz' ? 'understand_start' : null;
+    const moment =
+      phase === 'greet' ? 'welcome'
+      : phase === 'problem' ? 'problem_intro'
+      : phase === 'quiz' ? 'understand_start'
+      // Spoken when this screen APPEARS. It used to fire from the button that
+      // leaves it, and `goTo` stops narration on a screen change, so the line for
+      // "you've got the plan" was started and cut in the same instant.
+      : phase === 'done' ? 'understand_done'
+      : null;
     if (!moment || spoken.current[moment]) return;
     spoken.current[moment] = true;
     // Each beat is its own scope, so clicking through the intro fast cuts the
@@ -177,7 +185,7 @@ export function DissectionScreen({ problem, sessionId, onComplete, onDecision })
   }
   if (phase === 'done') {
     const finishDissection = () => {
-      voice.play('understand_done');
+      // No line here: `understand_done` is spoken on arrival, above.
       questions.forEach((x, i) => onDecision && onDecision({ id: `dissection:${x.id}`, kind: 'dissection', label: x.prompt, correct: true, firstTry: firstTryByQuestion[i] ?? (attempts[i] === 0) }));
       onComplete({ attempts, unlockedTypes });
     };
@@ -210,9 +218,10 @@ export function DissectionScreen({ problem, sessionId, onComplete, onDecision })
         />
       </div>
 
-      {/* Iris stays parked bottom-left, reacting */}
-      <div style={{ position: 'fixed', left: 28, bottom: 24, width: 84, height: 84, zIndex: 50, pointerEvents: 'none' }}>
-        <MascotPlayer clip={mascotClip} once={mascotClip !== 'idle'} onceDone={() => {}} />
+      {/* Iris stays parked bottom-left. She reacts to the verdict, then talks
+          through the line she is actually saying — see IrisMascot. */}
+      <div style={{ position: 'fixed', left: 28, bottom: 24, zIndex: 50, pointerEvents: 'none' }}>
+        <IrisMascot resting={mascotClip} size={84} />
       </div>
 
       {showNote ? (
@@ -376,12 +385,19 @@ function Greet({ problem, onContinue }) {
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <TopBar activeStage="statement" problem={problem} />
       <div ref={root} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32, textAlign: 'center' }}>
-        <div data-a="m" style={{ position: 'relative', width: 108, height: 108, marginBottom: 14 }}>
-          <MascotPlayer clip="hello" once={false} onceDone={() => {}} />
+        <div data-a="m" style={{ position: 'relative', marginBottom: 14 }}>
+          <IrisMascot resting="hello" size={108} />
         </div>
-        <h1 data-a="r" style={{ fontFamily: 'var(--font-headline)', fontSize: 40, fontWeight: 600, margin: '0 0 14px' }}>I’m Iris, your AI mentor.</h1>
+        {/* Generic on purpose. This screen is Iris introducing herself, and it reads
+            the same whichever challenge you picked. What is specific to the problem
+            is the line she SPEAKS over it (`welcome` in the problem's voice block),
+            which is also why neither repeats the other. */}
+        <h1 data-a="r" style={{ fontFamily: 'var(--font-headline)', fontSize: 40, fontWeight: 600, margin: '0 0 14px' }}>
+          Hi, I’m Iris.
+        </h1>
         <p data-a="r" style={{ fontSize: 18, lineHeight: 1.55, color: 'var(--fg-2)', maxWidth: 560, margin: '0 0 10px' }}>
-          I’ll walk you through today’s problem, step by step, and make sure you really understand it before you build anything.
+          I’m your mentor for this one. I’ll hand-hold you the whole way through, one step at a time,
+          until you’ve built it yourself.
         </p>
         <div data-a="r" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '6px 12px', border: '1px solid var(--border-subtle)', background: 'var(--surface-1)', fontSize: 12.5, color: 'var(--fg-2)', marginBottom: 30 }}>
           <Microphone size={15} color="var(--brand-primary)" weight="fill" /> I will talk you through it. Use the speaker button up top to mute me.
@@ -427,8 +443,8 @@ function ProblemBeat({ problem, onContinue }) {
       </div>
 
       {/* mascot resting bottom-left */}
-      <div data-a="mascot" style={{ position: 'fixed', left: 28, bottom: 24, width: 84, height: 84, zIndex: 50 }}>
-        <MascotPlayer clip="presenting" once={false} onceDone={() => {}} />
+      <div data-a="mascot" style={{ position: 'fixed', left: 28, bottom: 24, zIndex: 50 }}>
+        <IrisMascot resting="presenting" size={84} />
       </div>
     </div>
   );
@@ -439,8 +455,8 @@ function Done({ problem, unlockedTypes, onFinish }) {
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <TopBar activeStage="statement" problem={problem} />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32, textAlign: 'center' }}>
-        <div style={{ position: 'relative', width: 96, height: 96, marginBottom: 8 }}>
-          <MascotPlayer clip="celebrate" once={false} onceDone={() => {}} />
+        <div style={{ position: 'relative', marginBottom: 8 }}>
+          <IrisMascot resting="celebrate" size={96} />
         </div>
         <h2 style={{ margin: '0 0 8px', fontFamily: 'var(--font-headline)', fontWeight: 600 }}>Nice — you’ve got the plan.</h2>
         <p style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--fg-2)', maxWidth: 560, marginBottom: 26 }}>

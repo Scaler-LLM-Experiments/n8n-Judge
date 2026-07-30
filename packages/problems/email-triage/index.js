@@ -5,6 +5,7 @@ export const emailTriage = {
     "Your inbox is full of mixed feedback. Build a flow that watches for new emails, uses AI to classify each one (Bug Report / Feature Request / Complaint), and routes urgent complaints differently from everything else — each path sends the right reply.",
   tagline: 'Classify incoming support emails with AI and route each to the right reply.',
 
+
   // Front-of-flow: Iris interrogates the learner to dissect the problem. Each
   // question is a NODE/APP pick — options map to real node types, and the chosen
   // node drops onto the canvas (tagged right/wrong). Correct answers unlock the
@@ -763,7 +764,20 @@ export const emailTriage = {
     node_wrong: ['[thoughtful] That will not do this job here. Let me ask you something.'],
 
     // ---- the run ------------------------------------------------------------
-    run_start: ['[calm] Watch each email go through. See which path it takes.'],
+    // Says what a run IS, because nothing on screen does: four real emails, sent
+    // through the flow one after another, with the whole journey visible.
+    run_start: ['[calm] Four real emails now, one after another. You can watch the whole journey.'],
+
+    // One line per email as it enters. Without these the run is a sticky note
+    // sliding along a wire and every case looks the same.
+    //
+    // Each describes the EMAIL and stops there. Where it comes out is the thing
+    // worth watching, and on the last one it is also the Stress Testing question, so
+    // announcing the destination would answer a question not yet asked.
+    'run_case:bug': ['[calm] First one. Someone says the app crashes when they log in.'],
+    'run_case:feature': ['[calm] Next. This one is asking for something that does not exist yet.'],
+    'run_case:urgent': ['[calm] This one is angry, and it is about money. Watch it carefully.'],
+    'run_case:question': ['[calm] Last one. Just a question. No bug, no request, no complaint.'],
     run_pass: ['[excited] All of them. Every email went where it should. That flow works.'],
     run_fail: [
       '[calm] Some went the wrong way. That is worth knowing. Let us look.',

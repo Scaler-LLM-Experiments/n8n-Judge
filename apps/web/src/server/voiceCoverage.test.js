@@ -75,6 +75,10 @@ function playSites(problem) {
     for (const moment of ['node_placed', 'verify_pass', 'verify_fail']) add(moment, { key: type, node });
   }
 
+  // The Run narrates each test case as it enters — BuildStage plays this keyed by
+  // the sample case id.
+  for (const sample of problem.sampleCases ?? []) add('run_case', { key: sample.id });
+
   return sites;
 }
 

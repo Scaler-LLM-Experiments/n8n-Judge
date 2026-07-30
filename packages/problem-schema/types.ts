@@ -253,6 +253,7 @@ export const problemSchema = z
     id: z.string().regex(/^[a-z0-9-]+$/, 'id must be a kebab-case slug'),
     title: z.string().min(1),
     tagline: z.string().min(1),
+
     statement: z.string().min(1),
     /**
      * How hard this challenge is, as the author intends it to be read.

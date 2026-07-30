@@ -412,6 +412,19 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
     let t = 900; let prevCi = 0;
     seq.forEach((f, idx) => {
       if (idx > 0) t += f.ci !== prevCi ? 2400 : 2000; // ~2s per node so it's readable
+      // Say what THIS email is as it enters the flow. A run is four emails going
+      // through in sequence and, without this, all a learner sees is a sticky note
+      // moving: the cases are indistinguishable from each other. The line describes
+      // the email and never where it ends up, because watching it land is the point.
+      if (idx === 0 || f.ci !== prevCi) {
+        const sample = problem.sampleCases?.[f.ci];
+        if (sample?.id) {
+          const at = t;
+          runTimers.current.push(
+            setTimeout(() => voice.play('run_case', { key: sample.id, scope: `run:${sample.id}` }), at)
+          );
+        }
+      }
       prevCi = f.ci;
       runTimers.current.push(setTimeout(() => setRunPos(f), t));
     });

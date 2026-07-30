@@ -166,6 +166,14 @@ export const LINES = {
 
   // ---- running ------------------------------------------------------------
   run_start: ['[calm] Watch what happens to each one as it goes through.'],
+  // Spoken as each test case begins, keyed by the case id so a problem can say what
+  // THIS email actually is. The generic version cannot know, so it only points.
+  //
+  // It describes the input and never the outcome: the whole value of watching a run
+  // is seeing where something lands, and narrating the destination in advance throws
+  // that away. It would also hand over the Stress Testing answer on the case that
+  // deliberately matches no rule.
+  run_case: ['[calm] Next one. Watch where it goes.'],
   run_pass: ['[excited] Every case came out right. That flow works.', '[excited] All of them passed. Well built.'],
   run_fail: ['[calm] Some did not come out right. That is worth knowing. Let us look.'],
 
@@ -323,6 +331,7 @@ export const MOMENT_CLIP = {
   verify_pass: 'correct',
   verify_fail: 'shake-no',
   run_start: 'thinking',
+  run_case: 'attentive',
   run_pass: 'celebrate',
   run_fail: 'thinking',
   stress_start: 'presenting',

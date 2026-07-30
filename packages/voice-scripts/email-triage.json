@@ -227,6 +227,26 @@
       "text": "Here is what stood out. And what I would practise next.",
       "file": "email-triage/report-ready--5ce1268c.mp3"
     },
+    "run-case--bug--v0": {
+      "text": "First one. Someone says the app crashes when they log in.",
+      "file": "email-triage/run-case--832b270a.mp3"
+    },
+    "run-case--feature--v0": {
+      "text": "Next. This one is asking for something that does not exist yet.",
+      "file": "email-triage/run-case--5f36ecea.mp3"
+    },
+    "run-case--question--v0": {
+      "text": "Last one. Just a question. No bug, no request, no complaint.",
+      "file": "email-triage/run-case--8d8d7aea.mp3"
+    },
+    "run-case--urgent--v0": {
+      "text": "This one is angry, and it is about money. Watch it carefully.",
+      "file": "email-triage/run-case--a342071e.mp3"
+    },
+    "run-case--v0": {
+      "text": "Next one. Watch where it goes.",
+      "file": "shared/run-case--52ba80f3.mp3"
+    },
     "run-fail--v0": {
       "text": "Some went the wrong way. That is worth knowing. Let us look.",
       "file": "email-triage/run-fail--c23087a8.mp3"
@@ -240,8 +260,8 @@
       "file": "email-triage/run-pass--7aa9b2ed.mp3"
     },
     "run-start--v0": {
-      "text": "Watch each email go through. See which path it takes.",
-      "file": "email-triage/run-start--5d08b9e7.mp3"
+      "text": "Four real emails now, one after another. You can watch the whole journey.",
+      "file": "email-triage/run-start--82e64cb1.mp3"
     },
     "stress-start--v0": {
       "text": "Now the interesting bit. What does your flow do with an email it was not expecting?",

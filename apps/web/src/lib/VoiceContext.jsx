@@ -62,15 +62,31 @@ export function VoiceProvider({ children, problem }) {
     });
   }
 
+  // A pending `stop()` from a teardown, cancelled if the effect comes straight back.
+  const stopTimer = useRef(null);
+
   useEffect(() => {
     const v = voiceRef.current;
     if (!v) return undefined;
+
+    // React's development StrictMode runs every effect, tears it down, and runs it
+    // again. A plain `v.stop()` in the cleanup therefore fired a fraction of a second
+    // after mount — and because child effects run BEFORE their parent's, the greeting
+    // had already started. It was paused before a word came out, with
+    // `play() was interrupted by a call to pause()` as the only trace, and the
+    // screen's say-once guard meant it was never retried. The first line a learner
+    // ever hears was silent, every session, in development.
+    //
+    // Deferring the stop by a tick tells the two apart: a StrictMode remount comes
+    // straight back and cancels it, a real unmount never does.
+    clearTimeout(stopTimer.current);
+
     // Keep the clip the mascot is on: it is set by `onMoment`, which fires before
     // any audio state exists, so a plain overwrite would drop it.
     const off = v.subscribe((next) => setState((s) => ({ ...next, clip: s.clip })));
     return () => {
       off();
-      v.stop();
+      stopTimer.current = setTimeout(() => v.stop(), 0);
     };
   }, []);
 

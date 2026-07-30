@@ -1,5 +1,13 @@
+import { readFileSync } from 'node:fs';
 import { describe, it, expect } from 'vitest';
 import { LINES, MOMENT_CLIP, captionFor, clipFor, fillLine, hasMoment, pickLine } from './voiceLines.js';
+import { SPEAKING } from '../mascot/IrisMascot.jsx';
+
+/** Every animation id inside the dotLottie bundle the app actually loads. */
+function bundledClips() {
+  const raw = readFileSync('apps/web/public/mascot/companion.lottie').toString('latin1');
+  return new Set([...raw.matchAll(/animations\/([a-z0-9_-]+)\.json/g)].map((m) => m[1]));
+}
 
 const allLines = Object.entries(LINES).flatMap(([moment, variants]) => variants.map((line) => ({ moment, line })));
 
@@ -182,9 +190,17 @@ describe('the mascot reacts to every moment', () => {
   });
 
   it('uses only clips the mascot bundle actually has', () => {
-    const available = new Set(['idle', 'hello', 'presenting', 'thinking', 'celebrate', 'correct', 'shake-no']);
+    // Read from companion.lottie itself rather than a hand-typed list. The list
+    // version said it checked "the bundle" and checked seven names somebody had
+    // remembered to add, so the first genuinely new clip failed a passing test for
+    // the wrong reason. The bundle ships 80 states; asking it is both correct and
+    // cheaper to maintain.
+    const available = bundledClips();
+    expect(available.size).toBeGreaterThan(20);
     for (const [moment, clip] of Object.entries(MOMENT_CLIP)) {
       expect(available.has(clip), `${moment} wants "${clip}"`).toBe(true);
     }
+    // The speaking loops IrisMascot cross-fades to while a line is playing.
+    for (const clip of SPEAKING) expect(available.has(clip), `speaking clip "${clip}"`).toBe(true);
   });
 });

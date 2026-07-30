@@ -160,6 +160,11 @@ export function enumerateSpeakable(problem = null, catalog = {}) {
     }
   }
 
+  // One line per test case in the Run, keyed by the case id.
+  for (const sample of problem.sampleCases ?? []) {
+    add('run_case', sample.id, {}, resolveLines('run_case', { problem, key: sample.id }) ?? []);
+  }
+
   // Per-phase lines, which key off the phase id.
   //
   // `build_complete` is in here as well as being a plain moment, because BuildStage
