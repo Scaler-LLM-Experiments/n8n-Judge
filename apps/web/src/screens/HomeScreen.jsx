@@ -60,7 +60,9 @@ function Cover({ problem, Icon }) {
     // sliced by the border. Padding plus contain keeps the whole scene visible and
     // gives it room to breathe. The slot's background matches the art's own
     // off-white, so the inset reads as part of the picture rather than as a frame.
-    <div style={{ aspectRatio: '16 / 9', background: art?.src ? COVER_BG : 'var(--surface-soft-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderBottom: '1px solid var(--border-subtle)', padding: art?.src ? 18 : 0, boxSizing: 'border-box' }}>
+    // 2:1 rather than 16:9. A node setup is a wide, shallow left-to-right thing, so
+    // the art is too — a squarer slot forced the illustration to shrink to fit.
+    <div style={{ aspectRatio: '2 / 1', background: art?.src ? COVER_BG : 'var(--surface-soft-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderBottom: '1px solid var(--border-subtle)', padding: art?.src ? 16 : 0, boxSizing: 'border-box' }}>
       {art?.src ? (
         <img src={art.src} alt={art.alt || ''} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', display: 'block' }} />
       ) : (

@@ -196,8 +196,8 @@
       "file": "shared/build-complete--f28c325c.mp3"
     },
     "build-start--v0": {
-      "text": "[calm] Now that you've collected your nodes, let's start connecting them up.",
-      "file": "shared/build-start--dff1c026.mp3"
+      "text": "[calm] Right, you've got all your nodes. Now let's build your setup.",
+      "file": "shared/build-start--9c4db16f.mp3"
     },
     "idle-nudge--v0": {
       "text": "[calm] Take your time. And if you're not sure what comes next, just ask.",
@@ -1260,32 +1260,32 @@
       "file": "shared/report-ready--91ff2e51.mp3"
     },
     "run-case--billing--v0": {
-      "text": "[calm] Okay, here's the next one. Watch where it goes.",
-      "file": "shared/run-case--1ea64116.mp3"
+      "text": "[calm] Okay, here's the next one arriving. Watch where it goes.",
+      "file": "shared/run-case--c4c5095e.mp3"
     },
     "run-case--onboarding--v0": {
-      "text": "[calm] Okay, here's the next one. Watch where it goes.",
-      "file": "shared/run-case--1ea64116.mp3"
+      "text": "[calm] Okay, here's the next one arriving. Watch where it goes.",
+      "file": "shared/run-case--c4c5095e.mp3"
     },
     "run-case--renewal--v0": {
-      "text": "[calm] Okay, here's the next one. Watch where it goes.",
-      "file": "shared/run-case--1ea64116.mp3"
+      "text": "[calm] Okay, here's the next one arriving. Watch where it goes.",
+      "file": "shared/run-case--c4c5095e.mp3"
     },
     "run-case--v0": {
-      "text": "[calm] Okay, here's the next one. Watch where it goes.",
-      "file": "shared/run-case--1ea64116.mp3"
+      "text": "[calm] Okay, here's the next one arriving. Watch where it goes.",
+      "file": "shared/run-case--c4c5095e.mp3"
     },
     "run-fail--v0": {
       "text": "[calm] Some didn't come out right. That's worth knowing. Let's look.",
       "file": "shared/run-fail--3622edfc.mp3"
     },
     "run-pass--v0": {
-      "text": "[excited] Every case came out right. That flow works.",
-      "file": "shared/run-pass--8844014c.mp3"
+      "text": "[excited] Every test case passed! That flow works.",
+      "file": "shared/run-pass--8c6a4800.mp3"
     },
     "run-pass--v1": {
-      "text": "[excited] All of them passed. That's well built.",
-      "file": "shared/run-pass--8428ce8c.mp3"
+      "text": "[excited] All your test cases passed. That's well built.",
+      "file": "shared/run-pass--bb7321f3.mp3"
     },
     "run-start--v0": {
       "text": "[calm] Watch what happens to each one as it goes through.",

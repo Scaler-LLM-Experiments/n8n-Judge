@@ -201,9 +201,9 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
   const parkCorner = useCallback(() => {
     const b = box();
     setMascotClip('idle'); setMascotVisible(true);
-    // x=96, not 24: React Flow's zoom controls own the bottom-left corner, and at
-    // 24 Iris sat directly under the + / − buttons — which draw on top of her.
-    moveTo(96, b.height - 96, 68);
+    // Hard into the left corner. She was pushed to x=96 to clear React Flow's zoom
+    // buttons; those now live bottom-right (see N8nEditor), so the corner is hers.
+    moveTo(20, b.height - 96, 68);
   }, [moveTo]);
   const rectOf = (nodeId) => {
     const c = canvasRef.current;

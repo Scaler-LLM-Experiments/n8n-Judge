@@ -164,7 +164,7 @@ export const LINES = {
   // ---- building -----------------------------------------------------------
   // The canvas and the phase label are both visible, so no line reads them out.
   build_start: [
-    "[calm] Now that you've collected your nodes, let's start connecting them up.",
+    "[calm] Right, you've got all your nodes. Now let's build your setup.",
   ],
   // Spoken when a build phase opens. `BuildStage` had been playing this since the
   // mascot mapping existed, but there were no words for it, so Iris animated and
@@ -275,8 +275,11 @@ export const LINES = {
   // is seeing where something lands, and narrating the destination in advance throws
   // that away. It would also hand over the Stress Testing answer on the case that
   // deliberately matches no rule.
-  run_case: ["[calm] Okay, here's the next one. Watch where it goes."],
-  run_pass: ["[excited] Every case came out right. That flow works.", "[excited] All of them passed. That's well built."],
+  // The generic version cannot know what arrived, so it points at the trigger
+  // without describing the case. An authored per-case line should name the trigger
+  // explicitly — "a customer sends an email saying…" — see the skill.
+  run_case: ["[calm] Okay, here's the next one arriving. Watch where it goes."],
+  run_pass: ["[excited] Every test case passed! That flow works.", "[excited] All your test cases passed. That's well built."],
   run_fail: ["[calm] Some didn't come out right. That's worth knowing. Let's look."],
 
   // ---- finishing ----------------------------------------------------------

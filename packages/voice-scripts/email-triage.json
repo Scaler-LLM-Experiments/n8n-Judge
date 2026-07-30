@@ -120,8 +120,8 @@
       "file": "email-triage/build-complete--50561c38.mp3"
     },
     "build-start--v0": {
-      "text": "[calm] Now that you've collected your nodes, let's start connecting them. Follow the order the email travels.",
-      "file": "email-triage/build-start--73cbdccc.mp3"
+      "text": "[calm] Right, you've got all your nodes. Now let's build your setup, in the order the email travels.",
+      "file": "email-triage/build-start--c26cc475.mp3"
     },
     "idle-nudge--v0": {
       "text": "[calm] Take your time. If it helps, ask what the last node handed over.",
@@ -1784,24 +1784,24 @@
       "file": "email-triage/report-ready--6dfba195.mp3"
     },
     "run-case--bug--v0": {
-      "text": "[calm] Okay, here's the first. Their app crashes every time they log in. Watch what your classifier does.",
-      "file": "email-triage/run-case--d17f584e.mp3"
+      "text": "[calm] Okay, here's the first. A customer sends an email saying the app crashes when they log in.",
+      "file": "email-triage/run-case--704a721c.mp3"
     },
     "run-case--feature--v0": {
-      "text": "[calm] Right, next up. Nothing's broken this time, they just want something that doesn't exist yet.",
-      "file": "email-triage/run-case--e8529263.mp3"
+      "text": "[calm] Right, next up. A customer emails asking for something that doesn't exist yet.",
+      "file": "email-triage/run-case--acb47a97.mp3"
     },
     "run-case--question--v0": {
-      "text": "[calm] And the last one is just a question. No bug, no request, no complaint. But keep an eye on it.",
-      "file": "email-triage/run-case--c64931c3.mp3"
+      "text": "[calm] And the last one. A customer emails just to ask a question. Keep an eye on this one.",
+      "file": "email-triage/run-case--d087c1fa.mp3"
     },
     "run-case--urgent--v0": {
-      "text": "[calm] Ah, this third one is angry. They've been charged twice and nobody's helping.",
-      "file": "email-triage/run-case--03e26274.mp3"
+      "text": "[calm] Ah, this third one. A customer emails, angry, charged twice and nobody's helping.",
+      "file": "email-triage/run-case--1661b482.mp3"
     },
     "run-case--v0": {
-      "text": "[calm] Okay, here's the next one. Watch where it goes.",
-      "file": "shared/run-case--1ea64116.mp3"
+      "text": "[calm] Okay, here's the next one arriving. Watch where it goes.",
+      "file": "shared/run-case--c4c5095e.mp3"
     },
     "run-fail--v0": {
       "text": "[calm] Hmm. Some didn't land where they should. That's useful to know, so let's follow one.",
@@ -1812,8 +1812,8 @@
       "file": "email-triage/run-fail--878e0da4.mp3"
     },
     "run-pass--v0": {
-      "text": "[excited] All four of them! [pause] Every email went exactly where it should. That flow works.",
-      "file": "email-triage/run-pass--8c959a49.mp3"
+      "text": "[excited] All four test cases passed! [pause] Every email went exactly where it should.",
+      "file": "email-triage/run-pass--f0ff4a2e.mp3"
     },
     "run-start--v0": {
       "text": "[calm] Right, let's see if what you built holds up. Four real emails, one at a time.",

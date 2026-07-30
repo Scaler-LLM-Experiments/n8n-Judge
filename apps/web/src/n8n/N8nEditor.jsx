@@ -290,7 +290,9 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
           fitView
         >
           <Background variant={BackgroundVariant.Dots} gap={18} size={1.5} color="#C4CAD4" />
-          <Controls showInteractive={false} />
+          {/* Bottom RIGHT, so the bottom-left corner belongs to Iris. She parks
+              there and travels from there; the zoom buttons drew on top of her. */}
+          <Controls showInteractive={false} position="bottom-right" />
         </ReactFlow>
 
         {nodes.length === 0 ? (

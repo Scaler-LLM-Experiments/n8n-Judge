@@ -162,7 +162,10 @@ export function EvalScreen({ problem, sessionId, onDecision, onSubmit }) {
             on a laptop. Secondary colour, not brand blue: this is a label, and blue is
             the colour of things you click. */}
         <div style={{ width: '100%', maxWidth: COLUMN_WIDTH, textAlign: 'center', marginBottom: 22, paddingBottom: 18, borderBottom: '1px solid var(--border-subtle)' }}>
-          <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--fg-2)', fontWeight: 700 }}>
+          {/* A medium title, not an eyebrow: it names the section a learner has just
+              arrived at, so it should read at title weight. Secondary colour keeps it
+              from competing with the question, which is the thing to actually read. */}
+          <div style={{ fontFamily: 'var(--font-headline)', fontSize: 20, fontWeight: 600, color: 'var(--fg-2)' }}>
             Stress Testing
           </div>
         </div>

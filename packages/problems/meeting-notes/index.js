@@ -22,7 +22,7 @@ export const meetingNotes = {
   estimatedMinutes: 15,
   coverImage: {
     prompt:
-      'A long ragged paper scroll unrolls out of a retro pixel-art computer on the left and feeds upward through a stream of falling binary into a single floating cube, which sits above a neat isometric document with three short bullet lines on it.',
+      'A ragged paper scroll on the left, a short stream of binary, and one neat document with three bullet lines on the right. Wide, sparse, left to right. Nothing else.',
     src: '/covers/meeting-notes.png',
     alt: 'A transcript scroll feeding into a cube and out as tidy notes',
   },

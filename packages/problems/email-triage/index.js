@@ -15,7 +15,7 @@ export const emailTriage = {
   estimatedMinutes: 25,
   coverImage: {
     prompt:
-      'A single retro pixel-art desktop computer stands on the ground with an envelope glowing on its screen. Above it float three separate cube-shaped sorting bins, and a stream of falling binary connects the computer up to them, one envelope shape riding the stream.',
+      'A single retro pixel-art computer on the left, and three simple cube trays on the right, with one envelope travelling between them on a short stream of binary. Wide, sparse, left to right.',
     src: '/covers/email-triage.png',
     alt: 'A retro computer streaming an email up into three sorting bins',
   },
@@ -774,7 +774,10 @@ export const emailTriage = {
 
     // The canvas has just opened and it is empty. This is the only line that gets to
     // frame the whole build, so it gives the ordering principle and nothing else.
-    build_start: ["[calm] Now that you've collected your nodes, let's start connecting them. Follow the order the email travels."],
+    // Spoken as the canvas opens, straight after the toolkit reveal. Names what the
+    // learner now HAS before naming what to do with it — the previous line went
+    // straight to "start connecting them", which is the next screen's job.
+    build_start: ["[calm] Right, you've got all your nodes. Now let's build your setup, in the order the email travels."],
 
     // ---- opening a build phase ----------------------------------------------
     // The phase title and its description are both on screen. These give the
@@ -858,11 +861,18 @@ export const emailTriage = {
     // Each describes the EMAIL and stops there. Where it comes out is the thing
     // worth watching, and on the last one it is also the Stress Testing question, so
     // announcing the destination would answer a question not yet asked.
-    'run_case:bug': ["[calm] Okay, here's the first. Their app crashes every time they log in. Watch what your classifier does."],
-    'run_case:feature': ["[calm] Right, next up. Nothing's broken this time, they just want something that doesn't exist yet."],
-    'run_case:urgent': ["[calm] Ah, this third one is angry. They've been charged twice and nobody's helping."],
-    'run_case:question': ["[calm] And the last one is just a question. No bug, no request, no complaint. But keep an eye on it."],
-    run_pass: ["[excited] All four of them! [pause] Every email went exactly where it should. That flow works."],
+    // Every run_case OPENS ON THE TRIGGER. "A customer sends an email saying the
+    // app crashes" ties the case to the node the learner actually wired up;
+    // starting from the symptom ("their app crashes") describes a situation with no
+    // visible connection to the trigger sitting on the canvas.
+    'run_case:bug': ["[calm] Okay, here's the first. A customer sends an email saying the app crashes when they log in."],
+    'run_case:feature': ["[calm] Right, next up. A customer emails asking for something that doesn't exist yet."],
+    'run_case:urgent': ["[calm] Ah, this third one. A customer emails, angry, charged twice and nobody's helping."],
+    'run_case:question': ["[calm] And the last one. A customer emails just to ask a question. Keep an eye on this one."],
+    // "All four of them!" opened on a number with nothing for it to count, and the
+    // clip ran on past the celebration it belongs to. Says what passed, in one
+    // breath, so nothing is left hanging when the screen moves on.
+    run_pass: ["[excited] All four test cases passed! [pause] Every email went exactly where it should."],
     run_fail: [
       "[calm] Hmm. Some didn't land where they should. That's useful to know, so let's follow one.",
       "[calm] Not all of them landed right. Follow one that missed and see where it turned.",

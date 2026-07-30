@@ -217,6 +217,26 @@ a person and a screen reader. What must never happen is naming the answer to a q
 still open. `run_case` on the case that matches no rule must point at it
 (*"keep an eye on this one"*) and stop — the destination is the Stress Testing answer.
 
+### `run_case` opens on the trigger, every time
+
+Name the thing the learner wired up. "**A customer sends an email saying** the app
+crashes when they log in" ties the case to the trigger node sitting on their canvas;
+"Their app crashes every time they log in" describes a situation with no visible
+connection to the flow they built. The trigger is the whole point of the sentence —
+it is why this case is entering *their* graph rather than being a story about a
+customer. Applies to whatever the trigger is: a webhook problem says "a transcript
+arrives", not "the call ended".
+
+Still no destination — see *Never reveal an answer the learner has not given*.
+
+### Say what a number counts
+
+`run_pass` was "All four of them!" — a count with nothing attached, and if the
+learner clicked through the celebration the clip was cut before the sentence that
+would have explained it. Put the noun on the number ("All four **test cases**
+passed") and put it **first**, so a line that gets cut still lands. Anything a
+learner can click past should carry its meaning in the opening clause.
+
 ### Do not read the screen
 
 The phase label, the statement and the explanation are all visible. Iris says the thing

@@ -35,7 +35,7 @@ export const orderDesk = {
   estimatedMinutes: 45,
   coverImage: {
     prompt:
-      'An isometric conveyor belt carries small cube parcels into a tall pixel-art sorting machine that fans out into many narrow chutes, with streams of falling binary pouring down between the chutes and two glowing cubes floating overhead.',
+      'A short conveyor of cube parcels on the left feeding one simple sorting box in the middle, which fans out into a few chutes on the right. Wide, sparse, left to right.',
     src: '/covers/order-desk.png',
     alt: 'Parcels on a conveyor entering a sorter that fans out many ways',
   },

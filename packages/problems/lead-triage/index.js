@@ -11,7 +11,7 @@ export const leadTriage = {
   estimatedMinutes: 20,
   coverImage: {
     prompt:
-      'A wide isometric funnel floats in the air, fed by streams of falling binary, and drops small glowing envelope shapes into three separate retro pixel-art server towers standing below it, each tower lit a different brightness.',
+      'A simple funnel on the left dropping one envelope into three plain server towers on the right, connected by a short stream of binary. Wide, sparse, left to right.',
     src: '/covers/lead-triage.png',
     alt: 'A funnel dropping leads into three server towers',
   },
