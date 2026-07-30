@@ -410,71 +410,31 @@ tier, scoped to problem/screen/phase/node. It is **deliberately unhelpful about 
 asked "which node?", it teaches the concept and asks a guiding question. Intended. Without
 `ANTHROPIC_API_KEY` it returns 503 and the UI degrades gracefully.
 
-### Voice — Iris speaks (Deepgram Aura)
-**Rendered on a laptop, uploaded once, served as files. Nothing renders at runtime and
-nothing polls storage.** That is not a preference — the previous pipeline got Scaler's S3
-credentials flagged after ~1500 calls in a short window, and was calling the TTS vendor during
-learner sessions. Design: [docs/superpowers/specs/2026-07-30-voice-clip-pipeline-design.md](docs/superpowers/specs/2026-07-30-voice-clip-pipeline-design.md).
+### Voice — Iris speaks (ElevenLabs v3)
+**Read [.claude/skills/iris-voice/SKILL.md](.claude/skills/iris-voice/SKILL.md) before
+touching anything under `voice*`, `packages/voice-scripts`, or a problem's `voice`
+block.** It is the whole contract: the pipeline, the 23 moments in journey order, the
+copy rules (all test-enforced), the measured v3 tag table, and the traps that have
+actually bitten.
 
-```bash
-npm run voice:generate -- --dry-run   # what would change; spends and calls nothing
-npm run voice:generate                # write the tables, render what is missing, locally
-npm run voice:sync                    # upload to the bucket
-```
+The two rules that matter most, in case the skill is not loaded:
 
-- **The phrase book is the source, the table is the contract.**
-  [voiceLines.js](apps/web/src/lib/voiceLines.js) holds every line, keyed by *moment*, with
-  the writing rules in its header — they are the feature: short plain sentences, no em
-  dashes, calm not cheerleading, **never reveal an answer the learner has not given**, and
-  **do not read the screen**. `[bracketed]` text is an **authoring note only** — it was an ElevenLabs v3 audio
-  tag, and Deepgram would read it aloud, so `captionFor` strips it and the generator
-  renders exactly the caption. Audio and on-screen text are provably the same words. Per-problem overrides come from `problem.voice`.
-  The generator turns that into [`@judge/voice-scripts`](packages/voice-scripts/) — one
-  committed JSON table per problem, `id → { text, file }`. **Generated; never hand-edit.**
-- **A clip's name has two halves and they work differently.** The **id**
-  (`verify-pass--classify--classify-with-ai--v0`) is derived at runtime by the browser and
-  identifies a *moment*. The **file** (`shared/verify-pass--a1b2c3d4.mp3`) identifies a
-  *sentence* and is only ever **looked up**, never rebuilt. Deriving the file on both sides
-  is exactly what broke before: the browser asked for names the generator had never
-  written, so nearly every Build-stage line missed storage and fell into a live render.
-  Many ids point at one file — that is the saving. **500 ids across four problems resolve
-  to 307 recordings.**
-- **The fingerprint is what makes `immutable` safe.** Clips are served with a one-year
-  cache, so a stable name would leave a reworded line playing old audio in every learner's
-  browser with no way to clear it. Rewording changes the hash, so it is simply a new URL.
-  It also gives the route a free ETag and removes any need for a staleness manifest.
-- **`shared/` holds lines no problem authored** — the decision is `clipScope` in
-  voiceLines.js, the one place that judgement is made — so a line every problem says is
-  rendered once, not once per problem.
-- **The serving route cannot do three things**
-  ([clip route](apps/web/app/api/voice/clip/[...path]/route.ts)): it cannot render (no
-  vendor client exists in it); it cannot ask storage for a file that is not in a committed
-  table, so a stray URL costs nothing; and it cannot ask twice, because
-  [voiceCache.ts](apps/web/src/server/voiceCache.ts) keeps one copy per container on local
-  disk and **collapses concurrent misses into a single fetch**. S3 reads are bounded by
-  distinct clips played — a few hundred per container, then zero at any cohort size.
-- **The browser gets its table with the problem**, in `GET /api/problems/[slug]` as
-  `voiceClips` — already authenticated, no new endpoint. A line with no entry plays as a
-  caption and makes **no request at all**.
-- **[VoiceContext.jsx](apps/web/src/lib/VoiceContext.jsx) splits actions from state, and
-  that split is not cosmetic.** `amplitude` updates every animation frame to drive the
-  glow; with one context value every consumer re-rendered 60×/s and any effect depending on
-  `voice` re-ran every frame — prefetch → state → new context → prefetch, the loop that
-  took out the Understand screen. `useVoiceActions()` is memoised once and is safe in a
-  dependency array; `useVoice()` adds the animating state. Both default to no-ops.
-- Client rules in [voice.js](apps/web/src/lib/voice.js), all load-bearing: never throw at
-  the caller; notify the mascot *first*, even when muted; **one line at a time, newest
-  wins** (no queue — a line describes a moment that has passed, so being cut off is
-  correct); tear down the Web Audio graph on every finish or a long session accumulates
-  dead graphs until audio stops.
-- `GET /api/voice/diagnostics` answers "why is narration not playing" **without a single
-  storage call**, reporting config plus how many clips this container has served.
+- **Nothing renders at runtime.** Clips are pre-rendered on a laptop
+  (`npm run voice:generate`), stored, and served as files. The serving route has no
+  vendor client, refuses any path not in a committed table, and never asks storage twice
+  (`voiceCache` keeps one copy per container and collapses concurrent misses). The
+  previous design called the vendor mid-session and asked S3 per object, which flagged
+  Scaler's credentials.
+- **Two things must both happen after a copy edit**: `npm run voice:generate` (the
+  fingerprint changed, so the file name changed) and `npm run db:seed` (problems are
+  served from Postgres). Skipping either looks identical to a broken render.
 
-**Regenerate after** editing any line, changing a problem's nodes/questions/phases, or
-changing `DEEPGRAM_TTS_MODEL` — an Aura model *is* the voice (`aura-2-helena-en` names a
-speaker), so it is in every fingerprint and changing it re-renders the whole library. `renderedWith` in each table records what
-produced it.
+Design: [docs/superpowers/specs/2026-07-30-voice-clip-pipeline-design.md](docs/superpowers/specs/2026-07-30-voice-clip-pipeline-design.md).
+Copy proposal and rationale: [docs/voice-copy-email-triage.md](docs/voice-copy-email-triage.md).
 
+**Coverage today:** email-triage 60 authored lines, order-desk 53 (written before the
+current rules, needs a pass), **lead-triage and meeting-notes zero** — they run entirely
+on the generic phrase book.
 
 ### Legacy inside apps/web/src
 `nodes/*.jsx` (`ActionNode`, `ChatModelNode`, `ClassifyNode`, `ProcessNode`, `TriggerNode`,
