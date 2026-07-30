@@ -7,7 +7,7 @@ import { validateProblem } from '@judge/problem-schema';
 // smell (e.g. a palette type with no catalog entry) that we don't want to ship.
 describe('problem registry', () => {
   it('ships every problem keyed by its own id', () => {
-    expect(problemList.length).toBeGreaterThanOrEqual(3);
+    expect(problemList.length).toBeGreaterThanOrEqual(1);
     for (const [key, problem] of Object.entries(problems)) {
       expect(key).toBe(problem.id);
       expect(getProblem(key)).toBe(problem);

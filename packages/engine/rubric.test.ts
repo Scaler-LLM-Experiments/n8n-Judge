@@ -11,6 +11,48 @@ import {
   DEFAULT_WEIGHTS,
 } from './rubric.ts';
 
+/**
+ * A linear problem: no router, no settings, fewer nodes.
+ *
+ * Defined here rather than taken from the catalogue. These cases exist to prove the
+ * engine's central claim — that topology is DATA, so a flow with no branching scores
+ * without special-casing — and they used to lean on `meeting-notes`, which was removed
+ * from the catalogue on 2026-07-31. A behaviour the engine promises should not lose its
+ * coverage because a challenge was retired, and a fixture that lives in the test cannot
+ * drift when authored content changes.
+ *
+ * Deliberately sized: 3 understand + 4 placements + 5 config + 2 stress = 14 decisions,
+ * fewer than email-triage's 30, which is what makes the ordering assertion meaningful.
+ */
+const LINEAR_PROBLEM: any = {
+  id: 'linear-fixture',
+  dissection: [
+    { id: 'trigger', prompt: 'What starts it?', options: [{}, {}, {}, {}] },
+    { id: 'summarize', prompt: 'What writes the summary?', options: [{}, {}, {}, {}] },
+    { id: 'save', prompt: 'Where does it go?', options: [{}, {}, {}, {}] },
+  ],
+  buildPhases: [
+    { id: 'intake', nodeTypes: ['webhook'] },
+    { id: 'write', nodeTypes: ['summarize', 'chat-model'] },
+    { id: 'file', nodeTypes: ['docs'] },
+  ],
+  nodeSetup: {
+    webhook: { fields: [{ key: 'path', options: [{}, {}, {}] }] },
+    summarize: {
+      fields: [
+        { key: 'text', kind: 'expression' },
+        { key: 'instructions', options: [{}, {}, {}] },
+      ],
+    },
+    'chat-model': { fields: [{ key: 'temperature', options: [{}, {}] }] },
+    docs: { fields: [{ key: 'documentId', kind: 'resourceLocator' }] },
+  },
+  evalQuestions: [
+    { id: 'empty-transcript', prompt: 'What if the transcript is empty?', options: [{}, {}, {}, {}] },
+    { id: 'docs-offline', prompt: 'What if the doc cannot be reached?', options: [{}, {}, {}, {}] },
+  ],
+};
+
 /** Every item answered correctly on attempt `n`. */
 function allAt(problem: any, n: number | null) {
   const items = enumerateItems(problem);
@@ -117,7 +159,7 @@ describe('enumerateItems', () => {
   });
 
   it('handles a linear problem with no settings and fewer nodes', () => {
-    const items = enumerateItems(problems['meeting-notes']);
+    const items = enumerateItems(LINEAR_PROBLEM);
     expect(items.understand).toHaveLength(3);
     expect(items.placement).toHaveLength(4);
     expect(items.config).toHaveLength(5);
@@ -229,14 +271,14 @@ describe('scoreBand', () => {
 // decision count — no new authored field to keep in sync.
 describe('problemComplexity', () => {
   it('ranks the linear problem below the two routing problems', () => {
-    expect(problemComplexity(problems['meeting-notes'])).toBeLessThan(
+    expect(problemComplexity(LINEAR_PROBLEM)).toBeLessThan(
       problemComplexity(problems['email-triage'])
     );
   });
 
   it('counts every required decision', () => {
-    // meeting-notes: 3 understand + 4 placements + 5 config + 2 stress
-    expect(problemComplexity(problems['meeting-notes'])).toBe(14);
+    // the linear fixture: 3 understand + 4 placements + 5 config + 2 stress
+    expect(problemComplexity(LINEAR_PROBLEM)).toBe(14);
   });
 });
 
@@ -338,7 +380,7 @@ describe('attemptsFromTrace', () => {
   });
 
   it('rebuilds a full perfect session into a 100 score', () => {
-    const p = problems['meeting-notes'];
+    const p = LINEAR_PROBLEM;
     const events = Object.entries(enumerateItems(p)).flatMap(([bucket, items]) =>
       (items as any[]).map((i) => {
         if (bucket === 'understand') return ev('dissection', i.id.replace('dissection:', ''), true, 1);

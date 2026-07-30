@@ -7,13 +7,19 @@
 // Env: SMOKE_BASE_URL (default http://localhost:3000), SMOKE_CHROME
 import { chromium } from 'playwright-core';
 import { mkdirSync } from 'node:fs';
+import { problemList } from '@judge/problems';
 
 const base = process.env.SMOKE_BASE_URL ?? 'http://localhost:3000';
 const exe = process.env.SMOKE_CHROME ?? '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
 const out = process.argv[2] ?? null;
 if (out) mkdirSync(out, { recursive: true });
 
-const PROBLEMS = ['email-triage', 'lead-triage', 'meeting-notes', 'order-desk'];
+// Derived from the registry, not listed here. A hardcoded list goes stale the moment
+// the catalogue changes: when three problems were removed on 2026-07-31 this script
+// kept driving their screens and reported six failures that were really one edit it
+// had not been told about. The registry is the same source `db:seed` publishes from,
+// so smoke covers exactly what a learner can reach.
+const PROBLEMS = problemList.map((p) => p.id);
 const ROUTES = ['#build', '#run-story', '#eval-demo', '#report-demo'];
 
 // Ignore noise that isn't an app defect: the mascot wasm/asset fetches, and a
