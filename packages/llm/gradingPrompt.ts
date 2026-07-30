@@ -250,7 +250,20 @@ What to write:
      bigger challenge when the score is high. The list is already ordered easiest first.
    - If they should repeat this challenge, say so plainly and say what to watch for.
    - Where a specific node, field or setting caused trouble, name it.
-7. narrative — 3-4 sentences overall, addressed to the learner as "you".
+7. narrative — 2 sentences, addressed to the learner as "you".
+
+LENGTH. This is a report a learner skims, not an essay, and every extra clause costs
+them time on a loading screen:
+- One sentence per strength, per focus area, per next step. Two at the absolute most,
+  and only when the second one carries new information.
+- 25 words per item is the ceiling. Most should be nearer 15.
+- Lead with the thing itself. "The Text Classifier needed three attempts" — not "It
+  looks like you may have had some difficulty with the Text Classifier, which needed
+  three attempts".
+- No preamble ("Looking at your session…"), no restating the question, no closing
+  encouragement paragraph. The tone below does that work without spending sentences.
+- Never repeat across fields. If a point is in focusAreas, do not make it again in the
+  narrative or a next step — say the next thing instead.
 
 Tone: calm, specific, encouraging — an interviewer debriefing, not a cheerleader and never
 harsh. Simple English, short sentences, no idioms (many learners are not native speakers).

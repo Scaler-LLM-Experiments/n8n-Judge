@@ -32,6 +32,15 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
 
   const { id: sessionId } = await ctx.params;
 
+  // `?narrative=0` returns the score and stops, without calling Claude.
+  //
+  // The score is arithmetic over this session's own trace — tens of milliseconds —
+  // while the words take about thirteen seconds. Blocking the whole Result screen on
+  // the slower half meant a learner who had just finished stared at a loader with
+  // their marks already computed and sitting in the database. The screen now asks
+  // twice: once for the number, which paints immediately, then again for the words.
+  const wantsNarrative = new URL(req.url).searchParams.get('narrative') !== '0';
+
   const session = await prisma.session.findUnique({
     where: { id: sessionId },
     select: { id: true, userId: true, problemVersionId: true },
@@ -96,6 +105,13 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   // ---- the words: Claude, over the same replayed decisions ------------------
   // No key configured is a normal state, not an error: the score is the part the
   // learner cannot do without, so serve it and let the UI omit the narrative.
+  // The score half is done and persisted. Hand it back now if that is all that was
+  // asked for — `narrative_pending` tells the screen the words are still coming, so
+  // it renders a "writing this up" line rather than the missing-narrative notice.
+  if (!wantsNarrative) {
+    return Response.json({ ...scorePayload, report: null, reason: 'narrative_pending' });
+  }
+
   if (!process.env.ANTHROPIC_API_KEY) {
     return Response.json({ ...scorePayload, report: null, reason: 'llm_unconfigured' });
   }
@@ -167,6 +183,16 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
       system,
       user,
       schema,
+      // A learner is watching a loader for the whole of this call, so both knobs are
+      // set for latency. `low` effort because the hard thinking already happened —
+      // the score is arithmetic and the trace arrives pre-summarised, leaving short
+      // writing over a small input. `maxTokens` down from 16000 because the report is
+      // a dozen short strings: the old ceiling let thinking sprawl, and with adaptive
+      // thinking `max_tokens` bounds thinking AND text together. 3000 leaves room to
+      // finish the JSON — going much lower risks a truncated object and a parse error,
+      // which costs the narrative entirely.
+      effort: 'low',
+      maxTokens: 3000,
     });
 
     // Fill in the narrative on the row that already holds the score.

@@ -53,10 +53,17 @@ export async function createSession(slug) {
  *                    phases:Array<{key:string,label:string,weight:number,earned:number,score:number}>,
  *                    report:object|null, reason?:string} | null>}
  */
-export async function fetchReport(sessionId) {
+/**
+ * @param {string} sessionId
+ * @param {{ narrative?: boolean }} [opts] `narrative: false` returns the score without
+ *   waiting on Claude — the Result screen asks for that first so the marks paint
+ *   immediately, then asks again for the words.
+ */
+export async function fetchReport(sessionId, opts = {}) {
   if (!sessionId) return null;
+  const query = opts.narrative === false ? '?narrative=0' : '';
   try {
-    const res = await fetch(`/api/sessions/${sessionId}/report`, { method: 'POST' });
+    const res = await fetch(`/api/sessions/${sessionId}/report${query}`, { method: 'POST' });
     if (!res.ok) return null;
     return await res.json();
   } catch {

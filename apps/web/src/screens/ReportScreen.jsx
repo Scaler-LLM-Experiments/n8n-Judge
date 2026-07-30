@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowRight, ArrowUUpLeft, House, Info } from '@phosphor-icons/react';
+import { ArrowRight, ArrowUUpLeft, CircleNotch, House, Info } from '@phosphor-icons/react';
 import { useHideVoiceGlow, useVoiceActions } from '../lib/VoiceContext.jsx';
 import { useSignedInUser, firstNameOf } from '../lib/useSignedInUser.js';
 import { Button } from '../design-system/Button.jsx';
@@ -122,7 +122,12 @@ export function ReportScreen({
   // than as a missing key. `reason` comes from the server — 'llm_unconfigured'
   // (no ANTHROPIC_API_KEY) or 'llm_failed' (the call errored) — and is logged
   // with the actionable version, while the learner gets one plain sentence.
-  const missingNarrative = serverReport && !written ? (serverReport.reason || 'unknown') : null;
+  // `narrative_pending` is not a failure — it is the score-only first pass, with the
+  // words still in flight. Distinguished from a real absence so the screen says
+  // "writing this up" instead of "not available", and so nothing is logged as wrong.
+  const reason = serverReport && !written ? (serverReport.reason || 'unknown') : null;
+  const narrativePending = reason === 'narrative_pending';
+  const missingNarrative = reason && !narrativePending ? reason : null;
   const warned = useRef(false);
   useEffect(() => {
     if (!missingNarrative || warned.current) return;
@@ -184,6 +189,16 @@ export function ReportScreen({
                   ))}
                 </div>
               </Section>
+            ) : null}
+
+            {narrativePending ? (
+              <div style={{ display: 'flex', gap: 9, alignItems: 'center', padding: '12px 14px', marginBottom: 26, background: 'var(--surface-1)', border: '1px solid var(--border-subtle)' }}>
+                <CircleNotch size={15} weight="bold" color="var(--brand-primary)" className="report-spin" />
+                <div style={{ fontSize: 12.5, color: 'var(--fg-2)' }}>
+                  Iris is writing up what went well and where the marks went. Your score is final.
+                </div>
+                <style>{`@keyframes report-spin { to { transform: rotate(360deg); } } .report-spin { animation: report-spin 0.9s linear infinite; }`}</style>
+              </div>
             ) : null}
 
             {missingNarrative ? (

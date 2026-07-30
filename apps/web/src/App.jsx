@@ -424,9 +424,24 @@ function MainApp({ problem, nextProblem, resume, onRedo, onNext, onHome }) {
             setGradingReport(true);
             goTo(SCREEN.REPORT);
             trace('session_complete', {});
-            fetchReport(sessionId)
-              .then((r) => setServerReport(r))
-              .finally(() => setGradingReport(false));
+            // Two asks, on purpose. The first skips Claude and returns the marks in
+            // milliseconds, which drops the loader and paints the report. The second
+            // fetches the written half and fills it in when it lands, about thirteen
+            // seconds later — the learner reads their score during that wait instead
+            // of watching a spinner. If the score-only call fails, the full one still
+            // runs and the screen just waits, as it used to.
+            fetchReport(sessionId, { narrative: false })
+              .then((score) => {
+                if (score) {
+                  setServerReport(score);
+                  setGradingReport(false);
+                }
+              })
+              .finally(() => {
+                fetchReport(sessionId)
+                  .then((full) => { if (full) setServerReport(full); })
+                  .finally(() => setGradingReport(false));
+              });
           }}
         />
       ) : null}

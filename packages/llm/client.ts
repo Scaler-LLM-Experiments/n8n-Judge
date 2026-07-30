@@ -24,6 +24,15 @@ export interface StructuredCallOptions {
   /** JSON Schema the response text must conform to (output_config.format). */
   schema: Record<string, unknown>;
   maxTokens?: number;
+  /**
+   * How much thinking to spend. Omitted means the API default, `high`.
+   *
+   * This is the main latency lever, and it is why the Result screen used to sit on
+   * a loader: the default spends `high`-effort thinking on what is a short piece of
+   * writing over a trace that is already summarised, and the learner waits for all
+   * of it. Grading runs at `low`.
+   */
+  effort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max';
 }
 
 // Structured-output call: streams (timeout safety), returns parsed JSON.
@@ -40,6 +49,7 @@ export async function structuredCall<T>(opts: StructuredCallOptions): Promise<{
     system: opts.system,
     output_config: {
       format: { type: 'json_schema', schema: opts.schema },
+      ...(opts.effort ? { effort: opts.effort } : {}),
     },
     messages: [{ role: 'user', content: opts.user }],
   } as Parameters<Anthropic['messages']['stream']>[0]);
