@@ -306,8 +306,26 @@ export function validateProblem(input: unknown): ValidateProblemResult {
         warn(`voice.${moment}`, 'Em and en dashes do not read aloud; use a full stop or a comma');
       }
       // The tags are direction, not speech, so length is measured on the caption.
+      //
+      // An ARRIVAL line gets more room than an in-task one. The cap exists so a line
+      // does not outlast the moment it describes, which is a real risk while a learner
+      // is verifying a field and the next thing happens in a second. On a transition
+      // they have just landed and are reading, so there is room to orient them — say
+      // we are starting, say what the problem is, say what to do. Squeezing that into
+      // 22 words is what made arriving at a screen feel abrupt.
+      const arrival = new Set([
+        'welcome',
+        'problem_intro',
+        'understand_start',
+        'understand_done',
+        'build_start',
+        'build_complete',
+        'stress_start',
+        'report_ready',
+      ]);
+      const cap = arrival.has(moment.split(':')[0]) ? 26 : 22;
       const words = line.replace(/\[[^\]]*\]/g, '').trim().split(/\s+/).length;
-      if (words > 22) {
+      if (words > cap) {
         warn(
           `voice.${moment}`,
           `That line is ${words} words, about ${Math.round(words / 3)}s spoken. Long lines are still talking after the moment has passed`

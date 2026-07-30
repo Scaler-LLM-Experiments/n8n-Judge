@@ -102,6 +102,7 @@ describe('emailTriage problem spec', () => {
 // defaults are reviewed once, but per-problem lines get written alongside content
 // and are easy to make too helpful.
 describe('emailTriage voice lines', () => {
+  const ARRIVAL = new Set(['welcome', 'problem_intro', 'understand_start', 'understand_done', 'build_start', 'build_complete', 'stress_start', 'report_ready']);
   const MAY_EXCLAIM = new Set(['welcome', 'understand_done', 'phase_complete', 'build_complete', 'run_pass', 'stress_start', 'report_ready']);
   const voice = emailTriage.voice ?? {};
   const entries = Object.entries(voice);
@@ -136,8 +137,11 @@ describe('emailTriage voice lines', () => {
         if (!MAY_EXCLAIM.has(base)) expect(line, `${moment} exclamation`).not.toMatch(/!/);
         expect(line, `${moment} stacked exclamation`).not.toMatch(/!!|!\?|\?!/);
         expect(line, `${moment} expression`).not.toMatch(/\{\{/);
+        // An arrival line gets a little more room than an in-task one — the learner
+        // has just landed and is reading, not about to act. See voiceLines.test.js.
         const words = line.replace(/\[[^\]]*\]/g, '').trim().split(/\s+/).length;
-        expect(words, `${moment} is ${words} words`).toBeLessThanOrEqual(22);
+        const cap = ARRIVAL.has(moment.split(':')[0]) ? 26 : 22;
+        expect(words, `${moment} is ${words} words (cap ${cap})`).toBeLessThanOrEqual(cap);
       }
     }
   });

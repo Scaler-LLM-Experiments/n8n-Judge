@@ -729,7 +729,7 @@ export const emailTriage = {
     // because a greeting is the same job whichever problem you picked. This problem's
     // hook lives on the next beat, where the statement is actually on screen.
     problem_intro: [
-      "[calm] Okay, let's begin. Support mail, sorted by hand, every day. That's what we're stopping.",
+      "[calm] Okay, let's get started. Today's problem statement is simple. Your support inbox gets every kind of message at once. Read it through properly.",
     ],
     understand_start: ["[calm] Before we build anything, I want to see how you're reading this."],
     understand_done: ["[excited] That's the hard part done! [pause] You worked out every piece before touching the canvas."],

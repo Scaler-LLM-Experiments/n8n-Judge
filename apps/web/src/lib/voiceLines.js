@@ -13,6 +13,11 @@
 //   * Short sentences. One idea each. SHORT, NOT CLIPPED: "You've got one tab left"
 //     is the same length as "One tab left" and sounds like a person rather than a
 //     status readout. Fragments are what make narration feel mechanical.
+//   * KEEP THE "HMM"s. A one-word sentence is a problem when it is a STATUS —
+//     "Set." "Done." "There." are a machine reporting. It is the opposite when it is
+//     how people actually talk: "Hmm.", "Ah.", "Yes.", "Right.", "Exactly." are
+//     acknowledgement and hesitation, they are why Iris sounds like someone in the
+//     room, and they are deliberate. Do not tidy them away.
 //   * USE CONTRACTIONS. Always. "That's", "it's", "let's", "you've", "didn't".
 //     Every line in this file once avoided them — all 99 of them — while the screen
 //     directly underneath said "I'm your mentor" and "you've got the plan". So the
@@ -90,8 +95,12 @@ export const LINES = {
   ],
   // The statement is on screen and the learner is reading it. One nudge about HOW
   // to read it, then silence.
+  // Three beats, in this order, because arriving somewhere with no framing feels
+  // random: say we are starting, say what the problem is in one line, then say what
+  // to do about it. The statement itself is on screen — this is the orientation
+  // around it, which is the part a page cannot give you.
   problem_intro: [
-    "[calm] Okay, let's begin. Here's your problem statement, so read it once for the shape.",
+    "[calm] Okay, let's get started. Here's today's problem. Read it through once and get the shape of it.",
   ],
   understand_start: [
     '[calm] A few questions first. I want to see how you\'re thinking about it.',

@@ -31,6 +31,30 @@ const MAY_EXCLAIM = new Set([
   'report_ready',
 ]);
 
+/**
+ * Moments where the learner is ARRIVING somewhere rather than doing something.
+ *
+ * The 22-word cap exists because a line that outlasts the moment it describes ends up
+ * narrating a screen the learner has already left. That is a real risk mid-task —
+ * verifying a field, placing a node — where the next thing happens in a second or two.
+ *
+ * It is not the risk on a transition. Here the learner has just landed, is reading,
+ * and has not started anything yet, so there is room to actually orient them: say we
+ * are starting, say what the problem is, say what to do about it. Cutting that to 22
+ * words is what made arriving feel abrupt and random.
+ */
+const ARRIVAL = new Set([
+  'welcome',
+  'problem_intro',
+  'understand_start',
+  'understand_done',
+  'build_start',
+  'build_complete',
+  'stress_start',
+  'report_ready',
+]);
+const wordCap = (moment) => (ARRIVAL.has(String(moment).split(':')[0]) ? 26 : 22);
+
 const allLines = Object.entries(LINES).flatMap(([moment, variants]) => variants.map((line) => ({ moment, line })));
 
 // The writing rules ARE the feature, so they are enforced rather than trusted.
@@ -46,9 +70,9 @@ describe('the copy rules', () => {
   it('keeps every line short enough to finish inside its moment', () => {
     for (const { moment, line } of allLines) {
       const words = captionFor(line).split(/\s+/).length;
-      // ~22 words is about seven seconds spoken. Longer and the line is still
-      // talking after the thing it described has passed.
-      expect(words, `${moment} is ${words} words: "${captionFor(line)}"`).toBeLessThanOrEqual(22);
+      // ~22 words is about seven seconds spoken, and an arrival gets a little more.
+      const cap = wordCap(moment);
+      expect(words, `${moment} is ${words} words (cap ${cap}): "${captionFor(line)}"`).toBeLessThanOrEqual(cap);
     }
   });
 
