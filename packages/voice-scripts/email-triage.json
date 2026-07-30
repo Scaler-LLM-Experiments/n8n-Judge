@@ -1,0 +1,343 @@
+{
+  "version": 1,
+  "problem": "email-triage",
+  "renderedWith": "elevenlabs/PENDING/eleven_v3",
+  "clips": {
+    "answer-correct--action--send-reply--v0": {
+      "text": "[warm] Yes. Send Reply is what actually reaches the customer at the end.",
+      "file": "email-triage/answer-correct--6a72ba59.mp3"
+    },
+    "answer-correct--classify--classify-with-ai--v0": {
+      "text": "[warm] Right. Classify with AI reads the words and decides what kind of message it is.",
+      "file": "email-triage/answer-correct--f81737ed.mp3"
+    },
+    "answer-correct--parse--parse-result--v0": {
+      "text": "[warm] Yes. Parse Result turns that blob of text into separate, usable fields.",
+      "file": "email-triage/answer-correct--97fc8aae.mp3"
+    },
+    "answer-correct--switch--switch--v0": {
+      "text": "[warm] Exactly. Switch takes one email in and sends it out down one path.",
+      "file": "email-triage/answer-correct--7435c123.mp3"
+    },
+    "answer-correct--trigger--new-email--v0": {
+      "text": "[warm] Yes. New Email wakes this up on its own, every time mail arrives.",
+      "file": "email-triage/answer-correct--9be8cf6a.mp3"
+    },
+    "answer-wrong--action--do-nothing--v0": {
+      "text": "[thoughtful] Would the person who wrote in ever see Do nothing? They want a reply.",
+      "file": "email-triage/answer-wrong--53c4d648.mp3"
+    },
+    "answer-wrong--action--google-docs--v0": {
+      "text": "[thoughtful] Would the person who wrote in ever see Google Docs? They want a reply.",
+      "file": "email-triage/answer-wrong--26a49af3.mp3"
+    },
+    "answer-wrong--action--slack-send-message--v0": {
+      "text": "[thoughtful] Would the person who wrote in ever see Slack — Send Message? They want a reply.",
+      "file": "email-triage/answer-wrong--7be70676.mp3"
+    },
+    "answer-wrong--classify--code--v0": {
+      "text": "[thoughtful] Could Code actually judge what the email is about? Have another look.",
+      "file": "email-triage/answer-wrong--fb4f3c3f.mp3"
+    },
+    "answer-wrong--classify--if--v0": {
+      "text": "[thoughtful] Could If actually judge what the email is about? Have another look.",
+      "file": "email-triage/answer-wrong--b1afbe8c.mp3"
+    },
+    "answer-wrong--classify--switch--v0": {
+      "text": "[thoughtful] Could Switch actually judge what the email is about? Have another look.",
+      "file": "email-triage/answer-wrong--9b6ca322.mp3"
+    },
+    "answer-wrong--parse--do-nothing--v0": {
+      "text": "[thoughtful] The answer is one lump of text right now. Does Do nothing help with that?",
+      "file": "email-triage/answer-wrong--4ad23907.mp3"
+    },
+    "answer-wrong--parse--send-it-straight-to-switch--v0": {
+      "text": "[thoughtful] The answer is one lump of text right now. Does Send it straight to Switch help with that?",
+      "file": "email-triage/answer-wrong--6165eedb.mp3"
+    },
+    "answer-wrong--parse--send-reply-now--v0": {
+      "text": "[thoughtful] The answer is one lump of text right now. Does Send Reply now help with that?",
+      "file": "email-triage/answer-wrong--65b13a30.mp3"
+    },
+    "answer-wrong--switch--filter--v0": {
+      "text": "[thoughtful] Filter gives you one way out. You need one in and three out.",
+      "file": "email-triage/answer-wrong--edf740dc.mp3"
+    },
+    "answer-wrong--switch--if--v0": {
+      "text": "[thoughtful] If gives you one way out. You need one in and three out.",
+      "file": "email-triage/answer-wrong--e1275a3a.mp3"
+    },
+    "answer-wrong--switch--merge--v0": {
+      "text": "[thoughtful] Merge gives you one way out. You need one in and three out.",
+      "file": "email-triage/answer-wrong--868a3886.mp3"
+    },
+    "answer-wrong--trigger--chat-trigger--v0": {
+      "text": "[thoughtful] Would Chat Trigger start on its own? Nobody is sitting here pressing anything.",
+      "file": "email-triage/answer-wrong--08501879.mp3"
+    },
+    "answer-wrong--trigger--schedule--v0": {
+      "text": "[thoughtful] Would Schedule start on its own? Nobody is sitting here pressing anything.",
+      "file": "email-triage/answer-wrong--c2a4b887.mp3"
+    },
+    "answer-wrong--trigger--webhook--v0": {
+      "text": "[thoughtful] Would Webhook start on its own? Nobody is sitting here pressing anything.",
+      "file": "email-triage/answer-wrong--33778979.mp3"
+    },
+    "answer-wrong-again--action--v0": {
+      "text": "[thoughtful] Still not it. Go back to the problem and ask what has to happen first.",
+      "file": "shared/answer-wrong-again--49f4c848.mp3"
+    },
+    "answer-wrong-again--action--v1": {
+      "text": "[calm] Let us slow down. What does this step actually need before it can run?",
+      "file": "shared/answer-wrong-again--314a0a3b.mp3"
+    },
+    "answer-wrong-again--action--v2": {
+      "text": "[thoughtful] Try reading the options as jobs. Which job does this flow need doing here?",
+      "file": "shared/answer-wrong-again--3bd12acb.mp3"
+    },
+    "answer-wrong-again--classify--v0": {
+      "text": "[calm] The email is free text. You need something that can understand meaning, not match a rule.",
+      "file": "email-triage/answer-wrong-again--23fc4b40.mp3"
+    },
+    "answer-wrong-again--parse--v0": {
+      "text": "[calm] Ask what shape the next node needs its input in, then work backwards.",
+      "file": "email-triage/answer-wrong-again--b2af90c6.mp3"
+    },
+    "answer-wrong-again--switch--v0": {
+      "text": "[calm] Count the outputs you need. Three categories means three separate exits.",
+      "file": "email-triage/answer-wrong-again--0e6c5970.mp3"
+    },
+    "answer-wrong-again--trigger--v0": {
+      "text": "[calm] Think about who or what begins this. The mail arrives without anyone asking.",
+      "file": "email-triage/answer-wrong-again--73de09ef.mp3"
+    },
+    "build-complete--v0": {
+      "text": "[excited] The whole thing is wired up. Let us throw some real emails at it.",
+      "file": "email-triage/build-complete--960ea748.mp3"
+    },
+    "build-start--v0": {
+      "text": "[calm] One node at a time. Each one does a single job, and passes its result on.",
+      "file": "shared/build-start--35cd5ba7.mp3"
+    },
+    "idle-nudge--v0": {
+      "text": "[calm] Take your time. If you are not sure what goes next, ask me.",
+      "file": "shared/idle-nudge--8b64978f.mp3"
+    },
+    "idle-nudge--v1": {
+      "text": "[calm] Still thinking? Tell me what you are stuck on and I will help.",
+      "file": "shared/idle-nudge--ad85a365.mp3"
+    },
+    "idle-nudge--v2": {
+      "text": "[calm] No rush. If it helps, look at what the last node hands over.",
+      "file": "shared/idle-nudge--8269b85b.mp3"
+    },
+    "node-placed--action--v0": {
+      "text": "[calm] The reply itself. Whatever reaches this node gets an email back.",
+      "file": "email-triage/node-placed--b84ead8b.mp3"
+    },
+    "node-placed--chat-gemini--v0": {
+      "text": "[calm] That is the brain the classifier borrows. How it is set up decides whether the same email always gets the same answer.",
+      "file": "email-triage/node-placed--66d4bfbc.mp3"
+    },
+    "node-placed--classify--v0": {
+      "text": "[calm] This is the part that reads the email and decides what kind it is. It needs a model to think with.",
+      "file": "email-triage/node-placed--5045ac78.mp3"
+    },
+    "node-placed--parse--v0": {
+      "text": "[calm] The model replies as text. This turns that text into fields the next nodes can actually read.",
+      "file": "email-triage/node-placed--73647141.mp3"
+    },
+    "node-placed--switch--v0": {
+      "text": "[calm] This is where the kinds of email split apart. Each branch you build here is one path out.",
+      "file": "email-triage/node-placed--7f5c00e9.mp3"
+    },
+    "node-placed--trigger--v0": {
+      "text": "[calm] That is the way in. Everything after this runs once per email that arrives.",
+      "file": "email-triage/node-placed--66015dfe.mp3"
+    },
+    "node-wrong--v0": {
+      "text": "[thoughtful] That one cannot do the job here. Let me ask you something.",
+      "file": "shared/node-wrong--83e4a04a.mp3"
+    },
+    "phase-complete--brain--v0": {
+      "text": "[excited] It can read an email and understand it. That was the hard part.",
+      "file": "email-triage/phase-complete--d34a1359.mp3"
+    },
+    "phase-complete--route--v0": {
+      "text": "[excited] That part is done. Nice.",
+      "file": "shared/phase-complete--48a0d4b4.mp3"
+    },
+    "phase-complete--route--v1": {
+      "text": "[excited] Done. That piece works now.",
+      "file": "shared/phase-complete--0db40cae.mp3"
+    },
+    "phase-complete--route--v2": {
+      "text": "[excited] Good. One more piece in place.",
+      "file": "shared/phase-complete--a9e0ec8a.mp3"
+    },
+    "phase-complete--trigger--v0": {
+      "text": "[excited] The flow has a way in now. Good start.",
+      "file": "email-triage/phase-complete--18799e1c.mp3"
+    },
+    "phase-complete--v0": {
+      "text": "[excited] That part is done. Nice.",
+      "file": "shared/phase-complete--48a0d4b4.mp3"
+    },
+    "phase-complete--v1": {
+      "text": "[excited] Done. That piece works now.",
+      "file": "shared/phase-complete--0db40cae.mp3"
+    },
+    "phase-complete--v2": {
+      "text": "[excited] Good. One more piece in place.",
+      "file": "shared/phase-complete--a9e0ec8a.mp3"
+    },
+    "problem-intro--v0": {
+      "text": "[calm] Read it once for the shape, not the detail. We will pull it apart together.",
+      "file": "shared/problem-intro--0cfb336f.mp3"
+    },
+    "report-ready--v0": {
+      "text": "[calm] Here is what stood out, and what I would practise next.",
+      "file": "shared/report-ready--fdf3d833.mp3"
+    },
+    "run-fail--v0": {
+      "text": "[calm] Some did not come out right. That is worth knowing. Let us look.",
+      "file": "shared/run-fail--cda1e5b6.mp3"
+    },
+    "run-pass--v0": {
+      "text": "[excited] Every case came out right. That flow works.",
+      "file": "shared/run-pass--f7b20d81.mp3"
+    },
+    "run-pass--v1": {
+      "text": "[excited] All of them passed. Well built.",
+      "file": "shared/run-pass--cf387acd.mp3"
+    },
+    "run-start--v0": {
+      "text": "[calm] Watch what happens to each one as it goes through.",
+      "file": "shared/run-start--c39478c9.mp3"
+    },
+    "stress-start--v0": {
+      "text": "[calm] Now the interesting bit. What does your flow do with an email it was not expecting?",
+      "file": "email-triage/stress-start--54630164.mp3"
+    },
+    "understand-done--v0": {
+      "text": "[excited] Yes. You have got the shape of it. Now the fun part, we build it.",
+      "file": "shared/understand-done--21a7cae5.mp3"
+    },
+    "understand-done--v1": {
+      "text": "[excited] That is the thinking done. Now let us actually build the thing.",
+      "file": "shared/understand-done--ca36d78e.mp3"
+    },
+    "understand-start--v0": {
+      "text": "[calm] A few questions first. I want to know how you are thinking about it.",
+      "file": "shared/understand-start--ee4bfc9a.mp3"
+    },
+    "verify-fail--action--send-reply--v0": {
+      "text": "[calm] Send Reply is not right yet. Check the field I marked.",
+      "file": "shared/verify-fail--6520ab44.mp3"
+    },
+    "verify-fail--action--send-reply--v1": {
+      "text": "[calm] Something in Send Reply is off. Look at what is in red.",
+      "file": "shared/verify-fail--3e21e073.mp3"
+    },
+    "verify-fail--chat-gemini--v0": {
+      "text": "[calm] Not yet. Think about whether the same email should always get the same answer.",
+      "file": "email-triage/verify-fail--e3a97734.mp3"
+    },
+    "verify-fail--classify--v0": {
+      "text": "[calm] Not yet. Check what you pointed it at. It can only read what you hand it.",
+      "file": "email-triage/verify-fail--65201967.mp3"
+    },
+    "verify-fail--parse--parse-result--v0": {
+      "text": "[calm] Parse Result is not right yet. Check the field I marked.",
+      "file": "shared/verify-fail--b577a32f.mp3"
+    },
+    "verify-fail--parse--parse-result--v1": {
+      "text": "[calm] Something in Parse Result is off. Look at what is in red.",
+      "file": "shared/verify-fail--0799dd8c.mp3"
+    },
+    "verify-fail--switch--v0": {
+      "text": "[calm] Not right yet. Look at what each branch is testing, and what the AI actually produced.",
+      "file": "email-triage/verify-fail--3afb8e70.mp3"
+    },
+    "verify-fail--trigger--new-email--v0": {
+      "text": "[calm] New Email is not right yet. Check the field I marked.",
+      "file": "shared/verify-fail--4a022645.mp3"
+    },
+    "verify-fail--trigger--new-email--v1": {
+      "text": "[calm] Something in New Email is off. Look at what is in red.",
+      "file": "shared/verify-fail--f3107dc0.mp3"
+    },
+    "verify-pass--action--send-reply--v0": {
+      "text": "[warm] Yes, Send Reply is set up right.",
+      "file": "shared/verify-pass--a7257e52.mp3"
+    },
+    "verify-pass--action--send-reply--v1": {
+      "text": "[warm] Good, Send Reply is done.",
+      "file": "shared/verify-pass--02dc5385.mp3"
+    },
+    "verify-pass--action--send-reply--v2": {
+      "text": "[warm] Send Reply is correct now.",
+      "file": "shared/verify-pass--7bbf9b71.mp3"
+    },
+    "verify-pass--chat-gemini--v0": {
+      "text": "[warm] Good. That setting is what makes triage repeatable instead of a guess.",
+      "file": "email-triage/verify-pass--2c9cfee7.mp3"
+    },
+    "verify-pass--classify--classify-with-ai--v0": {
+      "text": "[warm] Yes, Classify with AI is set up right.",
+      "file": "shared/verify-pass--1b01fa82.mp3"
+    },
+    "verify-pass--classify--classify-with-ai--v1": {
+      "text": "[warm] Good, Classify with AI is done.",
+      "file": "shared/verify-pass--a88b07af.mp3"
+    },
+    "verify-pass--classify--classify-with-ai--v2": {
+      "text": "[warm] Classify with AI is correct now.",
+      "file": "shared/verify-pass--95eefd0c.mp3"
+    },
+    "verify-pass--parse--parse-result--v0": {
+      "text": "[warm] Yes, Parse Result is set up right.",
+      "file": "shared/verify-pass--a7fb301d.mp3"
+    },
+    "verify-pass--parse--parse-result--v1": {
+      "text": "[warm] Good, Parse Result is done.",
+      "file": "shared/verify-pass--aa498e8e.mp3"
+    },
+    "verify-pass--parse--parse-result--v2": {
+      "text": "[warm] Parse Result is correct now.",
+      "file": "shared/verify-pass--c41b9354.mp3"
+    },
+    "verify-pass--switch--switch--v0": {
+      "text": "[warm] Yes, Switch is set up right.",
+      "file": "shared/verify-pass--9f0b9f49.mp3"
+    },
+    "verify-pass--switch--switch--v1": {
+      "text": "[warm] Good, Switch is done.",
+      "file": "shared/verify-pass--b317605a.mp3"
+    },
+    "verify-pass--switch--switch--v2": {
+      "text": "[warm] Switch is correct now.",
+      "file": "shared/verify-pass--bc1f7752.mp3"
+    },
+    "verify-pass--trigger--new-email--v0": {
+      "text": "[warm] Yes, New Email is set up right.",
+      "file": "shared/verify-pass--9aab4742.mp3"
+    },
+    "verify-pass--trigger--new-email--v1": {
+      "text": "[warm] Good, New Email is done.",
+      "file": "shared/verify-pass--90159c68.mp3"
+    },
+    "verify-pass--trigger--new-email--v2": {
+      "text": "[warm] New Email is correct now.",
+      "file": "shared/verify-pass--3b522530.mp3"
+    },
+    "welcome--v0": {
+      "text": "[warm] I will stay with you the whole way. If something is unclear, ask me.",
+      "file": "shared/welcome--20f0ff0f.mp3"
+    },
+    "welcome--v1": {
+      "text": "[warm] I am here the whole time. Ask me whenever you get stuck.",
+      "file": "shared/welcome--88d288e4.mp3"
+    }
+  }
+}

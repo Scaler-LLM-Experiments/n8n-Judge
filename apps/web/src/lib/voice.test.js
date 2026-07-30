@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createVoice } from './voice.js';
+import { clipId } from './voicePath.js';
 
 // The barge-in policy, which is the difference between narration that keeps up with
 // a learner and narration that talks about the screen they just left.
@@ -29,6 +30,26 @@ afterEach(() => {
 // No `Audio` in jsdom by default, so the store takes its caption-only path — which
 // exercises the same latch, cut and preload logic.
 const make = (overrides = {}) => createVoice({ onMoment: vi.fn(), problemSlug: 'email-triage', ...overrides });
+
+/**
+ * A stand-in for the generated clip table, keyed exactly as the generator keys it.
+ *
+ * Every variant is filled because which one a learner hears is decided in their
+ * browser from a session seed, so all of them have to exist — the same reason the
+ * real generator renders each variant.
+ */
+const clipTable = (moments) => {
+  const clips = {};
+  for (const { moment, vars } of moments) {
+    for (let variant = 0; variant < 6; variant += 1) {
+      clips[clipId(moment, vars?.key, vars ?? {}, variant)] = {
+        text: 'stand-in',
+        file: `shared/${moment.replace(/_/g, '-')}--v${variant}fingerprint`.slice(0, 60) + '.mp3',
+      };
+    }
+  }
+  return clips;
+};
 
 describe('one line at a time', () => {
   it('starts speaking when asked', async () => {
@@ -133,33 +154,53 @@ describe('preloading what is next', () => {
   // reimplementing HTTP caching, and losing it on every navigation.
   const links = () => appended.filter((l) => l.rel === 'preload' && l.as === 'audio');
 
+  const UPCOMING = [
+    { moment: 'verify_pass', vars: { node: 'A' } },
+    { moment: 'verify_fail', vars: { node: 'A' } },
+    { moment: 'answer_correct', vars: { answer: 'B' } },
+    { moment: 'answer_wrong', vars: { answer: 'C' } },
+  ];
+  const withClips = (moments) => make({ problem: { voiceClips: clipTable(moments) } });
+
   it('preloads the declared upcoming clips, capped at three', () => {
-    voice = make();
-    voice.setUpcoming([
-      { moment: 'verify_pass', vars: { node: 'A' } },
-      { moment: 'verify_fail', vars: { node: 'A' } },
-      { moment: 'answer_correct', vars: { answer: 'B' } },
-      { moment: 'answer_wrong', vars: { answer: 'C' } },
-    ]);
+    voice = withClips(UPCOMING);
+    voice.setUpcoming(UPCOMING);
     expect(links().length).toBe(3);
   });
 
-  it('points at the same URL the player will use', () => {
-    voice = make();
-    voice.setUpcoming([{ moment: 'verify_pass', vars: { node: 'Classify with AI' } }]);
-    // A readable, cacheable path — not a query string, which could never be cached.
-    expect(links()[0].href).toMatch(/\/api\/voice\/clip\/[a-z0-9-]+\/verify-pass--classify-with-ai--v\d\.mp3$/);
+  it('points at the file the table names, not one it worked out itself', () => {
+    // The bug this replaces: the player DERIVED the path with the same rule the
+    // generator used, implemented twice. They drifted, so every keyed clip missed
+    // storage — and a miss used to be answered by rendering the line live.
+    const moments = [{ moment: 'verify_pass', vars: { key: 'classify', node: 'Classify with AI' } }];
+    voice = withClips(moments);
+    voice.setUpcoming(moments);
+    expect(links()[0].href).toMatch(/^\/api\/voice\/clip\/shared\/verify-pass--v\d[a-z]*\.mp3$/);
   });
 
   it('does not preload the same URL twice', () => {
-    voice = make();
+    voice = withClips(UPCOMING);
     voice.setUpcoming([{ moment: 'verify_pass', vars: { node: 'A' } }]);
     voice.setUpcoming([{ moment: 'verify_pass', vars: { node: 'A' } }]);
     expect(links().length).toBe(1);
   });
 
-  it('preloads nothing while muted', () => {
+  it('requests NOTHING for a line the table has no audio for', () => {
+    // No table at all is the state before any voice is generated, and a line added
+    // since the last run is the state after. Both must cost zero requests: asking
+    // anyway would be a 404 per beat for a learner who was never going to hear it.
     voice = make();
+    voice.setUpcoming(UPCOMING);
+    expect(links().length).toBe(0);
+
+    voice.play('verify_pass', { node: 'A' });
+    expect(links().length).toBe(0);
+    // Still narrates — the caption comes from the local phrase book, not the network.
+    expect(voice.getState().caption?.moment).toBe('verify_pass');
+  });
+
+  it('preloads nothing while muted', () => {
+    voice = withClips(UPCOMING);
     voice.setMuted(true);
     voice.setUpcoming([{ moment: 'verify_pass', vars: { node: 'A' } }]);
     expect(links().length).toBe(0);

@@ -1,5 +1,5 @@
 import { captionFor, clipFor, fillLine, hasMoment, pickLine } from './voiceLines.js';
-import { clipUrl } from './voicePath.js';
+import { clipId, clipUrl } from './voicePath.js';
 
 // Iris speaking, client side.
 //
@@ -122,6 +122,27 @@ export function createVoice({ onMoment, problemSlug, problem } = {}) {
 
   /** The wording for a moment: same answer every time within a session. */
   const lineFor = (moment, vars) => pickLine(moment, variantFor(moment, vars), { problem, key: vars?.key });
+
+  /**
+   * The URL for a line, or null if there is no audio for it.
+   *
+   * LOOKED UP, never derived. The clip table (`problem.voiceClips`) is written by the
+   * generator and shipped with the problem, so the only names this asks for are names
+   * that were actually rendered.
+   *
+   * The old version rebuilt the path here from the moment, node and variant — the
+   * same rule the generator applied, implemented twice. They drifted, and because a
+   * miss was answered by rendering the line live, the cost of the drift was an
+   * ElevenLabs call and a visible pause on nearly every line a learner heard.
+   *
+   * Null is a normal answer: no voice generated yet, or a line added since the last
+   * run. It means caption only, and — importantly — NO REQUEST AT ALL, rather than a
+   * 404 per beat.
+   */
+  const urlFor = (moment, vars, index) => {
+    const entry = problem?.voiceClips?.[clipId(moment, vars?.key, vars ?? {}, index)];
+    return entry?.file ? clipUrl(entry.file) : null;
+  };
 
   /** What is likely next. The first few are preloaded into the HTTP cache. */
   let upcoming = [];
@@ -278,7 +299,7 @@ export function createVoice({ onMoment, problemSlug, problem } = {}) {
    * to fake.
    */
   const preload = (url) => {
-    if (audioUnavailable || typeof document === 'undefined' || preloaded.has(url)) return;
+    if (!url || audioUnavailable || typeof document === 'undefined' || preloaded.has(url)) return;
     preloaded.add(url);
     const link = document.createElement('link');
     link.rel = 'preload';
@@ -296,7 +317,7 @@ export function createVoice({ onMoment, problemSlug, problem } = {}) {
       if (!picked) continue;
       n += 1;
       // The exact URL `start` will ask for, or the warm is wasted.
-      preload(clipUrl(problemSlug ?? '', item.moment, item.vars ?? {}, picked.index));
+      preload(urlFor(item.moment, item.vars, picked.index));
     }
   }
 
@@ -314,12 +335,15 @@ export function createVoice({ onMoment, problemSlug, problem } = {}) {
     // The network is idle for the length of this line, and what comes next is known.
     warmUpcoming();
 
-    if (typeof Audio === 'undefined' || audioUnavailable) {
+    const url = urlFor(moment, vars, picked.index);
+    // No audio for this line, so do not ask for any. A line the generator has not
+    // rendered is a caption, and asking anyway would be a 404 per beat for a learner
+    // who was never going to hear it.
+    if (!url || typeof Audio === 'undefined' || audioUnavailable) {
       speakSilently(caption.text);
       return;
     }
 
-    const url = clipUrl(problemSlug ?? '', moment, vars ?? {}, picked.index);
     const el = new Audio(url);
     el.preload = 'auto';
     el.playbackRate = rate;

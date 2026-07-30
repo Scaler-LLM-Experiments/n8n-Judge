@@ -11,10 +11,11 @@ conventions, and the things that will bite you.
 
 "n8n Judge" is a simulator that teaches non-technical Scaler learners to build AI-agent
 workflows in n8n **and grades them while they do it**. Per challenge the learner walks
-**Home → Understand → Build → Stress Testing → Result**. Three challenges ship:
-`email-triage`, `lead-triage` (routing) and `meeting-notes` (linear).
+**Home → Understand → Build → Stress Testing → Result**. Four challenges ship:
+`email-triage`, `lead-triage` (routing), `meeting-notes` (linear) and `order-desk`
+(21 nodes, 8 routes, two AI nodes — the hard one).
 
-The repo root **is** the monorepo — `apps/web` plus nine `@judge/*` packages. It was
+The repo root **is** the monorepo — `apps/web` plus ten `@judge/*` packages. It was
 restructured on 2026-07-27; anything referring to an `innate/` folder or an `app/` Vite
 prototype is out of date, and both are gone.
 
@@ -46,7 +47,7 @@ the DB, and the journey is behind auth:
 cp .env.example .env   # set AUTH_SECRET (openssl rand -base64 32); POSTGRES_PORT if 5432 is taken
 npm run db:up          # local Postgres via docker-compose.yml
 npm run db:migrate      # apply committed migrations
-npm run db:seed        # programs, batches, and the three problems as v1 PUBLISHED
+npm run db:seed        # programs, batches, and the four problems as v1 PUBLISHED
 npm run db:seed:rubric # the grading rubric as RubricVersion v1 — see below, not optional
 ```
 
@@ -66,6 +67,10 @@ removes them (they're marked by the `demo.judge.local` email domain).
 
 Other db scripts: `db:down`, `db:migrate:dev` (new migration from schema changes),
 `db:generate`, `db:studio`.
+
+`npm run voice:generate` renders Iris's narration **on this machine**, and
+`npm run voice:sync` uploads it. Neither the app nor a dry run ever polls the bucket — see
+*Voice* below, and read it before touching anything under `voice*`.
 
 **`npm run smoke` is not optional after touching components.** There are no component
 tests, so a render-time bug passes both `npm test` and `next build`. Smoke drives system
@@ -119,7 +124,31 @@ optional), `flowSummary`, `buildPhases`, `nodeSetup` (per-node NDV: `credential`
 disabled `locked[]` + editable `fields[]` whose `options` carry `{value,label,correct,why}`,
 plus graded `settings[]`), `nodeProbes`, `sampleCases` (`branch:null` = intentional
 fall-through), `dissection`, `nodePalette`, `referenceGraph`, `testCases`, `evalQuestions`,
-`misconceptionLabels`, optional `simulation`.
+`misconceptionLabels`, optional `simulation`, optional `voice` (per-problem and per-node
+narration overrides), and optional `difficulty` (`easy|moderate|difficult`) +
+`difficultyNote` — surfaced by `/api/problems` and shown on the Home cards. Note the
+rubric's `problemComplexity()` still derives ordering from the content, so `difficulty` is
+label copy, not the thing that sorts the catalogue.
+
+**Field kinds have outgrown `select`.** `FieldControl` and `answerCheck.ts` now cover
+`select | text | number | boolean | expression | resourceLocator | ruleList |
+assignmentList`. The last three are n8n's structurally-different parameter shapes:
+
+- **`resourceLocator`** is n8n's "which record?" control (`{ __rl: true, mode, value }`).
+  Only `value` is graded — the resource, not the lookup mode used to reach it. The
+  `resourceValue()` helper exists on both sides and must stay in sync.
+- **`ruleList`** (Switch `rules`) and **`assignmentList`** (Edit Fields) are repeatable
+  groups the learner *builds*, so the node's shape becomes a consequence of its
+  configuration — add a rule, get an output. One algorithm serves both
+  ([packages/problem-schema/ruleList.ts](packages/problem-schema/ruleList.ts)); the UI is
+  [RuleListControl.jsx](apps/web/src/n8n/RuleListControl.jsx). The authored answer lives in
+  `expect.rules` / `expect.assignments`, not in `correct`.
+- **A rule list is always exactly three scored items** — `count`, `categories`,
+  `conditions` — whatever the learner builds, because a variable-length answer has no
+  option count to decay against and per-rule scoring would make the denominator move
+  between attempts. Their check ids are `<type>:<fieldKey>#<aspect>`, all open-ended
+  (100/50/0). Downstream code still only ever sees the authored branches, because a phase
+  cannot complete until the list verifies green.
 
 **`packages/problems` is the seed source, not the served source.** The web app does not
 import `@judge/problems` at all — [src/data/problemsApi.js](apps/web/src/data/problemsApi.js)
@@ -302,15 +331,16 @@ That's by design.
 ### Packages
 | Package | What |
 |---|---|
-| `@judge/engine` | Pure, unit-tested `(studentGraph, problem)` logic: `validateGraph` (gates the Run), `simulateCase`/`simulateAll`, `scoreEval`, `grading`, `asWorkflow`/`inferBranches`, `hasConnection`, and the **rubric** (`scoreSession`, `attemptsFromTrace`, `phaseBreakdown`, `scoreBand`, `problemComplexity`, `enumerateItems`) |
+| `@judge/engine` | Pure, unit-tested `(studentGraph, problem)` logic: `validateGraph` (gates the Run), `simulateCase`/`simulateAll`, `scoreEval`, `grading`, `asWorkflow`/`inferBranches`, `hasConnection`, `branchReach` (does every branch reach a reply), and the **rubric** (`scoreSession`, `attemptsFromTrace`, `phaseBreakdown`, `scoreBand`, `problemComplexity`, `enumerateItems`) |
 | `@judge/workflow` | The canonical n8n workflow model (TS) + React Flow ⇄ n8n conversion |
 | `@judge/catalog` | `NODE_CATALOG` — node vocabulary, params, sample I/O |
-| `@judge/problems` | The three challenges as data + registry + tests (seed source) |
-| `@judge/problem-schema` | zod `Problem` schema, `validateProblem()`, `toPublicProblem()`, `checkAnswer()` |
+| `@judge/problems` | The four challenges as data + registry + tests (seed source). **Registry order is the catalogue order** — `order-desk` is deliberately last |
+| `@judge/problem-schema` | zod `Problem` schema, `validateProblem()`, `toPublicProblem()`, `checkAnswer()`, `ruleList.ts` (rule/assignment lists) |
 | `@judge/trace` | `TraceEvent` contract + `ingest.ts` — decision, screen/phase transition, ndv_open, graph_mutation, run_result, ask_ai_turn; `CLIENT_FORBIDDEN_TYPES` |
 | `@judge/queue` | Queue interface + pg-boss driver + SQS stub |
 | `@judge/llm` | Claude client + grading / authoring / ask-ai prompt builders |
 | `@judge/db` | Prisma 6.x schema + migrations + client singleton + `publishProblem.mjs` and the seed scripts |
+| `@judge/voice-scripts` | **Generated, committed.** One clip table per problem (`id → {text, file}`) + `VALID_CLIP_FILES`. The contract the generator, the server and the browser all read — see *Voice* |
 
 `grading` is **pure functions**, not a Zustand store — the UI holds one store in React
 state and appends. `recordDecision` keeps the *earliest* decision per id, so re-answering
@@ -336,7 +366,13 @@ claim.
   probes, then it's removed), the NDV as a centered modal, and the Run animation
   (test-case stepper, traveling sticky note ~2s/node, active node highlighted while the
   rest dim, all-pass confetti). Phase completion requires every phase node-type placed
-  **and** configured — and for a router phase, all `branches` wired to configured replies.
+  **and** configured — and for a router phase, every `branch` reaching a configured reply.
+  That last check is [`branchReach.js`](packages/engine/branchReach.js), not an inline
+  comparison: it resolves a terminal by catalog **category** (Slack, Notion, Calendar and
+  Docs all end a run) and **walks through passthrough nodes** to find it. The old inline
+  rule (`target.type === 'action'` on the immediate target) made "topology is data" false
+  exactly where a learner would notice — a correct flow whose branch formats then sends, or
+  replies on Slack, could pass its Run and still refuse to advance the phase.
 - `EvalScreen` (Stress Testing) — read-only `flowSummary` strip + `evalQuestions`. Options
   are shuffled per (tab session, question key) and carry `originalIndex`, because
   `scoreEval` grades against the authored `correctIndex`.
@@ -362,9 +398,10 @@ Built from scratch (not n8n's assets), on `reactflow` v11.
   shared across node types, matching n8n. Only what the problem grades
   (`nodeSetup[type].settings`) is editable; the rest render at real n8n defaults but
   locked.
-- `FieldControl` — `select | text | number | boolean | expression`. Its `isCorrectValue`
-  logic is mirrored server-side in `answerCheck.ts`; **keep the two in sync** (there are
-  tests on both sides).
+- `FieldControl` — every field kind (see *Problem-as-data* above). Its `isCorrectValue` and
+  `resourceValue` logic is mirrored server-side in `answerCheck.ts`; **keep the two in
+  sync** (there are tests on both sides). `RuleListControl` handles `ruleList` /
+  `assignmentList`.
 - `NodePickerDrawer` — the node library drawer.
 
 ### Ask-AI
@@ -372,6 +409,71 @@ Built from scratch (not n8n's assets), on `reactflow` v11.
 tier, scoped to problem/screen/phase/node. It is **deliberately unhelpful about answers** —
 asked "which node?", it teaches the concept and asks a guiding question. Intended. Without
 `ANTHROPIC_API_KEY` it returns 503 and the UI degrades gracefully.
+
+### Voice — Iris speaks (ElevenLabs)
+**Rendered on a laptop, uploaded once, served as files. Nothing renders at runtime and
+nothing polls storage.** That is not a preference — the previous pipeline got Scaler's S3
+credentials flagged after ~1500 calls in a short window, and was calling ElevenLabs during
+learner sessions. Design: [docs/superpowers/specs/2026-07-30-voice-clip-pipeline-design.md](docs/superpowers/specs/2026-07-30-voice-clip-pipeline-design.md).
+
+```bash
+npm run voice:generate -- --dry-run   # what would change; spends and calls nothing
+npm run voice:generate                # write the tables, render what is missing, locally
+npm run voice:sync                    # upload to the bucket
+```
+
+- **The phrase book is the source, the table is the contract.**
+  [voiceLines.js](apps/web/src/lib/voiceLines.js) holds every line, keyed by *moment*, with
+  the writing rules in its header — they are the feature: short plain sentences, no em
+  dashes, calm not cheerleading, **never reveal an answer the learner has not given**, and
+  **do not read the screen**. `[bracketed]` text is an ElevenLabs v3 audio tag, stripped by
+  `captionFor`. Per-problem overrides come from `problem.voice`.
+  The generator turns that into [`@judge/voice-scripts`](packages/voice-scripts/) — one
+  committed JSON table per problem, `id → { text, file }`. **Generated; never hand-edit.**
+- **A clip's name has two halves and they work differently.** The **id**
+  (`verify-pass--classify--classify-with-ai--v0`) is derived at runtime by the browser and
+  identifies a *moment*. The **file** (`shared/verify-pass--a1b2c3d4.mp3`) identifies a
+  *sentence* and is only ever **looked up**, never rebuilt. Deriving the file on both sides
+  is exactly what broke before: the browser asked for names the generator had never
+  written, so nearly every Build-stage line missed storage and fell into a live render.
+  Many ids point at one file — that is the saving. **500 ids across four problems resolve
+  to 307 recordings.**
+- **The fingerprint is what makes `immutable` safe.** Clips are served with a one-year
+  cache, so a stable name would leave a reworded line playing old audio in every learner's
+  browser with no way to clear it. Rewording changes the hash, so it is simply a new URL.
+  It also gives the route a free ETag and removes any need for a staleness manifest.
+- **`shared/` holds lines no problem authored** — the decision is `clipScope` in
+  voiceLines.js, the one place that judgement is made — so a line every problem says is
+  rendered once, not once per problem.
+- **The serving route cannot do three things**
+  ([clip route](apps/web/app/api/voice/clip/[...path]/route.ts)): it cannot render (no
+  vendor client exists in it); it cannot ask storage for a file that is not in a committed
+  table, so a stray URL costs nothing; and it cannot ask twice, because
+  [voiceCache.ts](apps/web/src/server/voiceCache.ts) keeps one copy per container on local
+  disk and **collapses concurrent misses into a single fetch**. S3 reads are bounded by
+  distinct clips played — a few hundred per container, then zero at any cohort size.
+- **The browser gets its table with the problem**, in `GET /api/problems/[slug]` as
+  `voiceClips` — already authenticated, no new endpoint. A line with no entry plays as a
+  caption and makes **no request at all**.
+- **[VoiceContext.jsx](apps/web/src/lib/VoiceContext.jsx) splits actions from state, and
+  that split is not cosmetic.** `amplitude` updates every animation frame to drive the
+  glow; with one context value every consumer re-rendered 60×/s and any effect depending on
+  `voice` re-ran every frame — prefetch → state → new context → prefetch, the loop that
+  took out the Understand screen. `useVoiceActions()` is memoised once and is safe in a
+  dependency array; `useVoice()` adds the animating state. Both default to no-ops.
+- Client rules in [voice.js](apps/web/src/lib/voice.js), all load-bearing: never throw at
+  the caller; notify the mascot *first*, even when muted; **one line at a time, newest
+  wins** (no queue — a line describes a moment that has passed, so being cut off is
+  correct); tear down the Web Audio graph on every finish or a long session accumulates
+  dead graphs until audio stops.
+- `GET /api/voice/diagnostics` answers "why is narration not playing" **without a single
+  storage call**, reporting config plus how many clips this container has served.
+
+**Regenerate after** editing any line, changing a problem's nodes/questions/phases, or
+changing `ELEVENLABS_VOICE_ID`/`MODEL_ID` — the voice is in every fingerprint, so changing
+it renames and re-renders the whole library. `renderedWith` in each table records what
+produced it.
+
 
 ### Legacy inside apps/web/src
 `nodes/*.jsx` (`ActionNode`, `ChatModelNode`, `ClassifyNode`, `ProcessNode`, `TriggerNode`,
@@ -402,7 +504,15 @@ Probe copy follows three rules: **never name the correct node**, every option is
 position someone would hold, and the correct answer describes what the *wrong* node
 actually does. Probe selections are rendered neutral, not green/red — the placement is
 already known to be wrong. Never park the correct option at index 0 as a habit; an audit
-once found it there in 25/25 fields and 13/13 dissection items.
+once found it there in 25/25 fields and 13/13 dissection items
+(`apps/web/scripts/verify-option-balance.mjs` checks this).
+
+**`nodeSetup` is keyed by node TYPE, not by node instance.** Using the same type twice in
+one problem gives both instances the same NDV and grades one decision that may only make
+sense for one of them, so a large problem should use each type once unless the same
+configuration is genuinely right everywhere (`order-desk` repeats `action` because "send
+the customer a reply" really is the same setup four times, and gives each other job its own
+type).
 
 ## Deployment
 
@@ -411,7 +521,10 @@ must be the repo root**. It runs `npm ci --include=dev` (lifecycle hooks run
 `prisma generate` and sync the dotLottie wasm into `public/`), builds `@judge/web`, and
 starts [scripts/start-production.sh](scripts/start-production.sh). Health check
 `/api/health` (returns `{status, db}`). Needs `DATABASE_URL`, `AUTH_SECRET` and
-`ANTHROPIC_API_KEY`. Env template: [.env.example](.env.example). The service deploys from
+`ANTHROPIC_API_KEY`; voice additionally needs `FEATURE_VOICE`, `ELEVENLABS_*` and (for the
+`s3` backend) `AUDIO_S3_*`. Env template: [.env.example](.env.example) — its *Pre-rendered
+voice clips* comments still describe the old content-addressed scheme; the live design is
+slug paths plus a manifest (see *Voice*). The service deploys from
 **`sudhanva/nextjs`, not `main`** — a push deploys, so a type error reaches production.
 
 **`start-production.sh` runs `prisma migrate deploy` before serving, and that is not

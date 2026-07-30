@@ -192,6 +192,45 @@ export function resolveLines(moment, { problem, key } = {}) {
   return LINES[moment] ?? null;
 }
 
+/**
+ * Did this problem write its own wording for this line?
+ *
+ * The same test `resolveLines` makes, asked as a question instead of resolved — so
+ * the two can never disagree about which lines a problem owns.
+ *
+ * @param problem  the problem object (may be null)
+ * @param moment   e.g. 'node_placed'
+ * @param key      usually a node type or question id
+ */
+export function hasOwnWording(problem, moment, key) {
+  const overrides = problem?.voice ?? null;
+  if (!overrides) return false;
+  if (key && Array.isArray(overrides[`${moment}:${key}`])) return true;
+  return Array.isArray(overrides[moment]);
+}
+
+/**
+ * Which folder one line's audio belongs in — the problem's, or `shared`.
+ *
+ * This is the whole fix for rendering the same sentence once per problem. If the
+ * words came from the default phrase book they are the same words for every problem,
+ * so they are the same audio and there is no reason to pay for them again. Only an
+ * authored line belongs to a problem.
+ *
+ * It has to be ONE function because five callers derive the same path independently
+ * and they must agree exactly: the generator (what to render), the admin route and
+ * the diagnostics (what is stored), and the browser (what to request). A browser
+ * asking for a path the generator never wrote gets a 404 and falls back to a caption,
+ * silently — which is precisely the class of bug that makes narration "just stop
+ * working" for one problem.
+ *
+ * @param problemSlug  the slug to use when the line IS problem-specific
+ * @returns the slug, or '' for shared — pass it straight to `clipFile`
+ */
+export function clipScope(problemSlug, problem, moment, key) {
+  return hasOwnWording(problem, moment, key) ? (problemSlug ?? '') : '';
+}
+
 /** Is this a moment we have words for? */
 export function hasMoment(moment) {
   return Object.prototype.hasOwnProperty.call(LINES, moment);

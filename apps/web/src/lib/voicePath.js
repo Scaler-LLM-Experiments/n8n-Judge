@@ -1,36 +1,55 @@
-// The URL of one voice clip.
+// What one voice clip is called, and where it is served from.
 //
 // ---------------------------------------------------------------------------
-// Why this replaced a query API and a content hash
+// A name in two halves, and why
 // ---------------------------------------------------------------------------
-// Narration was slow, and the cause was the transport, not the vendor.
+// A clip's file name is `<folder>/<id>--<fingerprint>.mp3`, e.g.
 //
-// The old design served clips from `GET /api/voice?moment=…` with
-// `Cache-Control: no-store`, and the client fetched them with `fetch()`, awaited
-// `res.blob()`, then made an object URL. Three separate problems, each fatal on its
-// own:
+//   shared/verify-pass--classify--classify-with-ai--v0--a1b2c3d4.mp3
 //
-//   1. `no-store` on a query URL means the browser can NEVER reuse a clip. Every
-//      play was a server round trip, including the twentieth play of "Correct."
-//   2. `await res.blob()` waits for the WHOLE file before playback can start. An
-//      `<audio>` element pointed at a URL starts after a few KB and streams the
-//      rest, which is what makes it feel instant.
-//   3. A hand-rolled warm cache in JS was reimplementing the HTTP cache, worse,
-//      and losing it on every navigation.
+// The two halves are produced in completely different ways, and that is the whole
+// point:
 //
-// So: a stable, human-readable path per clip, served immutable, and the client just
-// does `new Audio(url)`. The browser handles caching, streaming, range requests and
-// eviction — all of it better than the JS ever did.
+//   the ID is DERIVED, by the generator and the browser alike, from things both
+//   already hold (a moment, a key, the filled variable, which variant);
 //
-// It also answers "should the clips have slugs": yes. A path like
-//   email-triage/verify_pass--classify--classify-with-ai--v0.mp3
-// is greppable in the bucket, and the caption comes from the local phrase book, so
-// the client no longer needs a round trip just to learn what is being said.
+//   the FINGERPRINT is NOT derived at runtime. It is computed once, by the
+//   generator, from the sentence itself, and written into the problem's script
+//   table (voice-scripts/<problem>.json). Playback looks it up. It is never
+//   recomputed in a browser.
 //
-// The cost of dropping the content hash: editing a line does NOT change its path,
-// so a reworded line keeps its old audio until regenerated. `npm run voice:generate
-// -- --force` exists for that, and it is the right trade — the hash bought
-// automatic invalidation at the price of an uncacheable, unbrowsable URL.
+// Each half fixes a bug the previous scheme had.
+//
+// The ID fixes a silent mismatch. The old path took its variables from `vars` but
+// the enumeration kept `key` OUTSIDE `vars`, so the browser asked for
+// `node-placed--classify--classify-with-ai--v0.mp3` while the generator had stored
+// `node-placed--classify-with-ai--v0.mp3`. Every node, verify and answer clip
+// therefore missed storage — and the serving route's response to a miss was to call
+// ElevenLabs and render it live. That is where the latency, the vendor spend and a
+// large part of the S3 traffic came from. The key is now part of the id, and one
+// function builds it for both sides.
+//
+// The FINGERPRINT fixes staleness. Clips are served `immutable` with a one-year
+// cache, so a stable name means a reworded line keeps its old audio in every
+// learner's browser for a year, with no way to reach in and clear it. Because the
+// name now contains a hash of the sentence, rewording produces a different file:
+// the browser has never seen it, fetches it, and untouched lines stay cached. It
+// also removes the need for a separate staleness manifest, and gives the serving
+// route a free ETag.
+//
+// Two different sentences can no longer share a name, which used to happen 17 times
+// across the catalogue.
+
+/**
+ * The folder for a line no single problem owns.
+ *
+ * Every clip used to be filed under its problem, which meant the lines that are
+ * word-for-word identical across the catalogue were rendered — and BILLED — once per
+ * problem. A problem owns a line only when it AUTHORED that line via `problem.voice`;
+ * everything still on the default wording lives here, once. The decision itself is
+ * `clipScope` in voiceLines.js, which is the only place that judgement is made.
+ */
+export const SHARED_SCOPE = 'shared';
 
 /** Lowercase, alphanumerics and single dashes. Safe in a path and in S3. */
 export function slugify(value) {
@@ -43,52 +62,78 @@ export function slugify(value) {
 }
 
 /**
- * The path for one clip, relative to the audio root.
+ * The readable identity of one line — no folder, no fingerprint, no extension.
  *
- * Deterministic from things the CLIENT already knows, which is the point: no
- * request is needed to work out what to play.
+ * This doubles as the key in the problem's script table, so a human can open
+ * voice-scripts/order-desk.json and read what Iris says at any moment by name.
  *
- * @param problem  slug, or '' for a line that is not problem-specific
+ * Everything that changes WHICH SENTENCE this is goes in, and nothing that does not.
+ * `vars.scope` is deliberately absent: it routes variant selection in the browser
+ * and has no bearing on the words.
+ *
  * @param moment   e.g. 'verify_pass'
- * @param vars     { key, node, answer } — whatever the line interpolates
+ * @param key      the node type or question id this line is about, or null
+ * @param vars     { node, answer } — whatever the line interpolates
  * @param variant  which authored wording
  */
-export function clipPath(problem, moment, vars = {}, variant = 0) {
-  // Only the variables that change the words. `scope` is routing, not content.
-  const parts = [slugify(vars.key), slugify(vars.node || vars.answer)].filter(Boolean);
-  const tail = parts.length ? `--${parts.join('--')}` : '';
-  const dir = slugify(problem) || 'shared';
-  return `${dir}/${slugify(moment)}${tail}--v${variant}.mp3`;
+export function clipId(moment, key, vars = {}, variant = 0) {
+  const parts = [slugify(moment), slugify(key), slugify(vars.node || vars.answer)].filter(Boolean);
+  return `${parts.join('--')}--v${variant}`;
+}
+
+/**
+ * Where one line's audio is stored.
+ *
+ * Note this is NOT `clipId` plus an extension, and the difference is deliberate.
+ *
+ *   the ID identifies a MOMENT — "the verify-pass line for the classify node" — and
+ *   has to be unique, because it is how the browser looks a line up;
+ *
+ *   the FILE identifies AUDIO, and audio is the same audio whenever the sentence is
+ *   the same. The generic "Take your time" plays at a dozen different moments; it is
+ *   one recording, and paying to render it a dozen times is exactly the waste this
+ *   pipeline exists to remove.
+ *
+ * So many ids can point at one file. The fingerprint carries the sentence, and the
+ * moment prefix is there purely so the bucket stays browsable by a human — the
+ * reason a bare content hash was rejected in the first place.
+ *
+ * @param scope        problem slug, or '' for a line nobody authored (see SHARED_SCOPE)
+ * @param moment       e.g. 'verify_pass'
+ * @param fingerprint  short hash of the sentence — from the script table, never recomputed here
+ */
+export function clipFile(scope, moment, fingerprint) {
+  return `${slugify(scope) || SHARED_SCOPE}/${slugify(moment)}--${fingerprint}.mp3`;
 }
 
 /**
  * Where clips are served from.
  *
- * Defaults to this app's own route. `NEXT_PUBLIC_VOICE_CDN_BASE` points playback at
- * a CDN instead, which is the one remaining structural cost in this path: today
- * every learner's first play of a clip is an S3 GET whose bytes transit the Next
- * server, so the app is on the byte path for all narration egress. A distribution
- * in front collapses that to one origin fetch per clip per edge TTL, and needs no
- * invalidation strategy because the paths are already served `immutable`.
- *
- * NOT free, and the reason it is off by default: this route is AUTHENTICATED and
- * responds `Cache-Control: private`, both deliberately. Narration includes
- * explanations of correct answers, so an open clip endpoint is an answer key
- * anybody can enumerate. A shared cache in front of it means either dropping that
- * check or moving to signed URLs. Set this only alongside that decision.
+ * This app's own route, deliberately. Narration explains correct answers, so the
+ * endpoint is authenticated and responds `Cache-Control: private` — which also means
+ * it cannot sit behind a shared cache without either dropping that check or moving to
+ * signed URLs. Repeat plays cost nothing anyway: each learner's browser keeps every
+ * clip for a year, and the server keeps one copy on local disk for everybody.
  */
 function clipBase() {
   const base = typeof process !== 'undefined' ? process.env?.NEXT_PUBLIC_VOICE_CDN_BASE : null;
   return base ? String(base).replace(/\/+$/, '') : '/api/voice/clip';
 }
 
-/** Same path, as a URL the browser can fetch and cache. */
-export function clipUrl(problem, moment, vars, variant) {
-  return `${clipBase()}/${clipPath(problem, moment, vars, variant)}`;
+/**
+ * A stored file, as a URL the browser can fetch and cache.
+ *
+ * Takes the file VERBATIM from the script table rather than rebuilding it, because
+ * rebuilding it is exactly how the browser and the generator drifted apart before.
+ */
+export function clipUrl(file) {
+  return `${clipBase()}/${file}`;
 }
 
 /**
- * What the route accepts. Mirrors the reference implementation's guard: two
- * segments, an mp3, nothing that could climb out of the prefix.
+ * What the route accepts: one folder, one file, an mp3, nothing that could climb out
+ * of the prefix. Note this is only a shape check — the route additionally refuses any
+ * path that is not listed in a committed script table, so a well-formed but unknown
+ * name never reaches storage.
  */
 export const SAFE_CLIP_PATH = /^[a-z0-9][a-z0-9-]*\/[a-z0-9][a-z0-9-]*\.mp3$/;

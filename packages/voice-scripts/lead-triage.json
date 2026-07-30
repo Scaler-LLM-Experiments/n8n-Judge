@@ -1,0 +1,595 @@
+{
+  "version": 1,
+  "problem": "lead-triage",
+  "renderedWith": "elevenlabs/PENDING/eleven_v3",
+  "clips": {
+    "answer-correct--action--send-reply--v0": {
+      "text": "[warm] Yes, Send Reply is right.",
+      "file": "shared/answer-correct--cf986656.mp3"
+    },
+    "answer-correct--action--send-reply--v1": {
+      "text": "[warm] Correct, Send Reply is the one.",
+      "file": "shared/answer-correct--794539c4.mp3"
+    },
+    "answer-correct--action--send-reply--v2": {
+      "text": "[warm] That is it, Send Reply.",
+      "file": "shared/answer-correct--1f1725f3.mp3"
+    },
+    "answer-correct--classify--classify-with-ai--v0": {
+      "text": "[warm] Yes, Classify with AI is right.",
+      "file": "shared/answer-correct--b7bc8b19.mp3"
+    },
+    "answer-correct--classify--classify-with-ai--v1": {
+      "text": "[warm] Correct, Classify with AI is the one.",
+      "file": "shared/answer-correct--5179bee5.mp3"
+    },
+    "answer-correct--classify--classify-with-ai--v2": {
+      "text": "[warm] That is it, Classify with AI.",
+      "file": "shared/answer-correct--49710bb7.mp3"
+    },
+    "answer-correct--parse--parse-result--v0": {
+      "text": "[warm] Yes, Parse Result is right.",
+      "file": "shared/answer-correct--251a2f6d.mp3"
+    },
+    "answer-correct--parse--parse-result--v1": {
+      "text": "[warm] Correct, Parse Result is the one.",
+      "file": "shared/answer-correct--65708d8e.mp3"
+    },
+    "answer-correct--parse--parse-result--v2": {
+      "text": "[warm] That is it, Parse Result.",
+      "file": "shared/answer-correct--26b0eec4.mp3"
+    },
+    "answer-correct--switch--switch--v0": {
+      "text": "[warm] Yes, Switch is right.",
+      "file": "shared/answer-correct--969993cb.mp3"
+    },
+    "answer-correct--switch--switch--v1": {
+      "text": "[warm] Correct, Switch is the one.",
+      "file": "shared/answer-correct--69dd9447.mp3"
+    },
+    "answer-correct--switch--switch--v2": {
+      "text": "[warm] That is it, Switch.",
+      "file": "shared/answer-correct--8569b990.mp3"
+    },
+    "answer-correct--trigger--new-email--v0": {
+      "text": "[warm] Yes, New Email is right.",
+      "file": "shared/answer-correct--5b930578.mp3"
+    },
+    "answer-correct--trigger--new-email--v1": {
+      "text": "[warm] Correct, New Email is the one.",
+      "file": "shared/answer-correct--71c42603.mp3"
+    },
+    "answer-correct--trigger--new-email--v2": {
+      "text": "[warm] That is it, New Email.",
+      "file": "shared/answer-correct--46eeb55a.mp3"
+    },
+    "answer-wrong--action--do-nothing--v0": {
+      "text": "[thoughtful] Hmm. Do you really think Do nothing belongs here?",
+      "file": "shared/answer-wrong--b51e74fe.mp3"
+    },
+    "answer-wrong--action--do-nothing--v1": {
+      "text": "[thoughtful] Are you sure about Do nothing? Think about what it actually does.",
+      "file": "shared/answer-wrong--fdb67868.mp3"
+    },
+    "answer-wrong--action--do-nothing--v2": {
+      "text": "[calm] Have another look at Do nothing. Would it really work at this point?",
+      "file": "shared/answer-wrong--0b93e30f.mp3"
+    },
+    "answer-wrong--action--google-docs--v0": {
+      "text": "[thoughtful] Hmm. Do you really think Google Docs belongs here?",
+      "file": "shared/answer-wrong--d70ef68d.mp3"
+    },
+    "answer-wrong--action--google-docs--v1": {
+      "text": "[thoughtful] Are you sure about Google Docs? Think about what it actually does.",
+      "file": "shared/answer-wrong--2182d2a5.mp3"
+    },
+    "answer-wrong--action--google-docs--v2": {
+      "text": "[calm] Have another look at Google Docs. Would it really work at this point?",
+      "file": "shared/answer-wrong--c1f9f5ef.mp3"
+    },
+    "answer-wrong--action--slack-send-message--v0": {
+      "text": "[thoughtful] Hmm. Do you really think Slack — Send Message belongs here?",
+      "file": "shared/answer-wrong--1fccc70d.mp3"
+    },
+    "answer-wrong--action--slack-send-message--v1": {
+      "text": "[thoughtful] Are you sure about Slack — Send Message? Think about what it actually does.",
+      "file": "shared/answer-wrong--091a017f.mp3"
+    },
+    "answer-wrong--action--slack-send-message--v2": {
+      "text": "[calm] Have another look at Slack — Send Message. Would it really work at this point?",
+      "file": "shared/answer-wrong--874be49c.mp3"
+    },
+    "answer-wrong--classify--code--v0": {
+      "text": "[thoughtful] Hmm. Do you really think Code belongs here?",
+      "file": "shared/answer-wrong--f8d624ee.mp3"
+    },
+    "answer-wrong--classify--code--v1": {
+      "text": "[thoughtful] Are you sure about Code? Think about what it actually does.",
+      "file": "shared/answer-wrong--24e19153.mp3"
+    },
+    "answer-wrong--classify--code--v2": {
+      "text": "[calm] Have another look at Code. Would it really work at this point?",
+      "file": "shared/answer-wrong--28440b44.mp3"
+    },
+    "answer-wrong--classify--if--v0": {
+      "text": "[thoughtful] Hmm. Do you really think If belongs here?",
+      "file": "shared/answer-wrong--291d9ea0.mp3"
+    },
+    "answer-wrong--classify--if--v1": {
+      "text": "[thoughtful] Are you sure about If? Think about what it actually does.",
+      "file": "shared/answer-wrong--a4910e4d.mp3"
+    },
+    "answer-wrong--classify--if--v2": {
+      "text": "[calm] Have another look at If. Would it really work at this point?",
+      "file": "shared/answer-wrong--97f46611.mp3"
+    },
+    "answer-wrong--classify--switch--v0": {
+      "text": "[thoughtful] Hmm. Do you really think Switch belongs here?",
+      "file": "shared/answer-wrong--78e0c71e.mp3"
+    },
+    "answer-wrong--classify--switch--v1": {
+      "text": "[thoughtful] Are you sure about Switch? Think about what it actually does.",
+      "file": "shared/answer-wrong--66147734.mp3"
+    },
+    "answer-wrong--classify--switch--v2": {
+      "text": "[calm] Have another look at Switch. Would it really work at this point?",
+      "file": "shared/answer-wrong--fba23d71.mp3"
+    },
+    "answer-wrong--parse--do-nothing--v0": {
+      "text": "[thoughtful] Hmm. Do you really think Do nothing belongs here?",
+      "file": "shared/answer-wrong--b51e74fe.mp3"
+    },
+    "answer-wrong--parse--do-nothing--v1": {
+      "text": "[thoughtful] Are you sure about Do nothing? Think about what it actually does.",
+      "file": "shared/answer-wrong--fdb67868.mp3"
+    },
+    "answer-wrong--parse--do-nothing--v2": {
+      "text": "[calm] Have another look at Do nothing. Would it really work at this point?",
+      "file": "shared/answer-wrong--0b93e30f.mp3"
+    },
+    "answer-wrong--parse--send-it-straight-to-switch--v0": {
+      "text": "[thoughtful] Hmm. Do you really think Send it straight to Switch belongs here?",
+      "file": "shared/answer-wrong--e68594c7.mp3"
+    },
+    "answer-wrong--parse--send-it-straight-to-switch--v1": {
+      "text": "[thoughtful] Are you sure about Send it straight to Switch? Think about what it actually does.",
+      "file": "shared/answer-wrong--10f68875.mp3"
+    },
+    "answer-wrong--parse--send-it-straight-to-switch--v2": {
+      "text": "[calm] Have another look at Send it straight to Switch. Would it really work at this point?",
+      "file": "shared/answer-wrong--f7d95e8a.mp3"
+    },
+    "answer-wrong--parse--send-reply-now--v0": {
+      "text": "[thoughtful] Hmm. Do you really think Send Reply now belongs here?",
+      "file": "shared/answer-wrong--c405282d.mp3"
+    },
+    "answer-wrong--parse--send-reply-now--v1": {
+      "text": "[thoughtful] Are you sure about Send Reply now? Think about what it actually does.",
+      "file": "shared/answer-wrong--464a8f00.mp3"
+    },
+    "answer-wrong--parse--send-reply-now--v2": {
+      "text": "[calm] Have another look at Send Reply now. Would it really work at this point?",
+      "file": "shared/answer-wrong--f7a88816.mp3"
+    },
+    "answer-wrong--switch--filter--v0": {
+      "text": "[thoughtful] Hmm. Do you really think Filter belongs here?",
+      "file": "shared/answer-wrong--1e961802.mp3"
+    },
+    "answer-wrong--switch--filter--v1": {
+      "text": "[thoughtful] Are you sure about Filter? Think about what it actually does.",
+      "file": "shared/answer-wrong--587a9eeb.mp3"
+    },
+    "answer-wrong--switch--filter--v2": {
+      "text": "[calm] Have another look at Filter. Would it really work at this point?",
+      "file": "shared/answer-wrong--26ae1b55.mp3"
+    },
+    "answer-wrong--switch--if--v0": {
+      "text": "[thoughtful] Hmm. Do you really think If belongs here?",
+      "file": "shared/answer-wrong--291d9ea0.mp3"
+    },
+    "answer-wrong--switch--if--v1": {
+      "text": "[thoughtful] Are you sure about If? Think about what it actually does.",
+      "file": "shared/answer-wrong--a4910e4d.mp3"
+    },
+    "answer-wrong--switch--if--v2": {
+      "text": "[calm] Have another look at If. Would it really work at this point?",
+      "file": "shared/answer-wrong--97f46611.mp3"
+    },
+    "answer-wrong--switch--merge--v0": {
+      "text": "[thoughtful] Hmm. Do you really think Merge belongs here?",
+      "file": "shared/answer-wrong--0d4ceeab.mp3"
+    },
+    "answer-wrong--switch--merge--v1": {
+      "text": "[thoughtful] Are you sure about Merge? Think about what it actually does.",
+      "file": "shared/answer-wrong--d8c3b3c1.mp3"
+    },
+    "answer-wrong--switch--merge--v2": {
+      "text": "[calm] Have another look at Merge. Would it really work at this point?",
+      "file": "shared/answer-wrong--17bfec59.mp3"
+    },
+    "answer-wrong--trigger--chat-trigger--v0": {
+      "text": "[thoughtful] Hmm. Do you really think Chat Trigger belongs here?",
+      "file": "shared/answer-wrong--734f7a9b.mp3"
+    },
+    "answer-wrong--trigger--chat-trigger--v1": {
+      "text": "[thoughtful] Are you sure about Chat Trigger? Think about what it actually does.",
+      "file": "shared/answer-wrong--b602e1f9.mp3"
+    },
+    "answer-wrong--trigger--chat-trigger--v2": {
+      "text": "[calm] Have another look at Chat Trigger. Would it really work at this point?",
+      "file": "shared/answer-wrong--b35b788a.mp3"
+    },
+    "answer-wrong--trigger--schedule--v0": {
+      "text": "[thoughtful] Hmm. Do you really think Schedule belongs here?",
+      "file": "shared/answer-wrong--4588a070.mp3"
+    },
+    "answer-wrong--trigger--schedule--v1": {
+      "text": "[thoughtful] Are you sure about Schedule? Think about what it actually does.",
+      "file": "shared/answer-wrong--f3a5cfb4.mp3"
+    },
+    "answer-wrong--trigger--schedule--v2": {
+      "text": "[calm] Have another look at Schedule. Would it really work at this point?",
+      "file": "shared/answer-wrong--3ac9ca88.mp3"
+    },
+    "answer-wrong--trigger--webhook--v0": {
+      "text": "[thoughtful] Hmm. Do you really think Webhook belongs here?",
+      "file": "shared/answer-wrong--8aebb95b.mp3"
+    },
+    "answer-wrong--trigger--webhook--v1": {
+      "text": "[thoughtful] Are you sure about Webhook? Think about what it actually does.",
+      "file": "shared/answer-wrong--aa046c9e.mp3"
+    },
+    "answer-wrong--trigger--webhook--v2": {
+      "text": "[calm] Have another look at Webhook. Would it really work at this point?",
+      "file": "shared/answer-wrong--04a2fd90.mp3"
+    },
+    "answer-wrong-again--action--v0": {
+      "text": "[thoughtful] Still not it. Go back to the problem and ask what has to happen first.",
+      "file": "shared/answer-wrong-again--49f4c848.mp3"
+    },
+    "answer-wrong-again--action--v1": {
+      "text": "[calm] Let us slow down. What does this step actually need before it can run?",
+      "file": "shared/answer-wrong-again--314a0a3b.mp3"
+    },
+    "answer-wrong-again--action--v2": {
+      "text": "[thoughtful] Try reading the options as jobs. Which job does this flow need doing here?",
+      "file": "shared/answer-wrong-again--3bd12acb.mp3"
+    },
+    "answer-wrong-again--classify--v0": {
+      "text": "[thoughtful] Still not it. Go back to the problem and ask what has to happen first.",
+      "file": "shared/answer-wrong-again--49f4c848.mp3"
+    },
+    "answer-wrong-again--classify--v1": {
+      "text": "[calm] Let us slow down. What does this step actually need before it can run?",
+      "file": "shared/answer-wrong-again--314a0a3b.mp3"
+    },
+    "answer-wrong-again--classify--v2": {
+      "text": "[thoughtful] Try reading the options as jobs. Which job does this flow need doing here?",
+      "file": "shared/answer-wrong-again--3bd12acb.mp3"
+    },
+    "answer-wrong-again--parse--v0": {
+      "text": "[thoughtful] Still not it. Go back to the problem and ask what has to happen first.",
+      "file": "shared/answer-wrong-again--49f4c848.mp3"
+    },
+    "answer-wrong-again--parse--v1": {
+      "text": "[calm] Let us slow down. What does this step actually need before it can run?",
+      "file": "shared/answer-wrong-again--314a0a3b.mp3"
+    },
+    "answer-wrong-again--parse--v2": {
+      "text": "[thoughtful] Try reading the options as jobs. Which job does this flow need doing here?",
+      "file": "shared/answer-wrong-again--3bd12acb.mp3"
+    },
+    "answer-wrong-again--switch--v0": {
+      "text": "[thoughtful] Still not it. Go back to the problem and ask what has to happen first.",
+      "file": "shared/answer-wrong-again--49f4c848.mp3"
+    },
+    "answer-wrong-again--switch--v1": {
+      "text": "[calm] Let us slow down. What does this step actually need before it can run?",
+      "file": "shared/answer-wrong-again--314a0a3b.mp3"
+    },
+    "answer-wrong-again--switch--v2": {
+      "text": "[thoughtful] Try reading the options as jobs. Which job does this flow need doing here?",
+      "file": "shared/answer-wrong-again--3bd12acb.mp3"
+    },
+    "answer-wrong-again--trigger--v0": {
+      "text": "[thoughtful] Still not it. Go back to the problem and ask what has to happen first.",
+      "file": "shared/answer-wrong-again--49f4c848.mp3"
+    },
+    "answer-wrong-again--trigger--v1": {
+      "text": "[calm] Let us slow down. What does this step actually need before it can run?",
+      "file": "shared/answer-wrong-again--314a0a3b.mp3"
+    },
+    "answer-wrong-again--trigger--v2": {
+      "text": "[thoughtful] Try reading the options as jobs. Which job does this flow need doing here?",
+      "file": "shared/answer-wrong-again--3bd12acb.mp3"
+    },
+    "build-complete--v0": {
+      "text": "[excited] The whole flow is built. Let us see if it holds up.",
+      "file": "shared/build-complete--a91f5c46.mp3"
+    },
+    "build-start--v0": {
+      "text": "[calm] One node at a time. Each one does a single job, and passes its result on.",
+      "file": "shared/build-start--35cd5ba7.mp3"
+    },
+    "idle-nudge--v0": {
+      "text": "[calm] Take your time. If you are not sure what goes next, ask me.",
+      "file": "shared/idle-nudge--8b64978f.mp3"
+    },
+    "idle-nudge--v1": {
+      "text": "[calm] Still thinking? Tell me what you are stuck on and I will help.",
+      "file": "shared/idle-nudge--ad85a365.mp3"
+    },
+    "idle-nudge--v2": {
+      "text": "[calm] No rush. If it helps, look at what the last node hands over.",
+      "file": "shared/idle-nudge--8269b85b.mp3"
+    },
+    "node-placed--action--send-reply--v0": {
+      "text": "[calm] Good. Now open Send Reply and tell it what to do.",
+      "file": "shared/node-placed--5d129051.mp3"
+    },
+    "node-placed--action--send-reply--v1": {
+      "text": "[calm] Send Reply is on the board. Open it to set it up.",
+      "file": "shared/node-placed--cdc618b4.mp3"
+    },
+    "node-placed--chat-gemini--gemini-chat-model--v0": {
+      "text": "[calm] Good. Now open Gemini Chat Model and tell it what to do.",
+      "file": "shared/node-placed--c9f2e726.mp3"
+    },
+    "node-placed--chat-gemini--gemini-chat-model--v1": {
+      "text": "[calm] Gemini Chat Model is on the board. Open it to set it up.",
+      "file": "shared/node-placed--444d9ffa.mp3"
+    },
+    "node-placed--classify--classify-with-ai--v0": {
+      "text": "[calm] Good. Now open Classify with AI and tell it what to do.",
+      "file": "shared/node-placed--e60719e4.mp3"
+    },
+    "node-placed--classify--classify-with-ai--v1": {
+      "text": "[calm] Classify with AI is on the board. Open it to set it up.",
+      "file": "shared/node-placed--23f1b110.mp3"
+    },
+    "node-placed--parse--parse-result--v0": {
+      "text": "[calm] Good. Now open Parse Result and tell it what to do.",
+      "file": "shared/node-placed--099f8af3.mp3"
+    },
+    "node-placed--parse--parse-result--v1": {
+      "text": "[calm] Parse Result is on the board. Open it to set it up.",
+      "file": "shared/node-placed--38f96506.mp3"
+    },
+    "node-placed--switch--switch--v0": {
+      "text": "[calm] Good. Now open Switch and tell it what to do.",
+      "file": "shared/node-placed--30453f86.mp3"
+    },
+    "node-placed--switch--switch--v1": {
+      "text": "[calm] Switch is on the board. Open it to set it up.",
+      "file": "shared/node-placed--8d863fac.mp3"
+    },
+    "node-placed--trigger--new-email--v0": {
+      "text": "[calm] Good. Now open New Email and tell it what to do.",
+      "file": "shared/node-placed--0526d571.mp3"
+    },
+    "node-placed--trigger--new-email--v1": {
+      "text": "[calm] New Email is on the board. Open it to set it up.",
+      "file": "shared/node-placed--ac2af165.mp3"
+    },
+    "node-wrong--v0": {
+      "text": "[thoughtful] That one cannot do the job here. Let me ask you something.",
+      "file": "shared/node-wrong--83e4a04a.mp3"
+    },
+    "phase-complete--brain--v0": {
+      "text": "[excited] That part is done. Nice.",
+      "file": "shared/phase-complete--48a0d4b4.mp3"
+    },
+    "phase-complete--brain--v1": {
+      "text": "[excited] Done. That piece works now.",
+      "file": "shared/phase-complete--0db40cae.mp3"
+    },
+    "phase-complete--brain--v2": {
+      "text": "[excited] Good. One more piece in place.",
+      "file": "shared/phase-complete--a9e0ec8a.mp3"
+    },
+    "phase-complete--route--v0": {
+      "text": "[excited] That part is done. Nice.",
+      "file": "shared/phase-complete--48a0d4b4.mp3"
+    },
+    "phase-complete--route--v1": {
+      "text": "[excited] Done. That piece works now.",
+      "file": "shared/phase-complete--0db40cae.mp3"
+    },
+    "phase-complete--route--v2": {
+      "text": "[excited] Good. One more piece in place.",
+      "file": "shared/phase-complete--a9e0ec8a.mp3"
+    },
+    "phase-complete--trigger--v0": {
+      "text": "[excited] That part is done. Nice.",
+      "file": "shared/phase-complete--48a0d4b4.mp3"
+    },
+    "phase-complete--trigger--v1": {
+      "text": "[excited] Done. That piece works now.",
+      "file": "shared/phase-complete--0db40cae.mp3"
+    },
+    "phase-complete--trigger--v2": {
+      "text": "[excited] Good. One more piece in place.",
+      "file": "shared/phase-complete--a9e0ec8a.mp3"
+    },
+    "phase-complete--v0": {
+      "text": "[excited] That part is done. Nice.",
+      "file": "shared/phase-complete--48a0d4b4.mp3"
+    },
+    "phase-complete--v1": {
+      "text": "[excited] Done. That piece works now.",
+      "file": "shared/phase-complete--0db40cae.mp3"
+    },
+    "phase-complete--v2": {
+      "text": "[excited] Good. One more piece in place.",
+      "file": "shared/phase-complete--a9e0ec8a.mp3"
+    },
+    "problem-intro--v0": {
+      "text": "[calm] Read it once for the shape, not the detail. We will pull it apart together.",
+      "file": "shared/problem-intro--0cfb336f.mp3"
+    },
+    "report-ready--v0": {
+      "text": "[calm] Here is what stood out, and what I would practise next.",
+      "file": "shared/report-ready--fdf3d833.mp3"
+    },
+    "run-fail--v0": {
+      "text": "[calm] Some did not come out right. That is worth knowing. Let us look.",
+      "file": "shared/run-fail--cda1e5b6.mp3"
+    },
+    "run-pass--v0": {
+      "text": "[excited] Every case came out right. That flow works.",
+      "file": "shared/run-pass--f7b20d81.mp3"
+    },
+    "run-pass--v1": {
+      "text": "[excited] All of them passed. Well built.",
+      "file": "shared/run-pass--cf387acd.mp3"
+    },
+    "run-start--v0": {
+      "text": "[calm] Watch what happens to each one as it goes through.",
+      "file": "shared/run-start--c39478c9.mp3"
+    },
+    "stress-start--v0": {
+      "text": "[calm] Now, does it still make sense when things go wrong?",
+      "file": "shared/stress-start--f01242c0.mp3"
+    },
+    "understand-done--v0": {
+      "text": "[excited] Yes. You have got the shape of it. Now the fun part, we build it.",
+      "file": "shared/understand-done--21a7cae5.mp3"
+    },
+    "understand-done--v1": {
+      "text": "[excited] That is the thinking done. Now let us actually build the thing.",
+      "file": "shared/understand-done--ca36d78e.mp3"
+    },
+    "understand-start--v0": {
+      "text": "[calm] A few questions first. I want to know how you are thinking about it.",
+      "file": "shared/understand-start--ee4bfc9a.mp3"
+    },
+    "verify-fail--action--send-reply--v0": {
+      "text": "[calm] Send Reply is not right yet. Check the field I marked.",
+      "file": "shared/verify-fail--6520ab44.mp3"
+    },
+    "verify-fail--action--send-reply--v1": {
+      "text": "[calm] Something in Send Reply is off. Look at what is in red.",
+      "file": "shared/verify-fail--3e21e073.mp3"
+    },
+    "verify-fail--chat-gemini--gemini-chat-model--v0": {
+      "text": "[calm] Gemini Chat Model is not right yet. Check the field I marked.",
+      "file": "shared/verify-fail--78a7752e.mp3"
+    },
+    "verify-fail--chat-gemini--gemini-chat-model--v1": {
+      "text": "[calm] Something in Gemini Chat Model is off. Look at what is in red.",
+      "file": "shared/verify-fail--c709d394.mp3"
+    },
+    "verify-fail--classify--classify-with-ai--v0": {
+      "text": "[calm] Classify with AI is not right yet. Check the field I marked.",
+      "file": "shared/verify-fail--2951f692.mp3"
+    },
+    "verify-fail--classify--classify-with-ai--v1": {
+      "text": "[calm] Something in Classify with AI is off. Look at what is in red.",
+      "file": "shared/verify-fail--48c2ca41.mp3"
+    },
+    "verify-fail--parse--parse-result--v0": {
+      "text": "[calm] Parse Result is not right yet. Check the field I marked.",
+      "file": "shared/verify-fail--b577a32f.mp3"
+    },
+    "verify-fail--parse--parse-result--v1": {
+      "text": "[calm] Something in Parse Result is off. Look at what is in red.",
+      "file": "shared/verify-fail--0799dd8c.mp3"
+    },
+    "verify-fail--switch--switch--v0": {
+      "text": "[calm] Switch is not right yet. Check the field I marked.",
+      "file": "shared/verify-fail--f84cb9ca.mp3"
+    },
+    "verify-fail--switch--switch--v1": {
+      "text": "[calm] Something in Switch is off. Look at what is in red.",
+      "file": "shared/verify-fail--5b80a2d5.mp3"
+    },
+    "verify-fail--trigger--new-email--v0": {
+      "text": "[calm] New Email is not right yet. Check the field I marked.",
+      "file": "shared/verify-fail--4a022645.mp3"
+    },
+    "verify-fail--trigger--new-email--v1": {
+      "text": "[calm] Something in New Email is off. Look at what is in red.",
+      "file": "shared/verify-fail--f3107dc0.mp3"
+    },
+    "verify-pass--action--send-reply--v0": {
+      "text": "[warm] Yes, Send Reply is set up right.",
+      "file": "shared/verify-pass--a7257e52.mp3"
+    },
+    "verify-pass--action--send-reply--v1": {
+      "text": "[warm] Good, Send Reply is done.",
+      "file": "shared/verify-pass--02dc5385.mp3"
+    },
+    "verify-pass--action--send-reply--v2": {
+      "text": "[warm] Send Reply is correct now.",
+      "file": "shared/verify-pass--7bbf9b71.mp3"
+    },
+    "verify-pass--chat-gemini--gemini-chat-model--v0": {
+      "text": "[warm] Yes, Gemini Chat Model is set up right.",
+      "file": "shared/verify-pass--f4e31afc.mp3"
+    },
+    "verify-pass--chat-gemini--gemini-chat-model--v1": {
+      "text": "[warm] Good, Gemini Chat Model is done.",
+      "file": "shared/verify-pass--d7955a7d.mp3"
+    },
+    "verify-pass--chat-gemini--gemini-chat-model--v2": {
+      "text": "[warm] Gemini Chat Model is correct now.",
+      "file": "shared/verify-pass--1b3ff1cc.mp3"
+    },
+    "verify-pass--classify--classify-with-ai--v0": {
+      "text": "[warm] Yes, Classify with AI is set up right.",
+      "file": "shared/verify-pass--1b01fa82.mp3"
+    },
+    "verify-pass--classify--classify-with-ai--v1": {
+      "text": "[warm] Good, Classify with AI is done.",
+      "file": "shared/verify-pass--a88b07af.mp3"
+    },
+    "verify-pass--classify--classify-with-ai--v2": {
+      "text": "[warm] Classify with AI is correct now.",
+      "file": "shared/verify-pass--95eefd0c.mp3"
+    },
+    "verify-pass--parse--parse-result--v0": {
+      "text": "[warm] Yes, Parse Result is set up right.",
+      "file": "shared/verify-pass--a7fb301d.mp3"
+    },
+    "verify-pass--parse--parse-result--v1": {
+      "text": "[warm] Good, Parse Result is done.",
+      "file": "shared/verify-pass--aa498e8e.mp3"
+    },
+    "verify-pass--parse--parse-result--v2": {
+      "text": "[warm] Parse Result is correct now.",
+      "file": "shared/verify-pass--c41b9354.mp3"
+    },
+    "verify-pass--switch--switch--v0": {
+      "text": "[warm] Yes, Switch is set up right.",
+      "file": "shared/verify-pass--9f0b9f49.mp3"
+    },
+    "verify-pass--switch--switch--v1": {
+      "text": "[warm] Good, Switch is done.",
+      "file": "shared/verify-pass--b317605a.mp3"
+    },
+    "verify-pass--switch--switch--v2": {
+      "text": "[warm] Switch is correct now.",
+      "file": "shared/verify-pass--bc1f7752.mp3"
+    },
+    "verify-pass--trigger--new-email--v0": {
+      "text": "[warm] Yes, New Email is set up right.",
+      "file": "shared/verify-pass--9aab4742.mp3"
+    },
+    "verify-pass--trigger--new-email--v1": {
+      "text": "[warm] Good, New Email is done.",
+      "file": "shared/verify-pass--90159c68.mp3"
+    },
+    "verify-pass--trigger--new-email--v2": {
+      "text": "[warm] New Email is correct now.",
+      "file": "shared/verify-pass--3b522530.mp3"
+    },
+    "welcome--v0": {
+      "text": "[warm] I will stay with you the whole way. If something is unclear, ask me.",
+      "file": "shared/welcome--20f0ff0f.mp3"
+    },
+    "welcome--v1": {
+      "text": "[warm] I am here the whole time. Ask me whenever you get stuck.",
+      "file": "shared/welcome--88d288e4.mp3"
+    }
+  }
+}

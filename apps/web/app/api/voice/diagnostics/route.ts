@@ -1,46 +1,33 @@
+import { stat } from 'node:fs/promises';
+import { join } from 'node:path';
+import { VALID_CLIP_FILES, voiceScriptFor } from '@judge/voice-scripts';
 import { auth } from '../../../../auth';
-import { problems } from '@judge/problems';
-import { NODE_CATALOG } from '@judge/catalog';
-import { enumerateSpeakable } from '../../../../src/lib/voiceCatalogue.js';
-import { clipBackend, hasClip } from '../../../../src/server/voiceStore';
-import { clipPath } from '../../../../src/lib/voicePath.js';
 
-// "Why is narration slow?", answerable without opening devtools.
+// "Why is narration not playing?", answerable without opening devtools.
 //
 //   GET /api/voice/diagnostics
-//   GET /api/voice/diagnostics?problem=email-triage   (checks that problem's clips)
+//   GET /api/voice/diagnostics?problem=order-desk
 //
-// The porting guide has the same idea (§6, `/voice/diagnostics`) and for the same
-// reason: every failure mode here is silent by design. A missing key, an empty
-// bucket, a wrong region and a typo'd voice id all present identically as "it
-// still takes a second before Iris speaks", and the only way to tell them apart
-// otherwise is reading response headers on a phone.
+// Every failure mode here is silent by design — a learner just sees captions — so
+// without this the only way to tell a missing bucket from an ungenerated problem is
+// reading response headers on someone else's phone.
 //
-// Reports configuration and a real sample lookup. Never returns a secret: only
-// whether each one is present.
+// It makes NO call to storage. Answering "how many clips are in the bucket?" would
+// mean one request per clip, which is precisely the loop that got the credentials
+// flagged; a diagnostic must never be the thing you end up diagnosing. What it can
+// answer for free is what the container has actually served so far, which is the
+// more useful number anyway.
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-/** How many of a problem's clips are actually stored, from a sample. */
-async function sample(slug: string, _voiceId: string, _modelId: string, size = 12) {
-  const problem = (problems as Record<string, unknown>)[slug];
-  if (!problem) return null;
+const CACHE_DIR = process.env.VOICE_CACHE_DIR || '.voice-cache';
 
-  const all = enumerateSpeakable(problem, NODE_CATALOG);
-  // Evenly spaced rather than the first N, so a partial generation run shows up as
-  // partial instead of looking complete.
-  const step = Math.max(1, Math.floor(all.length / size));
-  const picked = all.filter((_, i) => i % step === 0).slice(0, size);
-
-  // HEAD, not GET, and all at once: this is a diagnostic, so it must not itself be
-  // slow enough to be the thing you are diagnosing.
-  const results = await Promise.all(
-    picked.map(async (item) => ({ item, ok: await hasClip(clipPath(slug, item.moment, item.vars, 0)) }))
-  );
-  const stored = results.filter((r) => r.ok).length;
-  const missing = results.filter((r) => !r.ok).map((r) => r.item.caption.slice(0, 60));
-
-  return { total: all.length, checked: picked.length, stored, missing: missing.slice(0, 5) };
+async function isWarm(file: string): Promise<boolean> {
+  try {
+    return (await stat(join(CACHE_DIR, file))).size > 0;
+  } catch {
+    return false;
+  }
 }
 
 export async function GET(req: Request) {
@@ -48,39 +35,45 @@ export async function GET(req: Request) {
   if (!session?.user?.id) return Response.json({ error: 'unauthenticated' }, { status: 401 });
 
   const slug = new URL(req.url).searchParams.get('problem') ?? 'email-triage';
-  const voiceId = process.env.ELEVENLABS_VOICE_ID ?? '';
-  const modelId = process.env.ELEVENLABS_MODEL_ID || 'eleven_v3';
-  const backend = clipBackend();
+  const table = voiceScriptFor(slug);
 
   const config = {
-    featureVoice: process.env.FEATURE_VOICE === 'true',
-    elevenLabsKey: Boolean(process.env.ELEVENLABS_API_KEY),
-    voiceId: Boolean(voiceId),
-    modelId,
-    backend,
     bucket: Boolean(process.env.AUDIO_S3_BUCKET),
     region: process.env.AUDIO_S3_REGION ?? null,
-    credentials: Boolean(process.env.AUDIO_S3_ACCESS_KEY_ID && process.env.AUDIO_S3_SECRET_ACCESS_KEY),
+    endpoint: process.env.AUDIO_S3_ENDPOINT ?? null,
     prefix: process.env.AUDIO_S3_PREFIX ?? 'voice-clips',
+    credentials: Boolean(process.env.AUDIO_S3_ACCESS_KEY_ID && process.env.AUDIO_S3_SECRET_ACCESS_KEY),
+    cacheDir: CACHE_DIR,
   };
 
-  const clips = backend === 'none' ? null : await sample(slug, voiceId, modelId);
+  const files = table ? [...new Set(Object.values(table.clips).map((c) => (c as { file: string }).file))] : [];
+  const warm = (await Promise.all(files.map(isWarm))).filter(Boolean).length;
 
-  // One sentence naming the actual problem, in the order it bites. Anything that
-  // needs a decision tree to interpret will not get read.
-  const verdict = !config.featureVoice
-    ? 'FEATURE_VOICE is not "true", so narration is captions only. Nothing else here matters until it is.'
-    : !config.elevenLabsKey || !config.voiceId
-      ? 'ELEVENLABS_API_KEY or ELEVENLABS_VOICE_ID is missing, so there is nothing to render with.'
-      : backend === 'none'
-        ? 'No clip storage, so every line is rendered live. Set AUDIO_S3_BUCKET (or VOICE_CLIP_DIR) and run `npm run voice:generate`.'
-        : backend === 's3' && !config.credentials
-          ? 'S3 has no key pair, so reads fall back to the default AWS chain and will fail if there is no role.'
-          : clips && clips.stored === 0
-            ? `Storage is configured but EMPTY (0 of ${clips.checked} sampled). Run \`npm run voice:generate\` — setting the variables does not put clips in the bucket.`
-            : clips && clips.stored < clips.checked
-              ? `Partly generated: ${clips.stored} of ${clips.checked} sampled are stored. Re-run \`npm run voice:generate\`; it skips what already exists.`
-              : 'Configured and stored. Playback should not be reaching the vendor at all.';
+  const verdict = !table
+    ? `No clip table for "${slug}". Run \`npm run voice:generate\`; until then this problem is captions only.`
+    : !config.bucket
+      ? 'AUDIO_S3_BUCKET is not set, so no clip can be fetched. Narration is captions only.'
+      : !config.credentials
+        ? 'No key pair set, so the default AWS credential chain is used — fine with a task role, otherwise every fetch will fail.'
+        : warm === 0
+          ? 'Configured, and nothing served yet. The first play of each clip fetches it once; after that this number climbs and storage is never asked again.'
+          : warm < files.length
+            ? `Warm: ${warm} of ${files.length} clips are cached on this container. The rest are fetched once each, on first play.`
+            : 'Every clip for this problem is cached locally. Storage is not being touched at all.';
 
-  return Response.json({ verdict, config, clips, problem: slug });
+  return Response.json({
+    verdict,
+    problem: slug,
+    config,
+    clips: table
+      ? {
+          lines: Object.keys(table.clips).length,
+          files: files.length,
+          warmOnThisContainer: warm,
+          renderedWith: table.renderedWith,
+        }
+      : null,
+    publishedFilesAcrossAllProblems: VALID_CLIP_FILES.size,
+    note: 'No storage calls are made to produce this report.',
+  });
 }

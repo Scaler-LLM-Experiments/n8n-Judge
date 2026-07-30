@@ -22,7 +22,16 @@ export async function fetchProblem(slug) {
   if (res.status === 404) throw new Error(`No published challenge called "${slug}".`);
   if (!res.ok) throw new Error(`Could not load "${slug}" (${res.status})`);
   const body = await res.json();
-  return { ...body.data, problemVersionId: body.problemVersionId, version: body.version };
+  return {
+    ...body.data,
+    problemVersionId: body.problemVersionId,
+    version: body.version,
+    // The clip table for this problem: line id -> { text, file }. The voice player
+    // looks a file up here and never builds one, so it can only ever request audio
+    // that was actually rendered. Absent means captions only, which is a normal
+    // state (no voice generated yet) rather than an error.
+    voiceClips: body.voiceClips ?? null,
+  };
 }
 
 // `?problem=<slug>` from either the hash or the query string. Dev routes use

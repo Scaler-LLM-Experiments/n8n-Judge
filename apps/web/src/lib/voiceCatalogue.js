@@ -1,4 +1,4 @@
-import { LINES, captionFor, fillLine, resolveLines } from './voiceLines.js';
+import { LINES, captionFor, clipScope, fillLine, resolveLines } from './voiceLines.js';
 
 // Every line that can ever be spoken, enumerated.
 //
@@ -70,9 +70,12 @@ export function labelForNodeType(problem, type, catalog = {}) {
 /**
  * Everything speakable for one problem (or the defaults alone, with no problem).
  *
+ * Each entry carries the `scope` its clips belong under, so every caller addresses
+ * the same folder without re-deciding it. Pass it to `clipFile` as-is.
+ *
  * @param {Record<string, any>|null} [problem]
  * @param {Record<string, any>} [catalog] NODE_CATALOG, for node labels
- * @returns {Array<{moment: string, key: string|null, vars: Record<string, string>, variants: Array<{index: number, spoken: string, caption: string}>, spoken: string, caption: string}>}
+ * @returns {Array<{moment: string, key: string|null, scope: string, vars: Record<string, string>, variants: Array<{index: number, spoken: string, caption: string}>, spoken: string, caption: string}>}
  */
 export function enumerateSpeakable(problem = null, catalog = {}) {
   const out = [];
@@ -98,6 +101,9 @@ export function enumerateSpeakable(problem = null, catalog = {}) {
     out.push({
       moment,
       key,
+      // Decided once, here, so the generator and the browser cannot disagree about
+      // where this clip lives. Shared unless the problem wrote these words itself.
+      scope: clipScope(problem?.id, problem, moment, key),
       vars,
       variants,
       // The first variant, kept for callers that only need an example.
