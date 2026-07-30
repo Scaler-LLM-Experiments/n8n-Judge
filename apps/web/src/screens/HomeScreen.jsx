@@ -155,12 +155,16 @@ export function HomeScreen({ problems, onSelect, resume, onResume }) {
             return (
               <div key={p.id} style={{ display: 'flex', flexDirection: 'column', background: 'var(--surface-0)', border: '1px solid var(--border-subtle)' }}>
                 <Cover problem={p} Icon={Icon} />
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: 20, flex: 1 }}>
+                {/* Vertical padding only for the extra height. The horizontal 20 is
+                    load-bearing: at 22 the column lost 4px and the two-line clamp cut
+                    the authored `brief` mid-sentence ("send the right…"). A taller card
+                    must not come out of the description's width. */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '22px 20px 24px', flex: 1 }}>
                   <MetaLine level={p.difficulty} minutes={p.estimatedMinutes} />
                   <div>
                     <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--fg-1)', marginBottom: 6 }}>{p.title}</div>
                     {/* Clamped to two lines as a floor under the authoring rule, not
-                        instead of it: `brief` is capped at 180 characters by the schema,
+                        instead of it: `brief` is capped at 125 characters by the schema,
                         and this stops a long `tagline` fallback (or a narrow viewport)
                         from pushing the CTA out of line with the card beside it. */}
                     <div
@@ -177,12 +181,21 @@ export function HomeScreen({ problems, onSelect, resume, onResume }) {
                       {p.brief || p.tagline || p.statement}
                     </div>
                   </div>
-                  {/* data-problem is how smoke enters a SPECIFIC challenge. Without it the
-                      test could only click the first card, so `?problem=lead-triage` and
-                      `meeting-notes` silently re-tested email-triage's Understand screen. */}
-                  <Button variant="primary" size="lg" data-problem={p.id} iconRight={<ArrowRight size={16} weight="bold" />} onClick={() => onSelect(p)} style={{ marginTop: 'auto', width: '100%', justifyContent: 'center' }}>
-                    Start
-                  </Button>
+                  {/* `marginTop: auto` alone is only a MAXIMUM gap: it eats the card's
+                      slack, so with cards of equal height (or a single card, which is
+                      the catalogue today) there is no slack to eat and the CTA sits at
+                      the container's 10px gap, right under the description. The wrapper
+                      keeps the bottom alignment across a row of uneven cards AND
+                      guarantees the breathing room when the row is even.
+
+                      data-problem is how smoke enters a SPECIFIC challenge. Without it
+                      the test could only click the first card, so `?problem=<id>`
+                      silently re-tested the first problem's Understand screen. */}
+                  <div style={{ marginTop: 'auto', paddingTop: 18 }}>
+                    <Button variant="primary" size="md" data-problem={p.id} iconRight={<ArrowRight size={16} weight="bold" />} onClick={() => onSelect(p)} style={{ width: '100%', justifyContent: 'center' }}>
+                      Start
+                    </Button>
+                  </div>
                 </div>
               </div>
             );
