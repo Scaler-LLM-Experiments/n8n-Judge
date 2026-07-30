@@ -1,4 +1,4 @@
-import { captionFor, clipFor, fillLine, hasMoment, pickLine } from './voiceLines.js';
+import { captionFor, clipFor, fillLine, hasMoment, pickLine, resolveLines, speakingVars } from './voiceLines.js';
 import { clipId, clipUrl } from './voicePath.js';
 
 // Iris speaking, client side.
@@ -140,7 +140,15 @@ export function createVoice({ onMoment, problemSlug, problem } = {}) {
    * 404 per beat.
    */
   const urlFor = (moment, vars, index) => {
-    const entry = problem?.voiceClips?.[clipId(moment, vars?.key, vars ?? {}, index)];
+    // Only the variables this wording interpolates take part in the id — see
+    // `speakingVars`. Screens pass everything they have (`{ key, node, answer,
+    // scope }`) and cannot know whether the line they are about to hear is the
+    // generic "Yes, {node} is set up right" or a hand-authored sentence that names
+    // the node itself. The phrase book knows, so it decides, here and in the
+    // generator, from the same function.
+    const lines = resolveLines(moment, { problem, key: vars?.key });
+    const id = clipId(moment, vars?.key, speakingVars(lines, vars ?? {}), index);
+    const entry = problem?.voiceClips?.[id];
     return entry?.file ? clipUrl(entry.file) : null;
   };
 

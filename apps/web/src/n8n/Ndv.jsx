@@ -306,7 +306,16 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
         // Nothing is said when a check could not complete: `unverified` is not a
         // verdict, and claiming one out loud would be worse than silence.
         const anyUnverified = paramChecks.some((c) => next[c.key] === 'unverified');
-        if (!anyUnverified) voice.play(paramsPassed ? 'verify_pass' : 'verify_fail');
+        // Same vars as the settings-stage verdict above. Without them the line
+        // resolved to no clip AND filled its `{node}` slot with nothing, so the
+        // caption read "Yes, is set up right."
+        if (!anyUnverified) {
+          voice.play(paramsPassed ? 'verify_pass' : 'verify_fail', {
+            key: node.nodeType,
+            node: node.label,
+            scope: `node:${node.id}`,
+          });
+        }
         if (!paramsPassed) {
           setPhase('idle');
           const firstWrong = paramChecks.find((c) => next[c.key] === 'wrong');

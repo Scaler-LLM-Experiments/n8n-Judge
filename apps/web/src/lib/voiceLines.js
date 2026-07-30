@@ -128,6 +128,19 @@ export const LINES = {
   build_start: [
     '[calm] One node at a time. Each one does a single job, and passes its result on.',
   ],
+  // Spoken when a build phase opens. `BuildStage` had been playing this since the
+  // mascot mapping existed, but there were no words for it, so Iris animated and
+  // said nothing at the start of every phase.
+  //
+  // The phase title and its description are both on screen, so these do not repeat
+  // them — the rule is that Iris says the thing that is NOT written down. What is
+  // missing from the page is how to think about the step, so that is what she gives,
+  // and always as a question, never a hint at which node it is.
+  phase_intro: [
+    '[calm] Start with what this part needs before it can do anything.',
+    '[calm] Ask what this piece hands on to the next one.',
+    '[calm] Same idea as before. What has to happen first here?',
+  ],
   // `{node}` is the node just placed, so the line is about THAT node rather than
   // being a generic "now configure it".
   node_placed: [
@@ -198,6 +211,33 @@ export function resolveLines(moment, { problem, key } = {}) {
     if (Array.isArray(overrides[moment])) return overrides[moment];
   }
   return LINES[moment] ?? null;
+}
+
+/**
+ * The variables that actually change these words.
+ *
+ * A line's identity is its SENTENCE, so only variables the sentence interpolates may
+ * take part in it. The default `verify_pass` is "Yes, {node} is set up right", so the
+ * node belongs. An authored `verify_pass:chat-gemini` names the node in prose and
+ * interpolates nothing, so the node does NOT belong — every chat-gemini verify is the
+ * same recording.
+ *
+ * This exists because getting it wrong is silent and expensive. The enumeration
+ * worked it out correctly and the player did not, so it asked for
+ * `verify-fail--classify--classify-with-ai--v0` while the generator had written
+ * `verify-fail--classify--v0`. The result: every line a problem author had taken the
+ * trouble to write by hand — the most careful copy in the product — resolved to no
+ * clip and played as a caption. Both sides now call this.
+ *
+ * @param lines  the resolved wording (from `resolveLines`), which is what decides
+ * @param vars   whatever the caller happens to be holding
+ */
+export function speakingVars(lines, vars = {}) {
+  const out = {};
+  const uses = (name) => (lines ?? []).some((l) => String(l).includes(`{${name}}`));
+  if (vars.node && uses('node')) out.node = vars.node;
+  if (vars.answer && uses('answer')) out.answer = vars.answer;
+  return out;
 }
 
 /**

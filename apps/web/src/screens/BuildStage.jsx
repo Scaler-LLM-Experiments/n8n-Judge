@@ -193,7 +193,10 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
     if (stage !== 'building' || !phase) return;
     // The phase label is read out, so a new phase announces itself by name rather
     // than with a generic "next part".
-    sayOnce(`phase:${phase.id}`, 'phase_intro', { phase: phase.label });
+    // `key` is the phase id, so a problem can author `phase_intro:<phase>` the same
+    // way it authors `phase_complete:<phase>` — and so the clip the generator wrote
+    // is the clip this asks for.
+    sayOnce(`phase:${phase.id}`, 'phase_intro', { key: phase.id, phase: phase.label });
   }, [stage, phase, sayOnce]);
 
   // canvas fades in on mount

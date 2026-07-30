@@ -1,4 +1,4 @@
-import { LINES, captionFor, clipScope, fillLine, resolveLines } from './voiceLines.js';
+import { LINES, captionFor, clipScope, fillLine, resolveLines, speakingVars } from './voiceLines.js';
 
 // Every line that can ever be spoken, enumerated.
 //
@@ -139,11 +139,14 @@ export function enumerateSpeakable(problem = null, catalog = {}) {
       const options = (q.options ?? []).filter((opt) =>
         wants === 'correct' ? opt.type === q.correctType : opt.type !== q.correctType
       );
-      const usesAnswer = lines.some((l) => l.includes('{answer}'));
-      if (!usesAnswer) {
+      // `speakingVars` decides whether the option label is part of this line's
+      // identity — the same call the player makes, so the two cannot disagree.
+      // An authored question line that names the option in prose is ONE clip; the
+      // generic "Do you really think {answer} belongs here?" is one per option.
+      if (!lines.some((l) => l.includes('{answer}'))) {
         add(moment, q.id, {}, lines);
       } else {
-        for (const opt of options) add(moment, q.id, { answer: opt.label }, lines);
+        for (const opt of options) add(moment, q.id, speakingVars(lines, { answer: opt.label }), lines);
       }
     }
   }
@@ -153,13 +156,21 @@ export function enumerateSpeakable(problem = null, catalog = {}) {
     const node = labelForNodeType(problem, type, catalog);
     for (const moment of NODE_MOMENTS) {
       const lines = resolveLines(moment, { problem, key: type });
-      add(moment, type, lines.some((l) => l.includes('{node}')) ? { node } : {}, lines);
+      add(moment, type, speakingVars(lines, { node }), lines);
     }
   }
 
-  // Per-phase completion lines, which key off the phase id.
+  // Per-phase lines, which key off the phase id.
+  //
+  // `build_complete` is in here as well as being a plain moment, because BuildStage
+  // plays it with the LAST phase's id (it fires in the same place `phase_complete`
+  // does). Without this the final line of the whole build — the payoff — had no clip.
+  // The text is the same for every phase, so they all resolve to one recording and
+  // the extra ids cost nothing to render.
   for (const phase of problem.buildPhases ?? []) {
-    add('phase_complete', phase.id, {}, resolveLines('phase_complete', { problem, key: phase.id }) ?? []);
+    for (const moment of ['phase_intro', 'phase_complete', 'build_complete']) {
+      add(moment, phase.id, {}, resolveLines(moment, { problem, key: phase.id }) ?? []);
+    }
   }
 
   return out;

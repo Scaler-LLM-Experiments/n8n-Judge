@@ -303,6 +303,18 @@
       "text": "Try reading the options as jobs. Which job does this flow need doing here?",
       "file": "shared/answer-wrong-again--e8e6f50b.mp3"
     },
+    "build-complete--brain--v0": {
+      "text": "The whole flow is built. Let us see if it holds up.",
+      "file": "shared/build-complete--50778975.mp3"
+    },
+    "build-complete--route--v0": {
+      "text": "The whole flow is built. Let us see if it holds up.",
+      "file": "shared/build-complete--50778975.mp3"
+    },
+    "build-complete--trigger--v0": {
+      "text": "The whole flow is built. Let us see if it holds up.",
+      "file": "shared/build-complete--50778975.mp3"
+    },
     "build-complete--v0": {
       "text": "The whole flow is built. Let us see if it holds up.",
       "file": "shared/build-complete--50778975.mp3"
@@ -422,6 +434,54 @@
     "phase-complete--v2": {
       "text": "Good. One more piece in place.",
       "file": "shared/phase-complete--571dd154.mp3"
+    },
+    "phase-intro--brain--v0": {
+      "text": "Start with what this part needs before it can do anything.",
+      "file": "shared/phase-intro--a6174ab7.mp3"
+    },
+    "phase-intro--brain--v1": {
+      "text": "Ask what this piece hands on to the next one.",
+      "file": "shared/phase-intro--637494ad.mp3"
+    },
+    "phase-intro--brain--v2": {
+      "text": "Same idea as before. What has to happen first here?",
+      "file": "shared/phase-intro--72135c79.mp3"
+    },
+    "phase-intro--route--v0": {
+      "text": "Start with what this part needs before it can do anything.",
+      "file": "shared/phase-intro--a6174ab7.mp3"
+    },
+    "phase-intro--route--v1": {
+      "text": "Ask what this piece hands on to the next one.",
+      "file": "shared/phase-intro--637494ad.mp3"
+    },
+    "phase-intro--route--v2": {
+      "text": "Same idea as before. What has to happen first here?",
+      "file": "shared/phase-intro--72135c79.mp3"
+    },
+    "phase-intro--trigger--v0": {
+      "text": "Start with what this part needs before it can do anything.",
+      "file": "shared/phase-intro--a6174ab7.mp3"
+    },
+    "phase-intro--trigger--v1": {
+      "text": "Ask what this piece hands on to the next one.",
+      "file": "shared/phase-intro--637494ad.mp3"
+    },
+    "phase-intro--trigger--v2": {
+      "text": "Same idea as before. What has to happen first here?",
+      "file": "shared/phase-intro--72135c79.mp3"
+    },
+    "phase-intro--v0": {
+      "text": "Start with what this part needs before it can do anything.",
+      "file": "shared/phase-intro--a6174ab7.mp3"
+    },
+    "phase-intro--v1": {
+      "text": "Ask what this piece hands on to the next one.",
+      "file": "shared/phase-intro--637494ad.mp3"
+    },
+    "phase-intro--v2": {
+      "text": "Same idea as before. What has to happen first here?",
+      "file": "shared/phase-intro--72135c79.mp3"
     },
     "problem-intro--v0": {
       "text": "Read it once for the shape, not the detail. We will pull it apart together.",
