@@ -439,6 +439,90 @@ Verified by screenshot: `meeting-notes--journey-start` now shows the Meeting Not
 
 ---
 
+---
+
+## UI rework — agreed 2026-07-30, not started
+
+An exhaustive pass from the product owner after walking the built prototype. **This is
+the next workstream and it comes BEFORE problem templatisation**, because three of the
+items add problem fields (`coverImage`, `difficulty` on every problem, an estimated
+duration) and freezing the template first would mean rewriting it.
+
+### Home
+
+1. **"Continue where you left off"** section at the top of Home. Needs the in-progress
+   session surfaced — the server already reuses it and returns `resumed: true`, but the
+   client ignores that today (see Known issues #2), so this and resume-on-reload are the
+   same piece of work.
+2. Below it, the full list of problems.
+3. **Problem card** gets, in this order: cover image, `difficulty | time`, title,
+   description, CTA. Reference: a pixel-art cover, then `DATA ANALYSIS · MID · 30:00`,
+   then title and START.
+
+**New problem fields this needs:** `coverImage` (generated later via the OpenAI API —
+kept as a pending item, so the field holds an authored prompt plus a nullable `src`),
+`difficulty` on all four problems (only `order-desk` has it), and an estimated duration.
+
+### Voice indicator
+
+4. Hide the corner glow on the three screens where the mascot is already centred and
+   large: greet, "you've got the plan", and Result. Keep it everywhere else.
+
+### Copy
+
+5. "Nice — you've got the plan." plus its body: remove the em dashes (they do not read
+   aloud and the house rule already bans them in narration), and write a better title.
+
+### Voice gaps found by using it
+
+6. The **build-start line sounds like it needs re-rendering** — verify the stored clip
+   matches the current text.
+7. **`verify_fail` repeats verbatim.** Each authored one has a single variant, and
+   variant choice is deliberately stable per session so preloading can hit — so
+   repeating the same mistake plays the identical sentence. Needs 2–3 variants per node
+   AND attempt-aware rotation rather than session-stable choice. **The stability was a
+   deliberate fix** (random choice broke preloading), so this needs a real design, not a
+   flag flip.
+11. **`run_case` copy is not trigger-aware.** It opens "Their app crashes…" when it
+    should be "a customer sends an email saying the app crashes" — the learner needs the
+    trigger in the sentence to connect the case to the flow.
+12. **No voice when the run passes.** `run_pass` exists; confirm whether it fires at all
+    and whether each case should also confirm as it lands.
+14. **No voice in Stress Testing.** `stress_start` exists; same check.
+
+All of 7, 11, 12, 14 must also be written into
+[.claude/skills/iris-voice/SKILL.md](.claude/skills/iris-voice/SKILL.md), which is the
+contract the other three problems will be authored against.
+
+### The Run
+
+8. **"Run it" should start the animation immediately**, and the bottom bar during the run
+   goes away.
+9. Add a secondary **skip-run** button, bottom centre, for a learner who wants to move on.
+10. **React warning while running:** *"Updating a style property during rerender
+    (borderBottom) when a conflicting property is set (border)"*. Several candidates in
+    `BuildStage.jsx` mix `border` with `borderTop`/`borderBottom` on one element — the
+    CSS-triangle spans and the drag handles at lines 521, 681, 686, 687, 815, 817, 868.
+
+### Stress Testing
+
+13. Restack the screen and drop the node animation. New order:
+    section header → question number → question → node UI → options → continue.
+    The node UI moves **below** the question rather than beside the options, and the
+    header says what the section is for.
+
+### Result
+
+15. **Redesign from scratch** — it should read as a report, not a screen: centre aligned,
+    wider, a subtle drop shadow. Contents, and only these:
+    - left: a mark-band greeting by name, e.g. "Hey <name>, you almost got there"
+    - right: the total, in a contrasting panel
+    - below, on white: a short marks breakdown
+    - positives and negatives **side by side** (both already come from the Claude call)
+    - next steps as clean bullets
+    - a **sticky bottom bar** with three actions: redo this problem, next problem, home
+
+
 ## Known issues
 
 1. **No component tests.** `npm test` covers engine, schema and problem data only. Always
