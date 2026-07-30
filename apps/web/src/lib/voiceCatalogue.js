@@ -41,6 +41,33 @@ const ANSWER_MOMENTS = {
 /** Moments whose `{node}` is a node in the problem. */
 const NODE_MOMENTS = ['node_placed', 'verify_params', 'verify_pass', 'verify_fail'];
 
+/**
+ * Moments keyed by a stress question, and by the node type that was placed wrongly.
+ *
+ * These carry a `key` but no `{variable}`, which is a combination the enumerator did
+ * not have before. They still have to be listed per key, because the key is part of
+ * the clip id the browser derives — enumerate them as plain moments and the generator
+ * renders `stress-wrong--v3` while the browser asks for
+ * `stress-wrong--retry-vs-error--v3` and gets a 404 for the rest of the session.
+ *
+ * It costs almost nothing: the id carries the key, the FILE is hashed from the text,
+ * and the text is identical across keys, so twenty ids collapse onto the same handful
+ * of files. What it buys is the ability for a problem to author its own wording per
+ * question or per node later, exactly like the answer moments.
+ */
+const STRESS_MOMENTS = ['stress_correct', 'stress_wrong'];
+const PROBE_MOMENTS = ['node_wrong', 'probe_correct', 'probe_wrong'];
+
+/** Every node type a learner could wrongly place, so every probe line exists. */
+/** @param {Record<string, any>|null} problem */
+function probeKeysOf(problem) {
+  const out = new Set(Object.keys(problem?.nodeProbes ?? {}));
+  for (const phase of problem?.buildPhases ?? []) {
+    for (const t of phase.pickable ?? []) out.add(t);
+  }
+  return [...out];
+}
+
 /** Node types a problem actually uses, from its build phases. */
 /** @param {Record<string, any>|null} problem */
 function nodeTypesOf(problem) {
@@ -113,9 +140,8 @@ export function enumerateSpeakable(problem = null, catalog = {}) {
   };
 
   // Moments with no variables: one clip per authored variant.
-  const plainMoments = Object.keys(LINES).filter(
-    (m) => !(m in ANSWER_MOMENTS) && !NODE_MOMENTS.includes(m)
-  );
+  const keyed = new Set([...NODE_MOMENTS, ...STRESS_MOMENTS, ...PROBE_MOMENTS]);
+  const plainMoments = Object.keys(LINES).filter((m) => !(m in ANSWER_MOMENTS) && !keyed.has(m));
   for (const moment of plainMoments) add(moment, null, {}, resolveLines(moment, { problem }) ?? []);
 
   if (!problem) {
@@ -163,6 +189,20 @@ export function enumerateSpeakable(problem = null, catalog = {}) {
   // One line per test case in the Run, keyed by the case id.
   for (const sample of problem.sampleCases ?? []) {
     add('run_case', sample.id, {}, resolveLines('run_case', { problem, key: sample.id }) ?? []);
+  }
+
+  // Stress Testing's reaction to each answer, keyed by question.
+  for (const q of problem.evalQuestions ?? []) {
+    for (const moment of STRESS_MOMENTS) {
+      add(moment, q.id, {}, resolveLines(moment, { problem, key: q.id }) ?? []);
+    }
+  }
+
+  // The wrong-node moment and the probe verdicts, keyed by the type placed wrongly.
+  for (const type of probeKeysOf(problem)) {
+    for (const moment of PROBE_MOMENTS) {
+      add(moment, type, {}, resolveLines(moment, { problem, key: type }) ?? []);
+    }
   }
 
   // Per-phase lines, which key off the phase id.

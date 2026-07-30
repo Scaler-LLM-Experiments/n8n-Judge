@@ -414,9 +414,15 @@ export function TopBar({ activeStage, problem, currentPhase, nodeContext, learne
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifySelf: 'end' }}>
-        <button type="button" onClick={() => setAskOpen(true)} title="Ask Iris" style={{ display: 'flex', alignItems: 'center', gap: 7, height: 34, padding: '0 12px 0 8px', border: '1px solid var(--brand-primary)', background: 'var(--brand-blue-50, rgba(0,85,255,0.06))', color: 'var(--brand-primary)', fontWeight: 700, fontSize: 12.5, cursor: 'pointer', fontFamily: 'var(--font-body)', whiteSpace: 'nowrap', flex: 'none' }}>
-          <span style={{ width: 22, height: 22, flex: 'none' }}><MascotPlayer clip="idle" once={false} onceDone={() => {}} /></span>
-          Ask AI
+        {/* Secondary, not primary. Iris is always available and always the same
+            offer, so a blue-filled, blue-outlined button competed with the one
+            action each screen actually wants next. Neutral border and surface;
+            the mascot is the colour it needs. */}
+        <button type="button" onClick={() => setAskOpen(true)} title="Ask Iris" style={{ display: 'flex', alignItems: 'center', gap: 7, height: 34, padding: '0 12px 0 8px', border: '1px solid var(--border-strong)', background: 'var(--surface-0)', color: 'var(--fg-1)', fontWeight: 600, fontSize: 12.5, cursor: 'pointer', fontFamily: 'var(--font-body)', whiteSpace: 'nowrap', flex: 'none' }}>
+          {/* No pulse at 22px inside a button — she is the label's icon here, not the
+              speaker, and a wobbling button reads as a glitch. */}
+          <span style={{ width: 22, height: 22, flex: 'none' }}><MascotPlayer clip="idle" once={false} onceDone={() => {}} pulse={false} /></span>
+          Ask Iris
         </button>
         <VoiceControl />
         {onProblemDoc ? <IconButton icon={FileText} title="Problem statement" onClick={onProblemDoc} /> : null}

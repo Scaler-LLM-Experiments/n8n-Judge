@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
-import { useVoiceActions, useVoiceSpeaking } from '../lib/VoiceContext.jsx';
+import { useVoiceActions, useVoiceGlowHidden, useVoiceSpeaking } from '../lib/VoiceContext.jsx';
+import { FLOOR, driveVoiceLevel } from '../lib/voiceLevel.js';
 
 // "Iris is speaking", as a glow blooming out of the bottom-left corner.
 //
@@ -27,10 +28,17 @@ import { useVoiceActions, useVoiceSpeaking } from '../lib/VoiceContext.jsx';
 // had to be small enough to fit it, so it read as a border. This is not tied to
 // the mascot at all, which is why it can be big.
 
-/** Fades to nothing in the natural gaps, so hold a floor under the bloom. */
-const FLOOR = 0.32;
-
+// A screen can claim the corner (see `useHideVoiceGlow`). The claim UNMOUNTS the
+// glow rather than styling it away: the bloom runs its own requestAnimationFrame
+// loop writing through `gsap.quickTo`, so hiding a still-mounted one would leave
+// that loop animating detached nodes for the rest of the session.
 export function VoiceoverIndicator() {
+  const hidden = useVoiceGlowHidden();
+  if (hidden) return null;
+  return <CornerGlow />;
+}
+
+function CornerGlow() {
   const { getAnalyser } = useVoiceActions();
   // Only `speaking` and `muted`, so this does not re-render on caption changes.
   const { speaking, muted } = useVoiceSpeaking();
@@ -67,33 +75,18 @@ export function VoiceoverIndicator() {
     const lineScale = gsap.quickTo(line, 'scaleX', { duration: 0.24, ease: 'power2.out' });
 
     const analyser = getAnalyser?.() ?? null;
-    let rafId = null;
     let idle = null;
-    let smoothed = 0;
 
-    if (analyser) {
-      const buf = new Uint8Array(analyser.fftSize);
-      const tick = () => {
-        analyser.getByteTimeDomainData(buf);
-        let sumSq = 0;
-        for (let i = 0; i < buf.length; i += 1) {
-          const v = (buf[i] - 128) / 128;
-          sumSq += v * v;
-        }
-        // RMS runs about 0 to 0.5 on speech, so lift it into the usable range.
-        const amp = Math.min(1, Math.sqrt(sumSq / buf.length) * 3.2);
-        smoothed = amp > smoothed ? smoothed + (amp - smoothed) * 0.28 : smoothed + (amp - smoothed) * 0.09;
-        const level = Math.max(FLOOR, smoothed);
+    // Shared with the mascot's own pulse, so the two move as one effect rather than
+    // as two things that happen to be blue.
+    const stopLevel = driveVoiceLevel(analyser, (level) => {
+      glowOpacity(0.35 + level * 0.85);
+      glowScale(0.85 + level * 0.75);
+      lineOpacity(0.35 + level * 0.95);
+      lineScale(0.9 + level * 0.2);
+    });
 
-        glowOpacity(0.35 + level * 0.85);
-        glowScale(0.85 + level * 0.75);
-        lineOpacity(0.35 + level * 0.95);
-        lineScale(0.9 + level * 0.2);
-
-        rafId = requestAnimationFrame(tick);
-      };
-      rafId = requestAnimationFrame(tick);
-    } else {
+    if (!stopLevel) {
       // No analyser is a normal state, not a failure: Web Audio may be missing, or
       // the line may be caption-only because no clip exists. The signal is "Iris is
       // saying something", which is still true, so it breathes on a timer instead.
@@ -107,7 +100,7 @@ export function VoiceoverIndicator() {
 
     return () => {
       enter.kill();
-      if (rafId !== null) cancelAnimationFrame(rafId);
+      if (stopLevel) stopLevel();
       if (idle) idle.kill();
     };
   }, [mounted, getAnalyser]);

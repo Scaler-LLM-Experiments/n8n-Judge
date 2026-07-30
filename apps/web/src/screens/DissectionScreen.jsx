@@ -10,7 +10,7 @@ import { N8nNodeView } from '../n8n/N8nNodeView.jsx';
 import { NodeIcon } from '../nodes/nodeIcons.js';
 import { checkAnswer } from '../lib/grader.js';
 import { resolveServerVerdict, UNVERIFIED_MESSAGE } from '../lib/verdict.js';
-import { useVoiceActions } from '../lib/VoiceContext.jsx';
+import { useHideVoiceGlow, useVoiceActions } from '../lib/VoiceContext.jsx';
 
 const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 
@@ -176,6 +176,11 @@ export function DissectionScreen({ problem, sessionId, onComplete, onDecision })
       setAttempts((a) => a.map((v, k) => (k === index ? v + 1 : v)));
     }
   };
+
+  // Iris is centred and large on both of these beats, so the corner glow is a
+  // second light saying the same thing. Held here rather than inside `Greet` and
+  // `Done`, because `phase` is the thing that decides it.
+  useHideVoiceGlow(phase === 'greet' || phase === 'done');
 
   if (phase === 'greet') {
     return <Greet problem={problem} onContinue={() => { setPhase('problem'); }} />;
@@ -430,7 +435,11 @@ function ProblemBeat({ problem, onContinue }) {
         <h1 data-a="r" style={{ fontFamily: 'var(--font-headline)', fontSize: 52, fontWeight: 600, margin: '0 0 20px', lineHeight: 1.05, maxWidth: 820 }}>
           {problem.title}
         </h1>
-        <p data-a="r" style={{ fontSize: 17, lineHeight: 1.6, color: 'var(--fg-2)', maxWidth: 640, margin: '0 0 30px' }}>{problem.statement}</p>
+        {/* The two-line `brief`, not the full `statement`. A learner opening this
+            screen needs the situation, not the spec; the complete brief is one
+            click away in the problem panel (and is what Ask-AI is grounded in).
+            Falls back to the statement only for problems authored before `brief`. */}
+        <p data-a="r" style={{ fontSize: 17, lineHeight: 1.6, color: 'var(--fg-2)', maxWidth: 640, margin: '0 0 30px' }}>{problem.brief || problem.statement}</p>
 
         <div data-a="r" style={{ background: 'var(--surface-2)', border: '1px solid var(--border-subtle)', padding: '26px 28px', marginBottom: 32, maxWidth: '100%', overflowX: 'auto' }}>
           <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--fg-3)', fontWeight: 700, marginBottom: 16 }}>The shape of it</div>
@@ -458,9 +467,12 @@ function Done({ problem, unlockedTypes, onFinish }) {
         <div style={{ position: 'relative', marginBottom: 8 }}>
           <IrisMascot resting="celebrate" size={96} />
         </div>
-        <h2 style={{ margin: '0 0 8px', fontFamily: 'var(--font-headline)', fontWeight: 600 }}>Nice — you’ve got the plan.</h2>
+        {/* No em dashes: the house rule bans them in anything Iris says, and this
+            screen is the written half of a line she speaks. The title names what the
+            learner just did instead of opening on "Nice". */}
+        <h2 style={{ margin: '0 0 8px', fontFamily: 'var(--font-headline)', fontWeight: 600 }}>You know what to build.</h2>
         <p style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--fg-2)', maxWidth: 560, marginBottom: 26 }}>
-          You reasoned out every node this workflow needs. Here’s your toolkit — you’ll wire it up next. Heads up: the builder mixes in a few tools you <em>won’t</em> need.
+          You worked out every node this workflow needs, and here is your toolkit. You’ll wire it up next. One heads up: the builder also stocks a few tools you <em>won’t</em> need.
         </p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, justifyContent: 'center', marginBottom: 30 }}>
           {unlockedTypes.map((t) => (

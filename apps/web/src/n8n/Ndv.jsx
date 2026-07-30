@@ -737,9 +737,14 @@ function FieldForm({ nodeType, inputKeys, setup, fields, values, results, feedba
 // Iris travels in from the left with a square speech bubble (tail toward Iris).
 const disabledInput = { width: '100%', boxSizing: 'border-box', border: '1px solid var(--border-subtle)', background: 'var(--surface-1)', padding: '8px 10px', fontSize: 12.5, fontFamily: 'var(--font-body)', color: 'var(--fg-3)', resize: 'none', cursor: 'not-allowed' };
 
+// Longhands only, deliberately. This button carries an underline that changes with
+// `active`, and mixing the `border` shorthand with `borderBottom` made React warn
+// "Updating a style property during rerender (borderBottom) when a conflicting
+// property is set (border)" on every tab switch — the browser's resolution order
+// between the two is not guaranteed, so one of them was going to lose.
 function Tab({ active, onClick, children }) {
   return (
-    <button type="button" onClick={onClick} style={{ padding: '11px 0', fontSize: 12.5, fontWeight: 600, color: active ? 'var(--fg-1)' : 'var(--fg-3)', borderBottom: `2px solid ${active ? 'var(--brand-primary)' : 'transparent'}`, marginBottom: -1, background: 'none', border: 'none', borderBottomStyle: 'solid', cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
+    <button type="button" onClick={onClick} style={{ padding: '11px 0', fontSize: 12.5, fontWeight: 600, color: active ? 'var(--fg-1)' : 'var(--fg-3)', borderTopWidth: 0, borderRightWidth: 0, borderLeftWidth: 0, borderBottomWidth: 2, borderBottomStyle: 'solid', borderBottomColor: active ? 'var(--brand-primary)' : 'transparent', marginBottom: -1, background: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
       {children}
     </button>
   );

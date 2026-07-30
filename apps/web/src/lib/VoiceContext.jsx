@@ -44,8 +44,23 @@ const DEFAULT_STATE = { speaking: false, caption: null, amplitude: 0, muted: fal
 const VoiceActionsContext = createContext(DEFAULT_ACTIONS);
 const VoiceStateContext = createContext(DEFAULT_STATE);
 
+// A third pair, for one narrow job: letting a screen say "not here".
+//
+// The corner glow is the answer to "is Iris speaking" on screens where she is a
+// 68px mascot parked at the edge. On the three screens where she is already
+// centred and large — the greeting, "you've got the plan", and the Result — a
+// second light in the corner says nothing the screen isn't already saying, and
+// reads as a stray highlight.
+//
+// Ref-counted rather than a boolean, because the claim belongs to whichever
+// component is mounted: two overlapping claims must not let the first one to
+// leave switch the glow back on.
+const GlowHiddenContext = createContext(false);
+const GlowClaimContext = createContext(() => noop);
+
 export function VoiceProvider({ children, problem }) {
   const [state, setState] = useState(DEFAULT_STATE);
+  const [glowClaims, setGlowClaims] = useState(0);
   const voiceRef = useRef(null);
 
   if (!voiceRef.current && typeof window !== 'undefined') {
@@ -105,11 +120,48 @@ export function VoiceProvider({ children, problem }) {
     };
   }, []);
 
+  // Stable, like `actions`: a screen claiming the glow must not re-run its effect
+  // every time Iris starts or stops talking.
+  const claimGlow = useMemo(
+    () => () => {
+      setGlowClaims((n) => n + 1);
+      let released = false;
+      return () => {
+        if (released) return;
+        released = true;
+        setGlowClaims((n) => Math.max(0, n - 1));
+      };
+    },
+    [],
+  );
+
   return (
     <VoiceActionsContext.Provider value={actions}>
-      <VoiceStateContext.Provider value={state}>{children}</VoiceStateContext.Provider>
+      <GlowClaimContext.Provider value={claimGlow}>
+        <GlowHiddenContext.Provider value={glowClaims > 0}>
+          <VoiceStateContext.Provider value={state}>{children}</VoiceStateContext.Provider>
+        </GlowHiddenContext.Provider>
+      </GlowClaimContext.Provider>
     </VoiceActionsContext.Provider>
   );
+}
+
+/**
+ * Hide the corner "Iris is speaking" glow for as long as this component is
+ * mounted (or for as long as `active` stays true). Pass `false` and the claim is
+ * released, so a screen with beats can hold it for some of them and not others.
+ */
+export function useHideVoiceGlow(active = true) {
+  const claim = useContext(GlowClaimContext);
+  useEffect(() => {
+    if (!active) return undefined;
+    return claim();
+  }, [active, claim]);
+}
+
+/** Whether some screen has claimed the corner glow. For the indicator only. */
+export function useVoiceGlowHidden() {
+  return useContext(GlowHiddenContext);
 }
 
 /**

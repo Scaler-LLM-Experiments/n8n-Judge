@@ -25,9 +25,20 @@ export const orderDesk = {
   statement:
     "You are automating the support desk of an online store. Every email that arrives has to be cleaned up, read, matched to its order, summarised for whoever picks it up, scored for urgency, and then sent down one of eight routes — a refund, an engineering ticket, a delivery update, a callback, a sales lead, the billing log, an account reset, or a cancellation. Build the whole pipeline and prove it holds up.",
   tagline: 'The full pipeline: clean the inbox, read the order, then route eight ways.',
+  // Two lines, for the Understand hero and the Home card.
+  brief:
+    'A busy order desk gets mail all day, some of it noise. Clean it up, read the order behind it, then route each one.',
 
   difficulty: 'difficult',
   difficultyNote: '21 nodes, 8 routes, two AI steps. Set aside a full sitting.',
+  // 61 decisions — more than double email-triage.
+  estimatedMinutes: 45,
+  coverImage: {
+    prompt:
+      'An isometric conveyor belt carries small cube parcels into a tall pixel-art sorting machine that fans out into many narrow chutes, with streams of falling binary pouring down between the chutes and two glowing cubes floating overhead.',
+    src: '/covers/order-desk.png',
+    alt: 'Parcels on a conveyor entering a sorter that fans out many ways',
+  },
 
   // ---------------------------------------------------------------------------
   // Understand: nine picks, walking the pipeline front to back.
@@ -260,21 +271,23 @@ export const orderDesk = {
     { id: 'cancel_order', label: 'Cancel Order' },
   ],
 
+  // Labels describe the JOB, never the node — this sketch is shown before the
+  // dissection quiz asks which node does each job. `validateProblem` enforces it.
   flowSummary: {
     steps: [
-      { type: 'trigger', label: 'New Email' },
-      { type: 'filter', label: 'Drop automated mail' },
-      { type: 'remove-duplicates', label: 'Remove Duplicates' },
-      { type: 'wait', label: 'Wait' },
-      { type: 'classify', label: 'Classify with AI' },
-      { type: 'parse', label: 'Parse Result' },
-      { type: 'http-request', label: 'Look up the order' },
-      { type: 'summarize', label: 'Summarize with AI' },
-      { type: 'code', label: 'Score the priority' },
-      { type: 'switch', label: 'Switch' },
+      { type: 'trigger', label: 'mail arrives' },
+      { type: 'filter', label: 'ignore robots' },
+      { type: 'remove-duplicates', label: 'drop repeats' },
+      { type: 'wait', label: 'hold a moment' },
+      { type: 'classify', label: 'read the mail' },
+      { type: 'parse', label: 'pull the details' },
+      { type: 'http-request', label: 'look up order' },
+      { type: 'summarize', label: 'sum it up' },
+      { type: 'code', label: 'score urgency' },
+      { type: 'switch', label: 'split many ways' },
     ],
     caption:
-      'Two Gemini models, one for the classifier and one for the summary. Switch fans out to 8 routes, ending in Gmail, Slack, Calendar, Notion and Docs.',
+      'Clean the inbox first, then read the order, then route. Two AI steps and eight endings, each landing somewhere different.',
   },
 
   flow: {

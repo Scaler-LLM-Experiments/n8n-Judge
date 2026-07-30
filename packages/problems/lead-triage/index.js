@@ -2,6 +2,19 @@ export const leadTriage = {
   id: 'lead-triage',
   title: 'Inbound Sales Lead Triage',
   tagline: 'Sort inbound sales emails by intent and auto-reply to each.',
+  // Two lines, for the Understand hero and the Home card.
+  brief:
+    'Sales leads land in one shared inbox all day. Work out what each one is asking for and send back an answer that fits.',
+  // 23 decisions: the same shape as email-triage with fewer fields to configure.
+  difficulty: 'moderate',
+  difficultyNote: 'Same shape as Email Triage, with fewer fields to set.',
+  estimatedMinutes: 20,
+  coverImage: {
+    prompt:
+      'A wide isometric funnel floats in the air, fed by streams of falling binary, and drops small glowing envelope shapes into three separate retro pixel-art server towers standing below it, each tower lit a different brightness.',
+    src: '/covers/lead-triage.png',
+    alt: 'A funnel dropping leads into three server towers',
+  },
   statement:
     "Sales leads pour into a shared inbox all day. Build a flow that watches for new emails, uses AI to read each one and label the lead's intent (Demo Request / Pricing Question / Not a Fit), and routes each intent down its own path — where a tailored reply goes back to the sender.",
 
@@ -179,15 +192,17 @@ export const leadTriage = {
   ],
 
   // Read-only summary of the built agent, shown atop the Stress Testing stage.
+  // Labels describe the JOB, never the node — this sketch is shown before the
+  // dissection quiz asks which node does each job. `validateProblem` enforces it.
   flowSummary: {
     steps: [
-      { type: 'trigger', label: 'New Email' },
-      { type: 'classify', label: 'Classify with AI' },
-      { type: 'parse', label: 'Parse Result' },
-      { type: 'switch', label: 'Switch' },
-      { type: 'action', label: 'Send Reply' },
+      { type: 'trigger', label: 'a lead writes' },
+      { type: 'classify', label: 'read the intent' },
+      { type: 'parse', label: 'pull the intent' },
+      { type: 'switch', label: 'split by intent' },
+      { type: 'action', label: 'answer in kind' },
     ],
-    caption: 'Gemini Chat Model powers Classify · Switch fans out to 3 replies (Demo Request · Pricing Question · Not a Fit).',
+    caption: 'Three kinds of interest, three answers. One AI step reads the intent and the split routes each one.',
   },
 
   // Canonical flow order. Used to detect sequence mistakes: from a given source

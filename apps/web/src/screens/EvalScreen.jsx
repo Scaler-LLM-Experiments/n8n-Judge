@@ -5,17 +5,16 @@ import { Button } from '../design-system/Button.jsx';
 import { TopBar } from '../components/TopBar.jsx';
 import { ProblemStatementPanel } from '../components/ProblemStatementPanel.jsx';
 import { NodeFlowRow } from '../components/NodeFlowRow.jsx';
-import { NodeReplay } from '../components/NodeReplay.jsx';
 import { shuffledEvalOptions } from '../lib/shuffle.js';
 import { useVoiceActions } from '../lib/VoiceContext.jsx';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
-import { simulateCase } from '@judge/engine/simulate.js';
 import { scoreEval } from '@judge/engine/evalScore.js';
 import { checkAnswer } from '../lib/grader.js';
 import { resolveServerVerdict, UNVERIFIED_MESSAGE } from '../lib/verdict.js';
 
 const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
-const GRID_WIDTH = 1040;
+// One column now, so this is a reading width rather than the old two-column grid.
+const COLUMN_WIDTH = 720;
 
 // The fixed reference path, shown as real connected nodes for questions with
 // no matching sample case to replay (e.g. a design-reasoning question).
@@ -30,7 +29,8 @@ const REFERENCE_PATH = [
 // The shared, pre-branch stretch of the build — shown as the question's own
 // context before answering. It stops at Switch, before the case-specific
 // outcome, so it grounds the question in the learner's real build without
-// giving away the answer (the outcome only reveals via NodeReplay post-pick).
+// giving away the answer: the outcome is described in the written verdict, not
+// acted out on the canvas.
 const BASE_PATH = REFERENCE_PATH.slice(0, 4);
 
 // Turn a checkAnswer() response into the verdict this screen renders. The
@@ -46,7 +46,9 @@ function resolveVerdict(q, chosen, result) {
   return { correct: !!chosen?.correct, why: q.explanation ?? null, verified: true };
 }
 
-export function EvalScreen({ problem, sessionId, graph, onDecision, onSubmit }) {
+// No `graph` prop any more: the only thing that needed the learner's built graph
+// here was the post-answer NodeReplay, which is gone.
+export function EvalScreen({ problem, sessionId, onDecision, onSubmit }) {
   const voice = useVoiceActions();
   const said = useRef(false);
   useEffect(() => {
@@ -75,8 +77,9 @@ export function EvalScreen({ problem, sessionId, graph, onDecision, onSubmit }) 
   const answered = picked !== null && !checking && verdict !== null;
   const isCorrect = verdict?.correct ?? false;
 
+  // Still resolved, because it decides whether the strip shows the learner's own
+  // build or the fixed reference path. It no longer drives a replay.
   const sampleCase = q.caseId ? problem.sampleCases.find((c) => c.id === q.caseId) : null;
-  const replaySteps = answered && sampleCase && graph ? simulateCase(graph, sampleCase).steps : null;
 
   // staggered entrance — same pattern as DissectionScreen's QuizBody: head,
   // then options, then the canvas, each easing in in turn on every question.
@@ -108,6 +111,12 @@ export function EvalScreen({ problem, sessionId, graph, onDecision, onSubmit }) 
     setChecking(false);
     setVerdict(resolved);
     setMascotClip(resolved.correct === true ? 'correct' : resolved.correct === false ? 'shake-no' : 'idle');
+    // Stress Testing used to go silent after `stress_start`, so the one section that
+    // is entirely about judgement gave no spoken reaction to any answer. Keyed by
+    // question, so re-answering rotates the wording rather than repeating it. Nothing
+    // is said when the check did not complete (`correct: null`) — see verdict.js.
+    if (resolved.correct === true) voice.play('stress_correct', { key: q.id, scope: `stress:${q.id}` });
+    else if (resolved.correct === false) voice.play('stress_wrong', { key: q.id, scope: `stress:${q.id}` });
     if (onDecision && resolved.correct !== null) {
       onDecision({
         id: `stress:${q.id}`,
@@ -140,70 +149,73 @@ export function EvalScreen({ problem, sessionId, graph, onDecision, onSubmit }) 
         @keyframes spin { to { transform: rotate(360deg); } }
         .spin { animation: spin 0.9s linear infinite; }
       `}</style>
-      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain', display: 'flex', justifyContent: 'center', padding: answered ? '56px 24px 130px' : '56px 24px 56px' }}>
-        <div key={index} ref={quizRef} style={{ width: '100%', maxWidth: GRID_WIDTH }}>
-          <div data-q="head" style={{ textAlign: 'center', marginBottom: 28 }}>
+      {/* One column, in reading order: what this section is for, which question
+          you are on, the question, the flow it is about, the options, then the
+          verdict. The node strip used to sit in a left column BESIDE the options,
+          which made the question and the flow it refers to compete for the same
+          glance. */}
+      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: answered ? '40px 24px 130px' : '40px 24px 56px' }}>
+        {/* Outside the per-question container on purpose: this describes the
+            SECTION, so it must not re-animate on every question. */}
+        {/* Just the section name. The explanation underneath it said what the whole
+            screen already demonstrates, and pushed the actual question below the fold
+            on a laptop. Secondary colour, not brand blue: this is a label, and blue is
+            the colour of things you click. */}
+        <div style={{ width: '100%', maxWidth: COLUMN_WIDTH, textAlign: 'center', marginBottom: 22, paddingBottom: 18, borderBottom: '1px solid var(--border-subtle)' }}>
+          <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--fg-2)', fontWeight: 700 }}>
+            Stress Testing
+          </div>
+        </div>
+
+        <div key={index} ref={quizRef} style={{ width: '100%', maxWidth: COLUMN_WIDTH }}>
+          <div data-q="head" style={{ textAlign: 'center', marginBottom: 20 }}>
             <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--fg-3)', fontWeight: 700, marginBottom: 10 }}>
               Question {index + 1} of {questions.length}
             </div>
             <div style={{ fontSize: 21, fontWeight: 700, lineHeight: 1.35, maxWidth: 640, margin: '0 auto' }}>{q.prompt}</div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 32, alignItems: 'start' }}>
-            {/* LEFT COLUMN: the node canvas, live replay, and (once answered) the explanation */}
-            <div data-q="canvas">
-              <div style={{ border: '1px solid var(--border-strong)', background: '#E9ECF2', backgroundImage: 'radial-gradient(#C4CAD4 1px, transparent 1px)', backgroundSize: '16px 16px', padding: '18px' }}>
-                <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--fg-3)', fontWeight: 700, marginBottom: 4 }}>
-                  {sampleCase ? 'Your build' : 'The fixed path'}
-                </div>
-                <NodeFlowRow items={sampleCase ? BASE_PATH : REFERENCE_PATH} />
-              </div>
-
-              {answered && replaySteps ? (
-                <div style={{ marginTop: 16, border: `2px solid ${isCorrect ? 'var(--status-success)' : 'var(--status-danger)'}`, boxShadow: `0 0 0 3px ${isCorrect ? 'var(--status-success-bg)' : 'var(--status-danger-bg)'}` }}>
-                  <div style={{ padding: '9px 15px', background: isCorrect ? 'var(--status-success)' : 'var(--status-danger)', color: '#fff', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    {isCorrect ? 'What actually happens — this is the answer' : 'Not what you picked — here’s what actually happens'}
-                  </div>
-                  <NodeReplay steps={replaySteps} label="Replaying your build — this exact case, on your graph" />
-                </div>
-              ) : null}
-
-              {pending ? (
-                <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left', padding: '13px 15px', border: '1px solid var(--border-subtle)', background: 'var(--surface-1)' }}>
-                  <CircleNotch size={18} weight="bold" color="var(--fg-3)" className="spin" />
-                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--fg-2)' }}>Checking your answer…</div>
-                </div>
-              ) : null}
-
-              {answered ? (
-                <div style={{ marginTop: 16, display: 'flex', gap: 10, textAlign: 'left', padding: '13px 15px', border: `1px solid ${isCorrect ? 'var(--status-success-border)' : 'var(--status-danger-border)'}`, background: isCorrect ? 'var(--status-success-bg)' : 'var(--status-danger-bg)' }}>
-                  {isCorrect ? <CheckCircle size={18} weight="fill" color="var(--status-success)" style={{ flex: 'none', marginTop: 1 }} /> : <XCircle size={18} weight="fill" color="var(--status-danger)" style={{ flex: 'none', marginTop: 1 }} />}
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: isCorrect ? 'var(--status-success)' : 'var(--status-danger)', marginBottom: 3 }}>
-                      {isCorrect ? 'Correct' : 'Not quite'}
-                    </div>
-                    {/* The server sends the same explanation regardless of which
-                        option was picked — it never hands back the correct
-                        option's text for a wrong pick, only the reasoning. */}
-                    <div style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--fg-2)' }}>{verdict?.why ?? (isCorrect ? 'Nice — that tracks.' : 'Take a look at what actually happens below.')}</div>
-                  </div>
-                </div>
-              ) : null}
+          {/* The flow the question is about, directly under it */}
+          <div data-q="canvas" style={{ border: '1px solid var(--border-strong)', background: '#E9ECF2', backgroundImage: 'radial-gradient(#C4CAD4 1px, transparent 1px)', backgroundSize: '16px 16px', padding: '18px', marginBottom: 22 }}>
+            <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--fg-3)', fontWeight: 700, marginBottom: 4 }}>
+              {sampleCase ? 'Your build' : 'The fixed path'}
             </div>
-
-            {/* RIGHT COLUMN: the question's options */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {opts.map((opt, i) => {
-                const state = picked === i ? (pending ? 'pending' : isCorrect ? 'correct' : 'wrong') : 'idle';
-                const dim = answered && picked !== i;
-                return (
-                  <div key={opt.originalIndex} data-q="opt">
-                    <OptionRow letter={LETTERS[i]} label={opt.label} state={state} dim={dim} disabled={pending || answered} onClick={() => pick(i)} />
-                  </div>
-                );
-              })}
-            </div>
+            <NodeFlowRow items={sampleCase ? BASE_PATH : REFERENCE_PATH} />
           </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {opts.map((opt, i) => {
+              const state = picked === i ? (pending ? 'pending' : isCorrect ? 'correct' : 'wrong') : 'idle';
+              const dim = answered && picked !== i;
+              return (
+                <div key={opt.originalIndex} data-q="opt">
+                  <OptionRow letter={LETTERS[i]} label={opt.label} state={state} dim={dim} disabled={pending || answered} onClick={() => pick(i)} />
+                </div>
+              );
+            })}
+          </div>
+
+          {pending ? (
+            <div style={{ marginTop: 18, display: 'flex', alignItems: 'center', gap: 10, padding: '13px 15px', border: '1px solid var(--border-subtle)', background: 'var(--surface-1)' }}>
+              <CircleNotch size={18} weight="bold" color="var(--fg-3)" className="spin" />
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--fg-2)' }}>Checking your answer…</div>
+            </div>
+          ) : null}
+
+          {answered ? (
+            <div style={{ marginTop: 18, display: 'flex', gap: 10, padding: '13px 15px', border: `1px solid ${isCorrect ? 'var(--status-success-border)' : 'var(--status-danger-border)'}`, background: isCorrect ? 'var(--status-success-bg)' : 'var(--status-danger-bg)' }}>
+              {isCorrect ? <CheckCircle size={18} weight="fill" color="var(--status-success)" style={{ flex: 'none', marginTop: 1 }} /> : <XCircle size={18} weight="fill" color="var(--status-danger)" style={{ flex: 'none', marginTop: 1 }} />}
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: isCorrect ? 'var(--status-success)' : 'var(--status-danger)', marginBottom: 3 }}>
+                  {isCorrect ? 'Correct' : 'Not quite'}
+                </div>
+                {/* The server sends the same explanation regardless of which
+                    option was picked — it never hands back the correct
+                    option's text for a wrong pick, only the reasoning. */}
+                <div style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--fg-2)' }}>{verdict?.why ?? (isCorrect ? 'That tracks.' : 'Read the explanation and think about where that case ends up.')}</div>
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
 

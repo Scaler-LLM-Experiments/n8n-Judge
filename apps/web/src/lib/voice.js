@@ -110,17 +110,35 @@ export function createVoice({ onMoment, problemSlug, problem } = {}) {
     }
   })();
 
+  /**
+   * How many times this exact line has already been spoken this session.
+   *
+   * This is what stops a repeated event repeating a sentence. Getting a node wrong
+   * twice, or failing verify on four fields, used to play one identical recording
+   * every time, because the variant was chosen from the session seed alone.
+   *
+   * Rotating on the count rather than at random keeps preloading intact, which is
+   * why the seed existed in the first place: the count only moves when a line is
+   * actually SPOKEN, so `setUpcoming` and the play that follows it compute the same
+   * index. A random pick per call broke that and made every play a cold fetch.
+   */
+  const spokenCount = new Map();
+  const rotationKey = (moment, vars = {}) =>
+    `${moment}:${vars.key ?? ''}:${vars.node ?? ''}:${vars.answer ?? ''}`;
+
   const variantFor = (moment, vars = {}) => {
-    const id = `${sessionSeed}:${moment}:${vars.key ?? ''}:${vars.node ?? ''}:${vars.answer ?? ''}`;
+    const id = `${sessionSeed}:${rotationKey(moment, vars)}`;
     let h = 0x811c9dc5;
     for (let i = 0; i < id.length; i++) {
       h ^= id.charCodeAt(i);
       h = Math.imul(h, 0x01000193);
     }
-    return (h >>> 0);
+    // Where the session starts in the list is seeded (two learners hear different
+    // openings); where it goes next is the count (nobody hears one twice in a row).
+    return (h >>> 0) + (spokenCount.get(rotationKey(moment, vars)) ?? 0);
   };
 
-  /** The wording for a moment: same answer every time within a session. */
+  /** The wording for a moment: rotates each time the same moment is spoken again. */
   const lineFor = (moment, vars) => pickLine(moment, variantFor(moment, vars), { problem, key: vars?.key });
 
   /**
@@ -332,6 +350,13 @@ export function createVoice({ onMoment, problemSlug, problem } = {}) {
   function start(moment, vars) {
     const picked = lineFor(moment, vars ?? {});
     if (!picked) return;
+
+    // Count it as spoken now that the wording for THIS play is settled, so the next
+    // time the same moment fires it rotates on. It has to happen after `lineFor` and
+    // before `warmUpcoming` below: the warm pass is what preloads the following line,
+    // and it must see the incremented count or it warms the wrong file.
+    const rk = rotationKey(moment, vars ?? {});
+    spokenCount.set(rk, (spokenCount.get(rk) ?? 0) + 1);
 
     const mine = ++token;
     speaking = true;

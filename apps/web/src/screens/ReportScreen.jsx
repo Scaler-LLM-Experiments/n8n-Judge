@@ -1,63 +1,95 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { CaretDown, CaretUp } from '@phosphor-icons/react';
-import { useVoiceActions } from '../lib/VoiceContext.jsx';
-import { Card } from '../design-system/Card.jsx';
-import { Alert } from '../design-system/Alert.jsx';
-import { Badge } from '../design-system/Badge.jsx';
+import { ArrowRight, ArrowUUpLeft, House, Info } from '@phosphor-icons/react';
+import { useHideVoiceGlow, useVoiceActions } from '../lib/VoiceContext.jsx';
+import { useSignedInUser, firstNameOf } from '../lib/useSignedInUser.js';
+import { Button } from '../design-system/Button.jsx';
 import { TopBar } from '../components/TopBar.jsx';
 import { ProblemStatementPanel } from '../components/ProblemStatementPanel.jsx';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
-import { NodeReplay } from '../components/NodeReplay.jsx';
-import { understandingScore, countsByKind, misconceptionsHit } from '@judge/engine/grading.js';
-import { simulateCase } from '@judge/engine/simulate.js';
+import { understandingScore, countsByKind } from '@judge/engine/grading.js';
 
-const KIND_LABEL = { dissection: 'Problem dissection', field: 'Node configuration', nodePick: 'Node choices', stress: 'Stress testing' };
+// This screen reads as a REPORT, not as another screen in the journey: one
+// centred sheet, wider than the journey's content column, lifted off the page
+// with a soft shadow, opening on a navy hero and continuing on white. Everything
+// that used to sit below the marks — the full decision list, the misconception
+// cards, the per-test-case alerts — is deliberately gone. A learner reading their
+// result does not audit thirty rows; they want to know how they did, where the
+// marks went, and what to do next.
+
 const KIND_ORDER = ['dissection', 'field', 'nodePick', 'stress'];
 
 const NEXT_STEP_BY_KIND = {
-  dissection: 'Re-read the problem statement and dissection questions — the core shape of the flow is worth another look.',
-  field: 'Revisit node field configuration when building — double-check what each field should point at.',
-  nodePick: 'Look again at which nodes fit each step — a few picks suggest some node types are still fuzzy.',
-  stress: 'Replay the Stress Testing scenarios again to nail down how the flow behaves at the edges.',
+  dissection: 'Re-read the problem statement and the dissection questions. The overall shape of the flow is worth another look.',
+  field: 'Revisit node configuration while building, and check what each field should point at.',
+  nodePick: 'Look again at which node fits each step. A few picks suggest some node types are still fuzzy.',
+  stress: 'Replay the Stress Testing scenarios to pin down how the flow behaves at the edges.',
 };
 
-function verdictFor(score) {
+// The greeting carries the verdict, so it has to change with the band. The score
+// is already on screen in 64px type: repeating it in words teaches nothing, while
+// naming what happened does. `band` comes from the rubric (`scoreBand`), which is
+// the same source as the definition printed underneath.
+const GREETING_BY_BAND = {
+  strong: 'you nailed this',
+  solid: 'that was a solid run',
+  developing: 'you almost got there',
+  'needs-another-pass': 'this one needs another pass',
+};
+
+function greetingFor(band, name) {
+  const tail = GREETING_BY_BAND[band] || 'here is how it went';
+  return name ? `Hey ${name}, ${tail}.` : `${tail.charAt(0).toUpperCase()}${tail.slice(1)}.`;
+}
+
+function bandClip(band) {
+  if (band === 'strong') return 'celebrate';
+  if (band === 'solid') return 'idle';
+  return 'nervous';
+}
+
+// Band from the score, for the sessions that have no server report: the dev hash
+// routes run without one. Thresholds mirror `scoreBand` in the rubric.
+function bandFromScore(score) {
   if (score == null) return null;
-  if (score >= 80) return { clip: 'celebrate', message: 'Nice work — you really get this.' };
-  if (score >= 50) return { clip: 'idle', message: 'Good foundation — a couple of gaps to close.' };
-  return { clip: 'nervous', message: "Let's go back over a few things." };
+  if (score >= 85) return 'strong';
+  if (score >= 70) return 'solid';
+  if (score >= 50) return 'developing';
+  return 'needs-another-pass';
 }
 
-// Finds the kind with the lowest first-try-correct ratio; returns its canned
-// suggestion, or null if every kind is at 100% (or there's nothing to grade).
-function nextStepFor(counts) {
-  let worstKind = null;
-  let worstRatio = Infinity;
-  KIND_ORDER.forEach((kind) => {
+// Canned pointers for when Claude wrote nothing, so "what to do next" is never
+// empty just because no API key is configured.
+//
+// EVERY area that was not first-try perfect gets a line, weakest first — not just
+// the single worst one. One lonely bullet under a heading that promises what to do
+// next reads like the screen is broken, and a learner who fumbled three areas is
+// owed three pointers.
+function cannedNextSteps(counts) {
+  return KIND_ORDER.map((kind) => {
     const c = counts[kind];
-    if (!c || c.total === 0) return;
+    if (!c || c.total === 0) return null;
     const ratio = c.firstTryCorrect / c.total;
-    if (ratio < worstRatio) {
-      worstRatio = ratio;
-      worstKind = kind;
-    }
-  });
-  if (worstKind === null || worstRatio >= 1) return null;
-  return NEXT_STEP_BY_KIND[worstKind];
+    return ratio >= 1 ? null : { kind, ratio };
+  })
+    .filter(Boolean)
+    .sort((a, b) => a.ratio - b.ratio)
+    .map((x) => NEXT_STEP_BY_KIND[x.kind])
+    .filter(Boolean);
 }
 
-// decision.id for stress decisions is `stress:${evalQuestionId}` (set by
-// EvalScreen.jsx's pick()). Resolve that back to the question's caseId, then
-// to the sampleCases entry simulateCase needs.
-function findSampleCase(problem, decisionId) {
-  const qId = decisionId.replace(/^stress:/, '');
-  const q = problem.evalQuestions?.find((eq) => eq.id === qId);
-  if (!q?.caseId) return null;
-  return problem.sampleCases?.find((c) => c.id === q.caseId) || null;
-}
-
-export function ReportScreen({ problem, grading, dissection, runResult, evalOutcome, graph, serverReport }) {
+export function ReportScreen({
+  problem,
+  grading,
+  serverReport,
+  onRedo,
+  onNext,
+  onHome,
+  nextProblem,
+}) {
   const voice = useVoiceActions();
+  // Iris is large in the hero here, so the corner glow would be a second light
+  // saying the same thing.
+  useHideVoiceGlow();
   const said = useRef(false);
   useEffect(() => {
     if (said.current) return;
@@ -65,144 +97,183 @@ export function ReportScreen({ problem, grading, dissection, runResult, evalOutc
     voice.play('report_ready');
   }, [voice]);
   const [showStatement, setShowStatement] = useState(false);
+  const firstName = firstNameOf(useSignedInUser());
 
   // The server's replayed score wins whenever there is one. The local store is
   // the fallback for the dev hash routes, which run without a session — it is
   // NOT a second opinion, and the two are never blended.
   const localScore = grading ? understandingScore(grading) : null;
   const score = serverReport ? serverReport.total : localScore;
+  const band = serverReport?.band || bandFromScore(score);
   const counts = grading ? countsByKind(grading) : {};
-  const misconceptions = grading ? misconceptionsHit(grading) : [];
-  const verdict = verdictFor(score);
-  // Claude writes the next steps when it is available; the canned per-area line
-  // is what a session without a narrative falls back to.
-  const nextStep = grading ? nextStepFor(counts) : null;
-  const decisions = grading?.decisions || [];
-  const kindsPresent = KIND_ORDER.filter((k) => decisions.some((d) => d.kind === k));
 
   const written = serverReport?.report || null;
+  // Claude's next steps when there are any; otherwise the canned per-area lines.
+  // Same section either way, so a session graded without a key still ends on
+  // something to do.
+  const nextSteps = written?.nextSteps?.length
+    ? written.nextSteps
+    : grading
+    ? cannedNextSteps(counts)
+    : [];
+
+  // The written half is missing, and the screen used to say nothing about it: the
+  // positives and negatives simply were not there, which reads as a bug rather
+  // than as a missing key. `reason` comes from the server — 'llm_unconfigured'
+  // (no ANTHROPIC_API_KEY) or 'llm_failed' (the call errored) — and is logged
+  // with the actionable version, while the learner gets one plain sentence.
+  const missingNarrative = serverReport && !written ? (serverReport.reason || 'unknown') : null;
+  const warned = useRef(false);
+  useEffect(() => {
+    if (!missingNarrative || warned.current) return;
+    warned.current = true;
+    console.warn(
+      missingNarrative === 'llm_unconfigured'
+        ? '[report] no written feedback: ANTHROPIC_API_KEY is not set. The score is unaffected.'
+        : `[report] no written feedback: ${missingNarrative}. See the server log for the cause.`
+    );
+  }, [missingNarrative]);
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative', background: 'var(--surface-2)' }}>
       <TopBar activeStage="report" problem={problem} onShowProblemStatement={() => setShowStatement(true)} />
-      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: 24 }}>
-        <Card style={{ maxWidth: 640, width: '100%' }}>
-          <div style={{ fontSize: 12, textTransform: 'uppercase', color: 'var(--fg-2)', marginBottom: 8 }}>
-            Result
+
+      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '28px 24px 36px' }}>
+        <div style={{ width: '100%', maxWidth: 880, background: 'var(--surface-0)', border: '1px solid var(--border-subtle)', boxShadow: '0 3px 14px rgba(1,24,69,0.07)' }}>
+
+          {/* Hero: who they are and how it went on the left, the number on the
+              right, on the darkest brand blue so the sheet opens on a header
+              rather than on body text. */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 28, padding: '30px 34px', background: 'var(--surface-deep)', color: 'var(--fg-inverse)' }}>
+            <div style={{ width: 86, height: 86, flex: 'none' }}>
+              <MascotPlayer clip={bandClip(band)} once={false} onceDone={() => {}} />
+            </div>
+            {/* Every text node in here sets its own colour. The container's
+                `color` is NOT enough: the global stylesheet gives h2 and p their
+                own `color: var(--fg-1)`, which beats inheritance, so the greeting
+                and the definition rendered near-black on navy. */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.09em', fontWeight: 700, color: 'var(--fg-inverse)', opacity: 0.62, marginBottom: 7 }}>
+                Result · {problem?.title || 'This challenge'}
+              </div>
+              <h2 style={{ margin: '0 0 8px', fontFamily: 'var(--font-headline)', fontSize: 27, fontWeight: 600, lineHeight: 1.2, color: 'var(--fg-inverse)' }}>
+                {greetingFor(band, firstName)}
+              </h2>
+              <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.6, color: 'var(--fg-inverse)', opacity: 0.86, maxWidth: 520 }}>
+                {serverReport?.definition || 'Here is how this attempt went, decision by decision.'}
+              </p>
+            </div>
+            <div style={{ flex: 'none', textAlign: 'right', color: 'var(--fg-inverse)' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, justifyContent: 'flex-end' }}>
+                <span style={{ fontFamily: 'var(--font-headline)', fontSize: 64, fontWeight: 700, lineHeight: 0.95 }}>{score ?? '—'}</span>
+                <span style={{ fontSize: 17, opacity: 0.6 }}>/ 100</span>
+              </div>
+              <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.09em', fontWeight: 700, opacity: 0.62, marginTop: 6 }}>
+                Total marks
+              </div>
+            </div>
           </div>
 
-          {/* 1 — total marks gained */}
-          {verdict ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
-              <div style={{ width: 56, height: 56, flex: 'none' }}>
-                <MascotPlayer clip={verdict.clip} once={false} onceDone={() => {}} />
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 2 }}>
-                  <span style={{ fontFamily: 'var(--font-display, inherit)', fontSize: 34, fontWeight: 700, lineHeight: 1, color: 'var(--fg-1)' }}>{score}</span>
-                  <span style={{ fontSize: 15, color: 'var(--fg-3)' }}>/ 100</span>
+          {/* Body, on white */}
+          <div style={{ padding: '26px 34px 30px' }}>
+            {serverReport?.phases?.length ? (
+              <Section title="Where the marks came from">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {serverReport.phases.map((p) => (
+                    <PhaseRow key={p.key} phase={p} />
+                  ))}
                 </div>
-                <div style={{ fontSize: 13, color: 'var(--fg-2)' }}>
-                  {serverReport?.definition || verdict.message}
+              </Section>
+            ) : null}
+
+            {missingNarrative ? (
+              <div style={{ display: 'flex', gap: 9, alignItems: 'flex-start', padding: '12px 14px', marginBottom: 26, background: 'var(--surface-1)', border: '1px solid var(--border-subtle)' }}>
+                <Info size={16} color="var(--fg-3)" style={{ flex: 'none', marginTop: 1 }} />
+                <div style={{ fontSize: 12.5, lineHeight: 1.55, color: 'var(--fg-2)' }}>
+                  The written feedback on this attempt is not available, so the sections naming
+                  what went well and where marks went are missing. Your marks above are complete
+                  and unaffected.
                 </div>
               </div>
-            </div>
-          ) : null}
+            ) : null}
 
-          {/* 2 — breakdown across the three phases the learner walked */}
-          {serverReport?.phases?.length ? (
-            <div style={{ marginBottom: 24 }}>
-              <h3 style={{ margin: '0 0 10px' }}>Where the marks came from</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {serverReport.phases.map((p) => (
-                  <PhaseRow key={p.key} phase={p} />
-                ))}
+            {/* Side by side, and responsive without a media query: two columns
+                while there is room for both, one when there isn't. */}
+            {written?.strengths?.length || written?.focusAreas?.length ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 26, marginBottom: 26 }}>
+                {written?.strengths?.length ? (
+                  <PointList title="What you did well" tone="success" items={written.strengths} />
+                ) : null}
+                {written?.focusAreas?.length ? (
+                  <PointList title="Where you lost marks" tone="warning" items={written.focusAreas} />
+                ) : null}
               </div>
-            </div>
-          ) : null}
+            ) : null}
 
-          {/* 3 — positives and negatives, written by Claude from the trace */}
-          {written?.strengths?.length ? (
-            <PointList
-              title="What you did well"
-              tone="success"
-              items={written.strengths}
-            />
-          ) : null}
-
-          {written?.focusAreas?.length ? (
-            <PointList
-              title="Where you lost marks"
-              tone="warning"
-              items={written.focusAreas}
-            />
-          ) : null}
-
-          {/* 4 — next steps */}
-          {written?.nextSteps?.length ? (
-            <div style={{ marginBottom: 24 }}>
-              <h3 style={{ margin: '0 0 8px' }}>What to do next</h3>
-              <ol style={{ margin: 0, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {written.nextSteps.map((s, i) => (
-                  <li key={i} style={{ fontSize: 13.5, color: 'var(--fg-1)', lineHeight: 1.5 }}>{s}</li>
-                ))}
-              </ol>
-            </div>
-          ) : null}
-
-          {written?.narrative ? (
-            <Alert tone="info" style={{ marginBottom: 24 }}>{written.narrative}</Alert>
-          ) : null}
-
-          {misconceptions.length ? (
-            <>
-              <h3 style={{ margin: '0 0 8px' }}>Worth revisiting</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
-                {misconceptions.map((m) => (
-                  <MisconceptionCard key={m} id={m} label={problem.misconceptionLabels?.[m] || m} decisions={decisions} />
-                ))}
-              </div>
-            </>
-          ) : null}
-
-          {/* Canned fallback — only when Claude wrote nothing (no key, or the
-              call failed). Never shown alongside the written next steps. */}
-          {!written && nextStep ? (
-            <>
-              <h3 style={{ margin: '0 0 8px' }}>What to try next</h3>
-              <Alert tone="info" style={{ marginBottom: 24 }}>{nextStep}</Alert>
-            </>
-          ) : null}
-
-          {kindsPresent.length ? (
-            <>
-              <h3 style={{ margin: '0 0 8px' }}>Every decision</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 24 }}>
-                {kindsPresent.map((kind) => (
-                  <div key={kind}>
-                    <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--fg-2)', marginBottom: 8 }}>{KIND_LABEL[kind]}</div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      {decisions.filter((d) => d.kind === kind).map((d) => (
-                        <DecisionRow key={d.id} decision={d} problem={problem} graph={graph} />
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </>
-          ) : null}
-
-          <h3 style={{ margin: '0 0 8px' }}>Test cases</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {runResult?.results?.map((r) => (
-              <Alert key={r.id} tone={r.passed ? 'success' : 'danger'} title={r.description}>
-                {r.passed ? 'Passed' : r.reason}
-              </Alert>
-            ))}
+            {nextSteps.length ? (
+              <Section title="What to do next" last>
+                <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {nextSteps.map((s, i) => (
+                    <li key={i} style={{ display: 'flex', gap: 11, alignItems: 'flex-start' }}>
+                      <span style={{ width: 6, height: 6, background: 'var(--brand-primary)', flex: 'none', marginTop: 7 }} />
+                      <span style={{ fontSize: 13.5, color: 'var(--fg-1)', lineHeight: 1.6 }}>{s}</span>
+                    </li>
+                  ))}
+                </ul>
+              </Section>
+            ) : null}
           </div>
-        </Card>
+        </div>
       </div>
+
+      {/* Sticky bottom bar. A flex sibling of the scroll area rather than a
+          position:sticky child, so it cannot scroll away on a short report or
+          overlap the last bullet on a long one. Only the actions that were given
+          a handler render: the dev hash routes mount this screen with none. */}
+      {onRedo || onNext || onHome ? (
+        <div style={{ flex: 'none', display: 'flex', justifyContent: 'center', gap: 10, padding: '13px 24px', background: 'var(--surface-0)', borderTop: '1px solid var(--border-strong)' }}>
+          {/* Redo and home are icon-only: they are the two actions whose meaning a
+              single glyph carries, and three labelled buttons made the bar compete
+              with the report. Both keep a title and an aria-label, because an
+              unlabelled icon button is invisible to a screen reader. */}
+          {onRedo ? (
+            <Button
+              variant="outline"
+              icon={<ArrowUUpLeft size={16} />}
+              onClick={onRedo}
+              style={{ padding: '0 12px' }}
+              title="Redo this challenge"
+              aria-label="Redo this challenge"
+            />
+          ) : null}
+          {onNext && nextProblem ? (
+            <Button variant="primary" iconRight={<ArrowRight size={15} />} onClick={onNext}>
+              Next: {nextProblem.title}
+            </Button>
+          ) : null}
+          {onHome ? (
+            <Button
+              variant="outline"
+              icon={<House size={16} />}
+              onClick={onHome}
+              style={{ padding: '0 12px' }}
+              title="All challenges"
+              aria-label="All challenges"
+            />
+          ) : null}
+        </div>
+      ) : null}
+
       {showStatement && problem ? <ProblemStatementPanel problem={problem} onClose={() => setShowStatement(false)} /> : null}
+    </div>
+  );
+}
+
+function Section({ title, children, last }) {
+  return (
+    <div style={{ marginBottom: last ? 0 : 26 }}>
+      <h3 style={{ margin: '0 0 12px', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--fg-3)', fontWeight: 700 }}>{title}</h3>
+      {children}
     </div>
   );
 }
@@ -214,13 +285,13 @@ function PhaseRow({ phase }) {
     phase.score >= 85 ? 'var(--status-success)' : phase.score >= 50 ? 'var(--status-warning)' : 'var(--status-danger)';
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 5 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
         <span style={{ flex: 1, fontSize: 13.5, fontWeight: 600, color: 'var(--fg-1)' }}>{phase.label}</span>
         <span style={{ fontSize: 13, color: 'var(--fg-1)', fontVariantNumeric: 'tabular-nums' }}>
           {phase.earned} <span style={{ color: 'var(--fg-3)' }}>/ {phase.weight}</span>
         </span>
       </div>
-      <div style={{ height: 4, background: 'var(--surface-2)', overflow: 'hidden' }}>
+      <div style={{ height: 5, background: 'var(--surface-2)', overflow: 'hidden' }}>
         <div style={{ width: `${Math.max(0, Math.min(100, phase.score))}%`, height: '100%', background: tone }} />
       </div>
     </div>
@@ -232,66 +303,16 @@ function PhaseRow({ phase }) {
 function PointList({ title, tone, items }) {
   const dot = tone === 'success' ? 'var(--status-success)' : 'var(--status-warning)';
   return (
-    <div style={{ marginBottom: 24 }}>
-      <h3 style={{ margin: '0 0 8px' }}>{title}</h3>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div>
+      <h3 style={{ margin: '0 0 12px', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--fg-3)', fontWeight: 700 }}>{title}</h3>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {items.map((text, i) => (
           <div key={i} style={{ display: 'flex', gap: 9, alignItems: 'flex-start' }}>
             <span style={{ width: 5, height: 5, background: dot, flex: 'none', marginTop: 7 }} />
-            <span style={{ fontSize: 13.5, color: 'var(--fg-1)', lineHeight: 1.5 }}>{text}</span>
+            <span style={{ fontSize: 13.5, color: 'var(--fg-1)', lineHeight: 1.55 }}>{text}</span>
           </div>
         ))}
       </div>
     </div>
-  );
-}
-
-function MisconceptionCard({ id, label, decisions }) {
-  const [open, setOpen] = useState(false);
-  const hits = decisions.filter((d) => d.misconception === id);
-  return (
-    <Card interactive padding={13} onClick={() => setOpen((o) => !o)} style={{ cursor: 'pointer' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span style={{ flex: 1, fontSize: 13.5, fontWeight: 600, color: 'var(--fg-1)' }}>{label}</span>
-        {open ? <CaretUp size={14} color="var(--fg-3)" /> : <CaretDown size={14} color="var(--fg-3)" />}
-      </div>
-      {open ? (
-        <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {hits.map((d) => (
-            <div key={d.id} style={{ fontSize: 12.5, color: 'var(--fg-2)' }}>{d.label}</div>
-          ))}
-        </div>
-      ) : null}
-    </Card>
-  );
-}
-
-function DecisionRow({ decision, problem, graph }) {
-  const [open, setOpen] = useState(false);
-  const sampleCase = decision.kind === 'stress' ? findSampleCase(problem, decision.id) : null;
-  const replaySteps = open && sampleCase && graph ? simulateCase(graph, sampleCase).steps : null;
-  // Stress rows lead with the correct answer (what the review is actually
-  // about) rather than repeating the full question prompt already seen in Eval.
-  const rowLabel = decision.kind === 'stress' ? (decision.correctLabel || decision.label) : decision.label;
-
-  return (
-    <Card interactive padding={13} onClick={() => setOpen((o) => !o)} style={{ cursor: 'pointer' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span style={{ flex: 1, fontSize: 13, color: 'var(--fg-1)' }}>{rowLabel}</span>
-        <Badge tone={decision.correct ? 'success' : 'danger'}>{decision.correct ? 'Correct' : 'Incorrect'}</Badge>
-        {open ? <CaretUp size={14} color="var(--fg-3)" /> : <CaretDown size={14} color="var(--fg-3)" />}
-      </div>
-      {open ? (
-        <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {decision.chosenLabel != null ? (
-            <div style={{ fontSize: 12.5, color: 'var(--fg-2)' }}>
-              <div>You picked: <strong style={{ color: 'var(--fg-1)' }}>{decision.chosenLabel}</strong></div>
-              <div>Correct answer: <strong style={{ color: 'var(--fg-1)' }}>{decision.correctLabel}</strong></div>
-            </div>
-          ) : null}
-          {replaySteps ? <NodeReplay steps={replaySteps} label="Replaying this scenario, on your graph" /> : null}
-        </div>
-      ) : null}
-    </Card>
   );
 }

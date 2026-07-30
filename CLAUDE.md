@@ -6,8 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Read [STATUS.md](STATUS.md) first** — it is the single source of truth for what's built,
 what's next, and known issues. Keep it updated as work lands; do not start a new handoff
-doc. [README.md](README.md) covers commands and layout. This file covers architecture,
-conventions, and the things that will bite you.
+doc. This file covers commands, architecture, conventions, and the things that will bite
+you. There is deliberately no root `README.md` — it drifted out of date behind this file
+and was deleted rather than maintained twice.
 
 "n8n Judge" is a simulator that teaches non-technical Scaler learners to build AI-agent
 workflows in n8n **and grades them while they do it**. Per challenge the learner walks
@@ -21,16 +22,21 @@ prototype is out of date, and both are gone.
 
 ## Commands
 
-Node 20+, everything from the repo root.
+Node 20+ locally (the Docker image builds on `node:22-bookworm-slim`), everything from the
+repo root.
 
 ```bash
 npm install
 npm run dev        # Next.js dev → http://localhost:3000
 npm run build      # production build
-npm test           # vitest — packages/** and apps/web/src/**/*.test.*
+npm test           # vitest — packages/**/*.test.{js,ts} and apps/**/*.test.{js,ts}
 npm run smoke      # full-journey runtime check (needs dev running)
 npm run typecheck  # BOTH halves: typecheck:packages (root tsconfig) + typecheck:web
 ```
+
+**There is no linter.** No eslint, no prettier, no `lint` script in either
+`package.json` — `test` + `typecheck` + `smoke` are the entire gate. Don't go looking for
+one, and match the surrounding file's style by reading it.
 
 **`npm run typecheck` only recently covered the web app.** The root tsconfig *excludes*
 `apps`, so for a while an app-level type error was invisible to every check safe to run
@@ -48,8 +54,15 @@ cp .env.example .env   # set AUTH_SECRET (openssl rand -base64 32); POSTGRES_POR
 npm run db:up          # local Postgres via docker-compose.yml
 npm run db:migrate      # apply committed migrations
 npm run db:seed        # programs, batches, and the four problems as v1 PUBLISHED
-npm run db:seed:rubric # the grading rubric as RubricVersion v1 — see below, not optional
+DATABASE_URL="postgresql://…" npm run db:seed:rubric   # the rubric — not optional, see below
 ```
+
+**`db:seed:rubric` is the one script that ignores `.env`, on purpose.** Every other db
+script runs with `--env-file=.env`; this one does not, so you must pass `DATABASE_URL`
+yourself. It is the only seed safe to point at production (it does not touch problems), and
+[seed-rubric.mjs](packages/db/seed-rubric.mjs) explains the reason for the friction: with no
+explicit URL there is no way to think you are seeding production while actually hitting
+localhost. It exits with that message rather than defaulting to anything.
 
 Then sign up at `/signup` with a seeded invite code — `AIML-DEMO`, `DSML-DEMO` or
 `SE-DEMO`. The **first** admin is a manual promotion
@@ -67,6 +80,16 @@ removes them (they're marked by the `demo.judge.local` email domain).
 
 Other db scripts: `db:down`, `db:migrate:dev` (new migration from schema changes),
 `db:generate`, `db:studio`.
+
+`npm run covers:generate` draws the Home cards' cover art **on this machine** (OpenAI
+`gpt-image-1`, needs `OPENAI_API_KEY`), writing `apps/web/public/covers/<id>.png`. Same
+deal as voice and for the same reason — **the app never calls an image API**; the output is
+committed and served as a static file. It skips what already exists; `-- --force` redraws,
+`-- --only <id>` does one. The per-problem *subject* is authored in the problem data
+(`coverImage.prompt`) so art can be redrawn from the description that produced it; the
+shared *style* lives once in [scripts/generate-covers.mjs](scripts/generate-covers.mjs),
+because four cards in a row have to look like one set. After drawing, set
+`coverImage.src` and re-seed.
 
 `npm run voice:generate` renders Iris's narration **on this machine**, and
 `npm run voice:sync` uploads it. Neither the app nor a dry run ever polls the bucket — see
@@ -149,6 +172,18 @@ assignmentList`. The last three are n8n's structurally-different parameter shape
   between attempts. Their check ids are `<type>:<fieldKey>#<aspect>`, all open-ended
   (100/50/0). Downstream code still only ever sees the authored branches, because a phase
   cannot complete until the list verifies green.
+
+**Fields can be conditional, and that changes grading.**
+[packages/problem-schema/fieldVisibility.ts](packages/problem-schema/fieldVisibility.ts)
+implements real n8n's `displayOptions.show` as a field's `showWhen` (a map of other-field-key
+→ accepted values; every key must match, any listed value satisfies a key). n8n states the
+grading rule explicitly in `getParameterIssues`: **a required parameter only counts as
+missing if it is currently displayed.** So "Verify setup" must only require fields the
+learner can see, the rubric must not score a hidden field against them, and a field that
+becomes hidden must have its **value dropped** — n8n stores only displayed parameters, so
+leaving it behind submits an answer to a question no longer being asked. **No shipped problem
+uses `showWhen` yet**; this is built and tested infrastructure waiting for the first author
+who needs it.
 
 **`packages/problems` is the seed source, not the served source.** The web app does not
 import `@judge/problems` at all — [src/data/problemsApi.js](apps/web/src/data/problemsApi.js)
@@ -373,12 +408,26 @@ claim.
   rule (`target.type === 'action'` on the immediate target) made "topology is data" false
   exactly where a learner would notice — a correct flow whose branch formats then sends, or
   replies on Slack, could pass its Run and still refuse to advance the phase.
-- `EvalScreen` (Stress Testing) — read-only `flowSummary` strip + `evalQuestions`. Options
-  are shuffled per (tab session, question key) and carry `originalIndex`, because
-  `scoreEval` grades against the authored `correctIndex`.
-- `ReportScreen` (Result) — renders what `POST /api/sessions/[id]/report` returns: total
-  marks, the per-phase breakdown (Understand / Build / Stress Testing), then Claude's
-  positives, negatives and next steps. It does **not** compute the score.
+- `EvalScreen` (Stress Testing) — one column in reading order: section header → question
+  number → question → node strip → options → verdict, with Continue in a fixed footer.
+  Options are shuffled per (tab session, question key) and carry `originalIndex`, because
+  `scoreEval` grades against the authored `correctIndex`. The post-answer `NodeReplay` was
+  removed on 2026-07-30, which left **`components/NodeReplay.jsx` with no importers** and
+  `EvalScreen` with no need for the learner's `graph`.
+- `PlaygroundScreen` — behind `#playground` only, not part of the graded journey and not
+  reachable from Home. It exercises the n8n component kit in isolation: blank canvas → "Add
+  first step" → picker drawer → "Set me up" → NDV. Use it when working on the editor layer
+  rather than on a problem.
+- `ReportScreen` (Result) — renders what `POST /api/sessions/[id]/report` returns and
+  **does not compute the score**: a navy hero (band greeting by first name, band definition,
+  the total), then the per-phase breakdown, positives and negatives side by side, next steps,
+  and a bottom bar (redo / next / home, each rendered only if given a handler). Two things
+  to know before editing it: **text on the hero must set its own `color`**, because the global
+  stylesheet gives `h2`/`p` a `color: var(--fg-1)` that beats the container's inherited
+  white; and when `report` is null (`reason: 'llm_unconfigured'` with no `ANTHROPIC_API_KEY`,
+  or `'llm_failed'`) the screen **says the written feedback is missing** rather than quietly
+  dropping two sections — silently omitting them reads as a bug, which is exactly how it was
+  reported.
 - `AdminDashboard` — see *Admin* above.
 
 ### n8n editor layer — [apps/web/src/n8n/](apps/web/src/n8n/)
@@ -429,6 +478,31 @@ The two rules that matter most, in case the skill is not loaded:
   fingerprint changed, so the file name changed) and `npm run db:seed` (problems are
   served from Postgres). Skipping either looks identical to a broken render.
 
+**Where the code is**, since the skill covers the contract rather than the file map:
+
+- [src/lib/voiceLines.js](apps/web/src/lib/voiceLines.js) — the phrase book, **shared by the
+  generator and the browser** so the words you hear and the caption you read cannot drift.
+- [src/lib/voiceCatalogue.js](apps/web/src/lib/voiceCatalogue.js) — enumerates every line
+  that can *ever* be spoken. This is what makes pre-rendering possible, and why line
+  variables come from a closed set (`{node}`, `{answer}`) drawn from problem data rather
+  than free text.
+- [src/lib/voicePath.js](apps/web/src/lib/voicePath.js) — `<folder>/<id>--<fingerprint>.mp3`.
+  The **id is derived** identically by generator and browser; the **fingerprint is of the
+  text**, which is why a copy edit renames the file.
+- [src/lib/voice.js](apps/web/src/lib/voice.js) — the player: a "moment" abstraction, a busy
+  latch, a single-slot pending queue, and silent degradation. Callers do
+  `voice.play('verify_pass')` and never handle an error, because narration must never break
+  a screen.
+- [src/lib/VoiceContext.jsx](apps/web/src/lib/VoiceContext.jsx) — **two** contexts on
+  purpose: `amplitude` changes every animation frame to drive Iris's glow, so merging it with
+  the actions would re-render every consumer 60×/s and re-run any effect depending on
+  `voice`. Keep them split. UI: `components/VoiceBubble.jsx`, `VoiceoverIndicator.jsx`.
+- **`GET /api/voice/clip/[...path]`** — serves one clip at a cacheable URL, auth-gated, path
+  validated against `VALID_CLIP_FILES`; the browser streams and honours Range.
+- **`GET /api/voice/diagnostics`** (optional `?problem=`) — answers "why is narration not
+  playing?" without devtools. Every voice failure is silent by design (the learner just sees
+  captions), so this is the only way to tell a missing bucket from an ungenerated problem.
+
 Design: [docs/superpowers/specs/2026-07-30-voice-clip-pipeline-design.md](docs/superpowers/specs/2026-07-30-voice-clip-pipeline-design.md).
 Copy proposal and rationale: [docs/voice-copy-email-triage.md](docs/voice-copy-email-triage.md).
 
@@ -440,6 +514,10 @@ on the generic phrase book.
 `nodes/*.jsx` (`ActionNode`, `ChatModelNode`, `ClassifyNode`, `ProcessNode`, `TriggerNode`,
 `SwitchNode`, `NodeCard`, `nodeTypes.js`) have no importers — the live canvas is the
 `n8n/` layer. **Exception:** `nodes/nodeIcons.js` is live and imported by eight files.
+`components/NodeReplay.jsx` joined this list on 2026-07-30: the Stress Testing replay and
+the Result screen's decision rows were its only two callers and both are gone. Kept, not
+deleted, because it is the one component that animates a case through a learner's own
+graph — but nothing renders it today.
 
 ## Design conventions
 
@@ -468,6 +546,48 @@ already known to be wrong. Never park the correct option at index 0 as a habit; 
 once found it there in 25/25 fields and 13/13 dissection items
 (`apps/web/scripts/verify-option-balance.mjs` checks this).
 
+**[balanceOptions.ts](packages/problem-schema/balanceOptions.ts) is written but not wired.**
+`balanceGroup` / `balanceProblemOptions` are the intended fix for the above — deterministically
+spread each correct answer's position **server-side, before `toPublicProblem()` strips the
+key** — and they have tests, but nothing in production calls them. The reason they exist:
+EvalScreen's per-tab shuffle is uniform *on average* yet draws each field **independently**, so
+an individual tab can be degenerate (the unluckiest measured session had the answer on top for
+18 of 24 fields, and averages are no comfort to the learner living in that tab). Until it is
+wired, the live defences are authored balance plus that verify script. `evalQuestions` are
+deliberately left alone by it — `scoreEval` grades against the authored `correctIndex`.
+
+### IMPORTANT — copy rules for anything a learner reads BEFORE building
+**Carry these into the problem-authoring skill when M5 lands.** Both are enforced, so a
+violation fails `npm test` rather than reaching a learner.
+
+0. **`flowSummary` labels are three words maximum.** The sketch lays each step out in a
+   ~96px column and `wrapLabel` breaks at two words per line, so a four-word label is three
+   lines tall and drags the whole row out of alignment. Enforced. The router step is worse
+   than a long label: it used to print every branch name joined with `·` ("Bug Report ·
+   Feature Request · Urgent Complaint"), a five-line cell. It now shows `N ways` plus one
+   dot per branch — the names are in the statement and on the canvas the learner is about to
+   build.
+1. **`flowSummary` labels describe the JOB, never the node.** The summary is drawn as the
+   "shape of it" sketch on the Understand screen — the same screen that then asks *which
+   node does each job*. Labelling a step `Classify with AI` or `Send Reply` hands over the
+   answer to a graded question in the author's own words, before the quiz starts. Write
+   `read it and label it`, `send the right reply`. `validateProblem()` rejects any label
+   containing a palette label or catalog title, and
+   [ConceptFlow.jsx](apps/web/src/components/ConceptFlow.jsx) was written for plain language
+   from the start — it began leaking the moment it started rendering authored labels instead
+   of its own hardcoded sketch.
+2. **Two lines, not a paragraph.** `statement` is the full brief and must stay complete: the
+   problem panel, the sticky note and **Ask-AI's context** all read it. The short version is
+   **`brief`**, capped at 125 characters by the schema and shown on the Understand hero and
+   the Home card. The cap comes from the narrower surface — a Home card is 13.5px in a ~440px
+   column and clamps to two lines, so longer copy is cut mid-word. Measured, after that
+   happened.
+
+Two related fields exist for the same "choosing" moment: `estimatedMinutes` (authored, sized
+from the real decision count) and `coverImage` (`{prompt, src, alt}` — the **prompt is
+authored now and the art generated later**, so a null `src` is normal and the card draws its
+own placeholder). `/api/problems` serves `src` and `alt` but **never the prompt**.
+
 **`nodeSetup` is keyed by node TYPE, not by node instance.** Using the same type twice in
 one problem gives both instances the same NDV and grades one decision that may only make
 sense for one of them, so a large problem should use each type once unless the same
@@ -488,6 +608,23 @@ voice clips* comments still describe the old content-addressed scheme; the live 
 slug paths plus a manifest (see *Voice*). The service deploys from
 **`sudhanva/nextjs`, not `main`** — a push deploys, so a type error reaches production.
 
+**Voice in production is a Railway bucket, wired 2026-07-30.** Object storage, not a
+volume: the serving route already speaks S3 (`AUDIO_S3_*`), a bucket survives service
+re-creation and is shared by every replica, and clips are written from a laptop rather
+than by the app — a volume would mean baking ~90MB of audio into the image or copying it
+in at deploy. The bucket is `portable-organizer-9e47x` (project *n8n Judge*, production,
+region `sin`) behind `https://t3.storageapi.dev`, prefix `voice-clips`, and the service
+carries `AUDIO_S3_*` + `FEATURE_VOICE=true`. `railway bucket credentials -b <name>` prints
+the S3 keys; **`railway bucket info` lags badly** and reported `0 objects` for a bucket
+that already held 550, so verify with a `ListObjectsV2` against the endpoint instead of
+believing the dashboard.
+
+**A clip is addressed by a hash of its text, so the bucket and the deployed code have to
+match.** Re-rendering narration changes every file name, which means uploading is only
+half the job: until the build carrying the new `packages/voice-scripts` tables is
+deployed, production asks for the previous names and gets 404s. That degrades to captions
+by design, but it looks exactly like a broken upload.
+
 **`start-production.sh` runs `prisma migrate deploy` before serving, and that is not
 optional.** A schema change and the code that needs it arrive in the same deploy, so they
 have to be applied in the same step. A deploy without it shipped code needing a column the
@@ -505,7 +642,7 @@ could not see it while the UI showed it as present. Catch it with
 
 - **Never run `npm run build` while `next dev` is running.** They share `.next` and it
   corrupts the running server. Symptoms are alarming and misleading — every route 500s,
-  smoke fails on all 19 screens, API calls return HTML. Kill dev, `rm -rf apps/web/.next`,
+  smoke fails on all 20 screens, API calls return HTML. Kill dev, `rm -rf apps/web/.next`,
   restart.
 - **Editing `packages/problems/*` does nothing until `npm run db:seed`.**
 - **Beware `replace_all` edits in `.jsx`** — check enclosing function scope. A past
@@ -513,9 +650,12 @@ could not see it while the UI showed it as present. Catch it with
   including inside inner components with no `problem` prop.
 - **Next.js pollutes the root `tsconfig.json`** if `next dev` runs from the monorepo root.
   Revert it if it shows up in a diff.
-- **Smoke has a coverage hole** — journey-start clicks the *first* "Try this judge" button
-  regardless of `?problem=`, so `lead-triage` and `meeting-notes` Understand screens are
-  untested.
+- **Don't put a fixed delay in smoke.** Journey-start now enters each problem by its own
+  card (`button[data-problem="…"]`) and **waits** for each step; it used to click
+  `.first()`, so every problem's check actually opened email-triage. The replacement was
+  briefly timing-based, passed at a 3s settle and started failing at 2.2s with four pages
+  loading — a flaky check on a grading surface is worse than none, because you learn to
+  ignore it.
 - **Any new writer to `TraceEvent` must take the per-session advisory lock.** See *The trace
   pipeline*; skipping it reproduces the worst bug this project has had.
 - **A missing `RubricVersion` silently stops scores being persisted** — run

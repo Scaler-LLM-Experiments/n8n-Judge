@@ -53,7 +53,12 @@ function stepsFor(problem) {
       return {
         icon: null,
         color: sketch.color,
-        label: branches.map((b) => b.label).join(' · '),
+        // The COUNT, not the branch names. Joining them ("Bug Report · Feature
+        // Request · Urgent Complaint") produced a five-line cell in a 96px column
+        // and pulled the whole sketch out of line. The dots below already show how
+        // many paths there are; the names are on the canvas the learner is about to
+        // build, and in the problem statement.
+        label: `${branches.length} ways`,
         dots: branches.slice(0, BRANCH_DOTS.length).map((_, i) => BRANCH_DOTS[i]),
       };
     }

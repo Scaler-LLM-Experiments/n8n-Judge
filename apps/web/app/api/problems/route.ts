@@ -26,10 +26,23 @@ export async function GET() {
         slug: p.slug,
         title: p.title,
         tagline: data.tagline ?? null,
-        // Card-level too: the badge is part of choosing, so it cannot wait for the
-        // full problem fetch that happens after a learner has already committed.
+        // The card's own copy. Two lines by construction (the schema caps `brief`
+        // at 180 characters), so a card cannot grow a paragraph and knock the CTA
+        // out of line with the card next to it.
+        brief: data.brief ?? null,
+        // Card-level too: the badge, the duration and the cover are all part of
+        // CHOOSING, so none of them can wait for the full problem fetch that only
+        // happens once a learner has already committed to a challenge.
         difficulty: data.difficulty ?? null,
         difficultyNote: data.difficultyNote ?? null,
+        estimatedMinutes: data.estimatedMinutes ?? null,
+        // `src` only. The authored prompt is production material for generating the
+        // art later and has no business in a learner's browser.
+        coverImage: (() => {
+          const art = data.coverImage as { src?: string | null; alt?: string } | undefined;
+          if (!art) return null;
+          return { src: art.src ?? null, alt: art.alt ?? null };
+        })(),
         version: p.versions[0]?.version ?? null,
       };
     });

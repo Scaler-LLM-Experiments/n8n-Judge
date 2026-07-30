@@ -3,7 +3,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { fetchProblemList, fetchProblem, slugFromUrl } from './data/problemsApi.js';
 import { AsyncGate } from './components/AsyncGate.jsx';
 import { GradingLoader } from './components/GradingLoader.jsx';
-import { createSession, fetchReport } from './lib/grader.js';
+import { createSession, fetchReport, fetchResumable } from './lib/grader.js';
 import { useTrace } from './lib/useTrace.js';
 import { TraceProvider } from './lib/TraceContext.jsx';
 import { VoiceProvider, useVoiceActions } from './lib/VoiceContext.jsx';
@@ -123,7 +123,7 @@ export default function App() {
     return <DevProblem>{(problem) => <BuildPreview problem={problem} devAutoRun />}</DevProblem>;
   }
   if (hash.startsWith('#eval-demo')) {
-    return <DevProblem>{(problem) => <EvalScreen problem={problem} graph={DEMO_GRAPH} onSubmit={() => {}} onDecision={() => {}} />}</DevProblem>;
+    return <DevProblem>{(problem) => <EvalScreen problem={problem} onSubmit={() => {}} onDecision={() => {}} />}</DevProblem>;
   }
   if (hash.startsWith('#run-demo')) {
     return (
@@ -158,9 +158,6 @@ export default function App() {
             { id: 'stress:general-question-gap', kind: 'stress', label: 'What happens to an email that matches no branch?', correct: true, firstTry: true, correctLabel: 'It is left unanswered — visibly, so you can fix it' },
             { id: 'stress:why-fixed-path', kind: 'stress', label: 'Why does the same email always take the same path?', correct: false, firstTry: true, correctLabel: 'Because temperature 0 makes the model deterministic' },
           ].forEach((d) => { s = recordDecision(s, d); });
-          const g = DEMO_GRAPH;
-          const runResult = validateGraph(g, problem);
-          const evalOutcome = scoreEval({ 'general-question-gap': 1, 'why-fixed-path': 0 }, problem.evalQuestions);
           // A representative server payload, so this route exercises the marks
           // total, the phase breakdown and Claude's three written sections. The
           // live route needs a session and an API key; without a fixture here
@@ -170,10 +167,16 @@ export default function App() {
             <ReportScreen
               problem={problem}
               grading={s}
-              runResult={runResult}
-              evalOutcome={evalOutcome}
-              graph={g}
               serverReport={DEMO_SERVER_REPORT}
+              // Handlers so the sticky action bar renders here too — it is the
+              // screen's own furniture and a review of this route should show it.
+              // Catalogue navigation belongs to Landing, which this route bypasses,
+              // so "next" is a stand-in label and both it and "home" simply leave
+              // the dev route.
+              nextProblem={{ id: 'next', title: 'the next challenge' }}
+              onRedo={() => window.location.reload()}
+              onNext={() => { window.location.hash = ''; }}
+              onHome={() => { window.location.hash = ''; }}
             />
           );
         }}
@@ -188,8 +191,42 @@ export default function App() {
 // the journey mounts. Selecting remounts MainApp fresh.
 function Landing() {
   const [selected, setSelected] = useState(null);
+  // Bumped by "Redo this challenge", and part of MainApp's key: a redo has to be a
+  // FRESH attempt, and everything that makes an attempt — the session, the local
+  // grading store, which screen you are on — lives in MainApp's state. Remounting
+  // is the honest way to reset all of it at once. The server cooperates: reaching
+  // the Result marked the old session COMPLETED, so the next POST /api/sessions
+  // opens a new row instead of handing back the finished one.
+  const [attempt, setAttempt] = useState(0);
+  // The catalogue, remembered when the learner leaves Home, so the Result screen
+  // can name the next challenge. A ref, not state: it is read in a handler and
+  // nothing re-renders when it changes.
+  const catalogue = useRef(null);
+  // The attempt already open, for the "Continue where you left off" card. Fetched
+  // once on Home rather than passed down from anywhere: it is a property of the
+  // learner, not of the catalogue.
+  const [resume, setResume] = useState(null);
+  // Set only when the learner takes the offer, so a normal "start this challenge"
+  // never restores a stale screen or canvas.
+  const [resuming, setResuming] = useState(null);
+
+  useEffect(() => {
+    if (selected) return undefined;
+    let cancelled = false;
+    fetchResumable().then((r) => { if (!cancelled) setResume(r); });
+    return () => { cancelled = true; };
+    // Re-asked whenever the learner comes back to Home, because by then the answer
+    // has usually changed.
+  }, [selected]);
 
   if (selected) {
+    const list = catalogue.current || [];
+    const here = list.findIndex((p) => (p.slug ?? p.id) === (selected.slug ?? selected.id));
+    // Registry order is the catalogue order, so "next" is simply the next card.
+    // Null on the last challenge (and when the list was never loaded, e.g. a
+    // deep link), which hides the button rather than looping the learner back to
+    // the first one as if it were new.
+    const nextProblem = here >= 0 && here < list.length - 1 ? list[here + 1] : null;
     return (
       <div style={{ height: '100vh' }}>
         <AsyncGate
@@ -197,7 +234,19 @@ function Landing() {
           deps={[selected.slug ?? selected.id]}
           label={`Loading ${selected.title}…`}
         >
-          {(problem) => <MainApp key={problem.id} problem={problem} />}
+          {(problem) => (
+            <MainApp
+              key={`${problem.id}:${attempt}`}
+              problem={problem}
+              nextProblem={nextProblem}
+              // Only honoured when this problem IS the resumed one, so picking a
+              // different challenge from the grid can never inherit its state.
+              resume={resuming && resuming.slug === (problem.slug ?? problem.id) ? resuming : null}
+              onRedo={() => { setResuming(null); setAttempt((n) => n + 1); }}
+              onNext={nextProblem ? () => { setResuming(null); setAttempt(0); setSelected(nextProblem); } : undefined}
+              onHome={() => { setResuming(null); setAttempt(0); setSelected(null); }}
+            />
+          )}
         </AsyncGate>
       </div>
     );
@@ -205,7 +254,21 @@ function Landing() {
 
   return (
     <AsyncGate load={fetchProblemList} label="Loading challenges…">
-      {(problems) => <HomeScreen problems={problems} onSelect={setSelected} />}
+      {(problems) => (
+        <HomeScreen
+          problems={problems}
+          resume={resume}
+          onSelect={(p) => { catalogue.current = problems; setResuming(null); setSelected(p); }}
+          onResume={(r) => {
+            catalogue.current = problems;
+            setResuming(r);
+            // Match the catalogue entry so the journey gets the same object shape a
+            // card click produces; fall back to the resume payload itself, which
+            // carries the slug and title the loader needs.
+            setSelected(problems.find((p) => (p.slug ?? p.id) === r.slug) ?? { slug: r.slug, id: r.slug, title: r.title });
+          }}
+        />
+      )}
     </AsyncGate>
   );
 }
@@ -245,7 +308,7 @@ function BuildPreview({ problem, devAutoRun }) {
 
   const screenEl =
     screen === 'eval' ? (
-      <EvalScreen problem={problem} sessionId={sessionId} graph={builtGraph} onDecision={record} onSubmit={(o) => { setEvalOutcome(o); setScreen('report'); }} />
+      <EvalScreen problem={problem} sessionId={sessionId} onDecision={record} onSubmit={(o) => { setEvalOutcome(o); setScreen('report'); }} />
     ) : screen === 'report' ? (
       <ReportScreen problem={problem} grading={grading} runResult={runResult} evalOutcome={evalOutcome} graph={builtGraph} />
     ) : (
@@ -268,8 +331,19 @@ function BuildPreview({ problem, devAutoRun }) {
   );
 }
 
-function MainApp({ problem }) {
-  const [screen, setScreen] = useState(SCREEN.STATEMENT);
+// Which screens it is honest to drop a learner back onto.
+//
+// `report` is excluded: the session is still IN_PROGRESS, so nothing has been graded
+// yet and landing there would fetch a report for an unfinished attempt. The other
+// three are safe, including Build — the canvas is restored from the trace, and
+// re-verifying a field the learner already got right cannot cost them marks, because
+// `attemptsFromTrace` keeps the LOWEST attempt that was correct.
+const RESUMABLE_SCREENS = new Set([SCREEN.STATEMENT, SCREEN.DASHBOARD, SCREEN.EVAL]);
+
+function MainApp({ problem, nextProblem, resume, onRedo, onNext, onHome }) {
+  const [screen, setScreen] = useState(
+    resume && RESUMABLE_SCREENS.has(resume.screen) ? resume.screen : SCREEN.STATEMENT
+  );
   const [dissection, setDissection] = useState(null);
   const [runResult, setRunResult] = useState(null);
   const [builtGraph, setBuiltGraph] = useState(null);
@@ -322,6 +396,9 @@ function MainApp({ problem }) {
         <BuildStage
           problem={problem}
           sessionId={sessionId}
+          // The canvas they left behind, from the last `graph_mutation` in the
+          // trace. Undefined on a fresh start, which is the normal case.
+          initialGraph={resume?.graph ?? undefined}
           onDecision={record}
           onComplete={(result) => {
             if (result) {
@@ -337,7 +414,6 @@ function MainApp({ problem }) {
         <EvalScreen
           problem={problem}
           sessionId={sessionId}
-          graph={builtGraph}
           onDecision={record}
           onSubmit={(outcome) => {
             setEvalOutcome(outcome);
@@ -358,7 +434,15 @@ function MainApp({ problem }) {
       {screen === SCREEN.REPORT && gradingReport ? <GradingLoader /> : null}
 
       {screen === SCREEN.REPORT && !gradingReport ? (
-        <ReportScreen problem={problem} grading={grading} dissection={dissection} runResult={runResult} evalOutcome={evalOutcome} graph={builtGraph} serverReport={serverReport} />
+        <ReportScreen
+          problem={problem}
+          grading={grading}
+          serverReport={serverReport}
+          nextProblem={nextProblem}
+          onRedo={onRedo}
+          onNext={onNext}
+          onHome={onHome}
+        />
       ) : null}
     </div>
     {/* One instance for the whole journey. It is position:fixed and pointer-events:

@@ -97,6 +97,54 @@ export function validateProblem(input: unknown): ValidateProblemResult {
   }
   // Dissection option types are quiz answers, never rendered as nodes — no check.
 
+  // --- The flow summary must not name the nodes. IMPORTANT, and a correctness
+  // rule rather than a style one.
+  //
+  // `flowSummary` is drawn as the "shape of it" sketch on the Understand screen,
+  // which is the screen that then ASKS the learner which node does each job. A
+  // step labelled "Classify with AI" or "Parse Result" hands over the answer to a
+  // graded question, in the author's own words, before the quiz starts.
+  //
+  // So each label describes the JOB in plain language ("read it and label it"),
+  // never the node. ConceptFlow.jsx was written for exactly that and says so; it
+  // started leaking the moment it began rendering authored labels instead of its
+  // own hardcoded sketch.
+  const nodeNames = new Set<string>();
+  for (const n of p.nodePalette) if (n.label) nodeNames.add(n.label.toLowerCase());
+  for (const entry of Object.values(NODE_CATALOG) as Array<{ title?: string }>) {
+    if (entry?.title) nodeNames.add(entry.title.toLowerCase());
+  }
+  // Three words, hard cap. The sketch lays each step out in a ~96px column and wraps
+  // at two words per line, so a four-word label is three lines tall and drags the
+  // whole row out of alignment. "read it and label it" reads fine in prose and looks
+  // broken here; "read and label" says the same thing.
+  const MAX_LABEL_WORDS = 3;
+  p.flowSummary.steps.forEach((s, i) => {
+    const words = String(s.label ?? '').trim().split(/\s+/).filter(Boolean);
+    if (words.length > MAX_LABEL_WORDS) {
+      err(
+        'flowSummary',
+        `Step ${i + 1} is labelled "${s.label}" (${words.length} words). The shape sketch wraps at two words per line in a narrow column — keep every label to ${MAX_LABEL_WORDS} words or fewer.`
+      );
+    }
+  });
+
+  p.flowSummary.steps.forEach((s, i) => {
+    const label = String(s.label ?? '').toLowerCase().trim();
+    if (!label) return;
+    for (const name of nodeNames) {
+      // Whole-label or contained match. "Send Reply" as a step label is the node
+      // name; "the sender gets a reply" is the job, and does not contain it.
+      if (label === name || label.includes(name)) {
+        err(
+          'flowSummary',
+          `Step ${i + 1} is labelled "${s.label}", which is the node name "${name}". The shape sketch is shown BEFORE the dissection quiz asks which node does this job — describe the job instead.`
+        );
+        break;
+      }
+    }
+  });
+
   // --- Generic topology structure (engine walk is metadata-driven).
   const requiredCategories = new Set(
     [...requiredTypes].map((t) => paletteByType.get(t)?.category).filter(Boolean)

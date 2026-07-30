@@ -185,8 +185,49 @@ export const LINES = {
     '[calm] Good. Now open {node} and tell it what to do.',
     '[calm] {node}\'s on the board. Open it up and set it up.',
   ],
+  // Ten wordings, and they rotate (see `spokenCount` in voice.js): getting a node
+  // wrong is one of the few things a learner does repeatedly in a sitting, and one
+  // sentence played six times is what makes Iris sound like a recording.
+  //
+  // None of them name the right node, and none of them say what the wrong one does
+  // either — the probe that opens next is the thing that asks. These only mark the
+  // moment and hand over.
   node_wrong: [
     '[thoughtful] Hmm. That one can\'t do the job here. Let me ask you something.',
+    '[thoughtful] Ah, not that one. There\'s something I want you to think about.',
+    '[thoughtful] Hold on. That node can\'t give you what this step needs.',
+    '[calm] Not quite. Before you try again, answer me this.',
+    '[thoughtful] Hmm, that one won\'t work here. Here\'s the question to ask yourself.',
+    '[calm] That\'s not the one. Let\'s work out why together.',
+    '[thoughtful] Careful. That node does something else entirely. Have a think.',
+    '[calm] Nearly, but no. One question first.',
+    '[thoughtful] Hmm. Wrong tool for this job. Let me check something with you.',
+    '[calm] That one can\'t do it. Let\'s find out what you\'re picturing.',
+  ],
+
+  // Answering the wrong-node probe. Separate from `answer_correct` because the probe
+  // is not a quiz question the learner chose to be at — they got here by making a
+  // mistake, so the correct answer is acknowledged and moved on from rather than
+  // celebrated, and the wrong one never repeats the misconception back as fact.
+  probe_correct: [
+    '[warm] Yes, exactly that. Now put the right one in.',
+    '[warm] Right. So you can see why it wouldn\'t work here.',
+    '[warm] That\'s it. Go on and pick the one that fits.',
+    '[warm] Ah, you\'ve got it. Try the placement again.',
+    '[calm] Correct. That\'s the thing to watch for next time.',
+    '[warm] Yes. Now you know what this step actually needs.',
+    '[warm] Exactly right. Let\'s get the proper node in there.',
+    '[calm] That\'s the one. Back to the board.',
+  ],
+  probe_wrong: [
+    '[thoughtful] Not that. Read the other answers again and think about what this step gets handed.',
+    '[calm] Hmm, no. Think about what that node actually produces.',
+    '[thoughtful] That\'s the common guess, but no. Look at the others.',
+    '[calm] Not quite. What would this step have to work with?',
+    '[thoughtful] Ah, no. Have another look at what the node does.',
+    '[calm] That isn\'t it. Try again, and take your time.',
+    '[thoughtful] Hmm. Close, but that\'s not what happens here.',
+    '[calm] No. One of the others describes it properly.',
   ],
 
   // ---- verifying ----------------------------------------------------------
@@ -206,9 +247,23 @@ export const LINES = {
     '[calm] That\'s the parameters right. You\'ve got one tab left.',
     '[calm] Good, those are right. One more tab and this one\'s done.',
   ],
+  // Ten wordings, rotated. This is the most repeated line in the whole journey — a
+  // learner can fail verify on a dozen fields in one sitting — and it was two lines
+  // chosen once per session, so it played identically every time.
+  //
+  // Every one points at WHERE to look and never at what to put there. `{node}` is
+  // safe to name: the learner opened it themselves.
   verify_fail: [
     '[calm] Hmm, {node} isn\'t right yet. Check the field I marked.',
     '[calm] Hmm, something in {node}\'s off. Have a look at what\'s in red.',
+    '[calm] Not there yet. The field I\'ve marked in {node} needs another look.',
+    '[thoughtful] Hmm. One of these isn\'t what {node} needs. Check the red one.',
+    '[calm] Close. Read the marked field in {node} again.',
+    '[thoughtful] Ah, not quite. Look at what you\'ve put in {node}\'s red field.',
+    '[calm] {node}\'s not happy with one of those. The marked one.',
+    '[calm] Something\'s off in {node}. Check the field I\'ve flagged and try again.',
+    '[thoughtful] Hmm, no. Have another think about the red field in {node}.',
+    '[calm] Nearly. One field in {node} still needs fixing.',
   ],
 
   // ---- running ------------------------------------------------------------
@@ -226,6 +281,31 @@ export const LINES = {
 
   // ---- finishing ----------------------------------------------------------
   stress_start: ["[excited] Wonderful! [pause] Now let's stress test that setup of yours, right away."],
+  // Stress Testing had `stress_start` and then silence for the whole section, so the
+  // one screen that is entirely about judgement gave no spoken reaction to any of it.
+  //
+  // These never restate the answer: the written verdict beside the options already
+  // explains it, and Iris repeating it is reading the screen. She reacts, and points.
+  stress_correct: [
+    '[warm] Yes, that\'s the one.',
+    '[warm] Right. You\'ve thought that through.',
+    '[warm] Exactly. That\'s what would happen.',
+    '[calm] Correct. Read why, then carry on.',
+    '[warm] Ah, good. That\'s it.',
+    '[warm] Yes. You can see how it behaves now.',
+    '[calm] That\'s right. Have a read of the reason.',
+    '[warm] Got it in one.',
+  ],
+  stress_wrong: [
+    '[thoughtful] Hmm, not that one. Read what actually happens.',
+    '[calm] No. Have a read of why, it\'s worth knowing.',
+    '[thoughtful] Ah, that\'s the trap. Read the explanation.',
+    '[calm] Not quite. This one catches most people.',
+    '[thoughtful] Hmm. Read what really happens there.',
+    '[calm] That isn\'t it. The reason underneath is the useful part.',
+    '[thoughtful] No, but it\'s a fair guess. Read on.',
+    '[calm] Wrong one. Worth understanding why.',
+  ],
   report_ready: ["[excited] Alright, here it is! [pause] Let's see how you did."],
 };
 
@@ -375,6 +455,10 @@ export const MOMENT_CLIP = {
   phase_intro: 'presenting',
   node_placed: 'idle',
   node_wrong: 'thinking',
+  probe_correct: 'correct',
+  probe_wrong: 'shake-no',
+  stress_correct: 'correct',
+  stress_wrong: 'shake-no',
   verify_pass: 'correct',
   verify_params: 'nod-yes',
   verify_fail: 'shake-no',

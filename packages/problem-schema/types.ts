@@ -256,6 +256,22 @@ export const problemSchema = z
 
     statement: z.string().min(1),
     /**
+     * The two-line version, for every surface a learner reads BEFORE committing:
+     * the Understand hero and the Home card.
+     *
+     * `statement` is the full brief and stays that way — it is what the problem
+     * panel, the sticky note and Ask-AI's context all read, so it has to carry
+     * every detail. But a wall of text is the wrong thing to open a screen with.
+     * Hence a separate, hard-capped field rather than a truncation: the author
+     * decides what survives the cut, not a CSS ellipsis.
+     *
+     * The cap is set by the NARROWER of the two surfaces. The Understand hero is
+     * 17px in a 640px column and fits ~180 characters in two lines; the Home card
+     * is 13.5px in a ~440px column and fits ~120. Cards clamp to two lines, so
+     * anything past that gets cut mid-word — measured, after exactly that happened.
+     */
+    brief: z.string().min(1).max(125, 'brief must fit two lines on a Home card — keep it under 125 characters').optional(),
+    /**
      * How hard this challenge is, as the author intends it to be read.
      *
      * Separate from `problemComplexity()`, which counts graded decisions and orders
@@ -269,6 +285,33 @@ export const problemSchema = z
     difficulty: z.enum(['easy', 'moderate', 'difficult']).optional(),
     /** A short note on why it earns that label, shown under the badge. */
     difficultyNote: z.string().optional(),
+    /**
+     * Roughly how long a first attempt takes, in whole minutes, for the "Moderate ·
+     * 25 min" line on the Home card.
+     *
+     * Authored, like `difficulty`, and for the same reason: it is a promise made to
+     * someone deciding whether to start now, so it must not move when the rubric
+     * does. The shipped values were sized from each problem's real decision count
+     * (`enumerateItems`) and then rounded to something a human would say.
+     */
+    estimatedMinutes: z.number().int().positive().optional(),
+    /**
+     * The card's cover art.
+     *
+     * `prompt` is authored NOW and `src` is filled in LATER — the images are to be
+     * generated from these prompts, so the field carries the intent even while
+     * there is nothing to show. A null `src` is a normal, permanent-until-generated
+     * state, and the card draws its own placeholder for it rather than leaving a
+     * hole. Keeping the prompt in the problem data means the art can be regenerated
+     * from the same description that produced it.
+     */
+    coverImage: z
+      .object({
+        prompt: z.string().min(1),
+        src: z.string().min(1).nullable().default(null),
+        alt: z.string().min(1).optional(),
+      })
+      .optional(),
     dissection: z.array(dissectionQuestionSchema).min(1),
     nodePalette: z.array(paletteNodeSchema).min(2),
     referenceGraph: referenceGraphSchema,

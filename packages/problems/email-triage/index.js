@@ -4,6 +4,21 @@ export const emailTriage = {
   statement:
     "Your inbox is full of mixed feedback. Build a flow that watches for new emails, uses AI to classify each one (Bug Report / Feature Request / Complaint), and routes urgent complaints differently from everything else — each path sends the right reply.",
   tagline: 'Classify incoming support emails with AI and route each to the right reply.',
+  // Two lines, for the Understand hero and the Home card. The full brief above is
+  // what the problem panel and Ask-AI read.
+  brief:
+    'A support inbox gets bug reports, feature requests and angry complaints. Sort each one and send the right reply.',
+  // Sized from this problem's real decision count (30: 5 understand, 6 placements,
+  // 17 config, 2 stress), then rounded to something a human would say.
+  difficulty: 'moderate',
+  difficultyNote: 'One router, three branches, and every node needs configuring.',
+  estimatedMinutes: 25,
+  coverImage: {
+    prompt:
+      'A single retro pixel-art desktop computer stands on the ground with an envelope glowing on its screen. Above it float three separate cube-shaped sorting bins, and a stream of falling binary connects the computer up to them, one envelope shape riding the stream.',
+    src: '/covers/email-triage.png',
+    alt: 'A retro computer streaming an email up into three sorting bins',
+  },
 
 
   // Front-of-flow: Iris interrogates the learner to dissect the problem. Each
@@ -180,15 +195,17 @@ export const emailTriage = {
   ],
 
   // Read-only summary of the built agent, shown atop the Stress Testing stage.
+  // Labels describe the JOB, never the node — this sketch is shown before the
+  // dissection quiz asks which node does each job. `validateProblem` enforces it.
   flowSummary: {
     steps: [
-      { type: 'trigger', label: 'New Email' },
-      { type: 'classify', label: 'Classify with AI' },
-      { type: 'parse', label: 'Parse Result' },
-      { type: 'switch', label: 'Switch' },
-      { type: 'action', label: 'Send Reply' },
+      { type: 'trigger', label: 'email arrives' },
+      { type: 'classify', label: 'read and label' },
+      { type: 'parse', label: 'pull the label' },
+      { type: 'switch', label: 'split by label' },
+      { type: 'action', label: 'send the reply' },
     ],
-    caption: 'Gemini Chat Model powers Classify · Switch fans out to 3 replies (Bug Report · Feature Request · Urgent Complaint).',
+    caption: 'Three categories, three replies. One AI step decides which, and the split sends each down its own path.',
   },
 
   // Canonical flow order. Used to detect sequence mistakes: from a given source
@@ -685,14 +702,35 @@ export const emailTriage = {
     ],
 
     // ---- reasoning, per node setup -----------------------------------------
+    // FIVE variants each, and they rotate (see `spokenCount` in voice.js). These are
+    // the lines a learner hears most: one authored line per node meant that failing
+    // the same node three times played one identical recording three times, which is
+    // what made Iris sound like a machine at exactly the moment she is meant to help.
+    //
+    // Kept problem-specific rather than falling back to the generic ten, because
+    // naming the field that is actually wrong on THIS node is worth far more than
+    // variety for its own sake. Each one still points at where to look, never at what
+    // to put there.
     'verify_fail:classify': [
       "[calm] Ah, not yet. Check what you pointed it at, because it only reads what you hand it.",
+      "[calm] Hmm, not right. It can only work with the text you feed it. Look there.",
+      "[thoughtful] Not yet. What did you give it to read?",
+      "[calm] Close. Check the field holding what it's meant to classify.",
+      "[thoughtful] Hmm. Have another look at what's going into it.",
     ],
     'verify_fail:switch': [
       "[calm] Hmm, not right yet. Look at what each branch is testing, and what the AI actually gave you.",
+      "[calm] Not yet. Check the value each rule is matching on.",
+      "[thoughtful] Hmm. Do your rules match what the step before produces?",
+      "[calm] Close. Look again at what each branch is comparing.",
+      "[thoughtful] Not quite. Check the field your rules are reading.",
     ],
     'verify_fail:chat-gemini': [
       "[thoughtful] Hmm. [pause] Not yet. Think about whether the same email should always get the same answer.",
+      "[calm] Not right yet. Should this give the same answer twice for the same email?",
+      "[thoughtful] Hmm. That setting decides how much it improvises. Have a think.",
+      "[calm] Not yet. Triage has to be repeatable. What does that mean here?",
+      "[thoughtful] Have another look. Consistency is the whole point of this one.",
     ],
     'verify_pass:chat-gemini': [
       "[warm] That's done. That setting is the difference between triage you can trust and a coin toss.",
@@ -770,12 +808,44 @@ export const emailTriage = {
     // Deliberately clipped: short sentences slow the delivery down and make it sound
     // careful rather than impatient. Each one points at WHICH field to look at
     // without saying what to put in it.
-    'verify_fail:trigger': ["[thoughtful] Hmm. [pause] Not quite. Check which inbox it's watching, and which part it reads."],
-    'verify_fail:parse': ["[calm] Ah, not yet. Look at what it's reading from, and the names you asked it for."],
-    'verify_fail:action': ["[calm] Ah, not right yet. Check who it's replying to, and where the words come from."],
+    'verify_fail:trigger': [
+      "[thoughtful] Hmm. [pause] Not quite. Check which inbox it's watching, and which part it reads.",
+      "[calm] Not yet. Which mailbox is it meant to be watching?",
+      "[thoughtful] Hmm. Have another look at what part of the email it takes.",
+      "[calm] Close. Check the inbox and the field underneath it.",
+      "[thoughtful] Not right yet. Where is it listening, and for what?",
+    ],
+    'verify_fail:parse': [
+      "[calm] Ah, not yet. Look at what it's reading from, and the names you asked it for.",
+      "[calm] Not right. Check the field names you typed against what came out of the AI.",
+      "[thoughtful] Hmm. Is it reading from the right place?",
+      "[calm] Close. The names have to match what the step before produced.",
+      "[thoughtful] Not yet. Have another look at what you asked it to pull out.",
+    ],
+    'verify_fail:action': [
+      "[calm] Ah, not right yet. Check who it's replying to, and where the words come from.",
+      "[calm] Not yet. Who is this reply actually going to?",
+      "[thoughtful] Hmm. Check the address, and then the body underneath.",
+      "[calm] Close. Look at where the message text is coming from.",
+      "[thoughtful] Not quite. Check the recipient on this one.",
+    ],
 
-    // The wrong node, on the canvas. Never names the right one.
-    node_wrong: ["[thoughtful] Hmm. [pause] That one won't do this job here. Let me ask you something."],
+    // The wrong node, on the canvas. Never names the right one, and never says what
+    // the wrong one does either — the probe that opens next is what asks that.
+    // Ten variants: a learner can reach for the wrong node many times in one sitting,
+    // and this line greeted every one of them identically.
+    node_wrong: [
+      "[thoughtful] Hmm. [pause] That one won't do this job here. Let me ask you something.",
+      "[thoughtful] Ah, not that one. There's something I'd like you to think about.",
+      "[calm] Not quite. Before you try again, answer me this.",
+      "[thoughtful] Hold on. That can't give this step what it needs.",
+      "[calm] That's not the one. Let's work out why together.",
+      "[thoughtful] Hmm. Wrong tool for this job. One question first.",
+      "[calm] Nearly, but no. Let me check something with you.",
+      "[thoughtful] Careful. That node does something else entirely.",
+      "[calm] That one can't do it. Let's find out what you're picturing.",
+      "[thoughtful] Hmm, no. Here's the question to ask yourself.",
+    ],
 
     // ---- the run ------------------------------------------------------------
     // Says what a run IS, because nothing on screen does: four real emails, sent

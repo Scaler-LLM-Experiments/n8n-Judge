@@ -35,10 +35,19 @@ const STEP_ICON = { email: EnvelopeSimpleOpen, trigger: EnvelopeSimpleOpen, clas
 // The misconception underneath is always the same one: thinking a node can
 // reach for data from anywhere in the flow, rather than only what the node
 // immediately before it hands over. Both wrong options record `flow-sequence`.
-function sequenceProbe(meta) {
-  const source = meta.sourceLabel || 'the previous node';
-  return {
-    prompt: `Hold on — this can’t go straight after ${source}. What does a node actually receive when the flow reaches it?`,
+// The probe for a SEQUENCE mistake — a node that could be right somewhere but not
+// here. Unlike the authored `nodeProbes`, which are keyed by node type and so differ
+// every time, this one is generated, and for a long time it was a single hardcoded
+// question: put three nodes in the wrong order over a sitting and you were asked the
+// identical thing, word for word, three times.
+//
+// Four framings of the same rule, rotated per mistake. All four teach "a node only
+// gets what the one before it hands over", because that IS the rule being broken; what
+// changes is the angle it is approached from, which is what keeps a learner reading
+// the options instead of recognising the shape and clicking.
+const SEQUENCE_PROBES = [
+  (source) => ({
+    prompt: `Hold on. This can’t go straight after ${source}. What does a node actually receive when the flow reaches it?`,
     options: [
       {
         text: 'Only what the node immediately before it passes on',
@@ -49,7 +58,7 @@ function sequenceProbe(meta) {
         text: 'Anything produced anywhere earlier in the flow',
         correct: false,
         misconception: 'flow-sequence',
-        response: `No — each node is handed the output of the one directly before it. Work out what ${source} produces, and what this node needs before it can start.`,
+        response: `No. Each node is handed the output of the one directly before it. Work out what ${source} produces, and what this node needs before it can start.`,
       },
       {
         text: 'The original input, unchanged, at every step',
@@ -58,10 +67,84 @@ function sequenceProbe(meta) {
         response: `Each step transforms what it receives and passes the new version on, so what leaves ${source} isn’t what arrived. What shape is the data in by the time it gets here?`,
       },
     ],
-  };
+  }),
+  (source) => ({
+    prompt: `This one can’t sit here yet. What has to be true before a node is able to run?`,
+    options: [
+      {
+        text: 'Everything it needs already exists in what it was handed',
+        correct: true,
+        response: `Exactly. This node needs something ${source} hasn’t produced, so there’s nothing for it to work with. Something has to make that data first.`,
+      },
+      {
+        text: 'It only needs to be connected to something',
+        correct: false,
+        misconception: 'flow-sequence',
+        response: `A wire isn’t enough. A node runs on the data it receives, and right now ${source} isn’t handing over what this one needs.`,
+      },
+      {
+        text: 'It can fetch whatever it is missing itself',
+        correct: false,
+        misconception: 'flow-sequence',
+        response: `Nodes don’t reach backwards for data. Each one works with what arrives, so what ${source} passes on has to be enough.`,
+      },
+    ],
+  }),
+  (source) => ({
+    prompt: `Say you ran the flow exactly as it is now. What would happen when it got to this node?`,
+    options: [
+      {
+        text: 'It would be handed data it can’t do its job with',
+        correct: true,
+        response: `That’s it. ${source} passes on something this node can’t use, so putting it here breaks the run rather than doing nothing.`,
+      },
+      {
+        text: 'It would wait until the data it needs shows up',
+        correct: false,
+        misconception: 'flow-sequence',
+        response: `Nothing waits. Each node runs when the flow reaches it, with whatever ${source} handed over.`,
+      },
+      {
+        text: 'It would skip itself and let the flow carry on',
+        correct: false,
+        misconception: 'flow-sequence',
+        response: `Nodes don’t opt out. It will run, on the wrong input, which is why the order matters.`,
+      },
+    ],
+  }),
+  (source) => ({
+    prompt: `Not here. What decides where a node is allowed to sit in a flow?`,
+    options: [
+      {
+        text: 'What the node before it produces',
+        correct: true,
+        response: `Yes. The question is always what ${source} hands over, and whether this node can work with exactly that.`,
+      },
+      {
+        text: 'How the node itself is configured',
+        correct: false,
+        misconception: 'flow-sequence',
+        response: `Settings can’t conjure up missing data. However you configure this one, it still only gets what ${source} passes on.`,
+      },
+      {
+        text: 'The order you placed the nodes on the canvas in',
+        correct: false,
+        misconception: 'flow-sequence',
+        response: `Placement order doesn’t matter, the wiring does. Follow the connection from ${source} and ask what arrives here.`,
+      },
+    ],
+  }),
+];
+
+function sequenceProbe(meta, variant = 0) {
+  const source = meta.sourceLabel || 'the previous node';
+  const build = SEQUENCE_PROBES[((variant % SEQUENCE_PROBES.length) + SEQUENCE_PROBES.length) % SEQUENCE_PROBES.length];
+  return build(source);
 }
 
-export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessionId }) {
+// `initialGraph` seeds the canvas: the finished reference flow for the #run-story
+// dev route, or a resumed learner's own half-built graph replayed from the trace.
+export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessionId, initialGraph }) {
   const { trace } = useTraceContext();
   const voice = useVoiceActions();
   const phases = problem.buildPhases;
@@ -107,6 +190,9 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
   const mascotRef = useRef(null);
   const [mascotClip, setMascotClip] = useState('idle');
   const [mascotVisible, setMascotVisible] = useState(false);
+  // How many generated sequence probes this learner has already been shown, so the
+  // next one asks a different question. A ref, not state: nothing re-renders on it.
+  const sequenceProbeSeen = useRef(0);
 
   const box = () => canvasRef.current?.getBoundingClientRect() || { width: 1200, height: 700 };
   const moveTo = useCallback((x, y, size, duration = 0.7) => {
@@ -115,7 +201,9 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
   const parkCorner = useCallback(() => {
     const b = box();
     setMascotClip('idle'); setMascotVisible(true);
-    moveTo(24, b.height - 96, 68);
+    // x=96, not 24: React Flow's zoom controls own the bottom-left corner, and at
+    // 24 Iris sat directly under the + / − buttons — which draw on top of her.
+    moveTo(96, b.height - 96, 68);
   }, [moveTo]);
   const rectOf = (nodeId) => {
     const c = canvasRef.current;
@@ -227,7 +315,20 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
         trace('graph_mutation', {
           op,
           ...(added ? { nodeType: added.type } : {}),
-          graph: { nodes: next.nodes.map((n) => ({ id: n.id, type: n.type })), edges: next.edges },
+          // `position` and `data` are carried, not stripped, because this payload is
+          // what a resumed learner's canvas is rebuilt from. Without a position
+          // React Flow throws while seeding ("reading 'x'"), and without
+          // `configured` every node they had already set up comes back as unset.
+          // The extra bytes are a couple of dozen numbers per mutation.
+          graph: {
+            nodes: next.nodes.map((n) => ({
+              id: n.id,
+              type: n.type,
+              position: n.position,
+              data: { configured: !!n.data?.configured, wrong: !!n.data?.wrong },
+            })),
+            edges: next.edges,
+          },
         });
       }
     }
@@ -267,9 +368,15 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
     recordPlacement(meta?.expectedTypes?.[0], type);
     trace('probe_shown', { nodeType: type });
     const authored = problem.nodeProbes[type];
-    voice.play('node_wrong');
-    setProbe({ type, nodeId, data: authored || sequenceProbe(meta || {}), anchor: null });
-  }, [problem, recordPlacement]);
+    // Keyed by the wrong node's type so the line rotates per node rather than being
+    // one sentence for every mistake in the session.
+    voice.play('node_wrong', { key: type, scope: `wrong:${type}` });
+    // Only the generated sequence probe needs a rotation counter: the authored ones
+    // differ from each other already, because they are keyed by node type.
+    const data = authored || sequenceProbe(meta || {}, sequenceProbeSeen.current);
+    if (!authored) sequenceProbeSeen.current += 1;
+    setProbe({ type, nodeId, data, anchor: null });
+  }, [problem, recordPlacement, voice]);
 
   const handlePlaceCorrect = useCallback((type) => {
     recordPlacement(type, type);
@@ -320,6 +427,11 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
       // isn't in `problem.nodeProbes` for it to grade).
       setProbeWhy(server ? server.why : opt.response);
       setProbeResolving(false);
+      // Spoken once the verdict is settled, and only when it IS settled: a check
+      // that could not complete returns `correct: null`, and reacting to that would
+      // be Iris telling the learner they were wrong when nobody graded them.
+      if (correct === true) voice.play('probe_correct', { scope: `probe:${type}` });
+      else if (correct === false) voice.play('probe_wrong', { scope: `probe:${type}` });
     });
   };
   const closeProbe = () => {
@@ -372,9 +484,12 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
       setTimeout(parkCorner, 60);
       advancing.current = false;
     } else {
+      // The last phase's button says "Run it", so it runs. It used to drop the
+      // learner onto a bottom bar carrying a SECOND "Run" button: they pressed
+      // the thing labelled "Run it" and nothing ran.
       setClearInfo(null);
-      setStage('complete');
       advancing.current = false;
+      startRun();
     }
   };
 
@@ -382,7 +497,15 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
     const g = graphRef.current;
     const { cases, success } = simulateAll(g, problem);
     const val = validateGraph(g, problem);
-    setMascotVisible(false); setIrisSay(null);
+    // Iris STAYS on screen through the run. She narrates it — one `run_case` line
+    // per email as it enters the flow, then the verdict — and a voice with no
+    // mascot anywhere on the page reads as a bug. She used to be hidden here,
+    // which was easy to miss while the run was gated behind a "Run" bar; now that
+    // finishing the build runs straight away, the whole animation played with the
+    // corner empty. Parked, not traveling: the sticky note is the thing that
+    // follows the nodes.
+    setIrisSay(null);
+    parkCorner();
     editorRef.current?.fitAll?.();
     voice.play('run_start', { scope: 'run' });
     // The run animation is a couple of seconds of lead time, and only two things
@@ -401,6 +524,21 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
   const stopRun = () => {
     runTimers.current.forEach(clearTimeout); runTimers.current = [];
     setRun(null); setRunFinished(false); setStage('complete');
+  };
+
+  // Skip the ANIMATION, not the result. The run is ~2s per node so a learner who
+  // already knows what they built should not have to sit through it, but they
+  // still have to be told what happened: this lands on exactly the finished state
+  // the timeline was going to reach (celebration, or the fix-the-wiring bar) and
+  // speaks the same verdict, because the timers that would have spoken it are
+  // being cancelled here.
+  const skipRun = () => {
+    if (!run || runFinished) return;
+    runTimers.current.forEach(clearTimeout); runTimers.current = [];
+    const lastCi = Math.max(0, run.cases.length - 1);
+    setRunPos({ ci: lastCi, si: Math.max(0, (run.cases[lastCi]?.steps?.length ?? 1) - 1) });
+    setRunFinished(true);
+    voice.play(run.success ? 'run_pass' : 'run_fail', { scope: 'run' });
   };
 
   // drive the run: step through every case's steps on a timeline
@@ -432,7 +570,12 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
       setRunFinished(true);
       // Spoken only once the run has actually finished animating, so the verdict
       // does not arrive while cases are still visibly running.
-      voice.play(success ? 'run_pass' : 'run_fail', { scope: 'run' });
+      // `run.success`, NOT `success`: the bare identifier does not exist in this
+      // scope (it is a local inside `startRun`), so this line threw inside the
+      // timeout and the verdict was never spoken at all. `setRunFinished` above
+      // had already run, so the screen looked correct and only the audio was
+      // missing — which is why it read as "run_pass is never wired up".
+      voice.play(run.success ? 'run_pass' : 'run_fail', { scope: 'run' });
     }, t + 1800));
     return () => { runTimers.current.forEach(clearTimeout); runTimers.current = []; };
   }, [run]);
@@ -495,7 +638,7 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
           pickable={phase?.pickable || []}
           flow={problem.flow}
           branches={problem.branches}
-          initialGraph={devAutoRun ? problem.referenceGraph : undefined}
+          initialGraph={devAutoRun ? problem.referenceGraph : initialGraph}
           runActiveId={activeNodeId}
           onWrongPick={handleWrongPick}
           onPlaceCorrect={handlePlaceCorrect}
@@ -541,11 +684,14 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
         {/* centre-stage clear moment (with confetti) */}
         {stage === 'clearing' && clearInfo ? <StageClearOverlay info={clearInfo} onContinue={continueFromClear} /> : null}
 
-        {/* run bar */}
+        {/* Run-again bar. Only reachable by stopping a run or coming back from a
+            failed one — finishing the build now runs straight away, so this is no
+            longer a gate between "built" and "running". Copy stays problem-neutral:
+            "sample emails" was wrong for meeting-notes and order-desk. */}
         {stage === 'complete' ? (
           <div className="fade-in" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 35, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, padding: '14px 16px', background: 'var(--surface-0)', borderTop: '1px solid var(--border-strong)' }}>
-            <span style={{ fontSize: 13.5, color: 'var(--fg-2)' }}>Your agent is built — run it on the sample emails.</span>
-            <Button variant="primary" icon={<Play size={15} weight="fill" />} onClick={startRun}>Run</Button>
+            <span style={{ fontSize: 13.5, color: 'var(--fg-2)' }}>Your agent is on the canvas. Run it on the sample cases whenever you’re ready.</span>
+            <Button variant="primary" icon={<Play size={15} weight="fill" />} onClick={startRun}>Run again</Button>
           </div>
         ) : null}
 
@@ -556,6 +702,13 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
             {activeStep && !runFinished ? (
               <div ref={noteRef} className="fade-in" style={{ position: 'absolute', left: 40, top: 300, width: 224, zIndex: 44, pointerEvents: 'none' }}>
                 <RunNote step={activeStep} caseInfo={run.cases[runPos.ci].case} side={noteSide} />
+              </div>
+            ) : null}
+            {/* Secondary, bottom centre, and deliberately not a bar: the run has the
+                canvas and the stepper already. Skips the waiting, never the verdict. */}
+            {!runFinished ? (
+              <div className="fade-in" style={{ position: 'absolute', left: '50%', bottom: 22, transform: 'translateX(-50%)', zIndex: 46 }}>
+                <Button variant="outline" size="sm" iconRight={<ArrowRight size={14} />} onClick={skipRun}>Skip the run</Button>
               </div>
             ) : null}
             {runFinished && run.success ? <RunCelebration onContinue={() => { trace('run_result', { graph: { nodes: (graphRef.current?.nodes ?? []).map((n) => ({ id: n.id, type: n.type })), edges: graphRef.current?.edges ?? [] }, validation: { allPassed: !!run.val?.allPassed, ...run.val } }); onComplete({ validation: run.val, graph: graphRef.current }); }} /> : null}
@@ -677,7 +830,14 @@ function FloatingProbe({ probe, onAnswer, onClose, resolvedWhy, resolving }) {
   const chosen = picked !== null ? options[picked] : null;
 
   return (
-    <div ref={ref} style={{ position: 'absolute', left: pos.x, top: pos.y, width: 380, maxWidth: 'calc(100% - 24px)', zIndex: 56, background: 'var(--surface-0)', border: '1px solid var(--border-strong)', boxShadow: '0 24px 60px rgba(1,24,69,0.28), 0 4px 12px rgba(1,24,69,0.12)' }}>
+    // Short, with the question scrolling inside it, so "Got it" is always on screen.
+    // The panel floats over the canvas at an anchor that can already be well down the
+    // page, so its own height is the thing that has to give: the prompt, three options
+    // and the explanation together are taller than a laptop window, and the button
+    // used to sit below all of it — the learner had to scroll a floating panel to find
+    // the only way to close it. 440px keeps the whole widget inside a short viewport
+    // even when anchored low, and the body scrolls under a pinned footer.
+    <div ref={ref} style={{ position: 'absolute', left: pos.x, top: pos.y, width: 380, maxWidth: 'calc(100% - 24px)', maxHeight: 'min(58vh, 440px)', display: 'flex', flexDirection: 'column', zIndex: 56, background: 'var(--surface-0)', border: '1px solid var(--border-strong)', boxShadow: '0 24px 60px rgba(1,24,69,0.28), 0 4px 12px rgba(1,24,69,0.12)' }}>
       <div onPointerDown={onGripDown} onPointerMove={onGripMove} onPointerUp={onGripUp} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px', borderBottom: '1px solid var(--border-subtle)', cursor: 'grab', touchAction: 'none', background: 'var(--surface-1)' }}>
         <DotsSixVertical size={16} weight="bold" color="var(--fg-3)" />
         <span style={{ fontSize: 10.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--fg-3)', marginLeft: 'auto' }}>{type.replace(/-/g, ' ')}</span>
@@ -686,7 +846,7 @@ function FloatingProbe({ probe, onAnswer, onClose, resolvedWhy, resolving }) {
       <span style={{ position: 'absolute', left: -9, top: 46, width: 0, height: 0, borderTop: '8px solid transparent', borderBottom: '8px solid transparent', borderRight: '9px solid var(--border-strong)' }} />
       <span style={{ position: 'absolute', left: -8, top: 46, width: 0, height: 0, borderTop: '8px solid transparent', borderBottom: '8px solid transparent', borderRight: '9px solid var(--surface-0)' }} />
 
-      <div style={{ padding: '14px 16px 16px' }}>
+      <div style={{ padding: '14px 16px 16px', overflowY: 'auto', flex: 1, minHeight: 0 }}>
         <div style={{ marginBottom: 12 }}>
           <span style={{ fontSize: 10.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--brand-primary)', background: 'var(--brand-blue-50, rgba(0,85,255,0.08))', padding: '4px 10px' }}>Iris asks</span>
         </div>
@@ -732,9 +892,11 @@ function FloatingProbe({ probe, onAnswer, onClose, resolvedWhy, resolving }) {
           </div>
         ) : null}
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 14 }}>
-          <Button variant="primary" size="sm" disabled={picked === null} onClick={onClose}>Got it</Button>
-        </div>
+      </div>
+
+      {/* Outside the scrolling area, full width: the one action this panel has. */}
+      <div style={{ flex: 'none', padding: '12px 16px', borderTop: '1px solid var(--border-subtle)', background: 'var(--surface-0)' }}>
+        <Button variant="primary" disabled={picked === null} onClick={onClose} style={{ width: '100%', justifyContent: 'center' }}>Got it</Button>
       </div>
     </div>
   );

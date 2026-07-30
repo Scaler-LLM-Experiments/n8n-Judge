@@ -303,9 +303,885 @@
       "text": "[calm] Looking outward. Ask what the carrier actually knows this parcel by.",
       "file": "order-desk/node-placed--fb0e7671.mp3"
     },
-    "node-wrong--v0": {
+    "node-wrong--action--v0": {
       "text": "[thoughtful] Hmm. That one can't do the job here. Let me ask you something.",
       "file": "shared/node-wrong--19173137.mp3"
+    },
+    "node-wrong--action--v1": {
+      "text": "[thoughtful] Ah, not that one. There's something I want you to think about.",
+      "file": "shared/node-wrong--2c4ee2b6.mp3"
+    },
+    "node-wrong--action--v2": {
+      "text": "[thoughtful] Hold on. That node can't give you what this step needs.",
+      "file": "shared/node-wrong--e9d38272.mp3"
+    },
+    "node-wrong--action--v3": {
+      "text": "[calm] Not quite. Before you try again, answer me this.",
+      "file": "shared/node-wrong--75233647.mp3"
+    },
+    "node-wrong--action--v4": {
+      "text": "[thoughtful] Hmm, that one won't work here. Here's the question to ask yourself.",
+      "file": "shared/node-wrong--1320b6dc.mp3"
+    },
+    "node-wrong--action--v5": {
+      "text": "[calm] That's not the one. Let's work out why together.",
+      "file": "shared/node-wrong--d3d6d3bb.mp3"
+    },
+    "node-wrong--action--v6": {
+      "text": "[thoughtful] Careful. That node does something else entirely. Have a think.",
+      "file": "shared/node-wrong--f70148ce.mp3"
+    },
+    "node-wrong--action--v7": {
+      "text": "[calm] Nearly, but no. One question first.",
+      "file": "shared/node-wrong--142e9c5b.mp3"
+    },
+    "node-wrong--action--v8": {
+      "text": "[thoughtful] Hmm. Wrong tool for this job. Let me check something with you.",
+      "file": "shared/node-wrong--a612e8cd.mp3"
+    },
+    "node-wrong--action--v9": {
+      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
+      "file": "shared/node-wrong--b7caf5c0.mp3"
+    },
+    "node-wrong--calendar-event--v0": {
+      "text": "[thoughtful] Hmm. That one can't do the job here. Let me ask you something.",
+      "file": "shared/node-wrong--19173137.mp3"
+    },
+    "node-wrong--calendar-event--v1": {
+      "text": "[thoughtful] Ah, not that one. There's something I want you to think about.",
+      "file": "shared/node-wrong--2c4ee2b6.mp3"
+    },
+    "node-wrong--calendar-event--v2": {
+      "text": "[thoughtful] Hold on. That node can't give you what this step needs.",
+      "file": "shared/node-wrong--e9d38272.mp3"
+    },
+    "node-wrong--calendar-event--v3": {
+      "text": "[calm] Not quite. Before you try again, answer me this.",
+      "file": "shared/node-wrong--75233647.mp3"
+    },
+    "node-wrong--calendar-event--v4": {
+      "text": "[thoughtful] Hmm, that one won't work here. Here's the question to ask yourself.",
+      "file": "shared/node-wrong--1320b6dc.mp3"
+    },
+    "node-wrong--calendar-event--v5": {
+      "text": "[calm] That's not the one. Let's work out why together.",
+      "file": "shared/node-wrong--d3d6d3bb.mp3"
+    },
+    "node-wrong--calendar-event--v6": {
+      "text": "[thoughtful] Careful. That node does something else entirely. Have a think.",
+      "file": "shared/node-wrong--f70148ce.mp3"
+    },
+    "node-wrong--calendar-event--v7": {
+      "text": "[calm] Nearly, but no. One question first.",
+      "file": "shared/node-wrong--142e9c5b.mp3"
+    },
+    "node-wrong--calendar-event--v8": {
+      "text": "[thoughtful] Hmm. Wrong tool for this job. Let me check something with you.",
+      "file": "shared/node-wrong--a612e8cd.mp3"
+    },
+    "node-wrong--calendar-event--v9": {
+      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
+      "file": "shared/node-wrong--b7caf5c0.mp3"
+    },
+    "node-wrong--chat-trigger--v0": {
+      "text": "[thoughtful] Hmm. That one can't do the job here. Let me ask you something.",
+      "file": "shared/node-wrong--19173137.mp3"
+    },
+    "node-wrong--chat-trigger--v1": {
+      "text": "[thoughtful] Ah, not that one. There's something I want you to think about.",
+      "file": "shared/node-wrong--2c4ee2b6.mp3"
+    },
+    "node-wrong--chat-trigger--v2": {
+      "text": "[thoughtful] Hold on. That node can't give you what this step needs.",
+      "file": "shared/node-wrong--e9d38272.mp3"
+    },
+    "node-wrong--chat-trigger--v3": {
+      "text": "[calm] Not quite. Before you try again, answer me this.",
+      "file": "shared/node-wrong--75233647.mp3"
+    },
+    "node-wrong--chat-trigger--v4": {
+      "text": "[thoughtful] Hmm, that one won't work here. Here's the question to ask yourself.",
+      "file": "shared/node-wrong--1320b6dc.mp3"
+    },
+    "node-wrong--chat-trigger--v5": {
+      "text": "[calm] That's not the one. Let's work out why together.",
+      "file": "shared/node-wrong--d3d6d3bb.mp3"
+    },
+    "node-wrong--chat-trigger--v6": {
+      "text": "[thoughtful] Careful. That node does something else entirely. Have a think.",
+      "file": "shared/node-wrong--f70148ce.mp3"
+    },
+    "node-wrong--chat-trigger--v7": {
+      "text": "[calm] Nearly, but no. One question first.",
+      "file": "shared/node-wrong--142e9c5b.mp3"
+    },
+    "node-wrong--chat-trigger--v8": {
+      "text": "[thoughtful] Hmm. Wrong tool for this job. Let me check something with you.",
+      "file": "shared/node-wrong--a612e8cd.mp3"
+    },
+    "node-wrong--chat-trigger--v9": {
+      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
+      "file": "shared/node-wrong--b7caf5c0.mp3"
+    },
+    "node-wrong--classify--v0": {
+      "text": "[thoughtful] Hmm. That one can't do the job here. Let me ask you something.",
+      "file": "shared/node-wrong--19173137.mp3"
+    },
+    "node-wrong--classify--v1": {
+      "text": "[thoughtful] Ah, not that one. There's something I want you to think about.",
+      "file": "shared/node-wrong--2c4ee2b6.mp3"
+    },
+    "node-wrong--classify--v2": {
+      "text": "[thoughtful] Hold on. That node can't give you what this step needs.",
+      "file": "shared/node-wrong--e9d38272.mp3"
+    },
+    "node-wrong--classify--v3": {
+      "text": "[calm] Not quite. Before you try again, answer me this.",
+      "file": "shared/node-wrong--75233647.mp3"
+    },
+    "node-wrong--classify--v4": {
+      "text": "[thoughtful] Hmm, that one won't work here. Here's the question to ask yourself.",
+      "file": "shared/node-wrong--1320b6dc.mp3"
+    },
+    "node-wrong--classify--v5": {
+      "text": "[calm] That's not the one. Let's work out why together.",
+      "file": "shared/node-wrong--d3d6d3bb.mp3"
+    },
+    "node-wrong--classify--v6": {
+      "text": "[thoughtful] Careful. That node does something else entirely. Have a think.",
+      "file": "shared/node-wrong--f70148ce.mp3"
+    },
+    "node-wrong--classify--v7": {
+      "text": "[calm] Nearly, but no. One question first.",
+      "file": "shared/node-wrong--142e9c5b.mp3"
+    },
+    "node-wrong--classify--v8": {
+      "text": "[thoughtful] Hmm. Wrong tool for this job. Let me check something with you.",
+      "file": "shared/node-wrong--a612e8cd.mp3"
+    },
+    "node-wrong--classify--v9": {
+      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
+      "file": "shared/node-wrong--b7caf5c0.mp3"
+    },
+    "node-wrong--code--v0": {
+      "text": "[thoughtful] Hmm. That one can't do the job here. Let me ask you something.",
+      "file": "shared/node-wrong--19173137.mp3"
+    },
+    "node-wrong--code--v1": {
+      "text": "[thoughtful] Ah, not that one. There's something I want you to think about.",
+      "file": "shared/node-wrong--2c4ee2b6.mp3"
+    },
+    "node-wrong--code--v2": {
+      "text": "[thoughtful] Hold on. That node can't give you what this step needs.",
+      "file": "shared/node-wrong--e9d38272.mp3"
+    },
+    "node-wrong--code--v3": {
+      "text": "[calm] Not quite. Before you try again, answer me this.",
+      "file": "shared/node-wrong--75233647.mp3"
+    },
+    "node-wrong--code--v4": {
+      "text": "[thoughtful] Hmm, that one won't work here. Here's the question to ask yourself.",
+      "file": "shared/node-wrong--1320b6dc.mp3"
+    },
+    "node-wrong--code--v5": {
+      "text": "[calm] That's not the one. Let's work out why together.",
+      "file": "shared/node-wrong--d3d6d3bb.mp3"
+    },
+    "node-wrong--code--v6": {
+      "text": "[thoughtful] Careful. That node does something else entirely. Have a think.",
+      "file": "shared/node-wrong--f70148ce.mp3"
+    },
+    "node-wrong--code--v7": {
+      "text": "[calm] Nearly, but no. One question first.",
+      "file": "shared/node-wrong--142e9c5b.mp3"
+    },
+    "node-wrong--code--v8": {
+      "text": "[thoughtful] Hmm. Wrong tool for this job. Let me check something with you.",
+      "file": "shared/node-wrong--a612e8cd.mp3"
+    },
+    "node-wrong--code--v9": {
+      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
+      "file": "shared/node-wrong--b7caf5c0.mp3"
+    },
+    "node-wrong--filter--v0": {
+      "text": "[thoughtful] Hmm. That one can't do the job here. Let me ask you something.",
+      "file": "shared/node-wrong--19173137.mp3"
+    },
+    "node-wrong--filter--v1": {
+      "text": "[thoughtful] Ah, not that one. There's something I want you to think about.",
+      "file": "shared/node-wrong--2c4ee2b6.mp3"
+    },
+    "node-wrong--filter--v2": {
+      "text": "[thoughtful] Hold on. That node can't give you what this step needs.",
+      "file": "shared/node-wrong--e9d38272.mp3"
+    },
+    "node-wrong--filter--v3": {
+      "text": "[calm] Not quite. Before you try again, answer me this.",
+      "file": "shared/node-wrong--75233647.mp3"
+    },
+    "node-wrong--filter--v4": {
+      "text": "[thoughtful] Hmm, that one won't work here. Here's the question to ask yourself.",
+      "file": "shared/node-wrong--1320b6dc.mp3"
+    },
+    "node-wrong--filter--v5": {
+      "text": "[calm] That's not the one. Let's work out why together.",
+      "file": "shared/node-wrong--d3d6d3bb.mp3"
+    },
+    "node-wrong--filter--v6": {
+      "text": "[thoughtful] Careful. That node does something else entirely. Have a think.",
+      "file": "shared/node-wrong--f70148ce.mp3"
+    },
+    "node-wrong--filter--v7": {
+      "text": "[calm] Nearly, but no. One question first.",
+      "file": "shared/node-wrong--142e9c5b.mp3"
+    },
+    "node-wrong--filter--v8": {
+      "text": "[thoughtful] Hmm. Wrong tool for this job. Let me check something with you.",
+      "file": "shared/node-wrong--a612e8cd.mp3"
+    },
+    "node-wrong--filter--v9": {
+      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
+      "file": "shared/node-wrong--b7caf5c0.mp3"
+    },
+    "node-wrong--google-docs--v0": {
+      "text": "[thoughtful] Hmm. That one can't do the job here. Let me ask you something.",
+      "file": "shared/node-wrong--19173137.mp3"
+    },
+    "node-wrong--google-docs--v1": {
+      "text": "[thoughtful] Ah, not that one. There's something I want you to think about.",
+      "file": "shared/node-wrong--2c4ee2b6.mp3"
+    },
+    "node-wrong--google-docs--v2": {
+      "text": "[thoughtful] Hold on. That node can't give you what this step needs.",
+      "file": "shared/node-wrong--e9d38272.mp3"
+    },
+    "node-wrong--google-docs--v3": {
+      "text": "[calm] Not quite. Before you try again, answer me this.",
+      "file": "shared/node-wrong--75233647.mp3"
+    },
+    "node-wrong--google-docs--v4": {
+      "text": "[thoughtful] Hmm, that one won't work here. Here's the question to ask yourself.",
+      "file": "shared/node-wrong--1320b6dc.mp3"
+    },
+    "node-wrong--google-docs--v5": {
+      "text": "[calm] That's not the one. Let's work out why together.",
+      "file": "shared/node-wrong--d3d6d3bb.mp3"
+    },
+    "node-wrong--google-docs--v6": {
+      "text": "[thoughtful] Careful. That node does something else entirely. Have a think.",
+      "file": "shared/node-wrong--f70148ce.mp3"
+    },
+    "node-wrong--google-docs--v7": {
+      "text": "[calm] Nearly, but no. One question first.",
+      "file": "shared/node-wrong--142e9c5b.mp3"
+    },
+    "node-wrong--google-docs--v8": {
+      "text": "[thoughtful] Hmm. Wrong tool for this job. Let me check something with you.",
+      "file": "shared/node-wrong--a612e8cd.mp3"
+    },
+    "node-wrong--google-docs--v9": {
+      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
+      "file": "shared/node-wrong--b7caf5c0.mp3"
+    },
+    "node-wrong--http-request--v0": {
+      "text": "[thoughtful] Hmm. That one can't do the job here. Let me ask you something.",
+      "file": "shared/node-wrong--19173137.mp3"
+    },
+    "node-wrong--http-request--v1": {
+      "text": "[thoughtful] Ah, not that one. There's something I want you to think about.",
+      "file": "shared/node-wrong--2c4ee2b6.mp3"
+    },
+    "node-wrong--http-request--v2": {
+      "text": "[thoughtful] Hold on. That node can't give you what this step needs.",
+      "file": "shared/node-wrong--e9d38272.mp3"
+    },
+    "node-wrong--http-request--v3": {
+      "text": "[calm] Not quite. Before you try again, answer me this.",
+      "file": "shared/node-wrong--75233647.mp3"
+    },
+    "node-wrong--http-request--v4": {
+      "text": "[thoughtful] Hmm, that one won't work here. Here's the question to ask yourself.",
+      "file": "shared/node-wrong--1320b6dc.mp3"
+    },
+    "node-wrong--http-request--v5": {
+      "text": "[calm] That's not the one. Let's work out why together.",
+      "file": "shared/node-wrong--d3d6d3bb.mp3"
+    },
+    "node-wrong--http-request--v6": {
+      "text": "[thoughtful] Careful. That node does something else entirely. Have a think.",
+      "file": "shared/node-wrong--f70148ce.mp3"
+    },
+    "node-wrong--http-request--v7": {
+      "text": "[calm] Nearly, but no. One question first.",
+      "file": "shared/node-wrong--142e9c5b.mp3"
+    },
+    "node-wrong--http-request--v8": {
+      "text": "[thoughtful] Hmm. Wrong tool for this job. Let me check something with you.",
+      "file": "shared/node-wrong--a612e8cd.mp3"
+    },
+    "node-wrong--http-request--v9": {
+      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
+      "file": "shared/node-wrong--b7caf5c0.mp3"
+    },
+    "node-wrong--if--v0": {
+      "text": "[thoughtful] Hmm. That one can't do the job here. Let me ask you something.",
+      "file": "shared/node-wrong--19173137.mp3"
+    },
+    "node-wrong--if--v1": {
+      "text": "[thoughtful] Ah, not that one. There's something I want you to think about.",
+      "file": "shared/node-wrong--2c4ee2b6.mp3"
+    },
+    "node-wrong--if--v2": {
+      "text": "[thoughtful] Hold on. That node can't give you what this step needs.",
+      "file": "shared/node-wrong--e9d38272.mp3"
+    },
+    "node-wrong--if--v3": {
+      "text": "[calm] Not quite. Before you try again, answer me this.",
+      "file": "shared/node-wrong--75233647.mp3"
+    },
+    "node-wrong--if--v4": {
+      "text": "[thoughtful] Hmm, that one won't work here. Here's the question to ask yourself.",
+      "file": "shared/node-wrong--1320b6dc.mp3"
+    },
+    "node-wrong--if--v5": {
+      "text": "[calm] That's not the one. Let's work out why together.",
+      "file": "shared/node-wrong--d3d6d3bb.mp3"
+    },
+    "node-wrong--if--v6": {
+      "text": "[thoughtful] Careful. That node does something else entirely. Have a think.",
+      "file": "shared/node-wrong--f70148ce.mp3"
+    },
+    "node-wrong--if--v7": {
+      "text": "[calm] Nearly, but no. One question first.",
+      "file": "shared/node-wrong--142e9c5b.mp3"
+    },
+    "node-wrong--if--v8": {
+      "text": "[thoughtful] Hmm. Wrong tool for this job. Let me check something with you.",
+      "file": "shared/node-wrong--a612e8cd.mp3"
+    },
+    "node-wrong--if--v9": {
+      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
+      "file": "shared/node-wrong--b7caf5c0.mp3"
+    },
+    "node-wrong--manual--v0": {
+      "text": "[thoughtful] Hmm. That one can't do the job here. Let me ask you something.",
+      "file": "shared/node-wrong--19173137.mp3"
+    },
+    "node-wrong--manual--v1": {
+      "text": "[thoughtful] Ah, not that one. There's something I want you to think about.",
+      "file": "shared/node-wrong--2c4ee2b6.mp3"
+    },
+    "node-wrong--manual--v2": {
+      "text": "[thoughtful] Hold on. That node can't give you what this step needs.",
+      "file": "shared/node-wrong--e9d38272.mp3"
+    },
+    "node-wrong--manual--v3": {
+      "text": "[calm] Not quite. Before you try again, answer me this.",
+      "file": "shared/node-wrong--75233647.mp3"
+    },
+    "node-wrong--manual--v4": {
+      "text": "[thoughtful] Hmm, that one won't work here. Here's the question to ask yourself.",
+      "file": "shared/node-wrong--1320b6dc.mp3"
+    },
+    "node-wrong--manual--v5": {
+      "text": "[calm] That's not the one. Let's work out why together.",
+      "file": "shared/node-wrong--d3d6d3bb.mp3"
+    },
+    "node-wrong--manual--v6": {
+      "text": "[thoughtful] Careful. That node does something else entirely. Have a think.",
+      "file": "shared/node-wrong--f70148ce.mp3"
+    },
+    "node-wrong--manual--v7": {
+      "text": "[calm] Nearly, but no. One question first.",
+      "file": "shared/node-wrong--142e9c5b.mp3"
+    },
+    "node-wrong--manual--v8": {
+      "text": "[thoughtful] Hmm. Wrong tool for this job. Let me check something with you.",
+      "file": "shared/node-wrong--a612e8cd.mp3"
+    },
+    "node-wrong--manual--v9": {
+      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
+      "file": "shared/node-wrong--b7caf5c0.mp3"
+    },
+    "node-wrong--merge--v0": {
+      "text": "[thoughtful] Hmm. That one can't do the job here. Let me ask you something.",
+      "file": "shared/node-wrong--19173137.mp3"
+    },
+    "node-wrong--merge--v1": {
+      "text": "[thoughtful] Ah, not that one. There's something I want you to think about.",
+      "file": "shared/node-wrong--2c4ee2b6.mp3"
+    },
+    "node-wrong--merge--v2": {
+      "text": "[thoughtful] Hold on. That node can't give you what this step needs.",
+      "file": "shared/node-wrong--e9d38272.mp3"
+    },
+    "node-wrong--merge--v3": {
+      "text": "[calm] Not quite. Before you try again, answer me this.",
+      "file": "shared/node-wrong--75233647.mp3"
+    },
+    "node-wrong--merge--v4": {
+      "text": "[thoughtful] Hmm, that one won't work here. Here's the question to ask yourself.",
+      "file": "shared/node-wrong--1320b6dc.mp3"
+    },
+    "node-wrong--merge--v5": {
+      "text": "[calm] That's not the one. Let's work out why together.",
+      "file": "shared/node-wrong--d3d6d3bb.mp3"
+    },
+    "node-wrong--merge--v6": {
+      "text": "[thoughtful] Careful. That node does something else entirely. Have a think.",
+      "file": "shared/node-wrong--f70148ce.mp3"
+    },
+    "node-wrong--merge--v7": {
+      "text": "[calm] Nearly, but no. One question first.",
+      "file": "shared/node-wrong--142e9c5b.mp3"
+    },
+    "node-wrong--merge--v8": {
+      "text": "[thoughtful] Hmm. Wrong tool for this job. Let me check something with you.",
+      "file": "shared/node-wrong--a612e8cd.mp3"
+    },
+    "node-wrong--merge--v9": {
+      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
+      "file": "shared/node-wrong--b7caf5c0.mp3"
+    },
+    "node-wrong--notion-page--v0": {
+      "text": "[thoughtful] Hmm. That one can't do the job here. Let me ask you something.",
+      "file": "shared/node-wrong--19173137.mp3"
+    },
+    "node-wrong--notion-page--v1": {
+      "text": "[thoughtful] Ah, not that one. There's something I want you to think about.",
+      "file": "shared/node-wrong--2c4ee2b6.mp3"
+    },
+    "node-wrong--notion-page--v2": {
+      "text": "[thoughtful] Hold on. That node can't give you what this step needs.",
+      "file": "shared/node-wrong--e9d38272.mp3"
+    },
+    "node-wrong--notion-page--v3": {
+      "text": "[calm] Not quite. Before you try again, answer me this.",
+      "file": "shared/node-wrong--75233647.mp3"
+    },
+    "node-wrong--notion-page--v4": {
+      "text": "[thoughtful] Hmm, that one won't work here. Here's the question to ask yourself.",
+      "file": "shared/node-wrong--1320b6dc.mp3"
+    },
+    "node-wrong--notion-page--v5": {
+      "text": "[calm] That's not the one. Let's work out why together.",
+      "file": "shared/node-wrong--d3d6d3bb.mp3"
+    },
+    "node-wrong--notion-page--v6": {
+      "text": "[thoughtful] Careful. That node does something else entirely. Have a think.",
+      "file": "shared/node-wrong--f70148ce.mp3"
+    },
+    "node-wrong--notion-page--v7": {
+      "text": "[calm] Nearly, but no. One question first.",
+      "file": "shared/node-wrong--142e9c5b.mp3"
+    },
+    "node-wrong--notion-page--v8": {
+      "text": "[thoughtful] Hmm. Wrong tool for this job. Let me check something with you.",
+      "file": "shared/node-wrong--a612e8cd.mp3"
+    },
+    "node-wrong--notion-page--v9": {
+      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
+      "file": "shared/node-wrong--b7caf5c0.mp3"
+    },
+    "node-wrong--parse--v0": {
+      "text": "[thoughtful] Hmm. That one can't do the job here. Let me ask you something.",
+      "file": "shared/node-wrong--19173137.mp3"
+    },
+    "node-wrong--parse--v1": {
+      "text": "[thoughtful] Ah, not that one. There's something I want you to think about.",
+      "file": "shared/node-wrong--2c4ee2b6.mp3"
+    },
+    "node-wrong--parse--v2": {
+      "text": "[thoughtful] Hold on. That node can't give you what this step needs.",
+      "file": "shared/node-wrong--e9d38272.mp3"
+    },
+    "node-wrong--parse--v3": {
+      "text": "[calm] Not quite. Before you try again, answer me this.",
+      "file": "shared/node-wrong--75233647.mp3"
+    },
+    "node-wrong--parse--v4": {
+      "text": "[thoughtful] Hmm, that one won't work here. Here's the question to ask yourself.",
+      "file": "shared/node-wrong--1320b6dc.mp3"
+    },
+    "node-wrong--parse--v5": {
+      "text": "[calm] That's not the one. Let's work out why together.",
+      "file": "shared/node-wrong--d3d6d3bb.mp3"
+    },
+    "node-wrong--parse--v6": {
+      "text": "[thoughtful] Careful. That node does something else entirely. Have a think.",
+      "file": "shared/node-wrong--f70148ce.mp3"
+    },
+    "node-wrong--parse--v7": {
+      "text": "[calm] Nearly, but no. One question first.",
+      "file": "shared/node-wrong--142e9c5b.mp3"
+    },
+    "node-wrong--parse--v8": {
+      "text": "[thoughtful] Hmm. Wrong tool for this job. Let me check something with you.",
+      "file": "shared/node-wrong--a612e8cd.mp3"
+    },
+    "node-wrong--parse--v9": {
+      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
+      "file": "shared/node-wrong--b7caf5c0.mp3"
+    },
+    "node-wrong--remove-duplicates--v0": {
+      "text": "[thoughtful] Hmm. That one can't do the job here. Let me ask you something.",
+      "file": "shared/node-wrong--19173137.mp3"
+    },
+    "node-wrong--remove-duplicates--v1": {
+      "text": "[thoughtful] Ah, not that one. There's something I want you to think about.",
+      "file": "shared/node-wrong--2c4ee2b6.mp3"
+    },
+    "node-wrong--remove-duplicates--v2": {
+      "text": "[thoughtful] Hold on. That node can't give you what this step needs.",
+      "file": "shared/node-wrong--e9d38272.mp3"
+    },
+    "node-wrong--remove-duplicates--v3": {
+      "text": "[calm] Not quite. Before you try again, answer me this.",
+      "file": "shared/node-wrong--75233647.mp3"
+    },
+    "node-wrong--remove-duplicates--v4": {
+      "text": "[thoughtful] Hmm, that one won't work here. Here's the question to ask yourself.",
+      "file": "shared/node-wrong--1320b6dc.mp3"
+    },
+    "node-wrong--remove-duplicates--v5": {
+      "text": "[calm] That's not the one. Let's work out why together.",
+      "file": "shared/node-wrong--d3d6d3bb.mp3"
+    },
+    "node-wrong--remove-duplicates--v6": {
+      "text": "[thoughtful] Careful. That node does something else entirely. Have a think.",
+      "file": "shared/node-wrong--f70148ce.mp3"
+    },
+    "node-wrong--remove-duplicates--v7": {
+      "text": "[calm] Nearly, but no. One question first.",
+      "file": "shared/node-wrong--142e9c5b.mp3"
+    },
+    "node-wrong--remove-duplicates--v8": {
+      "text": "[thoughtful] Hmm. Wrong tool for this job. Let me check something with you.",
+      "file": "shared/node-wrong--a612e8cd.mp3"
+    },
+    "node-wrong--remove-duplicates--v9": {
+      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
+      "file": "shared/node-wrong--b7caf5c0.mp3"
+    },
+    "node-wrong--schedule--v0": {
+      "text": "[thoughtful] Hmm. That one can't do the job here. Let me ask you something.",
+      "file": "shared/node-wrong--19173137.mp3"
+    },
+    "node-wrong--schedule--v1": {
+      "text": "[thoughtful] Ah, not that one. There's something I want you to think about.",
+      "file": "shared/node-wrong--2c4ee2b6.mp3"
+    },
+    "node-wrong--schedule--v2": {
+      "text": "[thoughtful] Hold on. That node can't give you what this step needs.",
+      "file": "shared/node-wrong--e9d38272.mp3"
+    },
+    "node-wrong--schedule--v3": {
+      "text": "[calm] Not quite. Before you try again, answer me this.",
+      "file": "shared/node-wrong--75233647.mp3"
+    },
+    "node-wrong--schedule--v4": {
+      "text": "[thoughtful] Hmm, that one won't work here. Here's the question to ask yourself.",
+      "file": "shared/node-wrong--1320b6dc.mp3"
+    },
+    "node-wrong--schedule--v5": {
+      "text": "[calm] That's not the one. Let's work out why together.",
+      "file": "shared/node-wrong--d3d6d3bb.mp3"
+    },
+    "node-wrong--schedule--v6": {
+      "text": "[thoughtful] Careful. That node does something else entirely. Have a think.",
+      "file": "shared/node-wrong--f70148ce.mp3"
+    },
+    "node-wrong--schedule--v7": {
+      "text": "[calm] Nearly, but no. One question first.",
+      "file": "shared/node-wrong--142e9c5b.mp3"
+    },
+    "node-wrong--schedule--v8": {
+      "text": "[thoughtful] Hmm. Wrong tool for this job. Let me check something with you.",
+      "file": "shared/node-wrong--a612e8cd.mp3"
+    },
+    "node-wrong--schedule--v9": {
+      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
+      "file": "shared/node-wrong--b7caf5c0.mp3"
+    },
+    "node-wrong--slack-message--v0": {
+      "text": "[thoughtful] Hmm. That one can't do the job here. Let me ask you something.",
+      "file": "shared/node-wrong--19173137.mp3"
+    },
+    "node-wrong--slack-message--v1": {
+      "text": "[thoughtful] Ah, not that one. There's something I want you to think about.",
+      "file": "shared/node-wrong--2c4ee2b6.mp3"
+    },
+    "node-wrong--slack-message--v2": {
+      "text": "[thoughtful] Hold on. That node can't give you what this step needs.",
+      "file": "shared/node-wrong--e9d38272.mp3"
+    },
+    "node-wrong--slack-message--v3": {
+      "text": "[calm] Not quite. Before you try again, answer me this.",
+      "file": "shared/node-wrong--75233647.mp3"
+    },
+    "node-wrong--slack-message--v4": {
+      "text": "[thoughtful] Hmm, that one won't work here. Here's the question to ask yourself.",
+      "file": "shared/node-wrong--1320b6dc.mp3"
+    },
+    "node-wrong--slack-message--v5": {
+      "text": "[calm] That's not the one. Let's work out why together.",
+      "file": "shared/node-wrong--d3d6d3bb.mp3"
+    },
+    "node-wrong--slack-message--v6": {
+      "text": "[thoughtful] Careful. That node does something else entirely. Have a think.",
+      "file": "shared/node-wrong--f70148ce.mp3"
+    },
+    "node-wrong--slack-message--v7": {
+      "text": "[calm] Nearly, but no. One question first.",
+      "file": "shared/node-wrong--142e9c5b.mp3"
+    },
+    "node-wrong--slack-message--v8": {
+      "text": "[thoughtful] Hmm. Wrong tool for this job. Let me check something with you.",
+      "file": "shared/node-wrong--a612e8cd.mp3"
+    },
+    "node-wrong--slack-message--v9": {
+      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
+      "file": "shared/node-wrong--b7caf5c0.mp3"
+    },
+    "node-wrong--summarize--v0": {
+      "text": "[thoughtful] Hmm. That one can't do the job here. Let me ask you something.",
+      "file": "shared/node-wrong--19173137.mp3"
+    },
+    "node-wrong--summarize--v1": {
+      "text": "[thoughtful] Ah, not that one. There's something I want you to think about.",
+      "file": "shared/node-wrong--2c4ee2b6.mp3"
+    },
+    "node-wrong--summarize--v2": {
+      "text": "[thoughtful] Hold on. That node can't give you what this step needs.",
+      "file": "shared/node-wrong--e9d38272.mp3"
+    },
+    "node-wrong--summarize--v3": {
+      "text": "[calm] Not quite. Before you try again, answer me this.",
+      "file": "shared/node-wrong--75233647.mp3"
+    },
+    "node-wrong--summarize--v4": {
+      "text": "[thoughtful] Hmm, that one won't work here. Here's the question to ask yourself.",
+      "file": "shared/node-wrong--1320b6dc.mp3"
+    },
+    "node-wrong--summarize--v5": {
+      "text": "[calm] That's not the one. Let's work out why together.",
+      "file": "shared/node-wrong--d3d6d3bb.mp3"
+    },
+    "node-wrong--summarize--v6": {
+      "text": "[thoughtful] Careful. That node does something else entirely. Have a think.",
+      "file": "shared/node-wrong--f70148ce.mp3"
+    },
+    "node-wrong--summarize--v7": {
+      "text": "[calm] Nearly, but no. One question first.",
+      "file": "shared/node-wrong--142e9c5b.mp3"
+    },
+    "node-wrong--summarize--v8": {
+      "text": "[thoughtful] Hmm. Wrong tool for this job. Let me check something with you.",
+      "file": "shared/node-wrong--a612e8cd.mp3"
+    },
+    "node-wrong--summarize--v9": {
+      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
+      "file": "shared/node-wrong--b7caf5c0.mp3"
+    },
+    "node-wrong--switch--v0": {
+      "text": "[thoughtful] Hmm. That one can't do the job here. Let me ask you something.",
+      "file": "shared/node-wrong--19173137.mp3"
+    },
+    "node-wrong--switch--v1": {
+      "text": "[thoughtful] Ah, not that one. There's something I want you to think about.",
+      "file": "shared/node-wrong--2c4ee2b6.mp3"
+    },
+    "node-wrong--switch--v2": {
+      "text": "[thoughtful] Hold on. That node can't give you what this step needs.",
+      "file": "shared/node-wrong--e9d38272.mp3"
+    },
+    "node-wrong--switch--v3": {
+      "text": "[calm] Not quite. Before you try again, answer me this.",
+      "file": "shared/node-wrong--75233647.mp3"
+    },
+    "node-wrong--switch--v4": {
+      "text": "[thoughtful] Hmm, that one won't work here. Here's the question to ask yourself.",
+      "file": "shared/node-wrong--1320b6dc.mp3"
+    },
+    "node-wrong--switch--v5": {
+      "text": "[calm] That's not the one. Let's work out why together.",
+      "file": "shared/node-wrong--d3d6d3bb.mp3"
+    },
+    "node-wrong--switch--v6": {
+      "text": "[thoughtful] Careful. That node does something else entirely. Have a think.",
+      "file": "shared/node-wrong--f70148ce.mp3"
+    },
+    "node-wrong--switch--v7": {
+      "text": "[calm] Nearly, but no. One question first.",
+      "file": "shared/node-wrong--142e9c5b.mp3"
+    },
+    "node-wrong--switch--v8": {
+      "text": "[thoughtful] Hmm. Wrong tool for this job. Let me check something with you.",
+      "file": "shared/node-wrong--a612e8cd.mp3"
+    },
+    "node-wrong--switch--v9": {
+      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
+      "file": "shared/node-wrong--b7caf5c0.mp3"
+    },
+    "node-wrong--trigger--v0": {
+      "text": "[thoughtful] Hmm. That one can't do the job here. Let me ask you something.",
+      "file": "shared/node-wrong--19173137.mp3"
+    },
+    "node-wrong--trigger--v1": {
+      "text": "[thoughtful] Ah, not that one. There's something I want you to think about.",
+      "file": "shared/node-wrong--2c4ee2b6.mp3"
+    },
+    "node-wrong--trigger--v2": {
+      "text": "[thoughtful] Hold on. That node can't give you what this step needs.",
+      "file": "shared/node-wrong--e9d38272.mp3"
+    },
+    "node-wrong--trigger--v3": {
+      "text": "[calm] Not quite. Before you try again, answer me this.",
+      "file": "shared/node-wrong--75233647.mp3"
+    },
+    "node-wrong--trigger--v4": {
+      "text": "[thoughtful] Hmm, that one won't work here. Here's the question to ask yourself.",
+      "file": "shared/node-wrong--1320b6dc.mp3"
+    },
+    "node-wrong--trigger--v5": {
+      "text": "[calm] That's not the one. Let's work out why together.",
+      "file": "shared/node-wrong--d3d6d3bb.mp3"
+    },
+    "node-wrong--trigger--v6": {
+      "text": "[thoughtful] Careful. That node does something else entirely. Have a think.",
+      "file": "shared/node-wrong--f70148ce.mp3"
+    },
+    "node-wrong--trigger--v7": {
+      "text": "[calm] Nearly, but no. One question first.",
+      "file": "shared/node-wrong--142e9c5b.mp3"
+    },
+    "node-wrong--trigger--v8": {
+      "text": "[thoughtful] Hmm. Wrong tool for this job. Let me check something with you.",
+      "file": "shared/node-wrong--a612e8cd.mp3"
+    },
+    "node-wrong--trigger--v9": {
+      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
+      "file": "shared/node-wrong--b7caf5c0.mp3"
+    },
+    "node-wrong--wait--v0": {
+      "text": "[thoughtful] Hmm. That one can't do the job here. Let me ask you something.",
+      "file": "shared/node-wrong--19173137.mp3"
+    },
+    "node-wrong--wait--v1": {
+      "text": "[thoughtful] Ah, not that one. There's something I want you to think about.",
+      "file": "shared/node-wrong--2c4ee2b6.mp3"
+    },
+    "node-wrong--wait--v2": {
+      "text": "[thoughtful] Hold on. That node can't give you what this step needs.",
+      "file": "shared/node-wrong--e9d38272.mp3"
+    },
+    "node-wrong--wait--v3": {
+      "text": "[calm] Not quite. Before you try again, answer me this.",
+      "file": "shared/node-wrong--75233647.mp3"
+    },
+    "node-wrong--wait--v4": {
+      "text": "[thoughtful] Hmm, that one won't work here. Here's the question to ask yourself.",
+      "file": "shared/node-wrong--1320b6dc.mp3"
+    },
+    "node-wrong--wait--v5": {
+      "text": "[calm] That's not the one. Let's work out why together.",
+      "file": "shared/node-wrong--d3d6d3bb.mp3"
+    },
+    "node-wrong--wait--v6": {
+      "text": "[thoughtful] Careful. That node does something else entirely. Have a think.",
+      "file": "shared/node-wrong--f70148ce.mp3"
+    },
+    "node-wrong--wait--v7": {
+      "text": "[calm] Nearly, but no. One question first.",
+      "file": "shared/node-wrong--142e9c5b.mp3"
+    },
+    "node-wrong--wait--v8": {
+      "text": "[thoughtful] Hmm. Wrong tool for this job. Let me check something with you.",
+      "file": "shared/node-wrong--a612e8cd.mp3"
+    },
+    "node-wrong--wait--v9": {
+      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
+      "file": "shared/node-wrong--b7caf5c0.mp3"
+    },
+    "node-wrong--web-search--v0": {
+      "text": "[thoughtful] Hmm. That one can't do the job here. Let me ask you something.",
+      "file": "shared/node-wrong--19173137.mp3"
+    },
+    "node-wrong--web-search--v1": {
+      "text": "[thoughtful] Ah, not that one. There's something I want you to think about.",
+      "file": "shared/node-wrong--2c4ee2b6.mp3"
+    },
+    "node-wrong--web-search--v2": {
+      "text": "[thoughtful] Hold on. That node can't give you what this step needs.",
+      "file": "shared/node-wrong--e9d38272.mp3"
+    },
+    "node-wrong--web-search--v3": {
+      "text": "[calm] Not quite. Before you try again, answer me this.",
+      "file": "shared/node-wrong--75233647.mp3"
+    },
+    "node-wrong--web-search--v4": {
+      "text": "[thoughtful] Hmm, that one won't work here. Here's the question to ask yourself.",
+      "file": "shared/node-wrong--1320b6dc.mp3"
+    },
+    "node-wrong--web-search--v5": {
+      "text": "[calm] That's not the one. Let's work out why together.",
+      "file": "shared/node-wrong--d3d6d3bb.mp3"
+    },
+    "node-wrong--web-search--v6": {
+      "text": "[thoughtful] Careful. That node does something else entirely. Have a think.",
+      "file": "shared/node-wrong--f70148ce.mp3"
+    },
+    "node-wrong--web-search--v7": {
+      "text": "[calm] Nearly, but no. One question first.",
+      "file": "shared/node-wrong--142e9c5b.mp3"
+    },
+    "node-wrong--web-search--v8": {
+      "text": "[thoughtful] Hmm. Wrong tool for this job. Let me check something with you.",
+      "file": "shared/node-wrong--a612e8cd.mp3"
+    },
+    "node-wrong--web-search--v9": {
+      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
+      "file": "shared/node-wrong--b7caf5c0.mp3"
+    },
+    "node-wrong--webhook--v0": {
+      "text": "[thoughtful] Hmm. That one can't do the job here. Let me ask you something.",
+      "file": "shared/node-wrong--19173137.mp3"
+    },
+    "node-wrong--webhook--v1": {
+      "text": "[thoughtful] Ah, not that one. There's something I want you to think about.",
+      "file": "shared/node-wrong--2c4ee2b6.mp3"
+    },
+    "node-wrong--webhook--v2": {
+      "text": "[thoughtful] Hold on. That node can't give you what this step needs.",
+      "file": "shared/node-wrong--e9d38272.mp3"
+    },
+    "node-wrong--webhook--v3": {
+      "text": "[calm] Not quite. Before you try again, answer me this.",
+      "file": "shared/node-wrong--75233647.mp3"
+    },
+    "node-wrong--webhook--v4": {
+      "text": "[thoughtful] Hmm, that one won't work here. Here's the question to ask yourself.",
+      "file": "shared/node-wrong--1320b6dc.mp3"
+    },
+    "node-wrong--webhook--v5": {
+      "text": "[calm] That's not the one. Let's work out why together.",
+      "file": "shared/node-wrong--d3d6d3bb.mp3"
+    },
+    "node-wrong--webhook--v6": {
+      "text": "[thoughtful] Careful. That node does something else entirely. Have a think.",
+      "file": "shared/node-wrong--f70148ce.mp3"
+    },
+    "node-wrong--webhook--v7": {
+      "text": "[calm] Nearly, but no. One question first.",
+      "file": "shared/node-wrong--142e9c5b.mp3"
+    },
+    "node-wrong--webhook--v8": {
+      "text": "[thoughtful] Hmm. Wrong tool for this job. Let me check something with you.",
+      "file": "shared/node-wrong--a612e8cd.mp3"
+    },
+    "node-wrong--webhook--v9": {
+      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
+      "file": "shared/node-wrong--b7caf5c0.mp3"
     },
     "phase-complete--enrich--v0": {
       "text": "[excited] It knows the order and how urgent this is. Almost there.",
@@ -403,6 +1279,1414 @@
       "text": "[calm] Same idea as before. What has to happen first here?",
       "file": "shared/phase-intro--36a5831c.mp3"
     },
+    "probe-correct--action--v0": {
+      "text": "[warm] Yes, exactly that. Now put the right one in.",
+      "file": "shared/probe-correct--d3d647bc.mp3"
+    },
+    "probe-correct--action--v1": {
+      "text": "[warm] Right. So you can see why it wouldn't work here.",
+      "file": "shared/probe-correct--ce323351.mp3"
+    },
+    "probe-correct--action--v2": {
+      "text": "[warm] That's it. Go on and pick the one that fits.",
+      "file": "shared/probe-correct--e29bbaa3.mp3"
+    },
+    "probe-correct--action--v3": {
+      "text": "[warm] Ah, you've got it. Try the placement again.",
+      "file": "shared/probe-correct--769abdd3.mp3"
+    },
+    "probe-correct--action--v4": {
+      "text": "[calm] Correct. That's the thing to watch for next time.",
+      "file": "shared/probe-correct--dd3d43bb.mp3"
+    },
+    "probe-correct--action--v5": {
+      "text": "[warm] Yes. Now you know what this step actually needs.",
+      "file": "shared/probe-correct--efae4fbb.mp3"
+    },
+    "probe-correct--action--v6": {
+      "text": "[warm] Exactly right. Let's get the proper node in there.",
+      "file": "shared/probe-correct--485de88c.mp3"
+    },
+    "probe-correct--action--v7": {
+      "text": "[calm] That's the one. Back to the board.",
+      "file": "shared/probe-correct--be7deb2c.mp3"
+    },
+    "probe-correct--calendar-event--v0": {
+      "text": "[warm] Yes, exactly that. Now put the right one in.",
+      "file": "shared/probe-correct--d3d647bc.mp3"
+    },
+    "probe-correct--calendar-event--v1": {
+      "text": "[warm] Right. So you can see why it wouldn't work here.",
+      "file": "shared/probe-correct--ce323351.mp3"
+    },
+    "probe-correct--calendar-event--v2": {
+      "text": "[warm] That's it. Go on and pick the one that fits.",
+      "file": "shared/probe-correct--e29bbaa3.mp3"
+    },
+    "probe-correct--calendar-event--v3": {
+      "text": "[warm] Ah, you've got it. Try the placement again.",
+      "file": "shared/probe-correct--769abdd3.mp3"
+    },
+    "probe-correct--calendar-event--v4": {
+      "text": "[calm] Correct. That's the thing to watch for next time.",
+      "file": "shared/probe-correct--dd3d43bb.mp3"
+    },
+    "probe-correct--calendar-event--v5": {
+      "text": "[warm] Yes. Now you know what this step actually needs.",
+      "file": "shared/probe-correct--efae4fbb.mp3"
+    },
+    "probe-correct--calendar-event--v6": {
+      "text": "[warm] Exactly right. Let's get the proper node in there.",
+      "file": "shared/probe-correct--485de88c.mp3"
+    },
+    "probe-correct--calendar-event--v7": {
+      "text": "[calm] That's the one. Back to the board.",
+      "file": "shared/probe-correct--be7deb2c.mp3"
+    },
+    "probe-correct--chat-trigger--v0": {
+      "text": "[warm] Yes, exactly that. Now put the right one in.",
+      "file": "shared/probe-correct--d3d647bc.mp3"
+    },
+    "probe-correct--chat-trigger--v1": {
+      "text": "[warm] Right. So you can see why it wouldn't work here.",
+      "file": "shared/probe-correct--ce323351.mp3"
+    },
+    "probe-correct--chat-trigger--v2": {
+      "text": "[warm] That's it. Go on and pick the one that fits.",
+      "file": "shared/probe-correct--e29bbaa3.mp3"
+    },
+    "probe-correct--chat-trigger--v3": {
+      "text": "[warm] Ah, you've got it. Try the placement again.",
+      "file": "shared/probe-correct--769abdd3.mp3"
+    },
+    "probe-correct--chat-trigger--v4": {
+      "text": "[calm] Correct. That's the thing to watch for next time.",
+      "file": "shared/probe-correct--dd3d43bb.mp3"
+    },
+    "probe-correct--chat-trigger--v5": {
+      "text": "[warm] Yes. Now you know what this step actually needs.",
+      "file": "shared/probe-correct--efae4fbb.mp3"
+    },
+    "probe-correct--chat-trigger--v6": {
+      "text": "[warm] Exactly right. Let's get the proper node in there.",
+      "file": "shared/probe-correct--485de88c.mp3"
+    },
+    "probe-correct--chat-trigger--v7": {
+      "text": "[calm] That's the one. Back to the board.",
+      "file": "shared/probe-correct--be7deb2c.mp3"
+    },
+    "probe-correct--classify--v0": {
+      "text": "[warm] Yes, exactly that. Now put the right one in.",
+      "file": "shared/probe-correct--d3d647bc.mp3"
+    },
+    "probe-correct--classify--v1": {
+      "text": "[warm] Right. So you can see why it wouldn't work here.",
+      "file": "shared/probe-correct--ce323351.mp3"
+    },
+    "probe-correct--classify--v2": {
+      "text": "[warm] That's it. Go on and pick the one that fits.",
+      "file": "shared/probe-correct--e29bbaa3.mp3"
+    },
+    "probe-correct--classify--v3": {
+      "text": "[warm] Ah, you've got it. Try the placement again.",
+      "file": "shared/probe-correct--769abdd3.mp3"
+    },
+    "probe-correct--classify--v4": {
+      "text": "[calm] Correct. That's the thing to watch for next time.",
+      "file": "shared/probe-correct--dd3d43bb.mp3"
+    },
+    "probe-correct--classify--v5": {
+      "text": "[warm] Yes. Now you know what this step actually needs.",
+      "file": "shared/probe-correct--efae4fbb.mp3"
+    },
+    "probe-correct--classify--v6": {
+      "text": "[warm] Exactly right. Let's get the proper node in there.",
+      "file": "shared/probe-correct--485de88c.mp3"
+    },
+    "probe-correct--classify--v7": {
+      "text": "[calm] That's the one. Back to the board.",
+      "file": "shared/probe-correct--be7deb2c.mp3"
+    },
+    "probe-correct--code--v0": {
+      "text": "[warm] Yes, exactly that. Now put the right one in.",
+      "file": "shared/probe-correct--d3d647bc.mp3"
+    },
+    "probe-correct--code--v1": {
+      "text": "[warm] Right. So you can see why it wouldn't work here.",
+      "file": "shared/probe-correct--ce323351.mp3"
+    },
+    "probe-correct--code--v2": {
+      "text": "[warm] That's it. Go on and pick the one that fits.",
+      "file": "shared/probe-correct--e29bbaa3.mp3"
+    },
+    "probe-correct--code--v3": {
+      "text": "[warm] Ah, you've got it. Try the placement again.",
+      "file": "shared/probe-correct--769abdd3.mp3"
+    },
+    "probe-correct--code--v4": {
+      "text": "[calm] Correct. That's the thing to watch for next time.",
+      "file": "shared/probe-correct--dd3d43bb.mp3"
+    },
+    "probe-correct--code--v5": {
+      "text": "[warm] Yes. Now you know what this step actually needs.",
+      "file": "shared/probe-correct--efae4fbb.mp3"
+    },
+    "probe-correct--code--v6": {
+      "text": "[warm] Exactly right. Let's get the proper node in there.",
+      "file": "shared/probe-correct--485de88c.mp3"
+    },
+    "probe-correct--code--v7": {
+      "text": "[calm] That's the one. Back to the board.",
+      "file": "shared/probe-correct--be7deb2c.mp3"
+    },
+    "probe-correct--filter--v0": {
+      "text": "[warm] Yes, exactly that. Now put the right one in.",
+      "file": "shared/probe-correct--d3d647bc.mp3"
+    },
+    "probe-correct--filter--v1": {
+      "text": "[warm] Right. So you can see why it wouldn't work here.",
+      "file": "shared/probe-correct--ce323351.mp3"
+    },
+    "probe-correct--filter--v2": {
+      "text": "[warm] That's it. Go on and pick the one that fits.",
+      "file": "shared/probe-correct--e29bbaa3.mp3"
+    },
+    "probe-correct--filter--v3": {
+      "text": "[warm] Ah, you've got it. Try the placement again.",
+      "file": "shared/probe-correct--769abdd3.mp3"
+    },
+    "probe-correct--filter--v4": {
+      "text": "[calm] Correct. That's the thing to watch for next time.",
+      "file": "shared/probe-correct--dd3d43bb.mp3"
+    },
+    "probe-correct--filter--v5": {
+      "text": "[warm] Yes. Now you know what this step actually needs.",
+      "file": "shared/probe-correct--efae4fbb.mp3"
+    },
+    "probe-correct--filter--v6": {
+      "text": "[warm] Exactly right. Let's get the proper node in there.",
+      "file": "shared/probe-correct--485de88c.mp3"
+    },
+    "probe-correct--filter--v7": {
+      "text": "[calm] That's the one. Back to the board.",
+      "file": "shared/probe-correct--be7deb2c.mp3"
+    },
+    "probe-correct--google-docs--v0": {
+      "text": "[warm] Yes, exactly that. Now put the right one in.",
+      "file": "shared/probe-correct--d3d647bc.mp3"
+    },
+    "probe-correct--google-docs--v1": {
+      "text": "[warm] Right. So you can see why it wouldn't work here.",
+      "file": "shared/probe-correct--ce323351.mp3"
+    },
+    "probe-correct--google-docs--v2": {
+      "text": "[warm] That's it. Go on and pick the one that fits.",
+      "file": "shared/probe-correct--e29bbaa3.mp3"
+    },
+    "probe-correct--google-docs--v3": {
+      "text": "[warm] Ah, you've got it. Try the placement again.",
+      "file": "shared/probe-correct--769abdd3.mp3"
+    },
+    "probe-correct--google-docs--v4": {
+      "text": "[calm] Correct. That's the thing to watch for next time.",
+      "file": "shared/probe-correct--dd3d43bb.mp3"
+    },
+    "probe-correct--google-docs--v5": {
+      "text": "[warm] Yes. Now you know what this step actually needs.",
+      "file": "shared/probe-correct--efae4fbb.mp3"
+    },
+    "probe-correct--google-docs--v6": {
+      "text": "[warm] Exactly right. Let's get the proper node in there.",
+      "file": "shared/probe-correct--485de88c.mp3"
+    },
+    "probe-correct--google-docs--v7": {
+      "text": "[calm] That's the one. Back to the board.",
+      "file": "shared/probe-correct--be7deb2c.mp3"
+    },
+    "probe-correct--http-request--v0": {
+      "text": "[warm] Yes, exactly that. Now put the right one in.",
+      "file": "shared/probe-correct--d3d647bc.mp3"
+    },
+    "probe-correct--http-request--v1": {
+      "text": "[warm] Right. So you can see why it wouldn't work here.",
+      "file": "shared/probe-correct--ce323351.mp3"
+    },
+    "probe-correct--http-request--v2": {
+      "text": "[warm] That's it. Go on and pick the one that fits.",
+      "file": "shared/probe-correct--e29bbaa3.mp3"
+    },
+    "probe-correct--http-request--v3": {
+      "text": "[warm] Ah, you've got it. Try the placement again.",
+      "file": "shared/probe-correct--769abdd3.mp3"
+    },
+    "probe-correct--http-request--v4": {
+      "text": "[calm] Correct. That's the thing to watch for next time.",
+      "file": "shared/probe-correct--dd3d43bb.mp3"
+    },
+    "probe-correct--http-request--v5": {
+      "text": "[warm] Yes. Now you know what this step actually needs.",
+      "file": "shared/probe-correct--efae4fbb.mp3"
+    },
+    "probe-correct--http-request--v6": {
+      "text": "[warm] Exactly right. Let's get the proper node in there.",
+      "file": "shared/probe-correct--485de88c.mp3"
+    },
+    "probe-correct--http-request--v7": {
+      "text": "[calm] That's the one. Back to the board.",
+      "file": "shared/probe-correct--be7deb2c.mp3"
+    },
+    "probe-correct--if--v0": {
+      "text": "[warm] Yes, exactly that. Now put the right one in.",
+      "file": "shared/probe-correct--d3d647bc.mp3"
+    },
+    "probe-correct--if--v1": {
+      "text": "[warm] Right. So you can see why it wouldn't work here.",
+      "file": "shared/probe-correct--ce323351.mp3"
+    },
+    "probe-correct--if--v2": {
+      "text": "[warm] That's it. Go on and pick the one that fits.",
+      "file": "shared/probe-correct--e29bbaa3.mp3"
+    },
+    "probe-correct--if--v3": {
+      "text": "[warm] Ah, you've got it. Try the placement again.",
+      "file": "shared/probe-correct--769abdd3.mp3"
+    },
+    "probe-correct--if--v4": {
+      "text": "[calm] Correct. That's the thing to watch for next time.",
+      "file": "shared/probe-correct--dd3d43bb.mp3"
+    },
+    "probe-correct--if--v5": {
+      "text": "[warm] Yes. Now you know what this step actually needs.",
+      "file": "shared/probe-correct--efae4fbb.mp3"
+    },
+    "probe-correct--if--v6": {
+      "text": "[warm] Exactly right. Let's get the proper node in there.",
+      "file": "shared/probe-correct--485de88c.mp3"
+    },
+    "probe-correct--if--v7": {
+      "text": "[calm] That's the one. Back to the board.",
+      "file": "shared/probe-correct--be7deb2c.mp3"
+    },
+    "probe-correct--manual--v0": {
+      "text": "[warm] Yes, exactly that. Now put the right one in.",
+      "file": "shared/probe-correct--d3d647bc.mp3"
+    },
+    "probe-correct--manual--v1": {
+      "text": "[warm] Right. So you can see why it wouldn't work here.",
+      "file": "shared/probe-correct--ce323351.mp3"
+    },
+    "probe-correct--manual--v2": {
+      "text": "[warm] That's it. Go on and pick the one that fits.",
+      "file": "shared/probe-correct--e29bbaa3.mp3"
+    },
+    "probe-correct--manual--v3": {
+      "text": "[warm] Ah, you've got it. Try the placement again.",
+      "file": "shared/probe-correct--769abdd3.mp3"
+    },
+    "probe-correct--manual--v4": {
+      "text": "[calm] Correct. That's the thing to watch for next time.",
+      "file": "shared/probe-correct--dd3d43bb.mp3"
+    },
+    "probe-correct--manual--v5": {
+      "text": "[warm] Yes. Now you know what this step actually needs.",
+      "file": "shared/probe-correct--efae4fbb.mp3"
+    },
+    "probe-correct--manual--v6": {
+      "text": "[warm] Exactly right. Let's get the proper node in there.",
+      "file": "shared/probe-correct--485de88c.mp3"
+    },
+    "probe-correct--manual--v7": {
+      "text": "[calm] That's the one. Back to the board.",
+      "file": "shared/probe-correct--be7deb2c.mp3"
+    },
+    "probe-correct--merge--v0": {
+      "text": "[warm] Yes, exactly that. Now put the right one in.",
+      "file": "shared/probe-correct--d3d647bc.mp3"
+    },
+    "probe-correct--merge--v1": {
+      "text": "[warm] Right. So you can see why it wouldn't work here.",
+      "file": "shared/probe-correct--ce323351.mp3"
+    },
+    "probe-correct--merge--v2": {
+      "text": "[warm] That's it. Go on and pick the one that fits.",
+      "file": "shared/probe-correct--e29bbaa3.mp3"
+    },
+    "probe-correct--merge--v3": {
+      "text": "[warm] Ah, you've got it. Try the placement again.",
+      "file": "shared/probe-correct--769abdd3.mp3"
+    },
+    "probe-correct--merge--v4": {
+      "text": "[calm] Correct. That's the thing to watch for next time.",
+      "file": "shared/probe-correct--dd3d43bb.mp3"
+    },
+    "probe-correct--merge--v5": {
+      "text": "[warm] Yes. Now you know what this step actually needs.",
+      "file": "shared/probe-correct--efae4fbb.mp3"
+    },
+    "probe-correct--merge--v6": {
+      "text": "[warm] Exactly right. Let's get the proper node in there.",
+      "file": "shared/probe-correct--485de88c.mp3"
+    },
+    "probe-correct--merge--v7": {
+      "text": "[calm] That's the one. Back to the board.",
+      "file": "shared/probe-correct--be7deb2c.mp3"
+    },
+    "probe-correct--notion-page--v0": {
+      "text": "[warm] Yes, exactly that. Now put the right one in.",
+      "file": "shared/probe-correct--d3d647bc.mp3"
+    },
+    "probe-correct--notion-page--v1": {
+      "text": "[warm] Right. So you can see why it wouldn't work here.",
+      "file": "shared/probe-correct--ce323351.mp3"
+    },
+    "probe-correct--notion-page--v2": {
+      "text": "[warm] That's it. Go on and pick the one that fits.",
+      "file": "shared/probe-correct--e29bbaa3.mp3"
+    },
+    "probe-correct--notion-page--v3": {
+      "text": "[warm] Ah, you've got it. Try the placement again.",
+      "file": "shared/probe-correct--769abdd3.mp3"
+    },
+    "probe-correct--notion-page--v4": {
+      "text": "[calm] Correct. That's the thing to watch for next time.",
+      "file": "shared/probe-correct--dd3d43bb.mp3"
+    },
+    "probe-correct--notion-page--v5": {
+      "text": "[warm] Yes. Now you know what this step actually needs.",
+      "file": "shared/probe-correct--efae4fbb.mp3"
+    },
+    "probe-correct--notion-page--v6": {
+      "text": "[warm] Exactly right. Let's get the proper node in there.",
+      "file": "shared/probe-correct--485de88c.mp3"
+    },
+    "probe-correct--notion-page--v7": {
+      "text": "[calm] That's the one. Back to the board.",
+      "file": "shared/probe-correct--be7deb2c.mp3"
+    },
+    "probe-correct--parse--v0": {
+      "text": "[warm] Yes, exactly that. Now put the right one in.",
+      "file": "shared/probe-correct--d3d647bc.mp3"
+    },
+    "probe-correct--parse--v1": {
+      "text": "[warm] Right. So you can see why it wouldn't work here.",
+      "file": "shared/probe-correct--ce323351.mp3"
+    },
+    "probe-correct--parse--v2": {
+      "text": "[warm] That's it. Go on and pick the one that fits.",
+      "file": "shared/probe-correct--e29bbaa3.mp3"
+    },
+    "probe-correct--parse--v3": {
+      "text": "[warm] Ah, you've got it. Try the placement again.",
+      "file": "shared/probe-correct--769abdd3.mp3"
+    },
+    "probe-correct--parse--v4": {
+      "text": "[calm] Correct. That's the thing to watch for next time.",
+      "file": "shared/probe-correct--dd3d43bb.mp3"
+    },
+    "probe-correct--parse--v5": {
+      "text": "[warm] Yes. Now you know what this step actually needs.",
+      "file": "shared/probe-correct--efae4fbb.mp3"
+    },
+    "probe-correct--parse--v6": {
+      "text": "[warm] Exactly right. Let's get the proper node in there.",
+      "file": "shared/probe-correct--485de88c.mp3"
+    },
+    "probe-correct--parse--v7": {
+      "text": "[calm] That's the one. Back to the board.",
+      "file": "shared/probe-correct--be7deb2c.mp3"
+    },
+    "probe-correct--remove-duplicates--v0": {
+      "text": "[warm] Yes, exactly that. Now put the right one in.",
+      "file": "shared/probe-correct--d3d647bc.mp3"
+    },
+    "probe-correct--remove-duplicates--v1": {
+      "text": "[warm] Right. So you can see why it wouldn't work here.",
+      "file": "shared/probe-correct--ce323351.mp3"
+    },
+    "probe-correct--remove-duplicates--v2": {
+      "text": "[warm] That's it. Go on and pick the one that fits.",
+      "file": "shared/probe-correct--e29bbaa3.mp3"
+    },
+    "probe-correct--remove-duplicates--v3": {
+      "text": "[warm] Ah, you've got it. Try the placement again.",
+      "file": "shared/probe-correct--769abdd3.mp3"
+    },
+    "probe-correct--remove-duplicates--v4": {
+      "text": "[calm] Correct. That's the thing to watch for next time.",
+      "file": "shared/probe-correct--dd3d43bb.mp3"
+    },
+    "probe-correct--remove-duplicates--v5": {
+      "text": "[warm] Yes. Now you know what this step actually needs.",
+      "file": "shared/probe-correct--efae4fbb.mp3"
+    },
+    "probe-correct--remove-duplicates--v6": {
+      "text": "[warm] Exactly right. Let's get the proper node in there.",
+      "file": "shared/probe-correct--485de88c.mp3"
+    },
+    "probe-correct--remove-duplicates--v7": {
+      "text": "[calm] That's the one. Back to the board.",
+      "file": "shared/probe-correct--be7deb2c.mp3"
+    },
+    "probe-correct--schedule--v0": {
+      "text": "[warm] Yes, exactly that. Now put the right one in.",
+      "file": "shared/probe-correct--d3d647bc.mp3"
+    },
+    "probe-correct--schedule--v1": {
+      "text": "[warm] Right. So you can see why it wouldn't work here.",
+      "file": "shared/probe-correct--ce323351.mp3"
+    },
+    "probe-correct--schedule--v2": {
+      "text": "[warm] That's it. Go on and pick the one that fits.",
+      "file": "shared/probe-correct--e29bbaa3.mp3"
+    },
+    "probe-correct--schedule--v3": {
+      "text": "[warm] Ah, you've got it. Try the placement again.",
+      "file": "shared/probe-correct--769abdd3.mp3"
+    },
+    "probe-correct--schedule--v4": {
+      "text": "[calm] Correct. That's the thing to watch for next time.",
+      "file": "shared/probe-correct--dd3d43bb.mp3"
+    },
+    "probe-correct--schedule--v5": {
+      "text": "[warm] Yes. Now you know what this step actually needs.",
+      "file": "shared/probe-correct--efae4fbb.mp3"
+    },
+    "probe-correct--schedule--v6": {
+      "text": "[warm] Exactly right. Let's get the proper node in there.",
+      "file": "shared/probe-correct--485de88c.mp3"
+    },
+    "probe-correct--schedule--v7": {
+      "text": "[calm] That's the one. Back to the board.",
+      "file": "shared/probe-correct--be7deb2c.mp3"
+    },
+    "probe-correct--slack-message--v0": {
+      "text": "[warm] Yes, exactly that. Now put the right one in.",
+      "file": "shared/probe-correct--d3d647bc.mp3"
+    },
+    "probe-correct--slack-message--v1": {
+      "text": "[warm] Right. So you can see why it wouldn't work here.",
+      "file": "shared/probe-correct--ce323351.mp3"
+    },
+    "probe-correct--slack-message--v2": {
+      "text": "[warm] That's it. Go on and pick the one that fits.",
+      "file": "shared/probe-correct--e29bbaa3.mp3"
+    },
+    "probe-correct--slack-message--v3": {
+      "text": "[warm] Ah, you've got it. Try the placement again.",
+      "file": "shared/probe-correct--769abdd3.mp3"
+    },
+    "probe-correct--slack-message--v4": {
+      "text": "[calm] Correct. That's the thing to watch for next time.",
+      "file": "shared/probe-correct--dd3d43bb.mp3"
+    },
+    "probe-correct--slack-message--v5": {
+      "text": "[warm] Yes. Now you know what this step actually needs.",
+      "file": "shared/probe-correct--efae4fbb.mp3"
+    },
+    "probe-correct--slack-message--v6": {
+      "text": "[warm] Exactly right. Let's get the proper node in there.",
+      "file": "shared/probe-correct--485de88c.mp3"
+    },
+    "probe-correct--slack-message--v7": {
+      "text": "[calm] That's the one. Back to the board.",
+      "file": "shared/probe-correct--be7deb2c.mp3"
+    },
+    "probe-correct--summarize--v0": {
+      "text": "[warm] Yes, exactly that. Now put the right one in.",
+      "file": "shared/probe-correct--d3d647bc.mp3"
+    },
+    "probe-correct--summarize--v1": {
+      "text": "[warm] Right. So you can see why it wouldn't work here.",
+      "file": "shared/probe-correct--ce323351.mp3"
+    },
+    "probe-correct--summarize--v2": {
+      "text": "[warm] That's it. Go on and pick the one that fits.",
+      "file": "shared/probe-correct--e29bbaa3.mp3"
+    },
+    "probe-correct--summarize--v3": {
+      "text": "[warm] Ah, you've got it. Try the placement again.",
+      "file": "shared/probe-correct--769abdd3.mp3"
+    },
+    "probe-correct--summarize--v4": {
+      "text": "[calm] Correct. That's the thing to watch for next time.",
+      "file": "shared/probe-correct--dd3d43bb.mp3"
+    },
+    "probe-correct--summarize--v5": {
+      "text": "[warm] Yes. Now you know what this step actually needs.",
+      "file": "shared/probe-correct--efae4fbb.mp3"
+    },
+    "probe-correct--summarize--v6": {
+      "text": "[warm] Exactly right. Let's get the proper node in there.",
+      "file": "shared/probe-correct--485de88c.mp3"
+    },
+    "probe-correct--summarize--v7": {
+      "text": "[calm] That's the one. Back to the board.",
+      "file": "shared/probe-correct--be7deb2c.mp3"
+    },
+    "probe-correct--switch--v0": {
+      "text": "[warm] Yes, exactly that. Now put the right one in.",
+      "file": "shared/probe-correct--d3d647bc.mp3"
+    },
+    "probe-correct--switch--v1": {
+      "text": "[warm] Right. So you can see why it wouldn't work here.",
+      "file": "shared/probe-correct--ce323351.mp3"
+    },
+    "probe-correct--switch--v2": {
+      "text": "[warm] That's it. Go on and pick the one that fits.",
+      "file": "shared/probe-correct--e29bbaa3.mp3"
+    },
+    "probe-correct--switch--v3": {
+      "text": "[warm] Ah, you've got it. Try the placement again.",
+      "file": "shared/probe-correct--769abdd3.mp3"
+    },
+    "probe-correct--switch--v4": {
+      "text": "[calm] Correct. That's the thing to watch for next time.",
+      "file": "shared/probe-correct--dd3d43bb.mp3"
+    },
+    "probe-correct--switch--v5": {
+      "text": "[warm] Yes. Now you know what this step actually needs.",
+      "file": "shared/probe-correct--efae4fbb.mp3"
+    },
+    "probe-correct--switch--v6": {
+      "text": "[warm] Exactly right. Let's get the proper node in there.",
+      "file": "shared/probe-correct--485de88c.mp3"
+    },
+    "probe-correct--switch--v7": {
+      "text": "[calm] That's the one. Back to the board.",
+      "file": "shared/probe-correct--be7deb2c.mp3"
+    },
+    "probe-correct--trigger--v0": {
+      "text": "[warm] Yes, exactly that. Now put the right one in.",
+      "file": "shared/probe-correct--d3d647bc.mp3"
+    },
+    "probe-correct--trigger--v1": {
+      "text": "[warm] Right. So you can see why it wouldn't work here.",
+      "file": "shared/probe-correct--ce323351.mp3"
+    },
+    "probe-correct--trigger--v2": {
+      "text": "[warm] That's it. Go on and pick the one that fits.",
+      "file": "shared/probe-correct--e29bbaa3.mp3"
+    },
+    "probe-correct--trigger--v3": {
+      "text": "[warm] Ah, you've got it. Try the placement again.",
+      "file": "shared/probe-correct--769abdd3.mp3"
+    },
+    "probe-correct--trigger--v4": {
+      "text": "[calm] Correct. That's the thing to watch for next time.",
+      "file": "shared/probe-correct--dd3d43bb.mp3"
+    },
+    "probe-correct--trigger--v5": {
+      "text": "[warm] Yes. Now you know what this step actually needs.",
+      "file": "shared/probe-correct--efae4fbb.mp3"
+    },
+    "probe-correct--trigger--v6": {
+      "text": "[warm] Exactly right. Let's get the proper node in there.",
+      "file": "shared/probe-correct--485de88c.mp3"
+    },
+    "probe-correct--trigger--v7": {
+      "text": "[calm] That's the one. Back to the board.",
+      "file": "shared/probe-correct--be7deb2c.mp3"
+    },
+    "probe-correct--wait--v0": {
+      "text": "[warm] Yes, exactly that. Now put the right one in.",
+      "file": "shared/probe-correct--d3d647bc.mp3"
+    },
+    "probe-correct--wait--v1": {
+      "text": "[warm] Right. So you can see why it wouldn't work here.",
+      "file": "shared/probe-correct--ce323351.mp3"
+    },
+    "probe-correct--wait--v2": {
+      "text": "[warm] That's it. Go on and pick the one that fits.",
+      "file": "shared/probe-correct--e29bbaa3.mp3"
+    },
+    "probe-correct--wait--v3": {
+      "text": "[warm] Ah, you've got it. Try the placement again.",
+      "file": "shared/probe-correct--769abdd3.mp3"
+    },
+    "probe-correct--wait--v4": {
+      "text": "[calm] Correct. That's the thing to watch for next time.",
+      "file": "shared/probe-correct--dd3d43bb.mp3"
+    },
+    "probe-correct--wait--v5": {
+      "text": "[warm] Yes. Now you know what this step actually needs.",
+      "file": "shared/probe-correct--efae4fbb.mp3"
+    },
+    "probe-correct--wait--v6": {
+      "text": "[warm] Exactly right. Let's get the proper node in there.",
+      "file": "shared/probe-correct--485de88c.mp3"
+    },
+    "probe-correct--wait--v7": {
+      "text": "[calm] That's the one. Back to the board.",
+      "file": "shared/probe-correct--be7deb2c.mp3"
+    },
+    "probe-correct--web-search--v0": {
+      "text": "[warm] Yes, exactly that. Now put the right one in.",
+      "file": "shared/probe-correct--d3d647bc.mp3"
+    },
+    "probe-correct--web-search--v1": {
+      "text": "[warm] Right. So you can see why it wouldn't work here.",
+      "file": "shared/probe-correct--ce323351.mp3"
+    },
+    "probe-correct--web-search--v2": {
+      "text": "[warm] That's it. Go on and pick the one that fits.",
+      "file": "shared/probe-correct--e29bbaa3.mp3"
+    },
+    "probe-correct--web-search--v3": {
+      "text": "[warm] Ah, you've got it. Try the placement again.",
+      "file": "shared/probe-correct--769abdd3.mp3"
+    },
+    "probe-correct--web-search--v4": {
+      "text": "[calm] Correct. That's the thing to watch for next time.",
+      "file": "shared/probe-correct--dd3d43bb.mp3"
+    },
+    "probe-correct--web-search--v5": {
+      "text": "[warm] Yes. Now you know what this step actually needs.",
+      "file": "shared/probe-correct--efae4fbb.mp3"
+    },
+    "probe-correct--web-search--v6": {
+      "text": "[warm] Exactly right. Let's get the proper node in there.",
+      "file": "shared/probe-correct--485de88c.mp3"
+    },
+    "probe-correct--web-search--v7": {
+      "text": "[calm] That's the one. Back to the board.",
+      "file": "shared/probe-correct--be7deb2c.mp3"
+    },
+    "probe-correct--webhook--v0": {
+      "text": "[warm] Yes, exactly that. Now put the right one in.",
+      "file": "shared/probe-correct--d3d647bc.mp3"
+    },
+    "probe-correct--webhook--v1": {
+      "text": "[warm] Right. So you can see why it wouldn't work here.",
+      "file": "shared/probe-correct--ce323351.mp3"
+    },
+    "probe-correct--webhook--v2": {
+      "text": "[warm] That's it. Go on and pick the one that fits.",
+      "file": "shared/probe-correct--e29bbaa3.mp3"
+    },
+    "probe-correct--webhook--v3": {
+      "text": "[warm] Ah, you've got it. Try the placement again.",
+      "file": "shared/probe-correct--769abdd3.mp3"
+    },
+    "probe-correct--webhook--v4": {
+      "text": "[calm] Correct. That's the thing to watch for next time.",
+      "file": "shared/probe-correct--dd3d43bb.mp3"
+    },
+    "probe-correct--webhook--v5": {
+      "text": "[warm] Yes. Now you know what this step actually needs.",
+      "file": "shared/probe-correct--efae4fbb.mp3"
+    },
+    "probe-correct--webhook--v6": {
+      "text": "[warm] Exactly right. Let's get the proper node in there.",
+      "file": "shared/probe-correct--485de88c.mp3"
+    },
+    "probe-correct--webhook--v7": {
+      "text": "[calm] That's the one. Back to the board.",
+      "file": "shared/probe-correct--be7deb2c.mp3"
+    },
+    "probe-wrong--action--v0": {
+      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
+      "file": "shared/probe-wrong--4e8c0a2a.mp3"
+    },
+    "probe-wrong--action--v1": {
+      "text": "[calm] Hmm, no. Think about what that node actually produces.",
+      "file": "shared/probe-wrong--d330e69d.mp3"
+    },
+    "probe-wrong--action--v2": {
+      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
+      "file": "shared/probe-wrong--d1b6fbe1.mp3"
+    },
+    "probe-wrong--action--v3": {
+      "text": "[calm] Not quite. What would this step have to work with?",
+      "file": "shared/probe-wrong--38064f84.mp3"
+    },
+    "probe-wrong--action--v4": {
+      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
+      "file": "shared/probe-wrong--b6c81816.mp3"
+    },
+    "probe-wrong--action--v5": {
+      "text": "[calm] That isn't it. Try again, and take your time.",
+      "file": "shared/probe-wrong--6b23d200.mp3"
+    },
+    "probe-wrong--action--v6": {
+      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
+      "file": "shared/probe-wrong--62db845c.mp3"
+    },
+    "probe-wrong--action--v7": {
+      "text": "[calm] No. One of the others describes it properly.",
+      "file": "shared/probe-wrong--054fb738.mp3"
+    },
+    "probe-wrong--calendar-event--v0": {
+      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
+      "file": "shared/probe-wrong--4e8c0a2a.mp3"
+    },
+    "probe-wrong--calendar-event--v1": {
+      "text": "[calm] Hmm, no. Think about what that node actually produces.",
+      "file": "shared/probe-wrong--d330e69d.mp3"
+    },
+    "probe-wrong--calendar-event--v2": {
+      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
+      "file": "shared/probe-wrong--d1b6fbe1.mp3"
+    },
+    "probe-wrong--calendar-event--v3": {
+      "text": "[calm] Not quite. What would this step have to work with?",
+      "file": "shared/probe-wrong--38064f84.mp3"
+    },
+    "probe-wrong--calendar-event--v4": {
+      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
+      "file": "shared/probe-wrong--b6c81816.mp3"
+    },
+    "probe-wrong--calendar-event--v5": {
+      "text": "[calm] That isn't it. Try again, and take your time.",
+      "file": "shared/probe-wrong--6b23d200.mp3"
+    },
+    "probe-wrong--calendar-event--v6": {
+      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
+      "file": "shared/probe-wrong--62db845c.mp3"
+    },
+    "probe-wrong--calendar-event--v7": {
+      "text": "[calm] No. One of the others describes it properly.",
+      "file": "shared/probe-wrong--054fb738.mp3"
+    },
+    "probe-wrong--chat-trigger--v0": {
+      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
+      "file": "shared/probe-wrong--4e8c0a2a.mp3"
+    },
+    "probe-wrong--chat-trigger--v1": {
+      "text": "[calm] Hmm, no. Think about what that node actually produces.",
+      "file": "shared/probe-wrong--d330e69d.mp3"
+    },
+    "probe-wrong--chat-trigger--v2": {
+      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
+      "file": "shared/probe-wrong--d1b6fbe1.mp3"
+    },
+    "probe-wrong--chat-trigger--v3": {
+      "text": "[calm] Not quite. What would this step have to work with?",
+      "file": "shared/probe-wrong--38064f84.mp3"
+    },
+    "probe-wrong--chat-trigger--v4": {
+      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
+      "file": "shared/probe-wrong--b6c81816.mp3"
+    },
+    "probe-wrong--chat-trigger--v5": {
+      "text": "[calm] That isn't it. Try again, and take your time.",
+      "file": "shared/probe-wrong--6b23d200.mp3"
+    },
+    "probe-wrong--chat-trigger--v6": {
+      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
+      "file": "shared/probe-wrong--62db845c.mp3"
+    },
+    "probe-wrong--chat-trigger--v7": {
+      "text": "[calm] No. One of the others describes it properly.",
+      "file": "shared/probe-wrong--054fb738.mp3"
+    },
+    "probe-wrong--classify--v0": {
+      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
+      "file": "shared/probe-wrong--4e8c0a2a.mp3"
+    },
+    "probe-wrong--classify--v1": {
+      "text": "[calm] Hmm, no. Think about what that node actually produces.",
+      "file": "shared/probe-wrong--d330e69d.mp3"
+    },
+    "probe-wrong--classify--v2": {
+      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
+      "file": "shared/probe-wrong--d1b6fbe1.mp3"
+    },
+    "probe-wrong--classify--v3": {
+      "text": "[calm] Not quite. What would this step have to work with?",
+      "file": "shared/probe-wrong--38064f84.mp3"
+    },
+    "probe-wrong--classify--v4": {
+      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
+      "file": "shared/probe-wrong--b6c81816.mp3"
+    },
+    "probe-wrong--classify--v5": {
+      "text": "[calm] That isn't it. Try again, and take your time.",
+      "file": "shared/probe-wrong--6b23d200.mp3"
+    },
+    "probe-wrong--classify--v6": {
+      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
+      "file": "shared/probe-wrong--62db845c.mp3"
+    },
+    "probe-wrong--classify--v7": {
+      "text": "[calm] No. One of the others describes it properly.",
+      "file": "shared/probe-wrong--054fb738.mp3"
+    },
+    "probe-wrong--code--v0": {
+      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
+      "file": "shared/probe-wrong--4e8c0a2a.mp3"
+    },
+    "probe-wrong--code--v1": {
+      "text": "[calm] Hmm, no. Think about what that node actually produces.",
+      "file": "shared/probe-wrong--d330e69d.mp3"
+    },
+    "probe-wrong--code--v2": {
+      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
+      "file": "shared/probe-wrong--d1b6fbe1.mp3"
+    },
+    "probe-wrong--code--v3": {
+      "text": "[calm] Not quite. What would this step have to work with?",
+      "file": "shared/probe-wrong--38064f84.mp3"
+    },
+    "probe-wrong--code--v4": {
+      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
+      "file": "shared/probe-wrong--b6c81816.mp3"
+    },
+    "probe-wrong--code--v5": {
+      "text": "[calm] That isn't it. Try again, and take your time.",
+      "file": "shared/probe-wrong--6b23d200.mp3"
+    },
+    "probe-wrong--code--v6": {
+      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
+      "file": "shared/probe-wrong--62db845c.mp3"
+    },
+    "probe-wrong--code--v7": {
+      "text": "[calm] No. One of the others describes it properly.",
+      "file": "shared/probe-wrong--054fb738.mp3"
+    },
+    "probe-wrong--filter--v0": {
+      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
+      "file": "shared/probe-wrong--4e8c0a2a.mp3"
+    },
+    "probe-wrong--filter--v1": {
+      "text": "[calm] Hmm, no. Think about what that node actually produces.",
+      "file": "shared/probe-wrong--d330e69d.mp3"
+    },
+    "probe-wrong--filter--v2": {
+      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
+      "file": "shared/probe-wrong--d1b6fbe1.mp3"
+    },
+    "probe-wrong--filter--v3": {
+      "text": "[calm] Not quite. What would this step have to work with?",
+      "file": "shared/probe-wrong--38064f84.mp3"
+    },
+    "probe-wrong--filter--v4": {
+      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
+      "file": "shared/probe-wrong--b6c81816.mp3"
+    },
+    "probe-wrong--filter--v5": {
+      "text": "[calm] That isn't it. Try again, and take your time.",
+      "file": "shared/probe-wrong--6b23d200.mp3"
+    },
+    "probe-wrong--filter--v6": {
+      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
+      "file": "shared/probe-wrong--62db845c.mp3"
+    },
+    "probe-wrong--filter--v7": {
+      "text": "[calm] No. One of the others describes it properly.",
+      "file": "shared/probe-wrong--054fb738.mp3"
+    },
+    "probe-wrong--google-docs--v0": {
+      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
+      "file": "shared/probe-wrong--4e8c0a2a.mp3"
+    },
+    "probe-wrong--google-docs--v1": {
+      "text": "[calm] Hmm, no. Think about what that node actually produces.",
+      "file": "shared/probe-wrong--d330e69d.mp3"
+    },
+    "probe-wrong--google-docs--v2": {
+      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
+      "file": "shared/probe-wrong--d1b6fbe1.mp3"
+    },
+    "probe-wrong--google-docs--v3": {
+      "text": "[calm] Not quite. What would this step have to work with?",
+      "file": "shared/probe-wrong--38064f84.mp3"
+    },
+    "probe-wrong--google-docs--v4": {
+      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
+      "file": "shared/probe-wrong--b6c81816.mp3"
+    },
+    "probe-wrong--google-docs--v5": {
+      "text": "[calm] That isn't it. Try again, and take your time.",
+      "file": "shared/probe-wrong--6b23d200.mp3"
+    },
+    "probe-wrong--google-docs--v6": {
+      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
+      "file": "shared/probe-wrong--62db845c.mp3"
+    },
+    "probe-wrong--google-docs--v7": {
+      "text": "[calm] No. One of the others describes it properly.",
+      "file": "shared/probe-wrong--054fb738.mp3"
+    },
+    "probe-wrong--http-request--v0": {
+      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
+      "file": "shared/probe-wrong--4e8c0a2a.mp3"
+    },
+    "probe-wrong--http-request--v1": {
+      "text": "[calm] Hmm, no. Think about what that node actually produces.",
+      "file": "shared/probe-wrong--d330e69d.mp3"
+    },
+    "probe-wrong--http-request--v2": {
+      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
+      "file": "shared/probe-wrong--d1b6fbe1.mp3"
+    },
+    "probe-wrong--http-request--v3": {
+      "text": "[calm] Not quite. What would this step have to work with?",
+      "file": "shared/probe-wrong--38064f84.mp3"
+    },
+    "probe-wrong--http-request--v4": {
+      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
+      "file": "shared/probe-wrong--b6c81816.mp3"
+    },
+    "probe-wrong--http-request--v5": {
+      "text": "[calm] That isn't it. Try again, and take your time.",
+      "file": "shared/probe-wrong--6b23d200.mp3"
+    },
+    "probe-wrong--http-request--v6": {
+      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
+      "file": "shared/probe-wrong--62db845c.mp3"
+    },
+    "probe-wrong--http-request--v7": {
+      "text": "[calm] No. One of the others describes it properly.",
+      "file": "shared/probe-wrong--054fb738.mp3"
+    },
+    "probe-wrong--if--v0": {
+      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
+      "file": "shared/probe-wrong--4e8c0a2a.mp3"
+    },
+    "probe-wrong--if--v1": {
+      "text": "[calm] Hmm, no. Think about what that node actually produces.",
+      "file": "shared/probe-wrong--d330e69d.mp3"
+    },
+    "probe-wrong--if--v2": {
+      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
+      "file": "shared/probe-wrong--d1b6fbe1.mp3"
+    },
+    "probe-wrong--if--v3": {
+      "text": "[calm] Not quite. What would this step have to work with?",
+      "file": "shared/probe-wrong--38064f84.mp3"
+    },
+    "probe-wrong--if--v4": {
+      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
+      "file": "shared/probe-wrong--b6c81816.mp3"
+    },
+    "probe-wrong--if--v5": {
+      "text": "[calm] That isn't it. Try again, and take your time.",
+      "file": "shared/probe-wrong--6b23d200.mp3"
+    },
+    "probe-wrong--if--v6": {
+      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
+      "file": "shared/probe-wrong--62db845c.mp3"
+    },
+    "probe-wrong--if--v7": {
+      "text": "[calm] No. One of the others describes it properly.",
+      "file": "shared/probe-wrong--054fb738.mp3"
+    },
+    "probe-wrong--manual--v0": {
+      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
+      "file": "shared/probe-wrong--4e8c0a2a.mp3"
+    },
+    "probe-wrong--manual--v1": {
+      "text": "[calm] Hmm, no. Think about what that node actually produces.",
+      "file": "shared/probe-wrong--d330e69d.mp3"
+    },
+    "probe-wrong--manual--v2": {
+      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
+      "file": "shared/probe-wrong--d1b6fbe1.mp3"
+    },
+    "probe-wrong--manual--v3": {
+      "text": "[calm] Not quite. What would this step have to work with?",
+      "file": "shared/probe-wrong--38064f84.mp3"
+    },
+    "probe-wrong--manual--v4": {
+      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
+      "file": "shared/probe-wrong--b6c81816.mp3"
+    },
+    "probe-wrong--manual--v5": {
+      "text": "[calm] That isn't it. Try again, and take your time.",
+      "file": "shared/probe-wrong--6b23d200.mp3"
+    },
+    "probe-wrong--manual--v6": {
+      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
+      "file": "shared/probe-wrong--62db845c.mp3"
+    },
+    "probe-wrong--manual--v7": {
+      "text": "[calm] No. One of the others describes it properly.",
+      "file": "shared/probe-wrong--054fb738.mp3"
+    },
+    "probe-wrong--merge--v0": {
+      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
+      "file": "shared/probe-wrong--4e8c0a2a.mp3"
+    },
+    "probe-wrong--merge--v1": {
+      "text": "[calm] Hmm, no. Think about what that node actually produces.",
+      "file": "shared/probe-wrong--d330e69d.mp3"
+    },
+    "probe-wrong--merge--v2": {
+      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
+      "file": "shared/probe-wrong--d1b6fbe1.mp3"
+    },
+    "probe-wrong--merge--v3": {
+      "text": "[calm] Not quite. What would this step have to work with?",
+      "file": "shared/probe-wrong--38064f84.mp3"
+    },
+    "probe-wrong--merge--v4": {
+      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
+      "file": "shared/probe-wrong--b6c81816.mp3"
+    },
+    "probe-wrong--merge--v5": {
+      "text": "[calm] That isn't it. Try again, and take your time.",
+      "file": "shared/probe-wrong--6b23d200.mp3"
+    },
+    "probe-wrong--merge--v6": {
+      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
+      "file": "shared/probe-wrong--62db845c.mp3"
+    },
+    "probe-wrong--merge--v7": {
+      "text": "[calm] No. One of the others describes it properly.",
+      "file": "shared/probe-wrong--054fb738.mp3"
+    },
+    "probe-wrong--notion-page--v0": {
+      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
+      "file": "shared/probe-wrong--4e8c0a2a.mp3"
+    },
+    "probe-wrong--notion-page--v1": {
+      "text": "[calm] Hmm, no. Think about what that node actually produces.",
+      "file": "shared/probe-wrong--d330e69d.mp3"
+    },
+    "probe-wrong--notion-page--v2": {
+      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
+      "file": "shared/probe-wrong--d1b6fbe1.mp3"
+    },
+    "probe-wrong--notion-page--v3": {
+      "text": "[calm] Not quite. What would this step have to work with?",
+      "file": "shared/probe-wrong--38064f84.mp3"
+    },
+    "probe-wrong--notion-page--v4": {
+      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
+      "file": "shared/probe-wrong--b6c81816.mp3"
+    },
+    "probe-wrong--notion-page--v5": {
+      "text": "[calm] That isn't it. Try again, and take your time.",
+      "file": "shared/probe-wrong--6b23d200.mp3"
+    },
+    "probe-wrong--notion-page--v6": {
+      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
+      "file": "shared/probe-wrong--62db845c.mp3"
+    },
+    "probe-wrong--notion-page--v7": {
+      "text": "[calm] No. One of the others describes it properly.",
+      "file": "shared/probe-wrong--054fb738.mp3"
+    },
+    "probe-wrong--parse--v0": {
+      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
+      "file": "shared/probe-wrong--4e8c0a2a.mp3"
+    },
+    "probe-wrong--parse--v1": {
+      "text": "[calm] Hmm, no. Think about what that node actually produces.",
+      "file": "shared/probe-wrong--d330e69d.mp3"
+    },
+    "probe-wrong--parse--v2": {
+      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
+      "file": "shared/probe-wrong--d1b6fbe1.mp3"
+    },
+    "probe-wrong--parse--v3": {
+      "text": "[calm] Not quite. What would this step have to work with?",
+      "file": "shared/probe-wrong--38064f84.mp3"
+    },
+    "probe-wrong--parse--v4": {
+      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
+      "file": "shared/probe-wrong--b6c81816.mp3"
+    },
+    "probe-wrong--parse--v5": {
+      "text": "[calm] That isn't it. Try again, and take your time.",
+      "file": "shared/probe-wrong--6b23d200.mp3"
+    },
+    "probe-wrong--parse--v6": {
+      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
+      "file": "shared/probe-wrong--62db845c.mp3"
+    },
+    "probe-wrong--parse--v7": {
+      "text": "[calm] No. One of the others describes it properly.",
+      "file": "shared/probe-wrong--054fb738.mp3"
+    },
+    "probe-wrong--remove-duplicates--v0": {
+      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
+      "file": "shared/probe-wrong--4e8c0a2a.mp3"
+    },
+    "probe-wrong--remove-duplicates--v1": {
+      "text": "[calm] Hmm, no. Think about what that node actually produces.",
+      "file": "shared/probe-wrong--d330e69d.mp3"
+    },
+    "probe-wrong--remove-duplicates--v2": {
+      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
+      "file": "shared/probe-wrong--d1b6fbe1.mp3"
+    },
+    "probe-wrong--remove-duplicates--v3": {
+      "text": "[calm] Not quite. What would this step have to work with?",
+      "file": "shared/probe-wrong--38064f84.mp3"
+    },
+    "probe-wrong--remove-duplicates--v4": {
+      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
+      "file": "shared/probe-wrong--b6c81816.mp3"
+    },
+    "probe-wrong--remove-duplicates--v5": {
+      "text": "[calm] That isn't it. Try again, and take your time.",
+      "file": "shared/probe-wrong--6b23d200.mp3"
+    },
+    "probe-wrong--remove-duplicates--v6": {
+      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
+      "file": "shared/probe-wrong--62db845c.mp3"
+    },
+    "probe-wrong--remove-duplicates--v7": {
+      "text": "[calm] No. One of the others describes it properly.",
+      "file": "shared/probe-wrong--054fb738.mp3"
+    },
+    "probe-wrong--schedule--v0": {
+      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
+      "file": "shared/probe-wrong--4e8c0a2a.mp3"
+    },
+    "probe-wrong--schedule--v1": {
+      "text": "[calm] Hmm, no. Think about what that node actually produces.",
+      "file": "shared/probe-wrong--d330e69d.mp3"
+    },
+    "probe-wrong--schedule--v2": {
+      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
+      "file": "shared/probe-wrong--d1b6fbe1.mp3"
+    },
+    "probe-wrong--schedule--v3": {
+      "text": "[calm] Not quite. What would this step have to work with?",
+      "file": "shared/probe-wrong--38064f84.mp3"
+    },
+    "probe-wrong--schedule--v4": {
+      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
+      "file": "shared/probe-wrong--b6c81816.mp3"
+    },
+    "probe-wrong--schedule--v5": {
+      "text": "[calm] That isn't it. Try again, and take your time.",
+      "file": "shared/probe-wrong--6b23d200.mp3"
+    },
+    "probe-wrong--schedule--v6": {
+      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
+      "file": "shared/probe-wrong--62db845c.mp3"
+    },
+    "probe-wrong--schedule--v7": {
+      "text": "[calm] No. One of the others describes it properly.",
+      "file": "shared/probe-wrong--054fb738.mp3"
+    },
+    "probe-wrong--slack-message--v0": {
+      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
+      "file": "shared/probe-wrong--4e8c0a2a.mp3"
+    },
+    "probe-wrong--slack-message--v1": {
+      "text": "[calm] Hmm, no. Think about what that node actually produces.",
+      "file": "shared/probe-wrong--d330e69d.mp3"
+    },
+    "probe-wrong--slack-message--v2": {
+      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
+      "file": "shared/probe-wrong--d1b6fbe1.mp3"
+    },
+    "probe-wrong--slack-message--v3": {
+      "text": "[calm] Not quite. What would this step have to work with?",
+      "file": "shared/probe-wrong--38064f84.mp3"
+    },
+    "probe-wrong--slack-message--v4": {
+      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
+      "file": "shared/probe-wrong--b6c81816.mp3"
+    },
+    "probe-wrong--slack-message--v5": {
+      "text": "[calm] That isn't it. Try again, and take your time.",
+      "file": "shared/probe-wrong--6b23d200.mp3"
+    },
+    "probe-wrong--slack-message--v6": {
+      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
+      "file": "shared/probe-wrong--62db845c.mp3"
+    },
+    "probe-wrong--slack-message--v7": {
+      "text": "[calm] No. One of the others describes it properly.",
+      "file": "shared/probe-wrong--054fb738.mp3"
+    },
+    "probe-wrong--summarize--v0": {
+      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
+      "file": "shared/probe-wrong--4e8c0a2a.mp3"
+    },
+    "probe-wrong--summarize--v1": {
+      "text": "[calm] Hmm, no. Think about what that node actually produces.",
+      "file": "shared/probe-wrong--d330e69d.mp3"
+    },
+    "probe-wrong--summarize--v2": {
+      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
+      "file": "shared/probe-wrong--d1b6fbe1.mp3"
+    },
+    "probe-wrong--summarize--v3": {
+      "text": "[calm] Not quite. What would this step have to work with?",
+      "file": "shared/probe-wrong--38064f84.mp3"
+    },
+    "probe-wrong--summarize--v4": {
+      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
+      "file": "shared/probe-wrong--b6c81816.mp3"
+    },
+    "probe-wrong--summarize--v5": {
+      "text": "[calm] That isn't it. Try again, and take your time.",
+      "file": "shared/probe-wrong--6b23d200.mp3"
+    },
+    "probe-wrong--summarize--v6": {
+      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
+      "file": "shared/probe-wrong--62db845c.mp3"
+    },
+    "probe-wrong--summarize--v7": {
+      "text": "[calm] No. One of the others describes it properly.",
+      "file": "shared/probe-wrong--054fb738.mp3"
+    },
+    "probe-wrong--switch--v0": {
+      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
+      "file": "shared/probe-wrong--4e8c0a2a.mp3"
+    },
+    "probe-wrong--switch--v1": {
+      "text": "[calm] Hmm, no. Think about what that node actually produces.",
+      "file": "shared/probe-wrong--d330e69d.mp3"
+    },
+    "probe-wrong--switch--v2": {
+      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
+      "file": "shared/probe-wrong--d1b6fbe1.mp3"
+    },
+    "probe-wrong--switch--v3": {
+      "text": "[calm] Not quite. What would this step have to work with?",
+      "file": "shared/probe-wrong--38064f84.mp3"
+    },
+    "probe-wrong--switch--v4": {
+      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
+      "file": "shared/probe-wrong--b6c81816.mp3"
+    },
+    "probe-wrong--switch--v5": {
+      "text": "[calm] That isn't it. Try again, and take your time.",
+      "file": "shared/probe-wrong--6b23d200.mp3"
+    },
+    "probe-wrong--switch--v6": {
+      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
+      "file": "shared/probe-wrong--62db845c.mp3"
+    },
+    "probe-wrong--switch--v7": {
+      "text": "[calm] No. One of the others describes it properly.",
+      "file": "shared/probe-wrong--054fb738.mp3"
+    },
+    "probe-wrong--trigger--v0": {
+      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
+      "file": "shared/probe-wrong--4e8c0a2a.mp3"
+    },
+    "probe-wrong--trigger--v1": {
+      "text": "[calm] Hmm, no. Think about what that node actually produces.",
+      "file": "shared/probe-wrong--d330e69d.mp3"
+    },
+    "probe-wrong--trigger--v2": {
+      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
+      "file": "shared/probe-wrong--d1b6fbe1.mp3"
+    },
+    "probe-wrong--trigger--v3": {
+      "text": "[calm] Not quite. What would this step have to work with?",
+      "file": "shared/probe-wrong--38064f84.mp3"
+    },
+    "probe-wrong--trigger--v4": {
+      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
+      "file": "shared/probe-wrong--b6c81816.mp3"
+    },
+    "probe-wrong--trigger--v5": {
+      "text": "[calm] That isn't it. Try again, and take your time.",
+      "file": "shared/probe-wrong--6b23d200.mp3"
+    },
+    "probe-wrong--trigger--v6": {
+      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
+      "file": "shared/probe-wrong--62db845c.mp3"
+    },
+    "probe-wrong--trigger--v7": {
+      "text": "[calm] No. One of the others describes it properly.",
+      "file": "shared/probe-wrong--054fb738.mp3"
+    },
+    "probe-wrong--wait--v0": {
+      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
+      "file": "shared/probe-wrong--4e8c0a2a.mp3"
+    },
+    "probe-wrong--wait--v1": {
+      "text": "[calm] Hmm, no. Think about what that node actually produces.",
+      "file": "shared/probe-wrong--d330e69d.mp3"
+    },
+    "probe-wrong--wait--v2": {
+      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
+      "file": "shared/probe-wrong--d1b6fbe1.mp3"
+    },
+    "probe-wrong--wait--v3": {
+      "text": "[calm] Not quite. What would this step have to work with?",
+      "file": "shared/probe-wrong--38064f84.mp3"
+    },
+    "probe-wrong--wait--v4": {
+      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
+      "file": "shared/probe-wrong--b6c81816.mp3"
+    },
+    "probe-wrong--wait--v5": {
+      "text": "[calm] That isn't it. Try again, and take your time.",
+      "file": "shared/probe-wrong--6b23d200.mp3"
+    },
+    "probe-wrong--wait--v6": {
+      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
+      "file": "shared/probe-wrong--62db845c.mp3"
+    },
+    "probe-wrong--wait--v7": {
+      "text": "[calm] No. One of the others describes it properly.",
+      "file": "shared/probe-wrong--054fb738.mp3"
+    },
+    "probe-wrong--web-search--v0": {
+      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
+      "file": "shared/probe-wrong--4e8c0a2a.mp3"
+    },
+    "probe-wrong--web-search--v1": {
+      "text": "[calm] Hmm, no. Think about what that node actually produces.",
+      "file": "shared/probe-wrong--d330e69d.mp3"
+    },
+    "probe-wrong--web-search--v2": {
+      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
+      "file": "shared/probe-wrong--d1b6fbe1.mp3"
+    },
+    "probe-wrong--web-search--v3": {
+      "text": "[calm] Not quite. What would this step have to work with?",
+      "file": "shared/probe-wrong--38064f84.mp3"
+    },
+    "probe-wrong--web-search--v4": {
+      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
+      "file": "shared/probe-wrong--b6c81816.mp3"
+    },
+    "probe-wrong--web-search--v5": {
+      "text": "[calm] That isn't it. Try again, and take your time.",
+      "file": "shared/probe-wrong--6b23d200.mp3"
+    },
+    "probe-wrong--web-search--v6": {
+      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
+      "file": "shared/probe-wrong--62db845c.mp3"
+    },
+    "probe-wrong--web-search--v7": {
+      "text": "[calm] No. One of the others describes it properly.",
+      "file": "shared/probe-wrong--054fb738.mp3"
+    },
+    "probe-wrong--webhook--v0": {
+      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
+      "file": "shared/probe-wrong--4e8c0a2a.mp3"
+    },
+    "probe-wrong--webhook--v1": {
+      "text": "[calm] Hmm, no. Think about what that node actually produces.",
+      "file": "shared/probe-wrong--d330e69d.mp3"
+    },
+    "probe-wrong--webhook--v2": {
+      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
+      "file": "shared/probe-wrong--d1b6fbe1.mp3"
+    },
+    "probe-wrong--webhook--v3": {
+      "text": "[calm] Not quite. What would this step have to work with?",
+      "file": "shared/probe-wrong--38064f84.mp3"
+    },
+    "probe-wrong--webhook--v4": {
+      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
+      "file": "shared/probe-wrong--b6c81816.mp3"
+    },
+    "probe-wrong--webhook--v5": {
+      "text": "[calm] That isn't it. Try again, and take your time.",
+      "file": "shared/probe-wrong--6b23d200.mp3"
+    },
+    "probe-wrong--webhook--v6": {
+      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
+      "file": "shared/probe-wrong--62db845c.mp3"
+    },
+    "probe-wrong--webhook--v7": {
+      "text": "[calm] No. One of the others describes it properly.",
+      "file": "shared/probe-wrong--054fb738.mp3"
+    },
     "problem-intro--v0": {
       "text": "[calm] Okay, let's get started. Here's today's problem. Read it through once and get the shape of it.",
       "file": "shared/problem-intro--6dc0a0fd.mp3"
@@ -467,9 +2751,265 @@
       "text": "[calm] Watch what happens to each one as it goes through.",
       "file": "shared/run-start--b3bd7fb4.mp3"
     },
+    "stress-correct--dedupe-field--v0": {
+      "text": "[warm] Yes, that's the one.",
+      "file": "shared/stress-correct--2abf3ab6.mp3"
+    },
+    "stress-correct--dedupe-field--v1": {
+      "text": "[warm] Right. You've thought that through.",
+      "file": "shared/stress-correct--250c25f6.mp3"
+    },
+    "stress-correct--dedupe-field--v2": {
+      "text": "[warm] Exactly. That's what would happen.",
+      "file": "shared/stress-correct--fe3af405.mp3"
+    },
+    "stress-correct--dedupe-field--v3": {
+      "text": "[calm] Correct. Read why, then carry on.",
+      "file": "shared/stress-correct--a1c37bb2.mp3"
+    },
+    "stress-correct--dedupe-field--v4": {
+      "text": "[warm] Ah, good. That's it.",
+      "file": "shared/stress-correct--15f1fa1d.mp3"
+    },
+    "stress-correct--dedupe-field--v5": {
+      "text": "[warm] Yes. You can see how it behaves now.",
+      "file": "shared/stress-correct--c75a90d6.mp3"
+    },
+    "stress-correct--dedupe-field--v6": {
+      "text": "[calm] That's right. Have a read of the reason.",
+      "file": "shared/stress-correct--17c32256.mp3"
+    },
+    "stress-correct--dedupe-field--v7": {
+      "text": "[warm] Got it in one.",
+      "file": "shared/stress-correct--34665bf6.mp3"
+    },
+    "stress-correct--on-error-differs--v0": {
+      "text": "[warm] Yes, that's the one.",
+      "file": "shared/stress-correct--2abf3ab6.mp3"
+    },
+    "stress-correct--on-error-differs--v1": {
+      "text": "[warm] Right. You've thought that through.",
+      "file": "shared/stress-correct--250c25f6.mp3"
+    },
+    "stress-correct--on-error-differs--v2": {
+      "text": "[warm] Exactly. That's what would happen.",
+      "file": "shared/stress-correct--fe3af405.mp3"
+    },
+    "stress-correct--on-error-differs--v3": {
+      "text": "[calm] Correct. Read why, then carry on.",
+      "file": "shared/stress-correct--a1c37bb2.mp3"
+    },
+    "stress-correct--on-error-differs--v4": {
+      "text": "[warm] Ah, good. That's it.",
+      "file": "shared/stress-correct--15f1fa1d.mp3"
+    },
+    "stress-correct--on-error-differs--v5": {
+      "text": "[warm] Yes. You can see how it behaves now.",
+      "file": "shared/stress-correct--c75a90d6.mp3"
+    },
+    "stress-correct--on-error-differs--v6": {
+      "text": "[calm] That's right. Have a read of the reason.",
+      "file": "shared/stress-correct--17c32256.mp3"
+    },
+    "stress-correct--on-error-differs--v7": {
+      "text": "[warm] Got it in one.",
+      "file": "shared/stress-correct--34665bf6.mp3"
+    },
+    "stress-correct--partnership-gap--v0": {
+      "text": "[warm] Yes, that's the one.",
+      "file": "shared/stress-correct--2abf3ab6.mp3"
+    },
+    "stress-correct--partnership-gap--v1": {
+      "text": "[warm] Right. You've thought that through.",
+      "file": "shared/stress-correct--250c25f6.mp3"
+    },
+    "stress-correct--partnership-gap--v2": {
+      "text": "[warm] Exactly. That's what would happen.",
+      "file": "shared/stress-correct--fe3af405.mp3"
+    },
+    "stress-correct--partnership-gap--v3": {
+      "text": "[calm] Correct. Read why, then carry on.",
+      "file": "shared/stress-correct--a1c37bb2.mp3"
+    },
+    "stress-correct--partnership-gap--v4": {
+      "text": "[warm] Ah, good. That's it.",
+      "file": "shared/stress-correct--15f1fa1d.mp3"
+    },
+    "stress-correct--partnership-gap--v5": {
+      "text": "[warm] Yes. You can see how it behaves now.",
+      "file": "shared/stress-correct--c75a90d6.mp3"
+    },
+    "stress-correct--partnership-gap--v6": {
+      "text": "[calm] That's right. Have a read of the reason.",
+      "file": "shared/stress-correct--17c32256.mp3"
+    },
+    "stress-correct--partnership-gap--v7": {
+      "text": "[warm] Got it in one.",
+      "file": "shared/stress-correct--34665bf6.mp3"
+    },
+    "stress-correct--retry-vs-error--v0": {
+      "text": "[warm] Yes, that's the one.",
+      "file": "shared/stress-correct--2abf3ab6.mp3"
+    },
+    "stress-correct--retry-vs-error--v1": {
+      "text": "[warm] Right. You've thought that through.",
+      "file": "shared/stress-correct--250c25f6.mp3"
+    },
+    "stress-correct--retry-vs-error--v2": {
+      "text": "[warm] Exactly. That's what would happen.",
+      "file": "shared/stress-correct--fe3af405.mp3"
+    },
+    "stress-correct--retry-vs-error--v3": {
+      "text": "[calm] Correct. Read why, then carry on.",
+      "file": "shared/stress-correct--a1c37bb2.mp3"
+    },
+    "stress-correct--retry-vs-error--v4": {
+      "text": "[warm] Ah, good. That's it.",
+      "file": "shared/stress-correct--15f1fa1d.mp3"
+    },
+    "stress-correct--retry-vs-error--v5": {
+      "text": "[warm] Yes. You can see how it behaves now.",
+      "file": "shared/stress-correct--c75a90d6.mp3"
+    },
+    "stress-correct--retry-vs-error--v6": {
+      "text": "[calm] That's right. Have a read of the reason.",
+      "file": "shared/stress-correct--17c32256.mp3"
+    },
+    "stress-correct--retry-vs-error--v7": {
+      "text": "[warm] Got it in one.",
+      "file": "shared/stress-correct--34665bf6.mp3"
+    },
     "stress-start--v0": {
       "text": "[calm] Now the interesting part. What does it do with an email you never planned for?",
       "file": "order-desk/stress-start--d20a5b75.mp3"
+    },
+    "stress-wrong--dedupe-field--v0": {
+      "text": "[thoughtful] Hmm, not that one. Read what actually happens.",
+      "file": "shared/stress-wrong--bbd74376.mp3"
+    },
+    "stress-wrong--dedupe-field--v1": {
+      "text": "[calm] No. Have a read of why, it's worth knowing.",
+      "file": "shared/stress-wrong--870b4dee.mp3"
+    },
+    "stress-wrong--dedupe-field--v2": {
+      "text": "[thoughtful] Ah, that's the trap. Read the explanation.",
+      "file": "shared/stress-wrong--9a249e2f.mp3"
+    },
+    "stress-wrong--dedupe-field--v3": {
+      "text": "[calm] Not quite. This one catches most people.",
+      "file": "shared/stress-wrong--c3c7c91e.mp3"
+    },
+    "stress-wrong--dedupe-field--v4": {
+      "text": "[thoughtful] Hmm. Read what really happens there.",
+      "file": "shared/stress-wrong--8b6fd747.mp3"
+    },
+    "stress-wrong--dedupe-field--v5": {
+      "text": "[calm] That isn't it. The reason underneath is the useful part.",
+      "file": "shared/stress-wrong--fe5019e4.mp3"
+    },
+    "stress-wrong--dedupe-field--v6": {
+      "text": "[thoughtful] No, but it's a fair guess. Read on.",
+      "file": "shared/stress-wrong--ad2d032d.mp3"
+    },
+    "stress-wrong--dedupe-field--v7": {
+      "text": "[calm] Wrong one. Worth understanding why.",
+      "file": "shared/stress-wrong--945d71b7.mp3"
+    },
+    "stress-wrong--on-error-differs--v0": {
+      "text": "[thoughtful] Hmm, not that one. Read what actually happens.",
+      "file": "shared/stress-wrong--bbd74376.mp3"
+    },
+    "stress-wrong--on-error-differs--v1": {
+      "text": "[calm] No. Have a read of why, it's worth knowing.",
+      "file": "shared/stress-wrong--870b4dee.mp3"
+    },
+    "stress-wrong--on-error-differs--v2": {
+      "text": "[thoughtful] Ah, that's the trap. Read the explanation.",
+      "file": "shared/stress-wrong--9a249e2f.mp3"
+    },
+    "stress-wrong--on-error-differs--v3": {
+      "text": "[calm] Not quite. This one catches most people.",
+      "file": "shared/stress-wrong--c3c7c91e.mp3"
+    },
+    "stress-wrong--on-error-differs--v4": {
+      "text": "[thoughtful] Hmm. Read what really happens there.",
+      "file": "shared/stress-wrong--8b6fd747.mp3"
+    },
+    "stress-wrong--on-error-differs--v5": {
+      "text": "[calm] That isn't it. The reason underneath is the useful part.",
+      "file": "shared/stress-wrong--fe5019e4.mp3"
+    },
+    "stress-wrong--on-error-differs--v6": {
+      "text": "[thoughtful] No, but it's a fair guess. Read on.",
+      "file": "shared/stress-wrong--ad2d032d.mp3"
+    },
+    "stress-wrong--on-error-differs--v7": {
+      "text": "[calm] Wrong one. Worth understanding why.",
+      "file": "shared/stress-wrong--945d71b7.mp3"
+    },
+    "stress-wrong--partnership-gap--v0": {
+      "text": "[thoughtful] Hmm, not that one. Read what actually happens.",
+      "file": "shared/stress-wrong--bbd74376.mp3"
+    },
+    "stress-wrong--partnership-gap--v1": {
+      "text": "[calm] No. Have a read of why, it's worth knowing.",
+      "file": "shared/stress-wrong--870b4dee.mp3"
+    },
+    "stress-wrong--partnership-gap--v2": {
+      "text": "[thoughtful] Ah, that's the trap. Read the explanation.",
+      "file": "shared/stress-wrong--9a249e2f.mp3"
+    },
+    "stress-wrong--partnership-gap--v3": {
+      "text": "[calm] Not quite. This one catches most people.",
+      "file": "shared/stress-wrong--c3c7c91e.mp3"
+    },
+    "stress-wrong--partnership-gap--v4": {
+      "text": "[thoughtful] Hmm. Read what really happens there.",
+      "file": "shared/stress-wrong--8b6fd747.mp3"
+    },
+    "stress-wrong--partnership-gap--v5": {
+      "text": "[calm] That isn't it. The reason underneath is the useful part.",
+      "file": "shared/stress-wrong--fe5019e4.mp3"
+    },
+    "stress-wrong--partnership-gap--v6": {
+      "text": "[thoughtful] No, but it's a fair guess. Read on.",
+      "file": "shared/stress-wrong--ad2d032d.mp3"
+    },
+    "stress-wrong--partnership-gap--v7": {
+      "text": "[calm] Wrong one. Worth understanding why.",
+      "file": "shared/stress-wrong--945d71b7.mp3"
+    },
+    "stress-wrong--retry-vs-error--v0": {
+      "text": "[thoughtful] Hmm, not that one. Read what actually happens.",
+      "file": "shared/stress-wrong--bbd74376.mp3"
+    },
+    "stress-wrong--retry-vs-error--v1": {
+      "text": "[calm] No. Have a read of why, it's worth knowing.",
+      "file": "shared/stress-wrong--870b4dee.mp3"
+    },
+    "stress-wrong--retry-vs-error--v2": {
+      "text": "[thoughtful] Ah, that's the trap. Read the explanation.",
+      "file": "shared/stress-wrong--9a249e2f.mp3"
+    },
+    "stress-wrong--retry-vs-error--v3": {
+      "text": "[calm] Not quite. This one catches most people.",
+      "file": "shared/stress-wrong--c3c7c91e.mp3"
+    },
+    "stress-wrong--retry-vs-error--v4": {
+      "text": "[thoughtful] Hmm. Read what really happens there.",
+      "file": "shared/stress-wrong--8b6fd747.mp3"
+    },
+    "stress-wrong--retry-vs-error--v5": {
+      "text": "[calm] That isn't it. The reason underneath is the useful part.",
+      "file": "shared/stress-wrong--fe5019e4.mp3"
+    },
+    "stress-wrong--retry-vs-error--v6": {
+      "text": "[thoughtful] No, but it's a fair guess. Read on.",
+      "file": "shared/stress-wrong--ad2d032d.mp3"
+    },
+    "stress-wrong--retry-vs-error--v7": {
+      "text": "[calm] Wrong one. Worth understanding why.",
+      "file": "shared/stress-wrong--945d71b7.mp3"
     },
     "understand-done--v0": {
       "text": "[excited] You've got the shape of it! [pause] Now for the fun part. We build it.",
@@ -491,6 +3031,38 @@
       "text": "[calm] Hmm, something in Send Reply's off. Have a look at what's in red.",
       "file": "shared/verify-fail--5af3d524.mp3"
     },
+    "verify-fail--action--send-reply--v2": {
+      "text": "[calm] Not there yet. The field I've marked in Send Reply needs another look.",
+      "file": "shared/verify-fail--757dd888.mp3"
+    },
+    "verify-fail--action--send-reply--v3": {
+      "text": "[thoughtful] Hmm. One of these isn't what Send Reply needs. Check the red one.",
+      "file": "shared/verify-fail--c788f438.mp3"
+    },
+    "verify-fail--action--send-reply--v4": {
+      "text": "[calm] Close. Read the marked field in Send Reply again.",
+      "file": "shared/verify-fail--09c282a3.mp3"
+    },
+    "verify-fail--action--send-reply--v5": {
+      "text": "[thoughtful] Ah, not quite. Look at what you've put in Send Reply's red field.",
+      "file": "shared/verify-fail--e0f22ad7.mp3"
+    },
+    "verify-fail--action--send-reply--v6": {
+      "text": "[calm] Send Reply's not happy with one of those. The marked one.",
+      "file": "shared/verify-fail--23401615.mp3"
+    },
+    "verify-fail--action--send-reply--v7": {
+      "text": "[calm] Something's off in Send Reply. Check the field I've flagged and try again.",
+      "file": "shared/verify-fail--4f5156d0.mp3"
+    },
+    "verify-fail--action--send-reply--v8": {
+      "text": "[thoughtful] Hmm, no. Have another think about the red field in Send Reply.",
+      "file": "shared/verify-fail--95c67120.mp3"
+    },
+    "verify-fail--action--send-reply--v9": {
+      "text": "[calm] Nearly. One field in Send Reply still needs fixing.",
+      "file": "shared/verify-fail--846b44a8.mp3"
+    },
     "verify-fail--calendar-event--google-calendar-create-event--v0": {
       "text": "[calm] Hmm, Google Calendar — Create Event isn't right yet. Check the field I marked.",
       "file": "shared/verify-fail--275d7c9e.mp3"
@@ -498,6 +3070,38 @@
     "verify-fail--calendar-event--google-calendar-create-event--v1": {
       "text": "[calm] Hmm, something in Google Calendar — Create Event's off. Have a look at what's in red.",
       "file": "shared/verify-fail--e67cd4c7.mp3"
+    },
+    "verify-fail--calendar-event--google-calendar-create-event--v2": {
+      "text": "[calm] Not there yet. The field I've marked in Google Calendar — Create Event needs another look.",
+      "file": "shared/verify-fail--c52d9d13.mp3"
+    },
+    "verify-fail--calendar-event--google-calendar-create-event--v3": {
+      "text": "[thoughtful] Hmm. One of these isn't what Google Calendar — Create Event needs. Check the red one.",
+      "file": "shared/verify-fail--30448a26.mp3"
+    },
+    "verify-fail--calendar-event--google-calendar-create-event--v4": {
+      "text": "[calm] Close. Read the marked field in Google Calendar — Create Event again.",
+      "file": "shared/verify-fail--0aaf9a46.mp3"
+    },
+    "verify-fail--calendar-event--google-calendar-create-event--v5": {
+      "text": "[thoughtful] Ah, not quite. Look at what you've put in Google Calendar — Create Event's red field.",
+      "file": "shared/verify-fail--0c490c70.mp3"
+    },
+    "verify-fail--calendar-event--google-calendar-create-event--v6": {
+      "text": "[calm] Google Calendar — Create Event's not happy with one of those. The marked one.",
+      "file": "shared/verify-fail--c6ed803a.mp3"
+    },
+    "verify-fail--calendar-event--google-calendar-create-event--v7": {
+      "text": "[calm] Something's off in Google Calendar — Create Event. Check the field I've flagged and try again.",
+      "file": "shared/verify-fail--e3514450.mp3"
+    },
+    "verify-fail--calendar-event--google-calendar-create-event--v8": {
+      "text": "[thoughtful] Hmm, no. Have another think about the red field in Google Calendar — Create Event.",
+      "file": "shared/verify-fail--d5623470.mp3"
+    },
+    "verify-fail--calendar-event--google-calendar-create-event--v9": {
+      "text": "[calm] Nearly. One field in Google Calendar — Create Event still needs fixing.",
+      "file": "shared/verify-fail--5862444c.mp3"
     },
     "verify-fail--chat-gemini--v0": {
       "text": "[calm] Not yet. Should the same email always get the same answer?",
@@ -515,6 +3119,38 @@
       "text": "[calm] Hmm, something in Code's off. Have a look at what's in red.",
       "file": "shared/verify-fail--66c9f187.mp3"
     },
+    "verify-fail--code--code--v2": {
+      "text": "[calm] Not there yet. The field I've marked in Code needs another look.",
+      "file": "shared/verify-fail--cb354e72.mp3"
+    },
+    "verify-fail--code--code--v3": {
+      "text": "[thoughtful] Hmm. One of these isn't what Code needs. Check the red one.",
+      "file": "shared/verify-fail--18a87e50.mp3"
+    },
+    "verify-fail--code--code--v4": {
+      "text": "[calm] Close. Read the marked field in Code again.",
+      "file": "shared/verify-fail--31e6b570.mp3"
+    },
+    "verify-fail--code--code--v5": {
+      "text": "[thoughtful] Ah, not quite. Look at what you've put in Code's red field.",
+      "file": "shared/verify-fail--4e16ca08.mp3"
+    },
+    "verify-fail--code--code--v6": {
+      "text": "[calm] Code's not happy with one of those. The marked one.",
+      "file": "shared/verify-fail--3995b4cf.mp3"
+    },
+    "verify-fail--code--code--v7": {
+      "text": "[calm] Something's off in Code. Check the field I've flagged and try again.",
+      "file": "shared/verify-fail--f48bfe34.mp3"
+    },
+    "verify-fail--code--code--v8": {
+      "text": "[thoughtful] Hmm, no. Have another think about the red field in Code.",
+      "file": "shared/verify-fail--4847b1e9.mp3"
+    },
+    "verify-fail--code--code--v9": {
+      "text": "[calm] Nearly. One field in Code still needs fixing.",
+      "file": "shared/verify-fail--2ac3b8e5.mp3"
+    },
     "verify-fail--filter--filter--v0": {
       "text": "[calm] Hmm, Filter isn't right yet. Check the field I marked.",
       "file": "shared/verify-fail--2f1ac603.mp3"
@@ -523,6 +3159,38 @@
       "text": "[calm] Hmm, something in Filter's off. Have a look at what's in red.",
       "file": "shared/verify-fail--9fa67d7b.mp3"
     },
+    "verify-fail--filter--filter--v2": {
+      "text": "[calm] Not there yet. The field I've marked in Filter needs another look.",
+      "file": "shared/verify-fail--61777401.mp3"
+    },
+    "verify-fail--filter--filter--v3": {
+      "text": "[thoughtful] Hmm. One of these isn't what Filter needs. Check the red one.",
+      "file": "shared/verify-fail--8324c623.mp3"
+    },
+    "verify-fail--filter--filter--v4": {
+      "text": "[calm] Close. Read the marked field in Filter again.",
+      "file": "shared/verify-fail--e6f0617e.mp3"
+    },
+    "verify-fail--filter--filter--v5": {
+      "text": "[thoughtful] Ah, not quite. Look at what you've put in Filter's red field.",
+      "file": "shared/verify-fail--11f5e51c.mp3"
+    },
+    "verify-fail--filter--filter--v6": {
+      "text": "[calm] Filter's not happy with one of those. The marked one.",
+      "file": "shared/verify-fail--1c8a8503.mp3"
+    },
+    "verify-fail--filter--filter--v7": {
+      "text": "[calm] Something's off in Filter. Check the field I've flagged and try again.",
+      "file": "shared/verify-fail--c9d77e28.mp3"
+    },
+    "verify-fail--filter--filter--v8": {
+      "text": "[thoughtful] Hmm, no. Have another think about the red field in Filter.",
+      "file": "shared/verify-fail--250c9afd.mp3"
+    },
+    "verify-fail--filter--filter--v9": {
+      "text": "[calm] Nearly. One field in Filter still needs fixing.",
+      "file": "shared/verify-fail--4489eec7.mp3"
+    },
     "verify-fail--google-docs--google-docs--v0": {
       "text": "[calm] Hmm, Google Docs isn't right yet. Check the field I marked.",
       "file": "shared/verify-fail--dafce901.mp3"
@@ -530,6 +3198,38 @@
     "verify-fail--google-docs--google-docs--v1": {
       "text": "[calm] Hmm, something in Google Docs's off. Have a look at what's in red.",
       "file": "shared/verify-fail--59f198d5.mp3"
+    },
+    "verify-fail--google-docs--google-docs--v2": {
+      "text": "[calm] Not there yet. The field I've marked in Google Docs needs another look.",
+      "file": "shared/verify-fail--3263105d.mp3"
+    },
+    "verify-fail--google-docs--google-docs--v3": {
+      "text": "[thoughtful] Hmm. One of these isn't what Google Docs needs. Check the red one.",
+      "file": "shared/verify-fail--5e86ceb9.mp3"
+    },
+    "verify-fail--google-docs--google-docs--v4": {
+      "text": "[calm] Close. Read the marked field in Google Docs again.",
+      "file": "shared/verify-fail--39fdd741.mp3"
+    },
+    "verify-fail--google-docs--google-docs--v5": {
+      "text": "[thoughtful] Ah, not quite. Look at what you've put in Google Docs's red field.",
+      "file": "shared/verify-fail--12235941.mp3"
+    },
+    "verify-fail--google-docs--google-docs--v6": {
+      "text": "[calm] Google Docs's not happy with one of those. The marked one.",
+      "file": "shared/verify-fail--81e61dc5.mp3"
+    },
+    "verify-fail--google-docs--google-docs--v7": {
+      "text": "[calm] Something's off in Google Docs. Check the field I've flagged and try again.",
+      "file": "shared/verify-fail--960f6a9d.mp3"
+    },
+    "verify-fail--google-docs--google-docs--v8": {
+      "text": "[thoughtful] Hmm, no. Have another think about the red field in Google Docs.",
+      "file": "shared/verify-fail--334810b6.mp3"
+    },
+    "verify-fail--google-docs--google-docs--v9": {
+      "text": "[calm] Nearly. One field in Google Docs still needs fixing.",
+      "file": "shared/verify-fail--1b919e7d.mp3"
     },
     "verify-fail--http-request--v0": {
       "text": "[calm] Not quite. You already know exactly which order this is about.",
@@ -543,6 +3243,38 @@
       "text": "[calm] Hmm, something in Notion — Create Page's off. Have a look at what's in red.",
       "file": "shared/verify-fail--9ad8e992.mp3"
     },
+    "verify-fail--notion-page--notion-create-page--v2": {
+      "text": "[calm] Not there yet. The field I've marked in Notion — Create Page needs another look.",
+      "file": "shared/verify-fail--3cbe7816.mp3"
+    },
+    "verify-fail--notion-page--notion-create-page--v3": {
+      "text": "[thoughtful] Hmm. One of these isn't what Notion — Create Page needs. Check the red one.",
+      "file": "shared/verify-fail--ce3d4002.mp3"
+    },
+    "verify-fail--notion-page--notion-create-page--v4": {
+      "text": "[calm] Close. Read the marked field in Notion — Create Page again.",
+      "file": "shared/verify-fail--3ee52c1c.mp3"
+    },
+    "verify-fail--notion-page--notion-create-page--v5": {
+      "text": "[thoughtful] Ah, not quite. Look at what you've put in Notion — Create Page's red field.",
+      "file": "shared/verify-fail--773a63cf.mp3"
+    },
+    "verify-fail--notion-page--notion-create-page--v6": {
+      "text": "[calm] Notion — Create Page's not happy with one of those. The marked one.",
+      "file": "shared/verify-fail--ae821e41.mp3"
+    },
+    "verify-fail--notion-page--notion-create-page--v7": {
+      "text": "[calm] Something's off in Notion — Create Page. Check the field I've flagged and try again.",
+      "file": "shared/verify-fail--965649de.mp3"
+    },
+    "verify-fail--notion-page--notion-create-page--v8": {
+      "text": "[thoughtful] Hmm, no. Have another think about the red field in Notion — Create Page.",
+      "file": "shared/verify-fail--1c77c461.mp3"
+    },
+    "verify-fail--notion-page--notion-create-page--v9": {
+      "text": "[calm] Nearly. One field in Notion — Create Page still needs fixing.",
+      "file": "shared/verify-fail--ccee6c84.mp3"
+    },
     "verify-fail--parse--parse-result--v0": {
       "text": "[calm] Hmm, Parse Result isn't right yet. Check the field I marked.",
       "file": "shared/verify-fail--45afb39f.mp3"
@@ -550,6 +3282,38 @@
     "verify-fail--parse--parse-result--v1": {
       "text": "[calm] Hmm, something in Parse Result's off. Have a look at what's in red.",
       "file": "shared/verify-fail--de92cd74.mp3"
+    },
+    "verify-fail--parse--parse-result--v2": {
+      "text": "[calm] Not there yet. The field I've marked in Parse Result needs another look.",
+      "file": "shared/verify-fail--1bfc31c9.mp3"
+    },
+    "verify-fail--parse--parse-result--v3": {
+      "text": "[thoughtful] Hmm. One of these isn't what Parse Result needs. Check the red one.",
+      "file": "shared/verify-fail--abbf444c.mp3"
+    },
+    "verify-fail--parse--parse-result--v4": {
+      "text": "[calm] Close. Read the marked field in Parse Result again.",
+      "file": "shared/verify-fail--990a32d3.mp3"
+    },
+    "verify-fail--parse--parse-result--v5": {
+      "text": "[thoughtful] Ah, not quite. Look at what you've put in Parse Result's red field.",
+      "file": "shared/verify-fail--1641dd12.mp3"
+    },
+    "verify-fail--parse--parse-result--v6": {
+      "text": "[calm] Parse Result's not happy with one of those. The marked one.",
+      "file": "shared/verify-fail--8ff49d39.mp3"
+    },
+    "verify-fail--parse--parse-result--v7": {
+      "text": "[calm] Something's off in Parse Result. Check the field I've flagged and try again.",
+      "file": "shared/verify-fail--2aaa6005.mp3"
+    },
+    "verify-fail--parse--parse-result--v8": {
+      "text": "[thoughtful] Hmm, no. Have another think about the red field in Parse Result.",
+      "file": "shared/verify-fail--21f99d9b.mp3"
+    },
+    "verify-fail--parse--parse-result--v9": {
+      "text": "[calm] Nearly. One field in Parse Result still needs fixing.",
+      "file": "shared/verify-fail--b9f33da9.mp3"
     },
     "verify-fail--remove-duplicates--v0": {
       "text": "[calm] Think about who gets wrongly ignored if you compare on that.",
@@ -563,6 +3327,38 @@
       "text": "[calm] Hmm, something in Slack — Send Message's off. Have a look at what's in red.",
       "file": "shared/verify-fail--d3d39b04.mp3"
     },
+    "verify-fail--slack-message--slack-send-message--v2": {
+      "text": "[calm] Not there yet. The field I've marked in Slack — Send Message needs another look.",
+      "file": "shared/verify-fail--6ce45783.mp3"
+    },
+    "verify-fail--slack-message--slack-send-message--v3": {
+      "text": "[thoughtful] Hmm. One of these isn't what Slack — Send Message needs. Check the red one.",
+      "file": "shared/verify-fail--f86e95ac.mp3"
+    },
+    "verify-fail--slack-message--slack-send-message--v4": {
+      "text": "[calm] Close. Read the marked field in Slack — Send Message again.",
+      "file": "shared/verify-fail--a6ccd0cc.mp3"
+    },
+    "verify-fail--slack-message--slack-send-message--v5": {
+      "text": "[thoughtful] Ah, not quite. Look at what you've put in Slack — Send Message's red field.",
+      "file": "shared/verify-fail--7e18282a.mp3"
+    },
+    "verify-fail--slack-message--slack-send-message--v6": {
+      "text": "[calm] Slack — Send Message's not happy with one of those. The marked one.",
+      "file": "shared/verify-fail--75b95604.mp3"
+    },
+    "verify-fail--slack-message--slack-send-message--v7": {
+      "text": "[calm] Something's off in Slack — Send Message. Check the field I've flagged and try again.",
+      "file": "shared/verify-fail--0f35c4d5.mp3"
+    },
+    "verify-fail--slack-message--slack-send-message--v8": {
+      "text": "[thoughtful] Hmm, no. Have another think about the red field in Slack — Send Message.",
+      "file": "shared/verify-fail--f4c643d4.mp3"
+    },
+    "verify-fail--slack-message--slack-send-message--v9": {
+      "text": "[calm] Nearly. One field in Slack — Send Message still needs fixing.",
+      "file": "shared/verify-fail--5e56422f.mp3"
+    },
     "verify-fail--summarize--summarize-with-ai--v0": {
       "text": "[calm] Hmm, Summarize with AI isn't right yet. Check the field I marked.",
       "file": "shared/verify-fail--e2f5ea98.mp3"
@@ -570,6 +3366,38 @@
     "verify-fail--summarize--summarize-with-ai--v1": {
       "text": "[calm] Hmm, something in Summarize with AI's off. Have a look at what's in red.",
       "file": "shared/verify-fail--a9aba7ff.mp3"
+    },
+    "verify-fail--summarize--summarize-with-ai--v2": {
+      "text": "[calm] Not there yet. The field I've marked in Summarize with AI needs another look.",
+      "file": "shared/verify-fail--3cdceae4.mp3"
+    },
+    "verify-fail--summarize--summarize-with-ai--v3": {
+      "text": "[thoughtful] Hmm. One of these isn't what Summarize with AI needs. Check the red one.",
+      "file": "shared/verify-fail--0f5aebbb.mp3"
+    },
+    "verify-fail--summarize--summarize-with-ai--v4": {
+      "text": "[calm] Close. Read the marked field in Summarize with AI again.",
+      "file": "shared/verify-fail--e7dc4e0d.mp3"
+    },
+    "verify-fail--summarize--summarize-with-ai--v5": {
+      "text": "[thoughtful] Ah, not quite. Look at what you've put in Summarize with AI's red field.",
+      "file": "shared/verify-fail--da2f635e.mp3"
+    },
+    "verify-fail--summarize--summarize-with-ai--v6": {
+      "text": "[calm] Summarize with AI's not happy with one of those. The marked one.",
+      "file": "shared/verify-fail--b94b032f.mp3"
+    },
+    "verify-fail--summarize--summarize-with-ai--v7": {
+      "text": "[calm] Something's off in Summarize with AI. Check the field I've flagged and try again.",
+      "file": "shared/verify-fail--40a6b2bc.mp3"
+    },
+    "verify-fail--summarize--summarize-with-ai--v8": {
+      "text": "[thoughtful] Hmm, no. Have another think about the red field in Summarize with AI.",
+      "file": "shared/verify-fail--5d8f01ea.mp3"
+    },
+    "verify-fail--summarize--summarize-with-ai--v9": {
+      "text": "[calm] Nearly. One field in Summarize with AI still needs fixing.",
+      "file": "shared/verify-fail--a22a7d69.mp3"
     },
     "verify-fail--switch--v0": {
       "text": "[calm] Not right yet. Look at what each rule tests, and what the classifier really produces.",
@@ -583,6 +3411,38 @@
       "text": "[calm] Hmm, something in New Email's off. Have a look at what's in red.",
       "file": "shared/verify-fail--3b8a659b.mp3"
     },
+    "verify-fail--trigger--new-email--v2": {
+      "text": "[calm] Not there yet. The field I've marked in New Email needs another look.",
+      "file": "shared/verify-fail--db6b7b1b.mp3"
+    },
+    "verify-fail--trigger--new-email--v3": {
+      "text": "[thoughtful] Hmm. One of these isn't what New Email needs. Check the red one.",
+      "file": "shared/verify-fail--792f7816.mp3"
+    },
+    "verify-fail--trigger--new-email--v4": {
+      "text": "[calm] Close. Read the marked field in New Email again.",
+      "file": "shared/verify-fail--8bc827dd.mp3"
+    },
+    "verify-fail--trigger--new-email--v5": {
+      "text": "[thoughtful] Ah, not quite. Look at what you've put in New Email's red field.",
+      "file": "shared/verify-fail--24ada59f.mp3"
+    },
+    "verify-fail--trigger--new-email--v6": {
+      "text": "[calm] New Email's not happy with one of those. The marked one.",
+      "file": "shared/verify-fail--ea4ae686.mp3"
+    },
+    "verify-fail--trigger--new-email--v7": {
+      "text": "[calm] Something's off in New Email. Check the field I've flagged and try again.",
+      "file": "shared/verify-fail--dc240b04.mp3"
+    },
+    "verify-fail--trigger--new-email--v8": {
+      "text": "[thoughtful] Hmm, no. Have another think about the red field in New Email.",
+      "file": "shared/verify-fail--6391e093.mp3"
+    },
+    "verify-fail--trigger--new-email--v9": {
+      "text": "[calm] Nearly. One field in New Email still needs fixing.",
+      "file": "shared/verify-fail--3296e27b.mp3"
+    },
     "verify-fail--wait--wait--v0": {
       "text": "[calm] Hmm, Wait isn't right yet. Check the field I marked.",
       "file": "shared/verify-fail--37303c1e.mp3"
@@ -591,6 +3451,38 @@
       "text": "[calm] Hmm, something in Wait's off. Have a look at what's in red.",
       "file": "shared/verify-fail--2a1c6d54.mp3"
     },
+    "verify-fail--wait--wait--v2": {
+      "text": "[calm] Not there yet. The field I've marked in Wait needs another look.",
+      "file": "shared/verify-fail--4a9b5982.mp3"
+    },
+    "verify-fail--wait--wait--v3": {
+      "text": "[thoughtful] Hmm. One of these isn't what Wait needs. Check the red one.",
+      "file": "shared/verify-fail--90f0d33a.mp3"
+    },
+    "verify-fail--wait--wait--v4": {
+      "text": "[calm] Close. Read the marked field in Wait again.",
+      "file": "shared/verify-fail--286c0739.mp3"
+    },
+    "verify-fail--wait--wait--v5": {
+      "text": "[thoughtful] Ah, not quite. Look at what you've put in Wait's red field.",
+      "file": "shared/verify-fail--6184df28.mp3"
+    },
+    "verify-fail--wait--wait--v6": {
+      "text": "[calm] Wait's not happy with one of those. The marked one.",
+      "file": "shared/verify-fail--ba3bee0e.mp3"
+    },
+    "verify-fail--wait--wait--v7": {
+      "text": "[calm] Something's off in Wait. Check the field I've flagged and try again.",
+      "file": "shared/verify-fail--a537728c.mp3"
+    },
+    "verify-fail--wait--wait--v8": {
+      "text": "[thoughtful] Hmm, no. Have another think about the red field in Wait.",
+      "file": "shared/verify-fail--507018fd.mp3"
+    },
+    "verify-fail--wait--wait--v9": {
+      "text": "[calm] Nearly. One field in Wait still needs fixing.",
+      "file": "shared/verify-fail--2494bbd2.mp3"
+    },
     "verify-fail--web-search--web-search--v0": {
       "text": "[calm] Hmm, Web Search isn't right yet. Check the field I marked.",
       "file": "shared/verify-fail--73ada678.mp3"
@@ -598,6 +3490,38 @@
     "verify-fail--web-search--web-search--v1": {
       "text": "[calm] Hmm, something in Web Search's off. Have a look at what's in red.",
       "file": "shared/verify-fail--85a66a17.mp3"
+    },
+    "verify-fail--web-search--web-search--v2": {
+      "text": "[calm] Not there yet. The field I've marked in Web Search needs another look.",
+      "file": "shared/verify-fail--d88d6637.mp3"
+    },
+    "verify-fail--web-search--web-search--v3": {
+      "text": "[thoughtful] Hmm. One of these isn't what Web Search needs. Check the red one.",
+      "file": "shared/verify-fail--44bdf49d.mp3"
+    },
+    "verify-fail--web-search--web-search--v4": {
+      "text": "[calm] Close. Read the marked field in Web Search again.",
+      "file": "shared/verify-fail--89800d7b.mp3"
+    },
+    "verify-fail--web-search--web-search--v5": {
+      "text": "[thoughtful] Ah, not quite. Look at what you've put in Web Search's red field.",
+      "file": "shared/verify-fail--486deddc.mp3"
+    },
+    "verify-fail--web-search--web-search--v6": {
+      "text": "[calm] Web Search's not happy with one of those. The marked one.",
+      "file": "shared/verify-fail--1bc14062.mp3"
+    },
+    "verify-fail--web-search--web-search--v7": {
+      "text": "[calm] Something's off in Web Search. Check the field I've flagged and try again.",
+      "file": "shared/verify-fail--d23d4bbd.mp3"
+    },
+    "verify-fail--web-search--web-search--v8": {
+      "text": "[thoughtful] Hmm, no. Have another think about the red field in Web Search.",
+      "file": "shared/verify-fail--af93dc0a.mp3"
+    },
+    "verify-fail--web-search--web-search--v9": {
+      "text": "[calm] Nearly. One field in Web Search still needs fixing.",
+      "file": "shared/verify-fail--f427d1ce.mp3"
     },
     "verify-params--action--v0": {
       "text": "[calm] That's the parameters right. You've got one tab left.",

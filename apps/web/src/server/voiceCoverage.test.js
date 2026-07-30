@@ -17,11 +17,17 @@ import { resolveLines, speakingVars } from '../lib/voiceLines.js';
 // `voice.play` without adding it here is the mistake this is here to catch; the list
 // is short and the screens are few.
 //
+// This list is maintained BY HAND. It passing therefore proves nothing about a
+// moment nobody added here — which is the one way this test can lie, and it has:
+// `probe_*` and `stress_correct`/`stress_wrong` were wired into the screens and every
+// test stayed green until they were listed below.
+//
 // Call sites, verified by grep:
-//   EvalScreen        stress_start
+//   EvalScreen        stress_start, stress_correct, stress_wrong
 //   DissectionScreen  welcome, problem_intro, understand_start, answer_*, understand_done
 //   BuildStage        build_start, phase_intro, idle_nudge, node_wrong, node_placed,
-//                     phase_complete, build_complete, run_start, run_pass, run_fail
+//                     probe_correct, probe_wrong, phase_complete, build_complete,
+//                     run_start, run_pass, run_fail
 //   ReportScreen      report_ready
 //   Ndv               verify_pass, verify_fail
 
@@ -39,7 +45,9 @@ function playSites(problem) {
     'understand_done',
     'build_start',
     'idle_nudge',
-    'node_wrong',
+    // `node_wrong` is NOT here: BuildStage keys it by the node type placed wrongly,
+    // so it is covered per type in the pickable loop below. A keyless entry here
+    // would demand a clip nothing can ever ask for.
     'run_start',
     'run_pass',
     'run_fail',
@@ -78,6 +86,29 @@ function playSites(problem) {
   // The Run narrates each test case as it enters — BuildStage plays this keyed by
   // the sample case id.
   for (const sample of problem.sampleCases ?? []) add('run_case', { key: sample.id });
+
+  // Answering the wrong-node probe. Keyed by the node type that was placed wrongly,
+  // which is every type a phase offers as a wrong option plus every authored probe.
+  for (const type of Object.keys(problem.nodeProbes ?? {})) {
+    add('probe_correct', { key: type });
+    add('probe_wrong', { key: type });
+  }
+  // A generated sequence probe can fire for any pickable type, and BuildStage keys the
+  // line by that type too, so cover the whole pickable set rather than just the
+  // authored probes.
+  for (const phase of phases) {
+    for (const type of phase.pickable ?? []) {
+      add('probe_correct', { key: type });
+      add('probe_wrong', { key: type });
+      add('node_wrong', { key: type });
+    }
+  }
+
+  // Stress Testing reacts to every answer, keyed by question.
+  for (const q of problem.evalQuestions ?? []) {
+    add('stress_correct', { key: q.id });
+    add('stress_wrong', { key: q.id });
+  }
 
   return sites;
 }

@@ -107,11 +107,30 @@ Every one of these exists. When adding narration to a problem, author against th
 | 17 | `run_case` | Each test case enters | Per sample case id. Describe the **input**, never the destination. |
 | 18 | `run_pass` `run_fail` | Run verdict | |
 | 19 | `stress_start` | Stress Testing opens | |
+| 19a | `stress_correct` `stress_wrong` | Each Stress Testing answer | Per question id. **Never restates the answer** — the written verdict beside the options already explains it, and repeating it is reading the screen. |
+| 19b | `probe_correct` `probe_wrong` | Answering the wrong-node probe | Per node type. The learner got here by a mistake, so a right answer is acknowledged and moved on from, not celebrated. |
 | 20 | `report_ready` | Result screen | The payoff. Excited. |
 
 A moment with no words is silent and nothing warns you — `phase_intro` shipped with a
 mascot animation and no copy for weeks. `voiceCoverage.test.js` walks every play site
 and asserts a clip exists, so add there when adding a moment.
+
+**That test's list is maintained BY HAND, and it will pass while lying to you.**
+`probe_*` and `stress_*` were wired into the screens, played correctly in the app, and
+every test stayed green until they were added to `playSites()`. When you add a moment
+you are adding it in **four** places, and missing any one of them fails silently:
+
+1. `LINES` in `voiceLines.js` — the words.
+2. `MOMENT_CLIP` — the mascot animation, which plays even when muted.
+3. `enumerateSpeakable` in `voiceCatalogue.js` — or the generator never renders it.
+4. `playSites()` in `voiceCoverage.test.js` — or nothing checks the other three.
+
+**A moment that carries a `key` must be enumerated per key**, even when its wording
+has no `{variable}`. The key is part of the id the browser derives, so a keyed moment
+enumerated as a plain one renders `stress-wrong--v3` while the browser asks for
+`stress-wrong--retry-vs-error--v3` and gets a 404 for the rest of the session. It costs
+almost nothing to do properly: the id carries the key, the FILE is hashed from the
+text, and identical text across keys collapses onto one file.
 
 ---
 
@@ -155,6 +174,32 @@ orienting them properly is worth the extra second.
 `welcome`, `understand_done`, `phase_complete`, `build_complete`, `run_pass`,
 `stress_start`, `report_ready`. Never stacked (`!!` fails a test). Everywhere else a
 "!" reads as cheerleading by the fifth hearing.
+
+### Variants rotate, so write enough of them
+
+Which wording plays is `seed + times already spoken this session`, in `voice.js`:
+
+- the **seed** is per browser session, so two learners open on different wordings;
+- the **count** advances on every play, so nobody hears the same sentence twice in a row.
+
+This replaced a seed-only choice, which was stable for the whole session and therefore
+identical every time a moment repeated — `node_wrong` and `verify_fail` were the same
+recording on the fourth mistake as on the first. Rotating on a **count** rather than at
+random is what keeps preloading working: the count only moves when a line is actually
+spoken, so `setUpcoming` and the play that follows compute the same index. A random pick
+per call made every play a cold fetch, which is why the seed existed in the first place.
+
+**So the number of variants is a design decision, not decoration.** How many depends on
+how often the moment can fire in one sitting:
+
+| Moment | Fires | Variants |
+|---|---|---|
+| `verify_fail` | a dozen+ times | 10 |
+| `node_wrong` | once per wrong placement | 10 |
+| `probe_*`, `stress_*` | a handful | 8 |
+| `phase_complete`, `run_pass` | once or twice | 2–3 is plenty |
+
+A moment that can only fire once needs one good line, not ten mediocre ones.
 
 ### Celebrate on a ladder
 

@@ -33,11 +33,33 @@ const nextId = () => `n${(idc += 1)}`;
 
 // Build editor node/edge state from a problem's referenceGraph (used to seed a
 // finished flow, e.g. the #run-story preview).
+// Seeding serves two callers with opposite needs, so `configured` is taken from the
+// graph when it says, and assumed only when it doesn't:
+//
+//   - the dev routes seed `problem.referenceGraph`, a FINISHED flow whose nodes carry
+//     no `data` — everything on it is meant to be set up, hence the default;
+//   - a resumed learner seeds their own half-built canvas, where `data.configured` is
+//     what they had actually done. Defaulting that to true marked every restored node
+//     as set up and let them walk past configuration they never did, skipping the
+//     field decisions that carry a quarter of the marks.
 function seedNodes(ig) {
   if (!ig) return [];
   return ig.nodes.map((n) => {
     const entry = NODE_CATALOG[n.type] || {};
-    return { id: n.id, type: n.type, position: n.position, data: { nodeType: n.type, label: entry.label, params: entry.params, values: {}, configured: true, wrong: false, output: entry.output } };
+    return {
+      id: n.id,
+      type: n.type,
+      position: n.position,
+      data: {
+        nodeType: n.type,
+        label: entry.label,
+        params: entry.params,
+        values: {},
+        configured: n.data ? !!n.data.configured : true,
+        wrong: n.data ? !!n.data.wrong : false,
+        output: entry.output,
+      },
+    };
   });
 }
 function seedEdges(ig) {

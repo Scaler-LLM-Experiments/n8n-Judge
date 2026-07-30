@@ -441,53 +441,136 @@ Verified by screenshot: `meeting-notes--journey-start` now shows the Meeting Not
 
 ---
 
-## UI rework — agreed 2026-07-30, not started
+## UI rework — agreed 2026-07-30, half landed
 
 An exhaustive pass from the product owner after walking the built prototype. **This is
-the next workstream and it comes BEFORE problem templatisation**, because three of the
+the current workstream and it comes BEFORE problem templatisation**, because three of the
 items add problem fields (`coverImage`, `difficulty` on every problem, an estimated
 duration) and freezing the template first would mean rewriting it.
 
+**Landed 2026-07-30:** 4, 5, 8, 9, 10, 12, 13, 15 (marked below). **Still open:** 1, 2, 3
+(Home, and the problem fields they need), 6, 7, 11, 14 (voice, which needs a render on a
+laptop). Verified by `npm run typecheck` (both halves) and 453/453 unit tests. **Not
+verified visually or by smoke** — the dev server on :3000 was wedged (listening, refusing
+connections) during this pass, so no screenshot of the redesigned Result or the restacked
+Stress Testing exists yet. That review is the first thing to do next.
+
 ### Home
 
-1. **"Continue where you left off"** section at the top of Home. Needs the in-progress
-   session surfaced — the server already reuses it and returns `resumed: true`, but the
-   client ignores that today (see Known issues #2), so this and resume-on-reload are the
-   same piece of work.
-2. Below it, the full list of problems.
-3. **Problem card** gets, in this order: cover image, `difficulty | time`, title,
-   description, CTA. Reference: a pixel-art cover, then `DATA ANALYSIS · MID · 30:00`,
-   then title and START.
+1. ~~**"Continue where you left off"** section at the top of Home.~~ **Done, and it
+   restores the canvas too.** `GET /api/sessions` returns the open attempt; Home offers it
+   above the grid; taking the offer resumes the same session, lands on the screen they left
+   and seeds the editor with the graph they had built.
+   - **Both halves are read from the TRACE, not from `Session.currentScreen` /
+     `builtGraphSnapshot`.** Those columns exist and look authoritative but are only written
+     when a session completes, so trusting them offers every learner screen one and an empty
+     canvas. `screen_transition` says where they went; `graph_mutation` carries the whole
+     graph on every change, so the last one is the canvas.
+   - Understand runs its beats **and its whole quiz** without a `screen_transition` (the
+     first fires on the way to Build), so "has this learner done anything" counts `decision`
+     events too, and a missing transition means Understand rather than nothing.
+   - Resuming cannot cost marks: `attemptsFromTrace` keeps the **lowest** attempt that was
+     correct, so re-verifying a field is free. `report` is deliberately not resumable — the
+     session is still IN_PROGRESS and there is nothing graded to land on.
+   - **Two bugs found by testing it, both fixed.** The tracer was recording
+     `{id, type}` per node, so a restored graph had no positions and React Flow threw
+     `reading 'x'` while seeding — it now carries `position` and `data.configured`, and the
+     endpoint refuses any graph whose nodes lack numeric positions so sessions recorded
+     before today resume to the screen with a fresh canvas instead of crashing. And
+     `seedNodes` hardcoded `configured: true` (it was written for the dev routes' finished
+     reference flow), which marked every restored node as set up and let a learner walk past
+     configuration they never did; it now honours `data.configured` when the graph says.
+   - **Not restored:** the field VALUES inside a node. A node that comes back configured
+     opens with empty inputs. Verifying again is free, but it looks odd, and closing it means
+     tracing values.
+2. ~~Below it, the full list of problems.~~ **Done** (the list was already there; it is now
+   two-up).
+3. ~~**Problem card** gets, in this order: cover image, `difficulty | time`, title,
+   description, CTA.~~ **Done, reviewed on screen.** Cards went from three-up to **two-up**:
+   at the old 260px floor the two-line description wrapped to four lines, which is the same
+   copy failing to be two lines because the column was too narrow. Descriptions are clamped
+   to two lines as a floor under the authoring cap.
 
-**New problem fields this needs:** `coverImage` (generated later via the OpenAI API —
-kept as a pending item, so the field holds an authored prompt plus a nullable `src`),
-`difficulty` on all four problems (only `order-desk` has it), and an estimated duration.
+~~**New problem fields this needs**~~ **— all three landed:**
+- `difficulty` on all four (was only `order-desk`) and `estimatedMinutes`, both **sized from
+  each problem's real decision count** via `enumerateItems` rather than guessed: meeting-notes
+  14 → easy · 15 min, lead-triage 23 → moderate · 20 min, email-triage 30 → moderate · 25 min,
+  order-desk 61 → difficult · 45 min.
+- `coverImage: { prompt, src, alt }` — `/api/problems` serves `src`/`alt` and **never the
+  prompt**. A null `src` still draws the card's own placeholder, but **all four are now
+  drawn**: `npm run covers:generate` (OpenAI `gpt-image-1`, `OPENAI_API_KEY`, laptop-only —
+  the app never calls an image API) wrote `apps/web/public/covers/<id>.png` and they are
+  committed. Style is isometric flat-vector per the reference the product owner supplied,
+  recoloured to **brand blue** rather than the reference's green, since four green cards
+  would be the loudest thing on a blue-and-white page. One constant in
+  `scripts/generate-covers.mjs` restyles the whole set.
+- Cards render the art `contain` inside a padded slot, not `cover`: filling the slot cropped
+  the scene and drove the illustration into the card border.
+- `brief` — the two-line description, capped at 125 characters. See the copy rules below.
+
+**Two authoring rules came out of reviewing this, and both are now enforced** (see CLAUDE.md
+→ *IMPORTANT — copy rules for anything a learner reads BEFORE building*). **Carry both into
+the problem-authoring skill when M5 lands:**
+- **`flowSummary` labels must describe the job, never the node.** All four problems were
+  labelling steps `Classify with AI`, `Parse Result`, `Send Reply` — i.e. the "shape of it"
+  sketch on the Understand screen was handing over the answers to the dissection quiz that
+  screen is about to ask. Rewritten to plain language, and `validateProblem()` now rejects any
+  label containing a palette label or catalog title.
+- **The pre-build description is two lines.** `statement` stays the full brief (the panel, the
+  sticky note and Ask-AI's context all read it); `brief` is the short one.
+
+Also found while in here: **`flowSummary.caption` is authored in all four problems and
+rendered nowhere**, and `EvalScreen`'s node strip is a **hardcoded email-triage path**
+(`REFERENCE_PATH`) shown on every problem — both worth a decision.
 
 ### Voice indicator
 
-4. Hide the corner glow on the three screens where the mascot is already centred and
-   large: greet, "you've got the plan", and Result. Keep it everywhere else.
+4. ~~Hide the corner glow on the three screens where the mascot is already centred and
+   large: greet, "you've got the plan", and Result.~~ **Done.** A screen claims the corner
+   with `useHideVoiceGlow()` (VoiceContext), which is ref-counted and **unmounts** the
+   glow rather than hiding it — the bloom runs its own rAF loop through `gsap.quickTo`, so
+   a hidden-but-mounted one would animate detached nodes for the rest of the session.
 
 ### Copy
 
-5. "Nice — you've got the plan." plus its body: remove the em dashes (they do not read
-   aloud and the house rule already bans them in narration), and write a better title.
+5. ~~"Nice — you've got the plan." plus its body: remove the em dashes, and write a better
+   title.~~ **Done.** Now "You know what to build.", and the body names what they did
+   instead of opening on "Nice".
 
 ### Voice gaps found by using it
 
 6. The **build-start line sounds like it needs re-rendering** — verify the stored clip
-   matches the current text.
-7. **`verify_fail` repeats verbatim.** Each authored one has a single variant, and
-   variant choice is deliberately stable per session so preloading can hit — so
-   repeating the same mistake plays the identical sentence. Needs 2–3 variants per node
-   AND attempt-aware rotation rather than session-stable choice. **The stability was a
-   deliberate fix** (random choice broke preloading), so this needs a real design, not a
-   flag flip.
+   matches the current text. **Moot after the 2026-07-30 regeneration**, which re-rendered
+   every clip; confirm by ear.
+7. ~~**`verify_fail` repeats verbatim.**~~ **Done, and the design STATUS asked for.**
+   Variant choice is now `seed + times already spoken this session` (`spokenCount` in
+   `voice.js`): the seed still decides where a learner *starts* in the list, and the count
+   advances on every play so nothing repeats back to back. **Preloading survives** because
+   the count only moves when a line is actually spoken, so `setUpcoming` and the play that
+   follows compute the same index — which is exactly what a random pick broke.
+   `verify_fail` and `node_wrong` now carry **10** wordings each, `probe_*` and `stress_*`
+   eight. `node_wrong` is also keyed by the node type placed wrongly, so a problem can
+   author a per-node line later.
 11. **`run_case` copy is not trigger-aware.** It opens "Their app crashes…" when it
     should be "a customer sends an email saying the app crashes" — the learner needs the
     trigger in the sentence to connect the case to the flow.
-12. **No voice when the run passes.** `run_pass` exists; confirm whether it fires at all
-    and whether each case should also confirm as it lands.
+11b. **Stress Testing and the wrong-node probe now speak.** `stress_correct` /
+    `stress_wrong` fire per answer (keyed by question) and `probe_correct` /
+    `probe_wrong` per probe verdict (keyed by node type). Neither restates the answer —
+    the written verdict is already on screen, and repeating it is reading the screen.
+    Nothing is spoken when a check did not complete (`correct: null`), because reacting
+    to that would tell a learner they were wrong when nobody graded them.
+    **The wrong-node probe itself also stopped repeating**: authored `nodeProbes` differ
+    by node type, but the *generated* `sequenceProbe` was a single hardcoded question, so
+    every out-of-order placement asked the identical thing. Four framings of the same
+    rule now rotate.
+12. ~~**No voice when the run passes.** `run_pass` exists; confirm whether it fires at
+    all.~~ **Done — it never fired, and here is why.** The finishing timer read a bare
+    `success`, which does not exist in that effect's scope (it is a local inside
+    `startRun`). The callback threw *after* `setRunFinished(true)`, so the screen looked
+    right and only the audio was missing. Now `run.success`, and `skipRun` speaks the same
+    verdict because it cancels the timer that would have. Whether each case should also
+    confirm as it lands is still open.
 14. **No voice in Stress Testing.** `stress_start` exists; same check.
 
 All of 7, 11, 12, 14 must also be written into
@@ -496,31 +579,62 @@ contract the other three problems will be authored against.
 
 ### The Run
 
-8. **"Run it" should start the animation immediately**, and the bottom bar during the run
-   goes away.
-9. Add a secondary **skip-run** button, bottom centre, for a learner who wants to move on.
-10. **React warning while running:** *"Updating a style property during rerender
-    (borderBottom) when a conflicting property is set (border)"*. Several candidates in
-    `BuildStage.jsx` mix `border` with `borderTop`/`borderBottom` on one element — the
-    CSS-triangle spans and the drag handles at lines 521, 681, 686, 687, 815, 817, 868.
+8. ~~**"Run it" should start the animation immediately**, and the bottom bar during the run
+   goes away.~~ **Done.** The last phase's "Run it" called `continueFromClear`, which set
+   `stage: 'complete'` and rendered a bottom bar carrying a SECOND "Run" button: the learner
+   pressed the thing labelled "Run it" and nothing ran. It now calls `startRun()`. That bar
+   survives only for stopping and coming back ("Run again"), and its copy no longer says
+   "sample emails" — wrong for meeting-notes and order-desk.
+9. ~~Add a secondary **skip-run** button, bottom centre.~~ **Done.** `skipRun` skips the
+   ANIMATION, not the result: it cancels the timers, jumps to the finished state the run was
+   going to reach, and speaks the same verdict.
+   **Also found while in here:** the mascot was hidden for the entire run
+   (`setMascotVisible(false)` in `startRun`), so Iris narrated every case with nothing on
+   screen. She now parks and stays. Her park spot moved to x=96 because React Flow's zoom
+   controls own the bottom-left corner and drew on top of her at x=24.
+10. ~~**React warning while running:** "Updating a style property during rerender
+    (borderBottom) when a conflicting property is set (border)".~~ **Done — it was not in
+    `BuildStage.jsx`.** The candidates listed there set only longhands. The single element
+    in the codebase mixing `border` with `borderBottom` was the NDV tab button
+    (`Ndv.jsx`), whose underline changes with `active`, so it warned on every tab switch.
+    Now longhands only.
 
 ### Stress Testing
 
-13. Restack the screen and drop the node animation. New order:
-    section header → question number → question → node UI → options → continue.
-    The node UI moves **below** the question rather than beside the options, and the
-    header says what the section is for.
+13. ~~Restack the screen and drop the node animation.~~ **Done.** One column in reading
+    order: section header (which says what Stress Testing is for, and sits outside the
+    per-question container so it does not re-animate every question) → question number →
+    question → node strip → options → verdict, with Continue in the fixed footer. Column
+    width dropped from the 1040px two-column grid to a 720px reading width. **"The node
+    animation" was confirmed to mean the post-answer `NodeReplay`**, which is gone —
+    entrance animations stay. `NodeReplay.jsx` therefore has **no importers left**, and
+    `EvalScreen` no longer takes a `graph` prop (the replay was its only reader).
 
 ### Result
 
-15. **Redesign from scratch** — it should read as a report, not a screen: centre aligned,
-    wider, a subtle drop shadow. Contents, and only these:
-    - left: a mark-band greeting by name, e.g. "Hey <name>, you almost got there"
-    - right: the total, in a contrasting panel
-    - below, on white: a short marks breakdown
-    - positives and negatives **side by side** (both already come from the Claude call)
-    - next steps as clean bullets
-    - a **sticky bottom bar** with three actions: redo this problem, next problem, home
+15. ~~**Redesign from scratch** — it should read as a report, not a screen.~~ **Done, and
+    reviewed on screen.** An 880px sheet: navy hero (greeting + band definition left, the
+    total right), then white — breakdown, positives and negatives side by side (a
+    `minmax(260px, 1fr)` auto-fit grid, so it collapses to one column without a media
+    query), next steps as bullets, and a bottom action bar. The decision list, the
+    misconception cards and the per-test-case alerts are **deliberately gone** ("contents,
+    and only these").
+    - The greeting comes from the rubric **band**, not the number, and uses the learner's
+      first name via `useSignedInUser()` — there is no `<SessionProvider>` in this SPA, so
+      that hook reads `/api/auth/session`, the way TopBar's UserMenu always has. No name
+      is a normal state and the wording works without one.
+    - Three actions: **redo** remounts `MainApp` under a new key (a fresh attempt: the
+      Result marked the old session COMPLETED, so the next `POST /api/sessions` opens a new
+      row), **next** reads the catalogue Landing remembered when the learner left Home, and
+      **home** returns. Only actions that were given a handler render.
+    - **Review fixes, same day:** hero text sets its own colour, because the global
+      stylesheet gives `h2`/`p` a `color: var(--fg-1)` that beats inheritance and the
+      greeting rendered near-black on navy; drop shadow reduced; redo and home are
+      icon-only (with `title` and `aria-label`); and the missing-narrative case now says so
+      instead of silently dropping two sections — `ANTHROPIC_API_KEY` is empty in `.env`, so
+      the server correctly returned `report: null, reason: 'llm_unconfigured'`. The canned
+      fallback also now lists **one pointer per imperfect area** rather than one in total,
+      which is why "what to do next" had a single bullet.
 
 
 ## Known issues

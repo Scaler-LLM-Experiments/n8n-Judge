@@ -13,6 +13,19 @@ export const meetingNotes = {
   id: 'meeting-notes',
   title: 'Meeting Notes Summarizer',
   tagline: 'Turn a raw call transcript into clean notes, saved for the team.',
+  // Two lines, for the Understand hero and the Home card.
+  brief:
+    'After every customer call a raw transcript shows up. Turn it into short notes with action items, filed for the team.',
+  // The smallest problem in the catalogue: 14 decisions, four nodes, no router.
+  difficulty: 'easy',
+  difficultyNote: 'One straight path, four nodes, no routing to reason about.',
+  estimatedMinutes: 15,
+  coverImage: {
+    prompt:
+      'A long ragged paper scroll unrolls out of a retro pixel-art computer on the left and feeds upward through a stream of falling binary into a single floating cube, which sits above a neat isometric document with three short bullet lines on it.',
+    src: '/covers/meeting-notes.png',
+    alt: 'A transcript scroll feeding into a cube and out as tidy notes',
+  },
   statement:
     'After every customer call, your meeting tool posts the raw transcript to a webhook. Build a flow that takes that transcript, uses AI to write a short summary with clear action items, and saves those notes to a shared Google Doc — so nobody has to write up calls by hand. There is only one path here: every call gets summarized and saved.',
 
@@ -127,13 +140,15 @@ export const meetingNotes = {
   // No router in this flow — the switch is only ever a distractor.
   branches: [],
 
+  // Labels describe the JOB, never the node — this sketch is shown before the
+  // dissection quiz asks which node does each job. `validateProblem` enforces it.
   flowSummary: {
     steps: [
-      { type: 'webhook', label: 'Transcript received' },
-      { type: 'summarize', label: 'Summarize with AI' },
-      { type: 'google-docs', label: 'Save to Google Docs' },
+      { type: 'webhook', label: 'transcript lands' },
+      { type: 'summarize', label: 'write it short' },
+      { type: 'google-docs', label: 'file for team' },
     ],
-    caption: 'Gemini Chat Model powers Summarize · every call’s notes are saved to a shared Google Doc.',
+    caption: 'One straight path. Every call is summarised and filed, with no decision to make along the way.',
   },
 
   // Linear sequence rules. No branchNext (no router); modelNext wires the AI node’s
