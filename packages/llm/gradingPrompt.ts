@@ -89,27 +89,36 @@ export const GRADING_REPORT_SCHEMA = {
         additionalProperties: false,
       },
     },
+    // COUNTS LIVE IN THE DESCRIPTIONS, NOT IN minItems/maxItems.
+    //
+    // Structured outputs reject `minItems` above 1: `output_config.format` returned
+    // 400 "For 'array' type, 'minItems' values other than 0 or 1 are not supported
+    // (got: [2, 5])" on every grading call, the route caught it as `llm_failed`, and
+    // every learner's Result screen lost its written half while the score still
+    // rendered — so it read as "the API key isn't wired up" for days.
+    //
+    // The same applies to maxItems and to string length/number range constraints.
+    // Asking for the count in prose is the supported way, and the model honours it.
     strengths: {
       type: 'array',
       items: { type: 'string' },
-      minItems: 2,
-      maxItems: 3,
-      description: 'the positives — what this learner demonstrably did well, each tied to evidence',
+      minItems: 1,
+      description:
+        'the positives — what this learner demonstrably did well, each tied to evidence. Give exactly 2 or 3.',
     },
     focusAreas: {
       type: 'array',
       items: { type: 'string' },
-      minItems: 2,
-      maxItems: 3,
-      description: 'the negatives — what went wrong and what concept sits underneath it',
+      minItems: 1,
+      description:
+        'the negatives — what went wrong and what concept sits underneath it. Give exactly 2 or 3.',
     },
     nextSteps: {
       type: 'array',
       items: { type: 'string' },
-      minItems: 2,
-      maxItems: 4,
+      minItems: 1,
       description:
-        'Concrete actions, in order. Each must be something the learner can start now — name the specific challenge to run, or the specific node/setting to revisit. No generic advice.',
+        'Concrete actions, in order. Each must be something the learner can start now — name the specific challenge to run, or the specific node/setting to revisit. No generic advice. Give 2 to 4.',
     },
     narrative: { type: 'string', description: '3-4 sentence overall summary, addressed to the learner as "you"' },
     insufficientEvidence: {

@@ -91,7 +91,33 @@ describe('GRADING_REPORT_SCHEMA', () => {
   it('wants next steps concrete enough to act on, not a single vague line', () => {
     const next = GRADING_REPORT_SCHEMA.properties.nextSteps;
     expect(next.type).toBe('array');
-    expect(next.minItems).toBeGreaterThanOrEqual(2);
+    // The COUNT is asked for in prose, not in minItems — see below.
+    expect(next.description).toMatch(/\b2\b/);
+  });
+
+  // This is the test that should have existed. `output_config.format` rejects
+  // `minItems` above 1 ("For 'array' type, 'minItems' values other than 0 or 1 are
+  // not supported"), so every grading call 400'd, the route recorded `llm_failed`,
+  // and the Result screen silently lost its written half while still showing a
+  // score. The previous test asserted `minItems >= 2` — it required the bug.
+  //
+  // Walks the whole schema, so a constraint added to any future array is caught.
+  it('uses no array constraint structured outputs will reject', () => {
+    const offenders: string[] = [];
+    const walk = (node: any, path: string) => {
+      if (!node || typeof node !== 'object') return;
+      if (node.type === 'array') {
+        if (typeof node.minItems === 'number' && node.minItems > 1) {
+          offenders.push(`${path}.minItems = ${node.minItems}`);
+        }
+        if (node.maxItems !== undefined) offenders.push(`${path}.maxItems = ${node.maxItems}`);
+      }
+      for (const [key, value] of Object.entries(node)) {
+        if (value && typeof value === 'object') walk(value, `${path}.${key}`);
+      }
+    };
+    walk(GRADING_REPORT_SCHEMA, 'schema');
+    expect(offenders).toEqual([]);
   });
 });
 
