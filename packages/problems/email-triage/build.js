@@ -32,10 +32,6 @@ export const branches = [
 // Read-only summary of the built agent, shown atop the Stress Testing stage.
 // Labels describe the JOB, never the node — this sketch is shown before the
 // dissection quiz asks which node does each job. `validateProblem` enforces it.
-
-// Read-only summary of the built agent, shown atop the Stress Testing stage.
-// Labels describe the JOB, never the node — this sketch is shown before the
-// dissection quiz asks which node does each job. `validateProblem` enforces it.
 export const flowSummary = {
   steps: [
     { type: 'trigger', label: 'email arrives' },
@@ -49,17 +45,12 @@ export const flowSummary = {
 
 // Canonical flow order. Used to detect sequence mistakes: from a given source
 // (or the model / branch ports) only certain node types are the valid next step.
-
-// Canonical flow order. Used to detect sequence mistakes: from a given source
-// (or the model / branch ports) only certain node types are the valid next step.
 export const flow = {
   start: ['trigger'],
   next: { trigger: ['classify'], classify: ['parse'], parse: ['switch'], switch: [], action: [], 'chat-gemini': [] },
   branchNext: ['action'],
   modelNext: ['chat-gemini'],
 };
-
-// The 3 guided build sub-phases. `coach` is Iris's line on entering the phase.
 
 // The 3 guided build sub-phases. `coach` is Iris's line on entering the phase.
 export const buildPhases = [

@@ -14,14 +14,8 @@ export const statement =
 export const tagline = 'Classify incoming support emails with AI and route each to the right reply.';
 // Two lines, for the Understand hero and the Home card. The full brief above is
 // what the problem panel and Ask-AI read.
-
-// Two lines, for the Understand hero and the Home card. The full brief above is
-// what the problem panel and Ask-AI read.
 export const brief =
   'A support inbox gets bug reports, feature requests and angry complaints. Sort each one and send the right reply.';
-// Sized from this problem's real decision count (30: 5 understand, 6 placements,
-// 17 config, 2 stress), then rounded to something a human would say.
-
 // Sized from this problem's real decision count (30: 5 understand, 6 placements,
 // 17 config, 2 stress), then rounded to something a human would say.
 export const difficulty = 'moderate';
@@ -36,9 +30,3 @@ export const coverImage = {
   src: '/covers/email-triage.png',
   alt: 'A retro computer streaming an email up into three sorting bins',
 };
-
-
-// Front-of-flow: Iris interrogates the learner to dissect the problem. Each
-// question is a NODE/APP pick — options map to real node types, and the chosen
-// node drops onto the canvas (tagged right/wrong). Correct answers unlock the
-// node for the builder. Must answer correctly (with retry) to advance.
