@@ -160,16 +160,16 @@
       "file": "email-triage/node-placed--ef0fe8d8.mp3"
     },
     "node-wrong--v0": {
-      "text": "[thoughtful] That one won't do this job here. Let me ask you something.",
-      "file": "email-triage/node-wrong--61e78a58.mp3"
+      "text": "[thoughtful] Hmm. That one won't do this job here. Let me ask you something.",
+      "file": "email-triage/node-wrong--3ec7e2d2.mp3"
     },
     "phase-complete--brain--v0": {
       "text": "[excited] It can read an email and understand it now. That was the hard part.",
       "file": "email-triage/phase-complete--b75bf45d.mp3"
     },
     "phase-complete--route--v0": {
-      "text": "[excited] That part's done. Nice work.",
-      "file": "shared/phase-complete--fd870972.mp3"
+      "text": "[excited] Right, that part's done. Nice work.",
+      "file": "shared/phase-complete--d3245d7e.mp3"
     },
     "phase-complete--route--v1": {
       "text": "[excited] That's it, that piece works now.",
@@ -184,8 +184,8 @@
       "file": "email-triage/phase-complete--e888f349.mp3"
     },
     "phase-complete--v0": {
-      "text": "[excited] That part's done. Nice work.",
-      "file": "shared/phase-complete--fd870972.mp3"
+      "text": "[excited] Right, that part's done. Nice work.",
+      "file": "shared/phase-complete--d3245d7e.mp3"
     },
     "phase-complete--v1": {
       "text": "[excited] That's it, that piece works now.",
@@ -228,28 +228,28 @@
       "file": "email-triage/report-ready--b91e290f.mp3"
     },
     "run-case--bug--v0": {
-      "text": "[calm] Here's the first. Their app crashes every time they log in. Watch what your classifier does.",
-      "file": "email-triage/run-case--72e3cb8f.mp3"
+      "text": "[calm] Okay, here's the first. Their app crashes every time they log in. Watch what your classifier does.",
+      "file": "email-triage/run-case--d17f584e.mp3"
     },
     "run-case--feature--v0": {
-      "text": "[calm] Next up, and nothing's broken this time. They just want something that doesn't exist yet.",
-      "file": "email-triage/run-case--1c6f07e7.mp3"
+      "text": "[calm] Right, next up. Nothing's broken this time, they just want something that doesn't exist yet.",
+      "file": "email-triage/run-case--e8529263.mp3"
     },
     "run-case--question--v0": {
-      "text": "[calm] Last one, and it's just a question. No bug, no request, no complaint. Keep an eye on this.",
-      "file": "email-triage/run-case--c8aa043f.mp3"
+      "text": "[calm] And the last one is just a question. No bug, no request, no complaint. But keep an eye on it.",
+      "file": "email-triage/run-case--c64931c3.mp3"
     },
     "run-case--urgent--v0": {
-      "text": "[calm] This third one is angry. They've been charged twice and nobody's helping.",
-      "file": "email-triage/run-case--7de5cf8d.mp3"
+      "text": "[calm] Ah, this third one is angry. They've been charged twice and nobody's helping.",
+      "file": "email-triage/run-case--03e26274.mp3"
     },
     "run-case--v0": {
-      "text": "[calm] Here's the next one. Watch where it goes.",
-      "file": "shared/run-case--6bbfc022.mp3"
+      "text": "[calm] Okay, here's the next one. Watch where it goes.",
+      "file": "shared/run-case--1ea64116.mp3"
     },
     "run-fail--v0": {
-      "text": "[calm] Some didn't land where they should. That's useful to know. Let's follow one that missed.",
-      "file": "email-triage/run-fail--45170e8c.mp3"
+      "text": "[calm] Hmm. Some didn't land where they should. That's useful to know, so let's follow one.",
+      "file": "email-triage/run-fail--32c3966c.mp3"
     },
     "run-fail--v1": {
       "text": "[calm] Not all of them landed right. Follow one that missed and see where it turned.",
@@ -276,52 +276,52 @@
       "file": "email-triage/understand-start--089659fa.mp3"
     },
     "verify-fail--action--v0": {
-      "text": "[calm] Not right yet. Check who it's replying to, and where the words come from.",
-      "file": "email-triage/verify-fail--177e5abf.mp3"
+      "text": "[calm] Ah, not right yet. Check who it's replying to, and where the words come from.",
+      "file": "email-triage/verify-fail--9226a983.mp3"
     },
     "verify-fail--chat-gemini--v0": {
-      "text": "[calm] Not yet. Think about whether the same email should always get the same answer.",
-      "file": "email-triage/verify-fail--db1e2432.mp3"
+      "text": "[calm] Hmm, not yet. Think about whether the same email should always get the same answer.",
+      "file": "email-triage/verify-fail--ee3e7207.mp3"
     },
     "verify-fail--classify--v0": {
-      "text": "[calm] Not yet. Check what you pointed it at, because it can only read what you hand it.",
-      "file": "email-triage/verify-fail--551e838d.mp3"
+      "text": "[calm] Ah, not yet. Check what you pointed it at, because it only reads what you hand it.",
+      "file": "email-triage/verify-fail--ae7b9c9b.mp3"
     },
     "verify-fail--parse--v0": {
-      "text": "[calm] Not yet. Look at what it's reading from, and the names you asked it for.",
-      "file": "email-triage/verify-fail--e6286b70.mp3"
+      "text": "[calm] Ah, not yet. Look at what it's reading from, and the names you asked it for.",
+      "file": "email-triage/verify-fail--e43ae144.mp3"
     },
     "verify-fail--switch--v0": {
-      "text": "[calm] Not right yet. Look at what each branch is testing, and what the AI actually gave you.",
-      "file": "email-triage/verify-fail--d82565a2.mp3"
+      "text": "[calm] Hmm, not right yet. Look at what each branch is testing, and what the AI actually gave you.",
+      "file": "email-triage/verify-fail--00483d1a.mp3"
     },
     "verify-fail--trigger--v0": {
-      "text": "[calm] Not quite yet. Check which inbox it's watching, and which part of the mail it reads.",
-      "file": "email-triage/verify-fail--e621fbaa.mp3"
+      "text": "[calm] Hmm, not quite. Check which inbox it's watching, and which part of the mail it reads.",
+      "file": "email-triage/verify-fail--86a54c74.mp3"
     },
     "verify-params--action--v0": {
-      "text": "[calm] That's right. You've got one tab left on this one.",
-      "file": "email-triage/verify-params--7ac0e514.mp3"
+      "text": "[calm] Right, that's it. You've got one tab left on this one.",
+      "file": "email-triage/verify-params--bed9df2a.mp3"
     },
     "verify-params--chat-gemini--v0": {
-      "text": "[calm] That's the model set up. One more tab and it's done.",
-      "file": "email-triage/verify-params--5dbf948d.mp3"
+      "text": "[calm] Okay, that's the model set up. One more tab and it's done.",
+      "file": "email-triage/verify-params--918b3c35.mp3"
     },
     "verify-params--classify--v0": {
-      "text": "[calm] Good, that's what it reads. Now tell it what to do when things go wrong.",
-      "file": "email-triage/verify-params--46eb4ee7.mp3"
+      "text": "[calm] Right, that's what it reads. Now tell it what to do when things go wrong.",
+      "file": "email-triage/verify-params--6d260d02.mp3"
     },
     "verify-params--parse--v0": {
-      "text": "[calm] Those are the right fields. Now the rest of it.",
-      "file": "email-triage/verify-params--04be1679.mp3"
+      "text": "[calm] Good, those are the right fields. Now the rest of it.",
+      "file": "email-triage/verify-params--04471259.mp3"
     },
     "verify-params--switch--v0": {
-      "text": "[calm] Your rules are right. Now decide what happens to anything matching none of them.",
-      "file": "email-triage/verify-params--dee6c6cc.mp3"
+      "text": "[calm] Okay, your rules are right. Now, what happens to anything matching none of them?",
+      "file": "email-triage/verify-params--42e86824.mp3"
     },
     "verify-params--trigger--v0": {
-      "text": "[calm] That's the parameters right. You've got one tab left.",
-      "file": "email-triage/verify-params--b5910941.mp3"
+      "text": "[calm] Okay, that's the parameters right. You've got one tab left.",
+      "file": "email-triage/verify-params--db4398ba.mp3"
     },
     "verify-pass--action--v0": {
       "text": "[warm] And that's the last piece. Whatever reaches it goes back to a real person.",
@@ -332,16 +332,16 @@
       "file": "email-triage/verify-pass--bc5284f6.mp3"
     },
     "verify-pass--classify--v0": {
-      "text": "[warm] That one's the whole idea. It reads an email like a person would, and it calls it.",
-      "file": "email-triage/verify-pass--15bf6031.mp3"
+      "text": "[warm] Ah, that one's the whole idea. It reads an email like a person would, and it calls it.",
+      "file": "email-triage/verify-pass--53b77023.mp3"
     },
     "verify-pass--parse--v0": {
       "text": "[warm] Look at that. A paragraph went in, and clean fields came out. Now the Switch can read it.",
       "file": "email-triage/verify-pass--57c9d32a.mp3"
     },
     "verify-pass--switch--v0": {
-      "text": "[warm] Three ways out, and you decided every one of them. That's your routing done.",
-      "file": "email-triage/verify-pass--3530bd14.mp3"
+      "text": "[warm] Okay. Three ways out, and you decided every one of them. That's your routing done.",
+      "file": "email-triage/verify-pass--423ff2e0.mp3"
     },
     "verify-pass--trigger--v0": {
       "text": "[warm] That's your first node working. It's watching the inbox now, and every email starts a run.",

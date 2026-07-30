@@ -107,7 +107,7 @@ export const LINES = {
   // Iris notices when a learner has gone quiet. Not a prompt to hurry: an offer.
   // The one thing a real instructor does that a screen never does is look up.
   idle_nudge: [
-    '[calm] Take your time. If you\'re not sure what comes next, just ask me.',
+    '[calm] Take your time. And if you\'re not sure what comes next, just ask.',
     '[calm] Still thinking? Tell me what you\'re stuck on and I\'ll help.',
     '[calm] No rush. If it helps, look at what the last node hands over.',
   ],
@@ -131,7 +131,7 @@ export const LINES = {
     '[excited] That\'s the thinking done. Now let\'s actually build the thing.',
   ],
   phase_complete: [
-    '[excited] That part\'s done. Nice work.',
+    '[excited] Right, that part\'s done. Nice work.',
     '[excited] That\'s it, that piece works now.',
     '[excited] Good, that\'s one more piece in place.',
   ],
@@ -164,7 +164,7 @@ export const LINES = {
     '[calm] {node}\'s on the board. Open it up and set it up.',
   ],
   node_wrong: [
-    '[thoughtful] That one can\'t do the job here. Let me ask you something.',
+    '[thoughtful] Hmm. That one can\'t do the job here. Let me ask you something.',
   ],
 
   // ---- verifying ----------------------------------------------------------
@@ -172,7 +172,7 @@ export const LINES = {
   // learner opened it and configured it, so naming it reveals nothing.
   verify_pass: [
     '[warm] Yes, {node}\'s set up right.',
-    '[warm] Good, {node}\'s done.',
+    '[warm] Ah, {node}\'s done.',
     '[warm] {node}\'s right now.',
   ],
   // Parameters verified, and this node still has a Settings tab to get right. A
@@ -185,8 +185,8 @@ export const LINES = {
     '[calm] Good, those are right. One more tab and this one\'s done.',
   ],
   verify_fail: [
-    '[calm] {node} isn\'t right yet. Check the field I marked.',
-    '[calm] Something in {node}\'s off. Have a look at what\'s in red.',
+    '[calm] Hmm, {node} isn\'t right yet. Check the field I marked.',
+    '[calm] Hmm, something in {node}\'s off. Have a look at what\'s in red.',
   ],
 
   // ---- running ------------------------------------------------------------
@@ -198,7 +198,7 @@ export const LINES = {
   // is seeing where something lands, and narrating the destination in advance throws
   // that away. It would also hand over the Stress Testing answer on the case that
   // deliberately matches no rule.
-  run_case: ["[calm] Here's the next one. Watch where it goes."],
+  run_case: ["[calm] Okay, here's the next one. Watch where it goes."],
   run_pass: ["[excited] Every case came out right. That flow works.", "[excited] All of them passed. That's well built."],
   run_fail: ["[calm] Some didn't come out right. That's worth knowing. Let's look."],
 

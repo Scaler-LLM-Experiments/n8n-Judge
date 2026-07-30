@@ -74,6 +74,7 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
     const said = { key: node.nodeType, node: node.label };
     voice.setUpcoming([
       { moment: 'verify_pass', vars: said },
+      { moment: 'verify_params', vars: said },
       { moment: 'verify_fail', vars: said },
       { moment: 'phase_complete', vars: {} },
     ]);
@@ -219,7 +220,20 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
     if (!serverResults?.length) return;
     if (serverResults.some((r) => !r || typeof r.correct !== 'boolean')) return;
     const passed = serverResults.every((r) => r.correct);
-    voice.play(passed ? 'verify_pass' : 'verify_fail', { key: node.nodeType, node: node.label, scope: `node:${node.id}` });
+
+    // THE ONLY PLACE A VERDICT IS SPOKEN. There used to be a second one, further
+    // down in the results handler, and both ran on every verify — so Iris said
+    // "that's done" twice, or "not quite" twice, for every single check. Two
+    // speakers for one event is the bug; splitting the moments did not fix it,
+    // because the duplicate was the other speaker.
+    //
+    // Which of the three it is depends on what is left to do:
+    //   failed                              -> verify_fail
+    //   parameters right, Settings to come  -> verify_params, no celebration
+    //   nothing left                        -> verify_pass, the node works
+    const moreToDo = passed && stage !== 'settings' && gradedSettings.length > 0;
+    const moment = !passed ? 'verify_fail' : moreToDo ? 'verify_params' : 'verify_pass';
+    voice.play(moment, { key: node.nodeType, node: node.label, scope: `node:${node.id}` });
   };
 
   const verify = () => {
@@ -306,22 +320,9 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
         // Nothing is said when a check could not complete: `unverified` is not a
         // verdict, and claiming one out loud would be worse than silence.
         const anyUnverified = paramChecks.some((c) => next[c.key] === 'unverified');
-        // Parameters right is not the same event as the NODE being right, and it used
-        // to say the same sentence for both — literally the identical clip, twice per
-        // node. `verify_params` acknowledges and points at the tab that just unlocked;
-        // `verify_pass` is saved for the node actually working, which is the moment
-        // worth a word of praise.
-        //
-        // A node with nothing graded on its Settings tab finishes here, so this is its
-        // completion and it gets `verify_pass` directly.
-        if (!anyUnverified) {
-          const moreToDo = paramsPassed && gradedSettings.length > 0;
-          voice.play(paramsPassed ? (moreToDo ? 'verify_params' : 'verify_pass') : 'verify_fail', {
-            key: node.nodeType,
-            node: node.label,
-            scope: `node:${node.id}`,
-          });
-        }
+        // Nothing spoken here. `speakVerdict` already said it, a beat earlier and on
+        // purpose — see the note there. Adding a line here is what made Iris repeat
+        // herself on every check.
         if (!paramsPassed) {
           setPhase('idle');
           const firstWrong = paramChecks.find((c) => next[c.key] === 'wrong');

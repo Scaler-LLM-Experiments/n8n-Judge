@@ -224,8 +224,8 @@
       "file": "shared/build-start--e1a471b3.mp3"
     },
     "idle-nudge--v0": {
-      "text": "[calm] Take your time. If you're not sure what comes next, just ask me.",
-      "file": "shared/idle-nudge--bfee6325.mp3"
+      "text": "[calm] Take your time. And if you're not sure what comes next, just ask.",
+      "file": "shared/idle-nudge--29401f58.mp3"
     },
     "idle-nudge--v1": {
       "text": "[calm] Still thinking? Tell me what you're stuck on and I'll help.",
@@ -304,8 +304,8 @@
       "file": "order-desk/node-placed--fb0e7671.mp3"
     },
     "node-wrong--v0": {
-      "text": "[thoughtful] That one can't do the job here. Let me ask you something.",
-      "file": "shared/node-wrong--3291483d.mp3"
+      "text": "[thoughtful] Hmm. That one can't do the job here. Let me ask you something.",
+      "file": "shared/node-wrong--19173137.mp3"
     },
     "phase-complete--enrich--v0": {
       "text": "[excited] It knows the order and how urgent this is. Almost there.",
@@ -320,8 +320,8 @@
       "file": "order-desk/phase-complete--c04da406.mp3"
     },
     "phase-complete--route--v0": {
-      "text": "[excited] That part's done. Nice work.",
-      "file": "shared/phase-complete--fd870972.mp3"
+      "text": "[excited] Right, that part's done. Nice work.",
+      "file": "shared/phase-complete--d3245d7e.mp3"
     },
     "phase-complete--route--v1": {
       "text": "[excited] That's it, that piece works now.",
@@ -332,8 +332,8 @@
       "file": "shared/phase-complete--3e7cb79e.mp3"
     },
     "phase-complete--v0": {
-      "text": "[excited] That part's done. Nice work.",
-      "file": "shared/phase-complete--fd870972.mp3"
+      "text": "[excited] Right, that part's done. Nice work.",
+      "file": "shared/phase-complete--d3245d7e.mp3"
     },
     "phase-complete--v1": {
       "text": "[excited] That's it, that piece works now.",
@@ -412,44 +412,44 @@
       "file": "shared/report-ready--0d338bc2.mp3"
     },
     "run-case--access--v0": {
-      "text": "[calm] Here's the next one. Watch where it goes.",
-      "file": "shared/run-case--6bbfc022.mp3"
+      "text": "[calm] Okay, here's the next one. Watch where it goes.",
+      "file": "shared/run-case--1ea64116.mp3"
     },
     "run-case--angry--v0": {
-      "text": "[calm] Here's the next one. Watch where it goes.",
-      "file": "shared/run-case--6bbfc022.mp3"
+      "text": "[calm] Okay, here's the next one. Watch where it goes.",
+      "file": "shared/run-case--1ea64116.mp3"
     },
     "run-case--billing--v0": {
-      "text": "[calm] Here's the next one. Watch where it goes.",
-      "file": "shared/run-case--6bbfc022.mp3"
+      "text": "[calm] Okay, here's the next one. Watch where it goes.",
+      "file": "shared/run-case--1ea64116.mp3"
     },
     "run-case--bug--v0": {
-      "text": "[calm] Here's the next one. Watch where it goes.",
-      "file": "shared/run-case--6bbfc022.mp3"
+      "text": "[calm] Okay, here's the next one. Watch where it goes.",
+      "file": "shared/run-case--1ea64116.mp3"
     },
     "run-case--cancel--v0": {
-      "text": "[calm] Here's the next one. Watch where it goes.",
-      "file": "shared/run-case--6bbfc022.mp3"
+      "text": "[calm] Okay, here's the next one. Watch where it goes.",
+      "file": "shared/run-case--1ea64116.mp3"
     },
     "run-case--delivery--v0": {
-      "text": "[calm] Here's the next one. Watch where it goes.",
-      "file": "shared/run-case--6bbfc022.mp3"
+      "text": "[calm] Okay, here's the next one. Watch where it goes.",
+      "file": "shared/run-case--1ea64116.mp3"
     },
     "run-case--partnership--v0": {
-      "text": "[calm] Here's the next one. Watch where it goes.",
-      "file": "shared/run-case--6bbfc022.mp3"
+      "text": "[calm] Okay, here's the next one. Watch where it goes.",
+      "file": "shared/run-case--1ea64116.mp3"
     },
     "run-case--refund--v0": {
-      "text": "[calm] Here's the next one. Watch where it goes.",
-      "file": "shared/run-case--6bbfc022.mp3"
+      "text": "[calm] Okay, here's the next one. Watch where it goes.",
+      "file": "shared/run-case--1ea64116.mp3"
     },
     "run-case--sales--v0": {
-      "text": "[calm] Here's the next one. Watch where it goes.",
-      "file": "shared/run-case--6bbfc022.mp3"
+      "text": "[calm] Okay, here's the next one. Watch where it goes.",
+      "file": "shared/run-case--1ea64116.mp3"
     },
     "run-case--v0": {
-      "text": "[calm] Here's the next one. Watch where it goes.",
-      "file": "shared/run-case--6bbfc022.mp3"
+      "text": "[calm] Okay, here's the next one. Watch where it goes.",
+      "file": "shared/run-case--1ea64116.mp3"
     },
     "run-fail--v0": {
       "text": "[calm] Some didn't come out right. That's worth knowing. Let's look.",
@@ -484,20 +484,20 @@
       "file": "shared/understand-start--e73c1b2a.mp3"
     },
     "verify-fail--action--send-reply--v0": {
-      "text": "[calm] Send Reply isn't right yet. Check the field I marked.",
-      "file": "shared/verify-fail--76412ffa.mp3"
+      "text": "[calm] Hmm, Send Reply isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--87adf5d2.mp3"
     },
     "verify-fail--action--send-reply--v1": {
-      "text": "[calm] Something in Send Reply's off. Have a look at what's in red.",
-      "file": "shared/verify-fail--d073aafc.mp3"
+      "text": "[calm] Hmm, something in Send Reply's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--5af3d524.mp3"
     },
     "verify-fail--calendar-event--google-calendar-create-event--v0": {
-      "text": "[calm] Google Calendar — Create Event isn't right yet. Check the field I marked.",
-      "file": "shared/verify-fail--62ccfdbb.mp3"
+      "text": "[calm] Hmm, Google Calendar — Create Event isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--275d7c9e.mp3"
     },
     "verify-fail--calendar-event--google-calendar-create-event--v1": {
-      "text": "[calm] Something in Google Calendar — Create Event's off. Have a look at what's in red.",
-      "file": "shared/verify-fail--0b8447dd.mp3"
+      "text": "[calm] Hmm, something in Google Calendar — Create Event's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--e67cd4c7.mp3"
     },
     "verify-fail--chat-gemini--v0": {
       "text": "[calm] Not yet. Should the same email always get the same answer?",
@@ -508,96 +508,96 @@
       "file": "order-desk/verify-fail--b9c78ac7.mp3"
     },
     "verify-fail--code--code--v0": {
-      "text": "[calm] Code isn't right yet. Check the field I marked.",
-      "file": "shared/verify-fail--ad8dde80.mp3"
+      "text": "[calm] Hmm, Code isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--2ebd4d83.mp3"
     },
     "verify-fail--code--code--v1": {
-      "text": "[calm] Something in Code's off. Have a look at what's in red.",
-      "file": "shared/verify-fail--01718784.mp3"
+      "text": "[calm] Hmm, something in Code's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--66c9f187.mp3"
     },
     "verify-fail--filter--filter--v0": {
-      "text": "[calm] Filter isn't right yet. Check the field I marked.",
-      "file": "shared/verify-fail--4981827b.mp3"
+      "text": "[calm] Hmm, Filter isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--2f1ac603.mp3"
     },
     "verify-fail--filter--filter--v1": {
-      "text": "[calm] Something in Filter's off. Have a look at what's in red.",
-      "file": "shared/verify-fail--c5c7adc6.mp3"
+      "text": "[calm] Hmm, something in Filter's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--9fa67d7b.mp3"
     },
     "verify-fail--google-docs--google-docs--v0": {
-      "text": "[calm] Google Docs isn't right yet. Check the field I marked.",
-      "file": "shared/verify-fail--7c0932b5.mp3"
+      "text": "[calm] Hmm, Google Docs isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--dafce901.mp3"
     },
     "verify-fail--google-docs--google-docs--v1": {
-      "text": "[calm] Something in Google Docs's off. Have a look at what's in red.",
-      "file": "shared/verify-fail--c2adfda0.mp3"
+      "text": "[calm] Hmm, something in Google Docs's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--59f198d5.mp3"
     },
     "verify-fail--http-request--v0": {
       "text": "[calm] Not quite. You already know exactly which order this is about.",
       "file": "order-desk/verify-fail--f55fe241.mp3"
     },
     "verify-fail--notion-page--notion-create-page--v0": {
-      "text": "[calm] Notion — Create Page isn't right yet. Check the field I marked.",
-      "file": "shared/verify-fail--dcafb4fe.mp3"
+      "text": "[calm] Hmm, Notion — Create Page isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--0c88594c.mp3"
     },
     "verify-fail--notion-page--notion-create-page--v1": {
-      "text": "[calm] Something in Notion — Create Page's off. Have a look at what's in red.",
-      "file": "shared/verify-fail--5bd7648c.mp3"
+      "text": "[calm] Hmm, something in Notion — Create Page's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--9ad8e992.mp3"
     },
     "verify-fail--parse--parse-result--v0": {
-      "text": "[calm] Parse Result isn't right yet. Check the field I marked.",
-      "file": "shared/verify-fail--7ec19d09.mp3"
+      "text": "[calm] Hmm, Parse Result isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--45afb39f.mp3"
     },
     "verify-fail--parse--parse-result--v1": {
-      "text": "[calm] Something in Parse Result's off. Have a look at what's in red.",
-      "file": "shared/verify-fail--44aba177.mp3"
+      "text": "[calm] Hmm, something in Parse Result's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--de92cd74.mp3"
     },
     "verify-fail--remove-duplicates--v0": {
       "text": "[calm] Think about who gets wrongly ignored if you compare on that.",
       "file": "order-desk/verify-fail--0617f605.mp3"
     },
     "verify-fail--slack-message--slack-send-message--v0": {
-      "text": "[calm] Slack — Send Message isn't right yet. Check the field I marked.",
-      "file": "shared/verify-fail--29a231b3.mp3"
+      "text": "[calm] Hmm, Slack — Send Message isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--6f55a79b.mp3"
     },
     "verify-fail--slack-message--slack-send-message--v1": {
-      "text": "[calm] Something in Slack — Send Message's off. Have a look at what's in red.",
-      "file": "shared/verify-fail--bf5d2911.mp3"
+      "text": "[calm] Hmm, something in Slack — Send Message's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--d3d39b04.mp3"
     },
     "verify-fail--summarize--summarize-with-ai--v0": {
-      "text": "[calm] Summarize with AI isn't right yet. Check the field I marked.",
-      "file": "shared/verify-fail--1f548969.mp3"
+      "text": "[calm] Hmm, Summarize with AI isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--e2f5ea98.mp3"
     },
     "verify-fail--summarize--summarize-with-ai--v1": {
-      "text": "[calm] Something in Summarize with AI's off. Have a look at what's in red.",
-      "file": "shared/verify-fail--e54f19e6.mp3"
+      "text": "[calm] Hmm, something in Summarize with AI's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--a9aba7ff.mp3"
     },
     "verify-fail--switch--v0": {
       "text": "[calm] Not right yet. Look at what each rule tests, and what the classifier really produces.",
       "file": "order-desk/verify-fail--3b78c5fb.mp3"
     },
     "verify-fail--trigger--new-email--v0": {
-      "text": "[calm] New Email isn't right yet. Check the field I marked.",
-      "file": "shared/verify-fail--9f907030.mp3"
+      "text": "[calm] Hmm, New Email isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--4e413c75.mp3"
     },
     "verify-fail--trigger--new-email--v1": {
-      "text": "[calm] Something in New Email's off. Have a look at what's in red.",
-      "file": "shared/verify-fail--ef8dbf89.mp3"
+      "text": "[calm] Hmm, something in New Email's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--3b8a659b.mp3"
     },
     "verify-fail--wait--wait--v0": {
-      "text": "[calm] Wait isn't right yet. Check the field I marked.",
-      "file": "shared/verify-fail--67b9371e.mp3"
+      "text": "[calm] Hmm, Wait isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--37303c1e.mp3"
     },
     "verify-fail--wait--wait--v1": {
-      "text": "[calm] Something in Wait's off. Have a look at what's in red.",
-      "file": "shared/verify-fail--6ffd82a4.mp3"
+      "text": "[calm] Hmm, something in Wait's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--2a1c6d54.mp3"
     },
     "verify-fail--web-search--web-search--v0": {
-      "text": "[calm] Web Search isn't right yet. Check the field I marked.",
-      "file": "shared/verify-fail--68503fd0.mp3"
+      "text": "[calm] Hmm, Web Search isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--73ada678.mp3"
     },
     "verify-fail--web-search--web-search--v1": {
-      "text": "[calm] Something in Web Search's off. Have a look at what's in red.",
-      "file": "shared/verify-fail--c33d0842.mp3"
+      "text": "[calm] Hmm, something in Web Search's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--85a66a17.mp3"
     },
     "verify-params--action--v0": {
       "text": "[calm] That's the parameters right. You've got one tab left.",
@@ -740,8 +740,8 @@
       "file": "shared/verify-pass--c124a0ee.mp3"
     },
     "verify-pass--action--send-reply--v1": {
-      "text": "[warm] Good, Send Reply's done.",
-      "file": "shared/verify-pass--ac42a5b3.mp3"
+      "text": "[warm] Ah, Send Reply's done.",
+      "file": "shared/verify-pass--ad014013.mp3"
     },
     "verify-pass--action--send-reply--v2": {
       "text": "[warm] Send Reply's right now.",
@@ -752,8 +752,8 @@
       "file": "shared/verify-pass--7ab32643.mp3"
     },
     "verify-pass--calendar-event--google-calendar-create-event--v1": {
-      "text": "[warm] Good, Google Calendar — Create Event's done.",
-      "file": "shared/verify-pass--a3b3b19a.mp3"
+      "text": "[warm] Ah, Google Calendar — Create Event's done.",
+      "file": "shared/verify-pass--8f514ad5.mp3"
     },
     "verify-pass--calendar-event--google-calendar-create-event--v2": {
       "text": "[warm] Google Calendar — Create Event's right now.",
@@ -768,8 +768,8 @@
       "file": "shared/verify-pass--0d99f3fe.mp3"
     },
     "verify-pass--classify--classify-with-ai--v1": {
-      "text": "[warm] Good, Classify with AI's done.",
-      "file": "shared/verify-pass--c93deb45.mp3"
+      "text": "[warm] Ah, Classify with AI's done.",
+      "file": "shared/verify-pass--9afef7f1.mp3"
     },
     "verify-pass--classify--classify-with-ai--v2": {
       "text": "[warm] Classify with AI's right now.",
@@ -780,8 +780,8 @@
       "file": "shared/verify-pass--e0f14b10.mp3"
     },
     "verify-pass--code--code--v1": {
-      "text": "[warm] Good, Code's done.",
-      "file": "shared/verify-pass--11bf122a.mp3"
+      "text": "[warm] Ah, Code's done.",
+      "file": "shared/verify-pass--950604b9.mp3"
     },
     "verify-pass--code--code--v2": {
       "text": "[warm] Code's right now.",
@@ -792,8 +792,8 @@
       "file": "shared/verify-pass--03ab0329.mp3"
     },
     "verify-pass--filter--filter--v1": {
-      "text": "[warm] Good, Filter's done.",
-      "file": "shared/verify-pass--c2ccf82a.mp3"
+      "text": "[warm] Ah, Filter's done.",
+      "file": "shared/verify-pass--eae36977.mp3"
     },
     "verify-pass--filter--filter--v2": {
       "text": "[warm] Filter's right now.",
@@ -804,8 +804,8 @@
       "file": "shared/verify-pass--0ae3dda5.mp3"
     },
     "verify-pass--google-docs--google-docs--v1": {
-      "text": "[warm] Good, Google Docs's done.",
-      "file": "shared/verify-pass--6fb34940.mp3"
+      "text": "[warm] Ah, Google Docs's done.",
+      "file": "shared/verify-pass--5ec36f20.mp3"
     },
     "verify-pass--google-docs--google-docs--v2": {
       "text": "[warm] Google Docs's right now.",
@@ -816,8 +816,8 @@
       "file": "shared/verify-pass--973e080b.mp3"
     },
     "verify-pass--http-request--http-request--v1": {
-      "text": "[warm] Good, HTTP Request's done.",
-      "file": "shared/verify-pass--88f87362.mp3"
+      "text": "[warm] Ah, HTTP Request's done.",
+      "file": "shared/verify-pass--aa2f80af.mp3"
     },
     "verify-pass--http-request--http-request--v2": {
       "text": "[warm] HTTP Request's right now.",
@@ -828,8 +828,8 @@
       "file": "shared/verify-pass--ad86c90a.mp3"
     },
     "verify-pass--notion-page--notion-create-page--v1": {
-      "text": "[warm] Good, Notion — Create Page's done.",
-      "file": "shared/verify-pass--6a7e84e1.mp3"
+      "text": "[warm] Ah, Notion — Create Page's done.",
+      "file": "shared/verify-pass--c0d6cd2c.mp3"
     },
     "verify-pass--notion-page--notion-create-page--v2": {
       "text": "[warm] Notion — Create Page's right now.",
@@ -840,8 +840,8 @@
       "file": "shared/verify-pass--cfa402cc.mp3"
     },
     "verify-pass--parse--parse-result--v1": {
-      "text": "[warm] Good, Parse Result's done.",
-      "file": "shared/verify-pass--6bba6948.mp3"
+      "text": "[warm] Ah, Parse Result's done.",
+      "file": "shared/verify-pass--8667f7d3.mp3"
     },
     "verify-pass--parse--parse-result--v2": {
       "text": "[warm] Parse Result's right now.",
@@ -852,8 +852,8 @@
       "file": "shared/verify-pass--ecf0d43b.mp3"
     },
     "verify-pass--remove-duplicates--remove-duplicates--v1": {
-      "text": "[warm] Good, Remove Duplicates's done.",
-      "file": "shared/verify-pass--05d63a32.mp3"
+      "text": "[warm] Ah, Remove Duplicates's done.",
+      "file": "shared/verify-pass--b68f4c2d.mp3"
     },
     "verify-pass--remove-duplicates--remove-duplicates--v2": {
       "text": "[warm] Remove Duplicates's right now.",
@@ -864,8 +864,8 @@
       "file": "shared/verify-pass--7897360d.mp3"
     },
     "verify-pass--slack-message--slack-send-message--v1": {
-      "text": "[warm] Good, Slack — Send Message's done.",
-      "file": "shared/verify-pass--73a78a90.mp3"
+      "text": "[warm] Ah, Slack — Send Message's done.",
+      "file": "shared/verify-pass--747cceb2.mp3"
     },
     "verify-pass--slack-message--slack-send-message--v2": {
       "text": "[warm] Slack — Send Message's right now.",
@@ -876,8 +876,8 @@
       "file": "shared/verify-pass--d04e8a3e.mp3"
     },
     "verify-pass--summarize--summarize-with-ai--v1": {
-      "text": "[warm] Good, Summarize with AI's done.",
-      "file": "shared/verify-pass--0d9cd094.mp3"
+      "text": "[warm] Ah, Summarize with AI's done.",
+      "file": "shared/verify-pass--bd39290a.mp3"
     },
     "verify-pass--summarize--summarize-with-ai--v2": {
       "text": "[warm] Summarize with AI's right now.",
@@ -892,8 +892,8 @@
       "file": "shared/verify-pass--56819af6.mp3"
     },
     "verify-pass--trigger--new-email--v1": {
-      "text": "[warm] Good, New Email's done.",
-      "file": "shared/verify-pass--abcd2504.mp3"
+      "text": "[warm] Ah, New Email's done.",
+      "file": "shared/verify-pass--5fdc6d5a.mp3"
     },
     "verify-pass--trigger--new-email--v2": {
       "text": "[warm] New Email's right now.",
@@ -904,8 +904,8 @@
       "file": "shared/verify-pass--a28b53e9.mp3"
     },
     "verify-pass--wait--wait--v1": {
-      "text": "[warm] Good, Wait's done.",
-      "file": "shared/verify-pass--88f77527.mp3"
+      "text": "[warm] Ah, Wait's done.",
+      "file": "shared/verify-pass--01934fa2.mp3"
     },
     "verify-pass--wait--wait--v2": {
       "text": "[warm] Wait's right now.",
@@ -916,8 +916,8 @@
       "file": "shared/verify-pass--5f68210e.mp3"
     },
     "verify-pass--web-search--web-search--v1": {
-      "text": "[warm] Good, Web Search's done.",
-      "file": "shared/verify-pass--7ece773a.mp3"
+      "text": "[warm] Ah, Web Search's done.",
+      "file": "shared/verify-pass--32af8ef2.mp3"
     },
     "verify-pass--web-search--web-search--v2": {
       "text": "[warm] Web Search's right now.",

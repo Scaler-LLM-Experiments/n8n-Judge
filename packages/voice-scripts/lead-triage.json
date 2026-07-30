@@ -324,8 +324,8 @@
       "file": "shared/build-start--e1a471b3.mp3"
     },
     "idle-nudge--v0": {
-      "text": "[calm] Take your time. If you're not sure what comes next, just ask me.",
-      "file": "shared/idle-nudge--bfee6325.mp3"
+      "text": "[calm] Take your time. And if you're not sure what comes next, just ask.",
+      "file": "shared/idle-nudge--29401f58.mp3"
     },
     "idle-nudge--v1": {
       "text": "[calm] Still thinking? Tell me what you're stuck on and I'll help.",
@@ -384,12 +384,12 @@
       "file": "shared/node-placed--75422fee.mp3"
     },
     "node-wrong--v0": {
-      "text": "[thoughtful] That one can't do the job here. Let me ask you something.",
-      "file": "shared/node-wrong--3291483d.mp3"
+      "text": "[thoughtful] Hmm. That one can't do the job here. Let me ask you something.",
+      "file": "shared/node-wrong--19173137.mp3"
     },
     "phase-complete--brain--v0": {
-      "text": "[excited] That part's done. Nice work.",
-      "file": "shared/phase-complete--fd870972.mp3"
+      "text": "[excited] Right, that part's done. Nice work.",
+      "file": "shared/phase-complete--d3245d7e.mp3"
     },
     "phase-complete--brain--v1": {
       "text": "[excited] That's it, that piece works now.",
@@ -400,8 +400,8 @@
       "file": "shared/phase-complete--3e7cb79e.mp3"
     },
     "phase-complete--route--v0": {
-      "text": "[excited] That part's done. Nice work.",
-      "file": "shared/phase-complete--fd870972.mp3"
+      "text": "[excited] Right, that part's done. Nice work.",
+      "file": "shared/phase-complete--d3245d7e.mp3"
     },
     "phase-complete--route--v1": {
       "text": "[excited] That's it, that piece works now.",
@@ -412,8 +412,8 @@
       "file": "shared/phase-complete--3e7cb79e.mp3"
     },
     "phase-complete--trigger--v0": {
-      "text": "[excited] That part's done. Nice work.",
-      "file": "shared/phase-complete--fd870972.mp3"
+      "text": "[excited] Right, that part's done. Nice work.",
+      "file": "shared/phase-complete--d3245d7e.mp3"
     },
     "phase-complete--trigger--v1": {
       "text": "[excited] That's it, that piece works now.",
@@ -424,8 +424,8 @@
       "file": "shared/phase-complete--3e7cb79e.mp3"
     },
     "phase-complete--v0": {
-      "text": "[excited] That part's done. Nice work.",
-      "file": "shared/phase-complete--fd870972.mp3"
+      "text": "[excited] Right, that part's done. Nice work.",
+      "file": "shared/phase-complete--d3245d7e.mp3"
     },
     "phase-complete--v1": {
       "text": "[excited] That's it, that piece works now.",
@@ -492,24 +492,24 @@
       "file": "shared/report-ready--0d338bc2.mp3"
     },
     "run-case--demo--v0": {
-      "text": "[calm] Here's the next one. Watch where it goes.",
-      "file": "shared/run-case--6bbfc022.mp3"
+      "text": "[calm] Okay, here's the next one. Watch where it goes.",
+      "file": "shared/run-case--1ea64116.mp3"
     },
     "run-case--notfit--v0": {
-      "text": "[calm] Here's the next one. Watch where it goes.",
-      "file": "shared/run-case--6bbfc022.mp3"
+      "text": "[calm] Okay, here's the next one. Watch where it goes.",
+      "file": "shared/run-case--1ea64116.mp3"
     },
     "run-case--pricing--v0": {
-      "text": "[calm] Here's the next one. Watch where it goes.",
-      "file": "shared/run-case--6bbfc022.mp3"
+      "text": "[calm] Okay, here's the next one. Watch where it goes.",
+      "file": "shared/run-case--1ea64116.mp3"
     },
     "run-case--support--v0": {
-      "text": "[calm] Here's the next one. Watch where it goes.",
-      "file": "shared/run-case--6bbfc022.mp3"
+      "text": "[calm] Okay, here's the next one. Watch where it goes.",
+      "file": "shared/run-case--1ea64116.mp3"
     },
     "run-case--v0": {
-      "text": "[calm] Here's the next one. Watch where it goes.",
-      "file": "shared/run-case--6bbfc022.mp3"
+      "text": "[calm] Okay, here's the next one. Watch where it goes.",
+      "file": "shared/run-case--1ea64116.mp3"
     },
     "run-fail--v0": {
       "text": "[calm] Some didn't come out right. That's worth knowing. Let's look.",
@@ -544,52 +544,52 @@
       "file": "shared/understand-start--e73c1b2a.mp3"
     },
     "verify-fail--action--send-reply--v0": {
-      "text": "[calm] Send Reply isn't right yet. Check the field I marked.",
-      "file": "shared/verify-fail--76412ffa.mp3"
+      "text": "[calm] Hmm, Send Reply isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--87adf5d2.mp3"
     },
     "verify-fail--action--send-reply--v1": {
-      "text": "[calm] Something in Send Reply's off. Have a look at what's in red.",
-      "file": "shared/verify-fail--d073aafc.mp3"
+      "text": "[calm] Hmm, something in Send Reply's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--5af3d524.mp3"
     },
     "verify-fail--chat-gemini--gemini-chat-model--v0": {
-      "text": "[calm] Gemini Chat Model isn't right yet. Check the field I marked.",
-      "file": "shared/verify-fail--7cfc27fb.mp3"
+      "text": "[calm] Hmm, Gemini Chat Model isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--2b98b4ac.mp3"
     },
     "verify-fail--chat-gemini--gemini-chat-model--v1": {
-      "text": "[calm] Something in Gemini Chat Model's off. Have a look at what's in red.",
-      "file": "shared/verify-fail--9a8ac40b.mp3"
+      "text": "[calm] Hmm, something in Gemini Chat Model's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--e63fdef0.mp3"
     },
     "verify-fail--classify--classify-with-ai--v0": {
-      "text": "[calm] Classify with AI isn't right yet. Check the field I marked.",
-      "file": "shared/verify-fail--e9ebf1c9.mp3"
+      "text": "[calm] Hmm, Classify with AI isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--93e83b73.mp3"
     },
     "verify-fail--classify--classify-with-ai--v1": {
-      "text": "[calm] Something in Classify with AI's off. Have a look at what's in red.",
-      "file": "shared/verify-fail--6a9936bd.mp3"
+      "text": "[calm] Hmm, something in Classify with AI's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--be023b9f.mp3"
     },
     "verify-fail--parse--parse-result--v0": {
-      "text": "[calm] Parse Result isn't right yet. Check the field I marked.",
-      "file": "shared/verify-fail--7ec19d09.mp3"
+      "text": "[calm] Hmm, Parse Result isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--45afb39f.mp3"
     },
     "verify-fail--parse--parse-result--v1": {
-      "text": "[calm] Something in Parse Result's off. Have a look at what's in red.",
-      "file": "shared/verify-fail--44aba177.mp3"
+      "text": "[calm] Hmm, something in Parse Result's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--de92cd74.mp3"
     },
     "verify-fail--switch--switch--v0": {
-      "text": "[calm] Switch isn't right yet. Check the field I marked.",
-      "file": "shared/verify-fail--c24d3785.mp3"
+      "text": "[calm] Hmm, Switch isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--db37ca90.mp3"
     },
     "verify-fail--switch--switch--v1": {
-      "text": "[calm] Something in Switch's off. Have a look at what's in red.",
-      "file": "shared/verify-fail--70aec572.mp3"
+      "text": "[calm] Hmm, something in Switch's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--463b1d93.mp3"
     },
     "verify-fail--trigger--new-email--v0": {
-      "text": "[calm] New Email isn't right yet. Check the field I marked.",
-      "file": "shared/verify-fail--9f907030.mp3"
+      "text": "[calm] Hmm, New Email isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--4e413c75.mp3"
     },
     "verify-fail--trigger--new-email--v1": {
-      "text": "[calm] Something in New Email's off. Have a look at what's in red.",
-      "file": "shared/verify-fail--ef8dbf89.mp3"
+      "text": "[calm] Hmm, something in New Email's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--3b8a659b.mp3"
     },
     "verify-params--action--v0": {
       "text": "[calm] That's the parameters right. You've got one tab left.",
@@ -644,8 +644,8 @@
       "file": "shared/verify-pass--c124a0ee.mp3"
     },
     "verify-pass--action--send-reply--v1": {
-      "text": "[warm] Good, Send Reply's done.",
-      "file": "shared/verify-pass--ac42a5b3.mp3"
+      "text": "[warm] Ah, Send Reply's done.",
+      "file": "shared/verify-pass--ad014013.mp3"
     },
     "verify-pass--action--send-reply--v2": {
       "text": "[warm] Send Reply's right now.",
@@ -656,8 +656,8 @@
       "file": "shared/verify-pass--5de55dbf.mp3"
     },
     "verify-pass--chat-gemini--gemini-chat-model--v1": {
-      "text": "[warm] Good, Gemini Chat Model's done.",
-      "file": "shared/verify-pass--e8c55eaf.mp3"
+      "text": "[warm] Ah, Gemini Chat Model's done.",
+      "file": "shared/verify-pass--0d199b58.mp3"
     },
     "verify-pass--chat-gemini--gemini-chat-model--v2": {
       "text": "[warm] Gemini Chat Model's right now.",
@@ -668,8 +668,8 @@
       "file": "shared/verify-pass--0d99f3fe.mp3"
     },
     "verify-pass--classify--classify-with-ai--v1": {
-      "text": "[warm] Good, Classify with AI's done.",
-      "file": "shared/verify-pass--c93deb45.mp3"
+      "text": "[warm] Ah, Classify with AI's done.",
+      "file": "shared/verify-pass--9afef7f1.mp3"
     },
     "verify-pass--classify--classify-with-ai--v2": {
       "text": "[warm] Classify with AI's right now.",
@@ -680,8 +680,8 @@
       "file": "shared/verify-pass--cfa402cc.mp3"
     },
     "verify-pass--parse--parse-result--v1": {
-      "text": "[warm] Good, Parse Result's done.",
-      "file": "shared/verify-pass--6bba6948.mp3"
+      "text": "[warm] Ah, Parse Result's done.",
+      "file": "shared/verify-pass--8667f7d3.mp3"
     },
     "verify-pass--parse--parse-result--v2": {
       "text": "[warm] Parse Result's right now.",
@@ -692,8 +692,8 @@
       "file": "shared/verify-pass--0405d211.mp3"
     },
     "verify-pass--switch--switch--v1": {
-      "text": "[warm] Good, Switch's done.",
-      "file": "shared/verify-pass--9060ca0e.mp3"
+      "text": "[warm] Ah, Switch's done.",
+      "file": "shared/verify-pass--28aa17d5.mp3"
     },
     "verify-pass--switch--switch--v2": {
       "text": "[warm] Switch's right now.",
@@ -704,8 +704,8 @@
       "file": "shared/verify-pass--56819af6.mp3"
     },
     "verify-pass--trigger--new-email--v1": {
-      "text": "[warm] Good, New Email's done.",
-      "file": "shared/verify-pass--abcd2504.mp3"
+      "text": "[warm] Ah, New Email's done.",
+      "file": "shared/verify-pass--5fdc6d5a.mp3"
     },
     "verify-pass--trigger--new-email--v2": {
       "text": "[warm] New Email's right now.",

@@ -200,8 +200,8 @@
       "file": "shared/build-start--e1a471b3.mp3"
     },
     "idle-nudge--v0": {
-      "text": "[calm] Take your time. If you're not sure what comes next, just ask me.",
-      "file": "shared/idle-nudge--bfee6325.mp3"
+      "text": "[calm] Take your time. And if you're not sure what comes next, just ask.",
+      "file": "shared/idle-nudge--29401f58.mp3"
     },
     "idle-nudge--v1": {
       "text": "[calm] Still thinking? Tell me what you're stuck on and I'll help.",
@@ -244,12 +244,12 @@
       "file": "shared/node-placed--555bcb05.mp3"
     },
     "node-wrong--v0": {
-      "text": "[thoughtful] That one can't do the job here. Let me ask you something.",
-      "file": "shared/node-wrong--3291483d.mp3"
+      "text": "[thoughtful] Hmm. That one can't do the job here. Let me ask you something.",
+      "file": "shared/node-wrong--19173137.mp3"
     },
     "phase-complete--summarize-save--v0": {
-      "text": "[excited] That part's done. Nice work.",
-      "file": "shared/phase-complete--fd870972.mp3"
+      "text": "[excited] Right, that part's done. Nice work.",
+      "file": "shared/phase-complete--d3245d7e.mp3"
     },
     "phase-complete--summarize-save--v1": {
       "text": "[excited] That's it, that piece works now.",
@@ -260,8 +260,8 @@
       "file": "shared/phase-complete--3e7cb79e.mp3"
     },
     "phase-complete--trigger--v0": {
-      "text": "[excited] That part's done. Nice work.",
-      "file": "shared/phase-complete--fd870972.mp3"
+      "text": "[excited] Right, that part's done. Nice work.",
+      "file": "shared/phase-complete--d3245d7e.mp3"
     },
     "phase-complete--trigger--v1": {
       "text": "[excited] That's it, that piece works now.",
@@ -272,8 +272,8 @@
       "file": "shared/phase-complete--3e7cb79e.mp3"
     },
     "phase-complete--v0": {
-      "text": "[excited] That part's done. Nice work.",
-      "file": "shared/phase-complete--fd870972.mp3"
+      "text": "[excited] Right, that part's done. Nice work.",
+      "file": "shared/phase-complete--d3245d7e.mp3"
     },
     "phase-complete--v1": {
       "text": "[excited] That's it, that piece works now.",
@@ -328,20 +328,20 @@
       "file": "shared/report-ready--0d338bc2.mp3"
     },
     "run-case--billing--v0": {
-      "text": "[calm] Here's the next one. Watch where it goes.",
-      "file": "shared/run-case--6bbfc022.mp3"
+      "text": "[calm] Okay, here's the next one. Watch where it goes.",
+      "file": "shared/run-case--1ea64116.mp3"
     },
     "run-case--onboarding--v0": {
-      "text": "[calm] Here's the next one. Watch where it goes.",
-      "file": "shared/run-case--6bbfc022.mp3"
+      "text": "[calm] Okay, here's the next one. Watch where it goes.",
+      "file": "shared/run-case--1ea64116.mp3"
     },
     "run-case--renewal--v0": {
-      "text": "[calm] Here's the next one. Watch where it goes.",
-      "file": "shared/run-case--6bbfc022.mp3"
+      "text": "[calm] Okay, here's the next one. Watch where it goes.",
+      "file": "shared/run-case--1ea64116.mp3"
     },
     "run-case--v0": {
-      "text": "[calm] Here's the next one. Watch where it goes.",
-      "file": "shared/run-case--6bbfc022.mp3"
+      "text": "[calm] Okay, here's the next one. Watch where it goes.",
+      "file": "shared/run-case--1ea64116.mp3"
     },
     "run-fail--v0": {
       "text": "[calm] Some didn't come out right. That's worth knowing. Let's look.",
@@ -376,36 +376,36 @@
       "file": "shared/understand-start--e73c1b2a.mp3"
     },
     "verify-fail--chat-gemini--gemini-chat-model--v0": {
-      "text": "[calm] Gemini Chat Model isn't right yet. Check the field I marked.",
-      "file": "shared/verify-fail--7cfc27fb.mp3"
+      "text": "[calm] Hmm, Gemini Chat Model isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--2b98b4ac.mp3"
     },
     "verify-fail--chat-gemini--gemini-chat-model--v1": {
-      "text": "[calm] Something in Gemini Chat Model's off. Have a look at what's in red.",
-      "file": "shared/verify-fail--9a8ac40b.mp3"
+      "text": "[calm] Hmm, something in Gemini Chat Model's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--e63fdef0.mp3"
     },
     "verify-fail--google-docs--google-docs--v0": {
-      "text": "[calm] Google Docs isn't right yet. Check the field I marked.",
-      "file": "shared/verify-fail--7c0932b5.mp3"
+      "text": "[calm] Hmm, Google Docs isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--dafce901.mp3"
     },
     "verify-fail--google-docs--google-docs--v1": {
-      "text": "[calm] Something in Google Docs's off. Have a look at what's in red.",
-      "file": "shared/verify-fail--c2adfda0.mp3"
+      "text": "[calm] Hmm, something in Google Docs's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--59f198d5.mp3"
     },
     "verify-fail--summarize--summarize-with-ai--v0": {
-      "text": "[calm] Summarize with AI isn't right yet. Check the field I marked.",
-      "file": "shared/verify-fail--1f548969.mp3"
+      "text": "[calm] Hmm, Summarize with AI isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--e2f5ea98.mp3"
     },
     "verify-fail--summarize--summarize-with-ai--v1": {
-      "text": "[calm] Something in Summarize with AI's off. Have a look at what's in red.",
-      "file": "shared/verify-fail--e54f19e6.mp3"
+      "text": "[calm] Hmm, something in Summarize with AI's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--a9aba7ff.mp3"
     },
     "verify-fail--webhook--on-webhook-call--v0": {
-      "text": "[calm] On webhook call isn't right yet. Check the field I marked.",
-      "file": "shared/verify-fail--ce806d44.mp3"
+      "text": "[calm] Hmm, On webhook call isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--2aab26cc.mp3"
     },
     "verify-fail--webhook--on-webhook-call--v1": {
-      "text": "[calm] Something in On webhook call's off. Have a look at what's in red.",
-      "file": "shared/verify-fail--bdb12a6b.mp3"
+      "text": "[calm] Hmm, something in On webhook call's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--3af48f11.mp3"
     },
     "verify-params--chat-gemini--v0": {
       "text": "[calm] That's the parameters right. You've got one tab left.",
@@ -444,8 +444,8 @@
       "file": "shared/verify-pass--5de55dbf.mp3"
     },
     "verify-pass--chat-gemini--gemini-chat-model--v1": {
-      "text": "[warm] Good, Gemini Chat Model's done.",
-      "file": "shared/verify-pass--e8c55eaf.mp3"
+      "text": "[warm] Ah, Gemini Chat Model's done.",
+      "file": "shared/verify-pass--0d199b58.mp3"
     },
     "verify-pass--chat-gemini--gemini-chat-model--v2": {
       "text": "[warm] Gemini Chat Model's right now.",
@@ -456,8 +456,8 @@
       "file": "shared/verify-pass--0ae3dda5.mp3"
     },
     "verify-pass--google-docs--google-docs--v1": {
-      "text": "[warm] Good, Google Docs's done.",
-      "file": "shared/verify-pass--6fb34940.mp3"
+      "text": "[warm] Ah, Google Docs's done.",
+      "file": "shared/verify-pass--5ec36f20.mp3"
     },
     "verify-pass--google-docs--google-docs--v2": {
       "text": "[warm] Google Docs's right now.",
@@ -468,8 +468,8 @@
       "file": "shared/verify-pass--d04e8a3e.mp3"
     },
     "verify-pass--summarize--summarize-with-ai--v1": {
-      "text": "[warm] Good, Summarize with AI's done.",
-      "file": "shared/verify-pass--0d9cd094.mp3"
+      "text": "[warm] Ah, Summarize with AI's done.",
+      "file": "shared/verify-pass--bd39290a.mp3"
     },
     "verify-pass--summarize--summarize-with-ai--v2": {
       "text": "[warm] Summarize with AI's right now.",
@@ -480,8 +480,8 @@
       "file": "shared/verify-pass--f7392a04.mp3"
     },
     "verify-pass--webhook--on-webhook-call--v1": {
-      "text": "[warm] Good, On webhook call's done.",
-      "file": "shared/verify-pass--62fa8a1c.mp3"
+      "text": "[warm] Ah, On webhook call's done.",
+      "file": "shared/verify-pass--c8ec54f6.mp3"
     },
     "verify-pass--webhook--on-webhook-call--v2": {
       "text": "[warm] On webhook call's right now.",

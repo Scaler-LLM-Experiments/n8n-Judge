@@ -686,13 +686,13 @@ export const emailTriage = {
 
     // ---- reasoning, per node setup -----------------------------------------
     'verify_fail:classify': [
-      "[calm] Not yet. Check what you pointed it at, because it can only read what you hand it.",
+      "[calm] Ah, not yet. Check what you pointed it at, because it only reads what you hand it.",
     ],
     'verify_fail:switch': [
-      "[calm] Not right yet. Look at what each branch is testing, and what the AI actually gave you.",
+      "[calm] Hmm, not right yet. Look at what each branch is testing, and what the AI actually gave you.",
     ],
     'verify_fail:chat-gemini': [
-      "[calm] Not yet. Think about whether the same email should always get the same answer.",
+      "[calm] Hmm, not yet. Think about whether the same email should always get the same answer.",
     ],
     'verify_pass:chat-gemini': [
       "[warm] That's done. That setting is the difference between triage you can trust and a coin toss.",
@@ -751,31 +751,31 @@ export const emailTriage = {
     // away. What each line adds is the thing the screen does not say, which is what
     // this node now DOES inside this particular flow.
     'verify_pass:trigger': ["[warm] That's your first node working. It's watching the inbox now, and every email starts a run."],
-    'verify_pass:classify': ["[warm] That one's the whole idea. It reads an email like a person would, and it calls it."],
+    'verify_pass:classify': ["[warm] Ah, that one's the whole idea. It reads an email like a person would, and it calls it."],
     'verify_pass:parse': ["[warm] Look at that. A paragraph went in, and clean fields came out. Now the Switch can read it."],
-    'verify_pass:switch': ["[warm] Three ways out, and you decided every one of them. That's your routing done."],
+    'verify_pass:switch': ["[warm] Okay. Three ways out, and you decided every one of them. That's your routing done."],
     'verify_pass:action': ["[warm] And that's the last piece. Whatever reaches it goes back to a real person."],
 
     // ---- parameters right, settings still to do -----------------------------
     // Acknowledges and points at the tab that just unlocked. No praise: the node is
     // not finished, and spending the win here is what left the real completion flat.
-    'verify_params:trigger': ["[calm] That's the parameters right. You've got one tab left."],
-    'verify_params:classify': ["[calm] Good, that's what it reads. Now tell it what to do when things go wrong."],
-    'verify_params:chat-gemini': ["[calm] That's the model set up. One more tab and it's done."],
-    'verify_params:parse': ["[calm] Those are the right fields. Now the rest of it."],
-    'verify_params:switch': ["[calm] Your rules are right. Now decide what happens to anything matching none of them."],
-    'verify_params:action': ["[calm] That's right. You've got one tab left on this one."],
+    'verify_params:trigger': ["[calm] Okay, that's the parameters right. You've got one tab left."],
+    'verify_params:classify': ["[calm] Right, that's what it reads. Now tell it what to do when things go wrong."],
+    'verify_params:chat-gemini': ["[calm] Okay, that's the model set up. One more tab and it's done."],
+    'verify_params:parse': ["[calm] Good, those are the right fields. Now the rest of it."],
+    'verify_params:switch': ["[calm] Okay, your rules are right. Now, what happens to anything matching none of them?"],
+    'verify_params:action': ["[calm] Right, that's it. You've got one tab left on this one."],
 
     // ---- a node is not right yet --------------------------------------------
     // Deliberately clipped: short sentences slow the delivery down and make it sound
     // careful rather than impatient. Each one points at WHICH field to look at
     // without saying what to put in it.
-    'verify_fail:trigger': ["[calm] Not quite yet. Check which inbox it's watching, and which part of the mail it reads."],
-    'verify_fail:parse': ["[calm] Not yet. Look at what it's reading from, and the names you asked it for."],
-    'verify_fail:action': ["[calm] Not right yet. Check who it's replying to, and where the words come from."],
+    'verify_fail:trigger': ["[calm] Hmm, not quite. Check which inbox it's watching, and which part of the mail it reads."],
+    'verify_fail:parse': ["[calm] Ah, not yet. Look at what it's reading from, and the names you asked it for."],
+    'verify_fail:action': ["[calm] Ah, not right yet. Check who it's replying to, and where the words come from."],
 
     // The wrong node, on the canvas. Never names the right one.
-    node_wrong: ["[thoughtful] That one won't do this job here. Let me ask you something."],
+    node_wrong: ["[thoughtful] Hmm. That one won't do this job here. Let me ask you something."],
 
     // ---- the run ------------------------------------------------------------
     // Says what a run IS, because nothing on screen does: four real emails, sent
@@ -788,13 +788,13 @@ export const emailTriage = {
     // Each describes the EMAIL and stops there. Where it comes out is the thing
     // worth watching, and on the last one it is also the Stress Testing question, so
     // announcing the destination would answer a question not yet asked.
-    'run_case:bug': ["[calm] Here's the first. Their app crashes every time they log in. Watch what your classifier does."],
-    'run_case:feature': ["[calm] Next up, and nothing's broken this time. They just want something that doesn't exist yet."],
-    'run_case:urgent': ["[calm] This third one is angry. They've been charged twice and nobody's helping."],
-    'run_case:question': ["[calm] Last one, and it's just a question. No bug, no request, no complaint. Keep an eye on this."],
+    'run_case:bug': ["[calm] Okay, here's the first. Their app crashes every time they log in. Watch what your classifier does."],
+    'run_case:feature': ["[calm] Right, next up. Nothing's broken this time, they just want something that doesn't exist yet."],
+    'run_case:urgent': ["[calm] Ah, this third one is angry. They've been charged twice and nobody's helping."],
+    'run_case:question': ["[calm] And the last one is just a question. No bug, no request, no complaint. But keep an eye on it."],
     run_pass: ["[excited] All four of them. Every email went exactly where it should. That flow works."],
     run_fail: [
-      "[calm] Some didn't land where they should. That's useful to know. Let's follow one that missed.",
+      "[calm] Hmm. Some didn't land where they should. That's useful to know, so let's follow one.",
       "[calm] Not all of them landed right. Follow one that missed and see where it turned.",
     ],
 
