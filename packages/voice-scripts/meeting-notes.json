@@ -488,12 +488,12 @@
       "file": "shared/verify-pass--faeebf2a.mp3"
     },
     "welcome--v0": {
-      "text": "[warm] I'll be with you the whole way. If anything's unclear, just ask me.",
-      "file": "shared/welcome--8fc7aa61.mp3"
+      "text": "[warm] Hey, good to meet you. Let's have a look at what we're building today.",
+      "file": "shared/welcome--c2ef9ac3.mp3"
     },
     "welcome--v1": {
-      "text": "[warm] I'm here the whole time. Ask me whenever you get stuck.",
-      "file": "shared/welcome--5a573d3a.mp3"
+      "text": "[warm] Hi there. Come on in, and let's see what we're making.",
+      "file": "shared/welcome--8ce678bb.mp3"
     }
   }
 }

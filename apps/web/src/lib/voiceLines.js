@@ -60,11 +60,20 @@
 /** @type {Record<string, string[]>} */
 export const LINES = {
   // ---- arriving -----------------------------------------------------------
-  // The greeting screen already says who Iris is, so she does not introduce
-  // herself again. She says what she will DO, which is not on the page.
+  // A GREETING, and nothing else. This plays on the hello screen, so it is hello.
+  //
+  // It used to be overridden per problem with that problem's hook — email-triage
+  // opened with "Support mail, sorted by hand, every single day" — which meant the
+  // screen introduced Iris while Iris introduced the problem. Two different beats
+  // fighting over one moment. The hook belongs on the statement screen, where the
+  // statement actually is, so `problem_intro` carries it now.
+  //
+  // The screen already gives her name, her role and the promise to stay with you, so
+  // these do not repeat any of that. What the page cannot do is sound pleased to see
+  // you, so that is the job.
   welcome: [
-    '[warm] I\'ll be with you the whole way. If anything\'s unclear, just ask me.',
-    '[warm] I\'m here the whole time. Ask me whenever you get stuck.',
+    '[warm] Hey, good to meet you. Let\'s have a look at what we\'re building today.',
+    '[warm] Hi there. Come on in, and let\'s see what we\'re making.',
   ],
   // The statement is on screen and the learner is reading it. One nudge about HOW
   // to read it, then silence.

@@ -220,8 +220,8 @@
       "file": "shared/phase-intro--36a5831c.mp3"
     },
     "problem-intro--v0": {
-      "text": "[calm] Read it once for the shape. Three kinds of email, three replies.",
-      "file": "email-triage/problem-intro--9819d056.mp3"
+      "text": "[calm] Support mail, sorted by hand, every single day. That's what we're stopping.",
+      "file": "email-triage/problem-intro--04b531dc.mp3"
     },
     "report-ready--v0": {
       "text": "[calm] Here's what stood out, and what I'd practise next.",
@@ -348,8 +348,12 @@
       "file": "email-triage/verify-pass--76a89973.mp3"
     },
     "welcome--v0": {
-      "text": "[warm] Support mail, sorted by hand, every single day. We're going to stop that.",
-      "file": "email-triage/welcome--4d4a0b8d.mp3"
+      "text": "[warm] Hey, good to meet you. Let's have a look at what we're building today.",
+      "file": "shared/welcome--c2ef9ac3.mp3"
+    },
+    "welcome--v1": {
+      "text": "[warm] Hi there. Come on in, and let's see what we're making.",
+      "file": "shared/welcome--8ce678bb.mp3"
     }
   }
 }

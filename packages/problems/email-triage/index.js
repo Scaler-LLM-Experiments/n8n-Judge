@@ -725,8 +725,12 @@ export const emailTriage = {
     // ---- arriving -----------------------------------------------------------
     // The screen already says who Iris is and what the challenge is called, so these
     // say what is NOT on the page: why this problem is worth doing.
-    welcome: ["[warm] Support mail, sorted by hand, every single day. We're going to stop that."],
-    problem_intro: ["[calm] Read it once for the shape. Three kinds of email, three replies."],
+    // No `welcome` override on purpose. The hello screen gets the generic greeting,
+    // because a greeting is the same job whichever problem you picked. This problem's
+    // hook lives on the next beat, where the statement is actually on screen.
+    problem_intro: [
+      "[calm] Support mail, sorted by hand, every single day. That's what we're stopping.",
+    ],
     understand_start: ["[calm] Before we build anything, I want to see how you're reading this."],
     understand_done: ["[excited] That's the hard part done. You worked out every piece before touching the canvas."],
 
