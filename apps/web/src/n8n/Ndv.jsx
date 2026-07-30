@@ -306,11 +306,17 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
         // Nothing is said when a check could not complete: `unverified` is not a
         // verdict, and claiming one out loud would be worse than silence.
         const anyUnverified = paramChecks.some((c) => next[c.key] === 'unverified');
-        // Same vars as the settings-stage verdict above. Without them the line
-        // resolved to no clip AND filled its `{node}` slot with nothing, so the
-        // caption read "Yes, is set up right."
+        // Parameters right is not the same event as the NODE being right, and it used
+        // to say the same sentence for both — literally the identical clip, twice per
+        // node. `verify_params` acknowledges and points at the tab that just unlocked;
+        // `verify_pass` is saved for the node actually working, which is the moment
+        // worth a word of praise.
+        //
+        // A node with nothing graded on its Settings tab finishes here, so this is its
+        // completion and it gets `verify_pass` directly.
         if (!anyUnverified) {
-          voice.play(paramsPassed ? 'verify_pass' : 'verify_fail', {
+          const moreToDo = paramsPassed && gradedSettings.length > 0;
+          voice.play(paramsPassed ? (moreToDo ? 'verify_params' : 'verify_pass') : 'verify_fail', {
             key: node.nodeType,
             node: node.label,
             scope: `node:${node.id}`,

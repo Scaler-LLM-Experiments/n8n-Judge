@@ -601,32 +601,32 @@ export const emailTriage = {
   voice: {
     // Placing a node, per node type.
     'node_placed:trigger': [
-      '[calm] That is the way in. Everything after this runs once per email that arrives.',
+      "[calm] That's the way in. Everything after it runs once per email that arrives.",
     ],
     'node_placed:classify': [
-      '[calm] This is the part that reads the email and decides what kind it is. It needs a model to think with.',
+      "[calm] This is what reads the email and decides what kind it is. It needs a model to think with.",
     ],
     'node_placed:chat-gemini': [
-      '[calm] That is the brain the classifier borrows. How it is set up decides whether the same email always gets the same answer.',
+      "[calm] That's the brain the classifier borrows. How it's set up decides how steady its answers are.",
     ],
     'node_placed:parse': [
-      '[calm] The model replies as text. This turns that text into fields the next nodes can actually read.',
+      "[calm] The model replies as text. This turns it into fields the next nodes can actually read.",
     ],
     'node_placed:switch': [
-      '[calm] This is where the kinds of email split apart. Each branch you build here is one path out.',
+      "[calm] This is where the kinds of email split apart. Each branch you build is one path out.",
     ],
     'node_placed:action': [
-      '[calm] The reply itself. Whatever reaches this node gets an email back.',
+      "[calm] This is the reply itself. Whatever reaches it gets an email back.",
     ],
 
     // Finishing a stage, per phase.
-    'phase_complete:trigger': ['[excited] The flow has a way in now. Good start.'],
-    'phase_complete:brain': ['[excited] It can read an email and understand it. That was the hard part.'],
-    build_complete: ['[excited] The whole thing is wired up. Let us throw some real emails at it.'],
+    'phase_complete:trigger': ["[excited] The flow's got a way in now. That's a good start."],
+    'phase_complete:brain': ["[excited] It can read an email and understand it now. That was the hard part."],
+    build_complete: ["[excited] The whole thing's wired up. Let's throw some real emails at it."],
 
     // This problem's stress test is about the gap, so point at behaviour.
     stress_start: [
-      '[calm] Now the interesting bit. What does your flow do with an email it was not expecting?',
+      "[calm] Now the interesting bit. What does your flow do with an email it wasn't expecting?",
     ],
 
     // ---- reasoning, per question -------------------------------------------
@@ -638,64 +638,64 @@ export const emailTriage = {
     // Still no answers. Each one describes the shape of the problem, not the node
     // that solves it.
     'answer_correct:trigger': [
-      '[warm] Yes. {answer} wakes this up on its own, every time mail arrives.',
+      "[warm] Yes. {answer} wakes this up on its own, every time mail arrives.",
     ],
     'answer_wrong:trigger': [
-      '[thoughtful] Would {answer} start on its own? Nobody is sitting here pressing anything.',
+      "[thoughtful] Would {answer} start on its own? Nobody's sitting here pressing anything.",
     ],
     'answer_wrong_again:trigger': [
-      '[calm] Think about who or what begins this. The mail arrives without anyone asking.',
+      "[calm] Think about who or what begins this. The mail arrives without anyone asking.",
     ],
 
     'answer_correct:classify': [
-      '[warm] Right. {answer} reads the words and decides what kind of message it is.',
+      "[warm] Right. {answer} reads the words and works out what kind of message it is.",
     ],
     'answer_wrong:classify': [
-      '[thoughtful] Could {answer} actually judge what the email is about? Have another look.',
+      "[thoughtful] Could {answer} really judge what the email's about? Have another look.",
     ],
     'answer_wrong_again:classify': [
-      '[calm] The email is free text. You need something that can understand meaning, not match a rule.',
+      "[calm] The email's free text. You need something that understands meaning, not something matching rules.",
     ],
 
     'answer_correct:parse': [
-      '[warm] Yes. {answer} turns that blob of text into separate, usable fields.',
+      "[warm] Yes. {answer} turns that blob of text into separate, usable fields.",
     ],
     'answer_wrong:parse': [
-      '[thoughtful] The answer is one lump of text right now. Does {answer} help with that?',
+      "[thoughtful] The answer's one lump of text right now. Does {answer} help with that?",
     ],
     'answer_wrong_again:parse': [
-      '[calm] Ask what shape the next node needs its input in, then work backwards.',
+      "[calm] Ask what shape the next node needs its input in, then work backwards.",
     ],
 
     'answer_correct:switch': [
-      '[warm] Exactly. {answer} takes one email in and sends it out down one path.',
+      "[warm] Exactly. {answer} takes one email in and sends it out down one path.",
     ],
     'answer_wrong:switch': [
-      '[thoughtful] {answer} gives you one way out. You need one in and three out.',
+      "[thoughtful] {answer} gives you one way out. You need one in and three out.",
     ],
     'answer_wrong_again:switch': [
-      '[calm] Count the outputs you need. Three categories means three separate exits.',
+      "[calm] Count the outputs you need. Three categories means three separate exits.",
     ],
 
     'answer_correct:action': [
-      '[warm] Yes. {answer} is what actually reaches the customer at the end.',
+      "[warm] Yes. {answer} is what actually reaches the customer at the end.",
     ],
     'answer_wrong:action': [
-      '[thoughtful] Would the person who wrote in ever see {answer}? They want a reply.',
+      "[thoughtful] Would the person who wrote in ever see {answer}? They want a reply.",
     ],
 
     // ---- reasoning, per node setup -----------------------------------------
     'verify_fail:classify': [
-      '[calm] Not yet. Check what you pointed it at. It can only read what you hand it.',
+      "[calm] Not yet. Check what you pointed it at, because it can only read what you hand it.",
     ],
     'verify_fail:switch': [
-      '[calm] Not right yet. Look at what each branch is testing, and what the AI actually produced.',
+      "[calm] Not right yet. Look at what each branch is testing, and what the AI actually gave you.",
     ],
     'verify_fail:chat-gemini': [
-      '[calm] Not yet. Think about whether the same email should always get the same answer.',
+      "[calm] Not yet. Think about whether the same email should always get the same answer.",
     ],
     'verify_pass:chat-gemini': [
-      '[warm] Good. That setting is what makes triage repeatable instead of a guess.',
+      "[warm] That's done. That setting is the difference between triage you can trust and a coin toss.",
     ],
 
     // ---- how these are made to sound like something -------------------------
@@ -725,48 +725,58 @@ export const emailTriage = {
     // ---- arriving -----------------------------------------------------------
     // The screen already says who Iris is and what the challenge is called, so these
     // say what is NOT on the page: why this problem is worth doing.
-    welcome: ['[warm] Support mail, sorted by hand, every single day. We are going to stop that.'],
-    problem_intro: ['[calm] Read it once for the shape. Three kinds of email, three replies.'],
-    understand_start: ['[calm] Before we build anything, I want to see how you are reading this.'],
-    understand_done: ['[excited] Good. That is the thinking done. Now we build it.'],
+    welcome: ["[warm] Support mail, sorted by hand, every single day. We're going to stop that."],
+    problem_intro: ["[calm] Read it once for the shape. Three kinds of email, three replies."],
+    understand_start: ["[calm] Before we build anything, I want to see how you're reading this."],
+    understand_done: ["[excited] That's the hard part done. You worked out every piece before touching the canvas."],
 
     // The canvas has just opened and it is empty. This is the only line that gets to
     // frame the whole build, so it gives the ordering principle and nothing else.
-    build_start: ['[calm] Build it in the order the email travels. Each node hands its work to the next.'],
+    build_start: ["[calm] Build it in the order the email travels. Each node hands its work to the next."],
 
     // ---- opening a build phase ----------------------------------------------
     // The phase title and its description are both on screen. These give the
     // question to hold in your head while you look at the palette, and never the
     // node that answers it.
-    'phase_intro:trigger': ['[calm] Nothing here runs until something starts it. Begin at the top.'],
-    'phase_intro:brain': ['[calm] This part has to read plain English and decide. Think about what that needs.'],
-    'phase_intro:route': ['[calm] Now the paths split. Every category needs somewhere of its own to go.'],
+    'phase_intro:trigger': ["[calm] Nothing here runs until something starts it, so begin at the top."],
+    'phase_intro:brain': ["[calm] This part has to read plain English and decide. Think about what that needs."],
+    'phase_intro:route': ["[calm] Now the paths split. Every category needs somewhere of its own to go."],
 
     // ---- a node is configured correctly -------------------------------------
     // Naming the node is safe here: they just set it up, so nothing is being given
     // away. What each line adds is the thing the screen does not say, which is what
     // this node now DOES inside this particular flow.
-    'verify_pass:trigger': ['[warm] Good. It is watching the inbox now. Every new email will start a run.'],
-    'verify_pass:classify': ['[warm] Set. It reads the email and picks one of your three categories.'],
-    'verify_pass:parse': ['[warm] Good. The answer is fields now, not a paragraph. The next node can read it.'],
-    'verify_pass:switch': ['[warm] Three ways out, and you decided each one. That is the routing done.'],
-    'verify_pass:action': ['[warm] That is the reply. Whatever reaches it goes back to the customer.'],
+    'verify_pass:trigger': ["[warm] That's your first node working. It's watching the inbox now, and every email starts a run."],
+    'verify_pass:classify': ["[warm] That one's the whole idea. It reads an email like a person would, and it calls it."],
+    'verify_pass:parse': ["[warm] Look at that. A paragraph went in, and clean fields came out. Now the Switch can read it."],
+    'verify_pass:switch': ["[warm] Three ways out, and you decided every one of them. That's your routing done."],
+    'verify_pass:action': ["[warm] And that's the last piece. Whatever reaches it goes back to a real person."],
+
+    // ---- parameters right, settings still to do -----------------------------
+    // Acknowledges and points at the tab that just unlocked. No praise: the node is
+    // not finished, and spending the win here is what left the real completion flat.
+    'verify_params:trigger': ["[calm] That's the parameters right. You've got one tab left."],
+    'verify_params:classify': ["[calm] Good, that's what it reads. Now tell it what to do when things go wrong."],
+    'verify_params:chat-gemini': ["[calm] That's the model set up. One more tab and it's done."],
+    'verify_params:parse': ["[calm] Those are the right fields. Now the rest of it."],
+    'verify_params:switch': ["[calm] Your rules are right. Now decide what happens to anything matching none of them."],
+    'verify_params:action': ["[calm] That's right. You've got one tab left on this one."],
 
     // ---- a node is not right yet --------------------------------------------
     // Deliberately clipped: short sentences slow the delivery down and make it sound
     // careful rather than impatient. Each one points at WHICH field to look at
     // without saying what to put in it.
-    'verify_fail:trigger': ['[calm] Not yet. Check which inbox it watches. And which part of the mail it reads.'],
-    'verify_fail:parse': ['[calm] Not yet. Look at what it reads from, and the names you asked it for.'],
-    'verify_fail:action': ['[calm] Not right yet. Check who it replies to, and where the words come from.'],
+    'verify_fail:trigger': ["[calm] Not quite yet. Check which inbox it's watching, and which part of the mail it reads."],
+    'verify_fail:parse': ["[calm] Not yet. Look at what it's reading from, and the names you asked it for."],
+    'verify_fail:action': ["[calm] Not right yet. Check who it's replying to, and where the words come from."],
 
     // The wrong node, on the canvas. Never names the right one.
-    node_wrong: ['[thoughtful] That will not do this job here. Let me ask you something.'],
+    node_wrong: ["[thoughtful] That one won't do this job here. Let me ask you something."],
 
     // ---- the run ------------------------------------------------------------
     // Says what a run IS, because nothing on screen does: four real emails, sent
     // through the flow one after another, with the whole journey visible.
-    run_start: ['[calm] Four real emails now, one after another. You can watch the whole journey.'],
+    run_start: ["[calm] Right, let's see if what you built holds up. Four real emails, one at a time."],
 
     // One line per email as it enters. Without these the run is a sticky note
     // sliding along a wire and every case looks the same.
@@ -774,30 +784,30 @@ export const emailTriage = {
     // Each describes the EMAIL and stops there. Where it comes out is the thing
     // worth watching, and on the last one it is also the Stress Testing question, so
     // announcing the destination would answer a question not yet asked.
-    'run_case:bug': ['[calm] First one. Someone says the app crashes when they log in.'],
-    'run_case:feature': ['[calm] Next. This one is asking for something that does not exist yet.'],
-    'run_case:urgent': ['[calm] This one is angry, and it is about money. Watch it carefully.'],
-    'run_case:question': ['[calm] Last one. Just a question. No bug, no request, no complaint.'],
-    run_pass: ['[excited] All of them. Every email went where it should. That flow works.'],
+    'run_case:bug': ["[calm] Here's the first. Their app crashes every time they log in. Watch what your classifier does."],
+    'run_case:feature': ["[calm] Next up, and nothing's broken this time. They just want something that doesn't exist yet."],
+    'run_case:urgent': ["[calm] This third one is angry. They've been charged twice and nobody's helping."],
+    'run_case:question': ["[calm] Last one, and it's just a question. No bug, no request, no complaint. Keep an eye on this."],
+    run_pass: ["[excited] All four of them. Every email went exactly where it should. That flow works."],
     run_fail: [
-      '[calm] Some went the wrong way. That is worth knowing. Let us look.',
-      '[calm] Not all of them landed right. Follow one that missed and see where it turned.',
+      "[calm] Some didn't land where they should. That's useful to know. Let's follow one that missed.",
+      "[calm] Not all of them landed right. Follow one that missed and see where it turned.",
     ],
 
     // ---- noticing they have gone quiet --------------------------------------
     // Commas, not full stops: this one has to stay light. It is an offer, not a
     // prod, and it is the line most likely to be heard more than once.
     idle_nudge: [
-      '[calm] Take your time. If it helps, ask what the last node handed over.',
-      '[calm] Still thinking? Tell me what is unclear and I will help.',
-      '[calm] No rush at all. Look at what this step is given, and what it owes the next one.',
+      "[calm] Take your time. If it helps, ask what the last node handed over.",
+      "[calm] Still thinking? Tell me what's unclear and I'll help.",
+      "[calm] No rush at all. Look at what this step is given, and what it owes the next one.",
     ],
 
     'answer_wrong_again:action': [
-      '[calm] Think about the person who wrote in. What do they actually receive?',
+      "[calm] Think about the person who wrote in. What do they actually receive?",
     ],
 
-    report_ready: ['[calm] Here is what stood out. And what I would practise next.'],
+    report_ready: ["[calm] Here's what stood out, and what I'd practise next."],
   },
 
   misconceptionLabels: {

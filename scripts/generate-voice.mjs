@@ -24,11 +24,34 @@ import { problems } from '@judge/problems';
 import { NODE_CATALOG } from '@judge/catalog';
 import { buildScript, filesFrom } from '../apps/web/src/server/voiceScript.js';
 
-const API_KEY = process.env.DEEPGRAM_API_KEY;
-// A Deepgram Aura model names the SPEAKER, not a quality tier — `aura-2-helena-en`
-// is a particular voice. So this one value is both "which model" and "which voice",
-// and changing it re-renders everything, which is why it is in every fingerprint.
-const MODEL = process.env.DEEPGRAM_TTS_MODEL || 'aura-2-helena-en';
+// Which vendor renders. Both are supported because we have now switched once, and
+// the clip fingerprint includes the vendor, so the two libraries coexist on disk and
+// in the bucket. Going back is a config change, not a migration.
+//
+//   elevenlabs  v3 understands the phrase book's [warm]/[calm] tags and acts on them.
+//               Needs a voice id: with ElevenLabs the voice and the model are separate.
+//   deepgram    an Aura model IS the voice (`aura-2-helena-en` names a speaker), so
+//               there is no voice id. Tags are stripped, because it reads them aloud.
+const VENDOR = process.env.VOICE_VENDOR || 'elevenlabs';
+const ELEVEN = VENDOR === 'elevenlabs';
+const API_KEY = ELEVEN ? process.env.ELEVENLABS_API_KEY : process.env.DEEPGRAM_API_KEY;
+const VOICE_ID = ELEVEN ? process.env.ELEVENLABS_VOICE_ID : null;
+const MODEL = ELEVEN
+  ? process.env.ELEVENLABS_MODEL_ID || 'eleven_v3'
+  : process.env.DEEPGRAM_TTS_MODEL || 'aura-2-helena-en';
+const VOICE = { vendor: VENDOR, voiceId: VOICE_ID, model: MODEL };
+
+if (!['elevenlabs', 'deepgram'].includes(VENDOR)) {
+  console.error(`VOICE_VENDOR must be "elevenlabs" or "deepgram", got "${VENDOR}".`);
+  process.exit(1);
+}
+if (ELEVEN && !VOICE_ID) {
+  console.error(
+    'ELEVENLABS_VOICE_ID is required — with ElevenLabs the voice is separate from the\n' +
+      'model, and it is part of every clip fingerprint. Find it in Voices, on the card.'
+  );
+  process.exit(1);
+}
 const CLIP_DIR = process.env.VOICE_CLIP_DIR || '.voice-clips';
 const SCRIPT_DIR = 'packages/voice-scripts';
 
@@ -58,7 +81,7 @@ for (const slug of only) {
 fs.mkdirSync(SCRIPT_DIR, { recursive: true });
 const tables = new Map();
 for (const [slug, problem] of Object.entries(problems)) {
-  const table = buildScript(problem, NODE_CATALOG, { model: MODEL });
+  const table = buildScript(problem, NODE_CATALOG, VOICE);
   tables.set(slug, table);
   const file = path.join(SCRIPT_DIR, `${slug}.json`);
   const next = `${JSON.stringify(table, null, 2)}\n`;
@@ -150,7 +173,8 @@ if (!missing.length) {
 }
 if (!API_KEY) {
   console.error(
-    `\nTables written, but ${missing.length} clip(s) need rendering and DEEPGRAM_API_KEY is not set.`
+    `\nTables written, but ${missing.length} clip(s) need rendering and ` +
+      `${ELEVEN ? 'ELEVENLABS_API_KEY' : 'DEEPGRAM_API_KEY'} is not set.`
   );
   process.exit(1);
 }
@@ -161,11 +185,11 @@ if (!API_KEY) {
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /**
- * One render, through Deepgram's speak endpoint.
+ * One render.
  *
  * Retries what is worth retrying — a 429, a 5xx or a dropped socket is a blip in a
  * long run, and abandoning 200 clips over one is worse than waiting. A 4xx is a bad
- * key or an unknown model and will not fix itself.
+ * key, voice or model and will not fix itself.
  */
 async function render(text, label, retries = 4) {
   let last;
@@ -176,18 +200,25 @@ async function render(text, label, retries = 4) {
       await sleep(wait);
     }
     try {
-      const res = await fetch(`https://api.deepgram.com/v1/speak?model=${encodeURIComponent(MODEL)}`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Token ${API_KEY}`,
-          'content-type': 'application/json',
-          accept: 'audio/mpeg',
-        },
-        // Just the text. The delivery annotations in the phrase book (`[warm]` and
-        // friends) were ElevenLabs v3 tags and are stripped before we get here —
-        // Deepgram would read them out loud. Pacing is done with punctuation.
-        body: JSON.stringify({ text }),
-      });
+      const res = ELEVEN
+        ? await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(VOICE_ID)}`, {
+            method: 'POST',
+            headers: { 'xi-api-key': API_KEY, 'content-type': 'application/json', accept: 'audio/mpeg' },
+            body: JSON.stringify({
+              // `text` still carries the [tags] here: on v3 they ARE the delivery
+              // control, which is the reason for choosing this model.
+              text,
+              model_id: MODEL,
+              voice_settings: { stability: 0.45, similarity_boost: 0.75, style: 0.3, use_speaker_boost: true },
+            }),
+          })
+        : await fetch(`https://api.deepgram.com/v1/speak?model=${encodeURIComponent(MODEL)}`, {
+            method: 'POST',
+            headers: { Authorization: `Token ${API_KEY}`, 'content-type': 'application/json', accept: 'audio/mpeg' },
+            // Tags are already stripped for this vendor in buildScript: Deepgram has
+            // no tag concept and would read them aloud. Pacing comes from punctuation.
+            body: JSON.stringify({ text }),
+          });
       if (res.ok) return Buffer.from(await res.arrayBuffer());
       const detail = `${res.status} ${(await res.text().catch(() => '')).slice(0, 160)}`;
       if (res.status !== 429 && res.status < 500) throw new Error(detail);
@@ -200,7 +231,7 @@ async function render(text, label, retries = 4) {
   throw new Error(last);
 }
 
-/** Four at a time: comfortably inside Deepgram's concurrency allowance. */
+/** Four at a time: comfortably inside either vendor's concurrency allowance. */
 const POOL = 4;
 let done = 0;
 let failed = 0;
@@ -229,6 +260,6 @@ async function worker() {
 
 await Promise.all(Array.from({ length: Math.min(POOL, missing.length) }, worker));
 
-console.log(`\n${done} rendered, ${failed} failed, into ${CLIP_DIR}/`);
+console.log(`\n${done} rendered via ${VENDOR}, ${failed} failed, into ${CLIP_DIR}/`);
 console.log(failed ? 'Re-run to retry the failures; everything else is skipped.' : 'Next: npm run voice:sync');
 if (failed) process.exitCode = 1;

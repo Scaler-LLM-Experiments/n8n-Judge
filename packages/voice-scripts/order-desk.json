@@ -1,799 +1,935 @@
 {
   "version": 1,
   "problem": "order-desk",
-  "renderedWith": "deepgram/aura-2-helena-en",
+  "renderedWith": "elevenlabs/7M69Y78mYqPLZS5ZZSTT/eleven_v3",
   "clips": {
     "answer-correct--classify--classify-with-ai--v0": {
-      "text": "Yes. Classify with AI reads the words and works out what it is looking at.",
-      "file": "order-desk/answer-correct--9bfef179.mp3"
+      "text": "[warm] Yes. Classify with AI reads the words and works out what it is looking at.",
+      "file": "order-desk/answer-correct--8a8a6a47.mp3"
     },
     "answer-correct--filter--filter--v0": {
-      "text": "Right. Filter keeps what matches and quietly loses the rest.",
-      "file": "order-desk/answer-correct--ca76805a.mp3"
+      "text": "[warm] Right. Filter keeps what matches and quietly loses the rest.",
+      "file": "order-desk/answer-correct--39ce0cfe.mp3"
     },
     "answer-correct--http-request--http-request--v0": {
-      "text": "Yes. HTTP Request calls a system and brings the answer back in.",
-      "file": "order-desk/answer-correct--ba4f39e1.mp3"
+      "text": "[warm] Yes. HTTP Request calls a system and brings the answer back in.",
+      "file": "order-desk/answer-correct--7aa8b1ee.mp3"
     },
     "answer-correct--parse--parse-result--v0": {
-      "text": "Right. Parse Result turns that blob into separate, usable fields.",
-      "file": "order-desk/answer-correct--19b13581.mp3"
+      "text": "[warm] Right. Parse Result turns that blob into separate, usable fields.",
+      "file": "order-desk/answer-correct--fe0741f8.mp3"
     },
     "answer-correct--remove-duplicates--remove-duplicates--v0": {
-      "text": "Yes. Remove Duplicates remembers what it has already seen.",
-      "file": "order-desk/answer-correct--b5a32b7d.mp3"
+      "text": "[warm] Yes. Remove Duplicates remembers what it has already seen.",
+      "file": "order-desk/answer-correct--8bfb0398.mp3"
     },
     "answer-correct--summarize--summarize-with-ai--v0": {
-      "text": "Right. Summarize with AI writes the short version a person can skim.",
-      "file": "order-desk/answer-correct--edde8477.mp3"
+      "text": "[warm] Right. Summarize with AI writes the short version a person can skim.",
+      "file": "order-desk/answer-correct--732c8ec0.mp3"
     },
     "answer-correct--switch--switch--v0": {
-      "text": "Exactly. Switch takes one in and picks one of many ways out.",
-      "file": "order-desk/answer-correct--84891633.mp3"
+      "text": "[warm] Exactly. Switch takes one in and picks one of many ways out.",
+      "file": "order-desk/answer-correct--c6c0bf2c.mp3"
     },
     "answer-correct--trigger--new-email--v0": {
-      "text": "Yes. New Email hears the mail land, on its own, every time.",
-      "file": "order-desk/answer-correct--4b0ca813.mp3"
+      "text": "[warm] Yes. New Email hears the mail land, on its own, every time.",
+      "file": "order-desk/answer-correct--771cb780.mp3"
     },
     "answer-correct--wait--wait--v0": {
-      "text": "Right. Wait holds this item and then lets it carry on.",
-      "file": "order-desk/answer-correct--20b38e94.mp3"
+      "text": "[warm] Right. Wait holds this item and then lets it carry on.",
+      "file": "order-desk/answer-correct--df0d4816.mp3"
     },
     "answer-wrong--classify--code--v0": {
-      "text": "Eight kinds, written any number of ways. Could Code keep up?",
-      "file": "order-desk/answer-wrong--7a5005a4.mp3"
+      "text": "[thoughtful] Eight kinds, written any number of ways. Could Code keep up?",
+      "file": "order-desk/answer-wrong--a6ad59c1.mp3"
     },
     "answer-wrong--classify--if--v0": {
-      "text": "Eight kinds, written any number of ways. Could If keep up?",
-      "file": "order-desk/answer-wrong--b5648396.mp3"
+      "text": "[thoughtful] Eight kinds, written any number of ways. Could If keep up?",
+      "file": "order-desk/answer-wrong--a97ab29f.mp3"
     },
     "answer-wrong--classify--switch--v0": {
-      "text": "Eight kinds, written any number of ways. Could Switch keep up?",
-      "file": "order-desk/answer-wrong--9bbb9ab4.mp3"
+      "text": "[thoughtful] Eight kinds, written any number of ways. Could Switch keep up?",
+      "file": "order-desk/answer-wrong--4c752803.mp3"
     },
     "answer-wrong--filter--code--v0": {
-      "text": "Code gives you another path to build. Do you want one, or none?",
-      "file": "order-desk/answer-wrong--5b74c7ec.mp3"
+      "text": "[thoughtful] Code gives you another path to build. Do you want one, or none?",
+      "file": "order-desk/answer-wrong--e2088680.mp3"
     },
     "answer-wrong--filter--if--v0": {
-      "text": "If gives you another path to build. Do you want one, or none?",
-      "file": "order-desk/answer-wrong--806e38c5.mp3"
+      "text": "[thoughtful] If gives you another path to build. Do you want one, or none?",
+      "file": "order-desk/answer-wrong--fc8db4d1.mp3"
     },
     "answer-wrong--filter--switch--v0": {
-      "text": "Switch gives you another path to build. Do you want one, or none?",
-      "file": "order-desk/answer-wrong--e8e072de.mp3"
+      "text": "[thoughtful] Switch gives you another path to build. Do you want one, or none?",
+      "file": "order-desk/answer-wrong--608c4322.mp3"
     },
     "answer-wrong--http-request--classify-with-ai--v0": {
-      "text": "Your order records are not public. Would Classify with AI ever reach them?",
-      "file": "order-desk/answer-wrong--2d128c72.mp3"
+      "text": "[thoughtful] Your order records are not public. Would Classify with AI ever reach them?",
+      "file": "order-desk/answer-wrong--011520fd.mp3"
     },
     "answer-wrong--http-request--code--v0": {
-      "text": "Your order records are not public. Would Code ever reach them?",
-      "file": "order-desk/answer-wrong--5eca043d.mp3"
+      "text": "[thoughtful] Your order records are not public. Would Code ever reach them?",
+      "file": "order-desk/answer-wrong--661f85c9.mp3"
     },
     "answer-wrong--http-request--web-search--v0": {
-      "text": "Your order records are not public. Would Web Search ever reach them?",
-      "file": "order-desk/answer-wrong--32764d18.mp3"
+      "text": "[thoughtful] Your order records are not public. Would Web Search ever reach them?",
+      "file": "order-desk/answer-wrong--db0ca7c4.mp3"
     },
     "answer-wrong--parse--filter--v0": {
-      "text": "It is one lump of text right now. Does Filter help with that?",
-      "file": "order-desk/answer-wrong--f9d481c4.mp3"
+      "text": "[thoughtful] It is one lump of text right now. Does Filter help with that?",
+      "file": "order-desk/answer-wrong--997b6f86.mp3"
     },
     "answer-wrong--parse--merge--v0": {
-      "text": "It is one lump of text right now. Does Merge help with that?",
-      "file": "order-desk/answer-wrong--312cdc9f.mp3"
+      "text": "[thoughtful] It is one lump of text right now. Does Merge help with that?",
+      "file": "order-desk/answer-wrong--679f25e1.mp3"
     },
     "answer-wrong--parse--switch--v0": {
-      "text": "It is one lump of text right now. Does Switch help with that?",
-      "file": "order-desk/answer-wrong--c51c81ec.mp3"
+      "text": "[thoughtful] It is one lump of text right now. Does Switch help with that?",
+      "file": "order-desk/answer-wrong--50e7c883.mp3"
     },
     "answer-wrong--remove-duplicates--code--v0": {
-      "text": "Could Code know it saw this last Tuesday? It has no memory.",
-      "file": "order-desk/answer-wrong--789ea348.mp3"
+      "text": "[thoughtful] Could Code know it saw this last Tuesday? It has no memory.",
+      "file": "order-desk/answer-wrong--3dc69097.mp3"
     },
     "answer-wrong--remove-duplicates--filter--v0": {
-      "text": "Could Filter know it saw this last Tuesday? It has no memory.",
-      "file": "order-desk/answer-wrong--146d36d9.mp3"
+      "text": "[thoughtful] Could Filter know it saw this last Tuesday? It has no memory.",
+      "file": "order-desk/answer-wrong--bb62dc3a.mp3"
     },
     "answer-wrong--remove-duplicates--merge--v0": {
-      "text": "Could Merge know it saw this last Tuesday? It has no memory.",
-      "file": "order-desk/answer-wrong--02da5afe.mp3"
+      "text": "[thoughtful] Could Merge know it saw this last Tuesday? It has no memory.",
+      "file": "order-desk/answer-wrong--254ab12e.mp3"
     },
     "answer-wrong--summarize--v0": {
-      "text": "Labelling and condensing are two jobs. Which one gives you prose?",
-      "file": "order-desk/answer-wrong--046a3dc4.mp3"
+      "text": "[thoughtful] Labelling and condensing are two jobs. Which one gives you prose?",
+      "file": "order-desk/answer-wrong--77039643.mp3"
     },
     "answer-wrong--switch--filter--v0": {
-      "text": "Count the endings you need, then count what Filter gives you.",
-      "file": "order-desk/answer-wrong--9466c1fc.mp3"
+      "text": "[thoughtful] Count the endings you need, then count what Filter gives you.",
+      "file": "order-desk/answer-wrong--3f9fecee.mp3"
     },
     "answer-wrong--switch--if--v0": {
-      "text": "Count the endings you need, then count what If gives you.",
-      "file": "order-desk/answer-wrong--976780ff.mp3"
+      "text": "[thoughtful] Count the endings you need, then count what If gives you.",
+      "file": "order-desk/answer-wrong--88f2be44.mp3"
     },
     "answer-wrong--switch--merge--v0": {
-      "text": "Count the endings you need, then count what Merge gives you.",
-      "file": "order-desk/answer-wrong--2db223ac.mp3"
+      "text": "[thoughtful] Count the endings you need, then count what Merge gives you.",
+      "file": "order-desk/answer-wrong--43e3e4ec.mp3"
     },
     "answer-wrong--trigger--on-a-schedule--v0": {
-      "text": "Would On a schedule notice on its own? Nobody is sitting here waiting.",
-      "file": "order-desk/answer-wrong--6e5f8e13.mp3"
+      "text": "[thoughtful] Would On a schedule notice on its own? Nobody is sitting here waiting.",
+      "file": "order-desk/answer-wrong--6fd94031.mp3"
     },
     "answer-wrong--trigger--on-webhook-call--v0": {
-      "text": "Would On webhook call notice on its own? Nobody is sitting here waiting.",
-      "file": "order-desk/answer-wrong--13ce1430.mp3"
+      "text": "[thoughtful] Would On webhook call notice on its own? Nobody is sitting here waiting.",
+      "file": "order-desk/answer-wrong--fe6af7b3.mp3"
     },
     "answer-wrong--trigger--trigger-manually--v0": {
-      "text": "Would Trigger manually notice on its own? Nobody is sitting here waiting.",
-      "file": "order-desk/answer-wrong--dd479cb6.mp3"
+      "text": "[thoughtful] Would Trigger manually notice on its own? Nobody is sitting here waiting.",
+      "file": "order-desk/answer-wrong--cb839fec.mp3"
     },
     "answer-wrong--wait--code--v0": {
-      "text": "Code decides when a flow starts. This one already started.",
-      "file": "order-desk/answer-wrong--f6682d8d.mp3"
+      "text": "[thoughtful] Code decides when a flow starts. This one already started.",
+      "file": "order-desk/answer-wrong--82f1418f.mp3"
     },
     "answer-wrong--wait--filter--v0": {
-      "text": "Filter decides when a flow starts. This one already started.",
-      "file": "order-desk/answer-wrong--a0cfefe2.mp3"
+      "text": "[thoughtful] Filter decides when a flow starts. This one already started.",
+      "file": "order-desk/answer-wrong--d316732a.mp3"
     },
     "answer-wrong--wait--on-a-schedule--v0": {
-      "text": "On a schedule decides when a flow starts. This one already started.",
-      "file": "order-desk/answer-wrong--920c18cb.mp3"
+      "text": "[thoughtful] On a schedule decides when a flow starts. This one already started.",
+      "file": "order-desk/answer-wrong--ca343610.mp3"
     },
     "answer-wrong-again--classify--v0": {
-      "text": "Free text needs something that understands meaning, not a rule you typed.",
-      "file": "order-desk/answer-wrong-again--507aa716.mp3"
+      "text": "[calm] Free text needs something that understands meaning, not a rule you typed.",
+      "file": "order-desk/answer-wrong-again--95ee9384.mp3"
     },
     "answer-wrong-again--filter--v0": {
-      "text": "You want the junk gone, not routed. Which node simply drops it?",
-      "file": "order-desk/answer-wrong-again--a6695b59.mp3"
+      "text": "[calm] You want the junk gone, not routed. Which node simply drops it?",
+      "file": "order-desk/answer-wrong-again--82b1faac.mp3"
     },
     "answer-wrong-again--http-request--v0": {
-      "text": "Nothing in the email holds the order value. It has to come from somewhere.",
-      "file": "order-desk/answer-wrong-again--417e28c0.mp3"
+      "text": "[calm] Nothing in the email holds the order value. It has to come from somewhere.",
+      "file": "order-desk/answer-wrong-again--2c7a23b3.mp3"
     },
     "answer-wrong-again--parse--v0": {
-      "text": "Still not it. Go back to the problem and ask what has to happen first.",
-      "file": "shared/answer-wrong-again--1cc3945d.mp3"
+      "text": "[thoughtful] Still not it. Go back to the problem and ask what has to happen first.",
+      "file": "shared/answer-wrong-again--10ab0086.mp3"
     },
     "answer-wrong-again--parse--v1": {
-      "text": "Let us slow down. What does this step actually need before it can run?",
-      "file": "shared/answer-wrong-again--ee91deb9.mp3"
+      "text": "[calm] Let's slow down. What does this step actually need before it can run?",
+      "file": "shared/answer-wrong-again--69bde770.mp3"
     },
     "answer-wrong-again--parse--v2": {
-      "text": "Try reading the options as jobs. Which job does this flow need doing here?",
-      "file": "shared/answer-wrong-again--e8e6f50b.mp3"
+      "text": "[thoughtful] Try reading the options as jobs. Which job does this flow need done here?",
+      "file": "shared/answer-wrong-again--fa253adc.mp3"
     },
     "answer-wrong-again--remove-duplicates--v0": {
-      "text": "This is not about whether one email is worth keeping. It is about repeats.",
-      "file": "order-desk/answer-wrong-again--92922579.mp3"
+      "text": "[calm] This is not about whether one email is worth keeping. It is about repeats.",
+      "file": "order-desk/answer-wrong-again--1f85169d.mp3"
     },
     "answer-wrong-again--summarize--v0": {
-      "text": "Still not it. Go back to the problem and ask what has to happen first.",
-      "file": "shared/answer-wrong-again--1cc3945d.mp3"
+      "text": "[thoughtful] Still not it. Go back to the problem and ask what has to happen first.",
+      "file": "shared/answer-wrong-again--10ab0086.mp3"
     },
     "answer-wrong-again--summarize--v1": {
-      "text": "Let us slow down. What does this step actually need before it can run?",
-      "file": "shared/answer-wrong-again--ee91deb9.mp3"
+      "text": "[calm] Let's slow down. What does this step actually need before it can run?",
+      "file": "shared/answer-wrong-again--69bde770.mp3"
     },
     "answer-wrong-again--summarize--v2": {
-      "text": "Try reading the options as jobs. Which job does this flow need doing here?",
-      "file": "shared/answer-wrong-again--e8e6f50b.mp3"
+      "text": "[thoughtful] Try reading the options as jobs. Which job does this flow need done here?",
+      "file": "shared/answer-wrong-again--fa253adc.mp3"
     },
     "answer-wrong-again--switch--v0": {
-      "text": "Eight different endings. How many outputs does that need?",
-      "file": "order-desk/answer-wrong-again--259bdefb.mp3"
+      "text": "[calm] Eight different endings. How many outputs does that need?",
+      "file": "order-desk/answer-wrong-again--7048d7ac.mp3"
     },
     "answer-wrong-again--trigger--v0": {
-      "text": "The mail arrives without anyone asking. What hears that?",
-      "file": "order-desk/answer-wrong-again--ed32a2a6.mp3"
+      "text": "[calm] The mail arrives without anyone asking. What hears that?",
+      "file": "order-desk/answer-wrong-again--a34b01b4.mp3"
     },
     "answer-wrong-again--wait--v0": {
-      "text": "Still not it. Go back to the problem and ask what has to happen first.",
-      "file": "shared/answer-wrong-again--1cc3945d.mp3"
+      "text": "[thoughtful] Still not it. Go back to the problem and ask what has to happen first.",
+      "file": "shared/answer-wrong-again--10ab0086.mp3"
     },
     "answer-wrong-again--wait--v1": {
-      "text": "Let us slow down. What does this step actually need before it can run?",
-      "file": "shared/answer-wrong-again--ee91deb9.mp3"
+      "text": "[calm] Let's slow down. What does this step actually need before it can run?",
+      "file": "shared/answer-wrong-again--69bde770.mp3"
     },
     "answer-wrong-again--wait--v2": {
-      "text": "Try reading the options as jobs. Which job does this flow need doing here?",
-      "file": "shared/answer-wrong-again--e8e6f50b.mp3"
+      "text": "[thoughtful] Try reading the options as jobs. Which job does this flow need done here?",
+      "file": "shared/answer-wrong-again--fa253adc.mp3"
     },
     "build-complete--enrich--v0": {
-      "text": "All eight routes are live. Let us throw some real mail at it.",
-      "file": "order-desk/build-complete--826fbf07.mp3"
+      "text": "[excited] All eight routes are live. Let us throw some real mail at it.",
+      "file": "order-desk/build-complete--5a7acc0c.mp3"
     },
     "build-complete--intake--v0": {
-      "text": "All eight routes are live. Let us throw some real mail at it.",
-      "file": "order-desk/build-complete--826fbf07.mp3"
+      "text": "[excited] All eight routes are live. Let us throw some real mail at it.",
+      "file": "order-desk/build-complete--5a7acc0c.mp3"
     },
     "build-complete--read--v0": {
-      "text": "All eight routes are live. Let us throw some real mail at it.",
-      "file": "order-desk/build-complete--826fbf07.mp3"
+      "text": "[excited] All eight routes are live. Let us throw some real mail at it.",
+      "file": "order-desk/build-complete--5a7acc0c.mp3"
     },
     "build-complete--route--v0": {
-      "text": "All eight routes are live. Let us throw some real mail at it.",
-      "file": "order-desk/build-complete--826fbf07.mp3"
+      "text": "[excited] All eight routes are live. Let us throw some real mail at it.",
+      "file": "order-desk/build-complete--5a7acc0c.mp3"
     },
     "build-complete--v0": {
-      "text": "All eight routes are live. Let us throw some real mail at it.",
-      "file": "order-desk/build-complete--826fbf07.mp3"
+      "text": "[excited] All eight routes are live. Let us throw some real mail at it.",
+      "file": "order-desk/build-complete--5a7acc0c.mp3"
     },
     "build-start--v0": {
-      "text": "One node at a time. Each one does a single job, and passes its result on.",
-      "file": "shared/build-start--a0374718.mp3"
+      "text": "[calm] One node at a time. Each one does a single job, then hands it on.",
+      "file": "shared/build-start--e1a471b3.mp3"
     },
     "idle-nudge--v0": {
-      "text": "Take your time. If you are not sure what goes next, ask me.",
-      "file": "shared/idle-nudge--3d8cc9ee.mp3"
+      "text": "[calm] Take your time. If you're not sure what comes next, just ask me.",
+      "file": "shared/idle-nudge--bfee6325.mp3"
     },
     "idle-nudge--v1": {
-      "text": "Still thinking? Tell me what you are stuck on and I will help.",
-      "file": "shared/idle-nudge--5af390b1.mp3"
+      "text": "[calm] Still thinking? Tell me what you're stuck on and I'll help.",
+      "file": "shared/idle-nudge--f2e8403d.mp3"
     },
     "idle-nudge--v2": {
-      "text": "No rush. If it helps, look at what the last node hands over.",
-      "file": "shared/idle-nudge--ac57a36e.mp3"
+      "text": "[calm] No rush. If it helps, look at what the last node hands over.",
+      "file": "shared/idle-nudge--24e98515.mp3"
     },
     "node-placed--action--v0": {
-      "text": "The reply itself. Whatever reaches this node gets an email back.",
-      "file": "order-desk/node-placed--9e00f780.mp3"
+      "text": "[calm] The reply itself. Whatever reaches this node gets an email back.",
+      "file": "order-desk/node-placed--c5d7608a.mp3"
     },
     "node-placed--calendar-event--v0": {
-      "text": "A booked call. This branch exists because somebody is angry, so timing matters.",
-      "file": "order-desk/node-placed--03e3d123.mp3"
+      "text": "[calm] A booked call. This branch exists because somebody is angry, so timing matters.",
+      "file": "order-desk/node-placed--047d2550.mp3"
     },
     "node-placed--chat-gemini--v0": {
-      "text": "The brain it borrows. One setting here decides if the answer is repeatable.",
-      "file": "order-desk/node-placed--4af7add7.mp3"
+      "text": "[calm] The brain it borrows. One setting here decides if the answer is repeatable.",
+      "file": "order-desk/node-placed--6d5e0c12.mp3"
     },
     "node-placed--classify--v0": {
-      "text": "This reads the email and decides what kind it is. It needs a model to think with.",
-      "file": "order-desk/node-placed--03c55e68.mp3"
+      "text": "[calm] This reads the email and decides what kind it is. It needs a model to think with.",
+      "file": "order-desk/node-placed--ed7c82bb.mp3"
     },
     "node-placed--code--v0": {
-      "text": "A number for how badly this needs attention. Choose what it is built from.",
-      "file": "order-desk/node-placed--47f0a2fa.mp3"
+      "text": "[calm] A number for how badly this needs attention. Choose what it is built from.",
+      "file": "order-desk/node-placed--ba4624ec.mp3"
     },
     "node-placed--filter--v0": {
-      "text": "Good. Everything past this point costs money, so drop the junk here.",
-      "file": "order-desk/node-placed--0d6cff54.mp3"
+      "text": "[calm] Good. Everything past this point costs money, so drop the junk here.",
+      "file": "order-desk/node-placed--a3423937.mp3"
     },
     "node-placed--google-docs--v0": {
-      "text": "A log. Repeated questions in one place is how a pricing problem gets noticed.",
-      "file": "order-desk/node-placed--657de488.mp3"
+      "text": "[calm] A log. Repeated questions in one place is how a pricing problem gets noticed.",
+      "file": "order-desk/node-placed--0701c3c6.mp3"
     },
     "node-placed--http-request--v0": {
-      "text": "Now you leave the email behind and go ask your own systems.",
-      "file": "order-desk/node-placed--e7bcbb21.mp3"
+      "text": "[calm] Now you leave the email behind and go ask your own systems.",
+      "file": "order-desk/node-placed--08c4812f.mp3"
     },
     "node-placed--notion-page--v0": {
-      "text": "Filing an opportunity, not a problem. Where the sales team will look.",
-      "file": "order-desk/node-placed--448fca99.mp3"
+      "text": "[calm] Filing an opportunity, not a problem. Where the sales team will look.",
+      "file": "order-desk/node-placed--4405e0d8.mp3"
     },
     "node-placed--parse--v0": {
-      "text": "The model answers as text. This turns it into fields the rest can read.",
-      "file": "order-desk/node-placed--1449967f.mp3"
+      "text": "[calm] The model answers as text. This turns it into fields the rest can read.",
+      "file": "order-desk/node-placed--75aaae58.mp3"
     },
     "node-placed--remove-duplicates--v0": {
-      "text": "This one remembers. What you compare on decides who gets ignored by mistake.",
-      "file": "order-desk/node-placed--b82f3dba.mp3"
+      "text": "[calm] This one remembers. What you compare on decides who gets ignored by mistake.",
+      "file": "order-desk/node-placed--45a5afa2.mp3"
     },
     "node-placed--slack-message--v0": {
-      "text": "This one talks to your team, not the customer. Different audience, different words.",
-      "file": "order-desk/node-placed--5ce66675.mp3"
+      "text": "[calm] This one talks to your team, not the customer. Different audience, different words.",
+      "file": "order-desk/node-placed--b7d8c145.mp3"
     },
     "node-placed--summarize--v0": {
-      "text": "This one writes for a human. Think about what happens if it fails.",
-      "file": "order-desk/node-placed--e2558907.mp3"
+      "text": "[calm] This one writes for a human. Think about what happens if it fails.",
+      "file": "order-desk/node-placed--a6f822a8.mp3"
     },
     "node-placed--switch--v0": {
-      "text": "Here is where the eight kinds split apart. Every rule you add is a path out.",
-      "file": "order-desk/node-placed--515b2244.mp3"
+      "text": "[calm] Here is where the eight kinds split apart. Every rule you add is a path out.",
+      "file": "order-desk/node-placed--3b0753a8.mp3"
     },
     "node-placed--trigger--v0": {
-      "text": "That is the way in. Everything after this happens once per email.",
-      "file": "order-desk/node-placed--ffbd947d.mp3"
+      "text": "[calm] That is the way in. Everything after this happens once per email.",
+      "file": "order-desk/node-placed--d18f08da.mp3"
     },
     "node-placed--wait--v0": {
-      "text": "A small pause. People send the important bit in a second email.",
-      "file": "order-desk/node-placed--68ed4e06.mp3"
+      "text": "[calm] A small pause. People send the important bit in a second email.",
+      "file": "order-desk/node-placed--b9f83ccd.mp3"
     },
     "node-placed--web-search--v0": {
-      "text": "Looking outward. Ask what the carrier actually knows this parcel by.",
-      "file": "order-desk/node-placed--1bc1f744.mp3"
+      "text": "[calm] Looking outward. Ask what the carrier actually knows this parcel by.",
+      "file": "order-desk/node-placed--fb0e7671.mp3"
     },
     "node-wrong--v0": {
-      "text": "That one cannot do the job here. Let me ask you something.",
-      "file": "shared/node-wrong--2ddf338c.mp3"
+      "text": "[thoughtful] That one can't do the job here. Let me ask you something.",
+      "file": "shared/node-wrong--3291483d.mp3"
     },
     "phase-complete--enrich--v0": {
-      "text": "It knows the order and how urgent this is. Almost there.",
-      "file": "order-desk/phase-complete--e0fe56c0.mp3"
+      "text": "[excited] It knows the order and how urgent this is. Almost there.",
+      "file": "order-desk/phase-complete--f6b873bf.mp3"
     },
     "phase-complete--intake--v0": {
-      "text": "The inbox is clean now. That alone saves the desk hours.",
-      "file": "order-desk/phase-complete--243e9767.mp3"
+      "text": "[excited] The inbox is clean now. That alone saves the desk hours.",
+      "file": "order-desk/phase-complete--05f15683.mp3"
     },
     "phase-complete--read--v0": {
-      "text": "It can read an email and turn it into fields. That was the hard part.",
-      "file": "order-desk/phase-complete--45bdb150.mp3"
+      "text": "[excited] It can read an email and turn it into fields. That was the hard part.",
+      "file": "order-desk/phase-complete--c04da406.mp3"
     },
     "phase-complete--route--v0": {
-      "text": "That part is done. Nice.",
-      "file": "shared/phase-complete--1924c27d.mp3"
+      "text": "[excited] That part's done. Nice work.",
+      "file": "shared/phase-complete--fd870972.mp3"
     },
     "phase-complete--route--v1": {
-      "text": "Done. That piece works now.",
-      "file": "shared/phase-complete--68e8951c.mp3"
+      "text": "[excited] That's it, that piece works now.",
+      "file": "shared/phase-complete--f7dc7557.mp3"
     },
     "phase-complete--route--v2": {
-      "text": "Good. One more piece in place.",
-      "file": "shared/phase-complete--571dd154.mp3"
+      "text": "[excited] Good, that's one more piece in place.",
+      "file": "shared/phase-complete--3e7cb79e.mp3"
     },
     "phase-complete--v0": {
-      "text": "That part is done. Nice.",
-      "file": "shared/phase-complete--1924c27d.mp3"
+      "text": "[excited] That part's done. Nice work.",
+      "file": "shared/phase-complete--fd870972.mp3"
     },
     "phase-complete--v1": {
-      "text": "Done. That piece works now.",
-      "file": "shared/phase-complete--68e8951c.mp3"
+      "text": "[excited] That's it, that piece works now.",
+      "file": "shared/phase-complete--f7dc7557.mp3"
     },
     "phase-complete--v2": {
-      "text": "Good. One more piece in place.",
-      "file": "shared/phase-complete--571dd154.mp3"
+      "text": "[excited] Good, that's one more piece in place.",
+      "file": "shared/phase-complete--3e7cb79e.mp3"
     },
     "phase-intro--enrich--v0": {
-      "text": "Start with what this part needs before it can do anything.",
-      "file": "shared/phase-intro--a6174ab7.mp3"
+      "text": "[calm] Start with what this part needs before it can do anything.",
+      "file": "shared/phase-intro--abc1c89a.mp3"
     },
     "phase-intro--enrich--v1": {
-      "text": "Ask what this piece hands on to the next one.",
-      "file": "shared/phase-intro--637494ad.mp3"
+      "text": "[calm] Ask yourself what this piece hands on to the next one.",
+      "file": "shared/phase-intro--d8eb63b8.mp3"
     },
     "phase-intro--enrich--v2": {
-      "text": "Same idea as before. What has to happen first here?",
-      "file": "shared/phase-intro--72135c79.mp3"
+      "text": "[calm] Same idea as before. What has to happen first here?",
+      "file": "shared/phase-intro--36a5831c.mp3"
     },
     "phase-intro--intake--v0": {
-      "text": "Start with what this part needs before it can do anything.",
-      "file": "shared/phase-intro--a6174ab7.mp3"
+      "text": "[calm] Start with what this part needs before it can do anything.",
+      "file": "shared/phase-intro--abc1c89a.mp3"
     },
     "phase-intro--intake--v1": {
-      "text": "Ask what this piece hands on to the next one.",
-      "file": "shared/phase-intro--637494ad.mp3"
+      "text": "[calm] Ask yourself what this piece hands on to the next one.",
+      "file": "shared/phase-intro--d8eb63b8.mp3"
     },
     "phase-intro--intake--v2": {
-      "text": "Same idea as before. What has to happen first here?",
-      "file": "shared/phase-intro--72135c79.mp3"
+      "text": "[calm] Same idea as before. What has to happen first here?",
+      "file": "shared/phase-intro--36a5831c.mp3"
     },
     "phase-intro--read--v0": {
-      "text": "Start with what this part needs before it can do anything.",
-      "file": "shared/phase-intro--a6174ab7.mp3"
+      "text": "[calm] Start with what this part needs before it can do anything.",
+      "file": "shared/phase-intro--abc1c89a.mp3"
     },
     "phase-intro--read--v1": {
-      "text": "Ask what this piece hands on to the next one.",
-      "file": "shared/phase-intro--637494ad.mp3"
+      "text": "[calm] Ask yourself what this piece hands on to the next one.",
+      "file": "shared/phase-intro--d8eb63b8.mp3"
     },
     "phase-intro--read--v2": {
-      "text": "Same idea as before. What has to happen first here?",
-      "file": "shared/phase-intro--72135c79.mp3"
+      "text": "[calm] Same idea as before. What has to happen first here?",
+      "file": "shared/phase-intro--36a5831c.mp3"
     },
     "phase-intro--route--v0": {
-      "text": "Start with what this part needs before it can do anything.",
-      "file": "shared/phase-intro--a6174ab7.mp3"
+      "text": "[calm] Start with what this part needs before it can do anything.",
+      "file": "shared/phase-intro--abc1c89a.mp3"
     },
     "phase-intro--route--v1": {
-      "text": "Ask what this piece hands on to the next one.",
-      "file": "shared/phase-intro--637494ad.mp3"
+      "text": "[calm] Ask yourself what this piece hands on to the next one.",
+      "file": "shared/phase-intro--d8eb63b8.mp3"
     },
     "phase-intro--route--v2": {
-      "text": "Same idea as before. What has to happen first here?",
-      "file": "shared/phase-intro--72135c79.mp3"
+      "text": "[calm] Same idea as before. What has to happen first here?",
+      "file": "shared/phase-intro--36a5831c.mp3"
     },
     "phase-intro--v0": {
-      "text": "Start with what this part needs before it can do anything.",
-      "file": "shared/phase-intro--a6174ab7.mp3"
+      "text": "[calm] Start with what this part needs before it can do anything.",
+      "file": "shared/phase-intro--abc1c89a.mp3"
     },
     "phase-intro--v1": {
-      "text": "Ask what this piece hands on to the next one.",
-      "file": "shared/phase-intro--637494ad.mp3"
+      "text": "[calm] Ask yourself what this piece hands on to the next one.",
+      "file": "shared/phase-intro--d8eb63b8.mp3"
     },
     "phase-intro--v2": {
-      "text": "Same idea as before. What has to happen first here?",
-      "file": "shared/phase-intro--72135c79.mp3"
+      "text": "[calm] Same idea as before. What has to happen first here?",
+      "file": "shared/phase-intro--36a5831c.mp3"
     },
     "problem-intro--v0": {
-      "text": "Read it once for the shape, not the detail. We will pull it apart together.",
-      "file": "shared/problem-intro--18d41e69.mp3"
+      "text": "[calm] Read it once for the shape, not the detail. We'll pull it apart together.",
+      "file": "shared/problem-intro--2ed3ffcd.mp3"
     },
     "report-ready--v0": {
-      "text": "Here is what stood out, and what I would practise next.",
-      "file": "shared/report-ready--321af75c.mp3"
+      "text": "[calm] Here is what stood out, and what I would practise next.",
+      "file": "shared/report-ready--0d338bc2.mp3"
     },
     "run-case--access--v0": {
-      "text": "Next one. Watch where it goes.",
-      "file": "shared/run-case--52ba80f3.mp3"
+      "text": "[calm] Here's the next one. Watch where it goes.",
+      "file": "shared/run-case--6bbfc022.mp3"
     },
     "run-case--angry--v0": {
-      "text": "Next one. Watch where it goes.",
-      "file": "shared/run-case--52ba80f3.mp3"
+      "text": "[calm] Here's the next one. Watch where it goes.",
+      "file": "shared/run-case--6bbfc022.mp3"
     },
     "run-case--billing--v0": {
-      "text": "Next one. Watch where it goes.",
-      "file": "shared/run-case--52ba80f3.mp3"
+      "text": "[calm] Here's the next one. Watch where it goes.",
+      "file": "shared/run-case--6bbfc022.mp3"
     },
     "run-case--bug--v0": {
-      "text": "Next one. Watch where it goes.",
-      "file": "shared/run-case--52ba80f3.mp3"
+      "text": "[calm] Here's the next one. Watch where it goes.",
+      "file": "shared/run-case--6bbfc022.mp3"
     },
     "run-case--cancel--v0": {
-      "text": "Next one. Watch where it goes.",
-      "file": "shared/run-case--52ba80f3.mp3"
+      "text": "[calm] Here's the next one. Watch where it goes.",
+      "file": "shared/run-case--6bbfc022.mp3"
     },
     "run-case--delivery--v0": {
-      "text": "Next one. Watch where it goes.",
-      "file": "shared/run-case--52ba80f3.mp3"
+      "text": "[calm] Here's the next one. Watch where it goes.",
+      "file": "shared/run-case--6bbfc022.mp3"
     },
     "run-case--partnership--v0": {
-      "text": "Next one. Watch where it goes.",
-      "file": "shared/run-case--52ba80f3.mp3"
+      "text": "[calm] Here's the next one. Watch where it goes.",
+      "file": "shared/run-case--6bbfc022.mp3"
     },
     "run-case--refund--v0": {
-      "text": "Next one. Watch where it goes.",
-      "file": "shared/run-case--52ba80f3.mp3"
+      "text": "[calm] Here's the next one. Watch where it goes.",
+      "file": "shared/run-case--6bbfc022.mp3"
     },
     "run-case--sales--v0": {
-      "text": "Next one. Watch where it goes.",
-      "file": "shared/run-case--52ba80f3.mp3"
+      "text": "[calm] Here's the next one. Watch where it goes.",
+      "file": "shared/run-case--6bbfc022.mp3"
     },
     "run-case--v0": {
-      "text": "Next one. Watch where it goes.",
-      "file": "shared/run-case--52ba80f3.mp3"
+      "text": "[calm] Here's the next one. Watch where it goes.",
+      "file": "shared/run-case--6bbfc022.mp3"
     },
     "run-fail--v0": {
-      "text": "Some did not come out right. That is worth knowing. Let us look.",
-      "file": "shared/run-fail--5faf3bb0.mp3"
+      "text": "[calm] Some didn't come out right. That's worth knowing. Let's look.",
+      "file": "shared/run-fail--3622edfc.mp3"
     },
     "run-pass--v0": {
-      "text": "Every case came out right. That flow works.",
-      "file": "shared/run-pass--52902725.mp3"
+      "text": "[excited] Every case came out right. That flow works.",
+      "file": "shared/run-pass--8844014c.mp3"
     },
     "run-pass--v1": {
-      "text": "All of them passed. Well built.",
-      "file": "shared/run-pass--b8eb5049.mp3"
+      "text": "[excited] All of them passed. That's well built.",
+      "file": "shared/run-pass--8428ce8c.mp3"
     },
     "run-start--v0": {
-      "text": "Watch what happens to each one as it goes through.",
-      "file": "shared/run-start--06fb793a.mp3"
+      "text": "[calm] Watch what happens to each one as it goes through.",
+      "file": "shared/run-start--b3bd7fb4.mp3"
     },
     "stress-start--v0": {
-      "text": "Now the interesting part. What does it do with an email you never planned for?",
-      "file": "order-desk/stress-start--d61ee9c7.mp3"
+      "text": "[calm] Now the interesting part. What does it do with an email you never planned for?",
+      "file": "order-desk/stress-start--d20a5b75.mp3"
     },
     "understand-done--v0": {
-      "text": "Yes. You have got the shape of it. Now the fun part, we build it.",
-      "file": "shared/understand-done--fbe759d4.mp3"
+      "text": "[excited] You've got the shape of it. Now for the fun part, we build it.",
+      "file": "shared/understand-done--502f6671.mp3"
     },
     "understand-done--v1": {
-      "text": "That is the thinking done. Now let us actually build the thing.",
-      "file": "shared/understand-done--15705d57.mp3"
+      "text": "[excited] That's the thinking done. Now let's actually build the thing.",
+      "file": "shared/understand-done--d106f6b9.mp3"
     },
     "understand-start--v0": {
-      "text": "A few questions first. I want to know how you are thinking about it.",
-      "file": "shared/understand-start--560ba8b2.mp3"
+      "text": "[calm] A few questions first. I want to see how you're thinking about it.",
+      "file": "shared/understand-start--e73c1b2a.mp3"
     },
     "verify-fail--action--send-reply--v0": {
-      "text": "Send Reply is not right yet. Check the field I marked.",
-      "file": "shared/verify-fail--ab3cec67.mp3"
+      "text": "[calm] Send Reply isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--76412ffa.mp3"
     },
     "verify-fail--action--send-reply--v1": {
-      "text": "Something in Send Reply is off. Look at what is in red.",
-      "file": "shared/verify-fail--567d38fa.mp3"
+      "text": "[calm] Something in Send Reply's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--d073aafc.mp3"
     },
     "verify-fail--calendar-event--google-calendar-create-event--v0": {
-      "text": "Google Calendar — Create Event is not right yet. Check the field I marked.",
-      "file": "shared/verify-fail--396317fb.mp3"
+      "text": "[calm] Google Calendar — Create Event isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--62ccfdbb.mp3"
     },
     "verify-fail--calendar-event--google-calendar-create-event--v1": {
-      "text": "Something in Google Calendar — Create Event is off. Look at what is in red.",
-      "file": "shared/verify-fail--268bb680.mp3"
+      "text": "[calm] Something in Google Calendar — Create Event's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--0b8447dd.mp3"
     },
     "verify-fail--chat-gemini--v0": {
-      "text": "Not yet. Should the same email always get the same answer?",
-      "file": "order-desk/verify-fail--6d229c35.mp3"
+      "text": "[calm] Not yet. Should the same email always get the same answer?",
+      "file": "order-desk/verify-fail--a5552455.mp3"
     },
     "verify-fail--classify--v0": {
-      "text": "Not yet. It can only read what you hand it. Check what you pointed at.",
-      "file": "order-desk/verify-fail--3d678ff5.mp3"
+      "text": "[calm] Not yet. It can only read what you hand it. Check what you pointed at.",
+      "file": "order-desk/verify-fail--b9c78ac7.mp3"
     },
     "verify-fail--code--code--v0": {
-      "text": "Code is not right yet. Check the field I marked.",
-      "file": "shared/verify-fail--45ce60ab.mp3"
+      "text": "[calm] Code isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--ad8dde80.mp3"
     },
     "verify-fail--code--code--v1": {
-      "text": "Something in Code is off. Look at what is in red.",
-      "file": "shared/verify-fail--cb653ba1.mp3"
+      "text": "[calm] Something in Code's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--01718784.mp3"
     },
     "verify-fail--filter--filter--v0": {
-      "text": "Filter is not right yet. Check the field I marked.",
-      "file": "shared/verify-fail--2c251172.mp3"
+      "text": "[calm] Filter isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--4981827b.mp3"
     },
     "verify-fail--filter--filter--v1": {
-      "text": "Something in Filter is off. Look at what is in red.",
-      "file": "shared/verify-fail--c8305965.mp3"
+      "text": "[calm] Something in Filter's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--c5c7adc6.mp3"
     },
     "verify-fail--google-docs--google-docs--v0": {
-      "text": "Google Docs is not right yet. Check the field I marked.",
-      "file": "shared/verify-fail--90788252.mp3"
+      "text": "[calm] Google Docs isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--7c0932b5.mp3"
     },
     "verify-fail--google-docs--google-docs--v1": {
-      "text": "Something in Google Docs is off. Look at what is in red.",
-      "file": "shared/verify-fail--f7e14cf6.mp3"
+      "text": "[calm] Something in Google Docs's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--c2adfda0.mp3"
     },
     "verify-fail--http-request--v0": {
-      "text": "Not quite. You already know exactly which order this is about.",
-      "file": "order-desk/verify-fail--55890a16.mp3"
+      "text": "[calm] Not quite. You already know exactly which order this is about.",
+      "file": "order-desk/verify-fail--f55fe241.mp3"
     },
     "verify-fail--notion-page--notion-create-page--v0": {
-      "text": "Notion — Create Page is not right yet. Check the field I marked.",
-      "file": "shared/verify-fail--9aeb8e4b.mp3"
+      "text": "[calm] Notion — Create Page isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--dcafb4fe.mp3"
     },
     "verify-fail--notion-page--notion-create-page--v1": {
-      "text": "Something in Notion — Create Page is off. Look at what is in red.",
-      "file": "shared/verify-fail--75718a4a.mp3"
+      "text": "[calm] Something in Notion — Create Page's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--5bd7648c.mp3"
     },
     "verify-fail--parse--parse-result--v0": {
-      "text": "Parse Result is not right yet. Check the field I marked.",
-      "file": "shared/verify-fail--c6e75a15.mp3"
+      "text": "[calm] Parse Result isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--7ec19d09.mp3"
     },
     "verify-fail--parse--parse-result--v1": {
-      "text": "Something in Parse Result is off. Look at what is in red.",
-      "file": "shared/verify-fail--6d51edd9.mp3"
+      "text": "[calm] Something in Parse Result's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--44aba177.mp3"
     },
     "verify-fail--remove-duplicates--v0": {
-      "text": "Think about who gets wrongly ignored if you compare on that.",
-      "file": "order-desk/verify-fail--1b5e43d7.mp3"
+      "text": "[calm] Think about who gets wrongly ignored if you compare on that.",
+      "file": "order-desk/verify-fail--0617f605.mp3"
     },
     "verify-fail--slack-message--slack-send-message--v0": {
-      "text": "Slack — Send Message is not right yet. Check the field I marked.",
-      "file": "shared/verify-fail--6eb80cd7.mp3"
+      "text": "[calm] Slack — Send Message isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--29a231b3.mp3"
     },
     "verify-fail--slack-message--slack-send-message--v1": {
-      "text": "Something in Slack — Send Message is off. Look at what is in red.",
-      "file": "shared/verify-fail--2c870d6d.mp3"
+      "text": "[calm] Something in Slack — Send Message's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--bf5d2911.mp3"
     },
     "verify-fail--summarize--summarize-with-ai--v0": {
-      "text": "Summarize with AI is not right yet. Check the field I marked.",
-      "file": "shared/verify-fail--6070e74e.mp3"
+      "text": "[calm] Summarize with AI isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--1f548969.mp3"
     },
     "verify-fail--summarize--summarize-with-ai--v1": {
-      "text": "Something in Summarize with AI is off. Look at what is in red.",
-      "file": "shared/verify-fail--e31e9d52.mp3"
+      "text": "[calm] Something in Summarize with AI's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--e54f19e6.mp3"
     },
     "verify-fail--switch--v0": {
-      "text": "Not right yet. Look at what each rule tests, and what the classifier really produces.",
-      "file": "order-desk/verify-fail--2d32d630.mp3"
+      "text": "[calm] Not right yet. Look at what each rule tests, and what the classifier really produces.",
+      "file": "order-desk/verify-fail--3b78c5fb.mp3"
     },
     "verify-fail--trigger--new-email--v0": {
-      "text": "New Email is not right yet. Check the field I marked.",
-      "file": "shared/verify-fail--1f74c4bb.mp3"
+      "text": "[calm] New Email isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--9f907030.mp3"
     },
     "verify-fail--trigger--new-email--v1": {
-      "text": "Something in New Email is off. Look at what is in red.",
-      "file": "shared/verify-fail--54534f55.mp3"
+      "text": "[calm] Something in New Email's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--ef8dbf89.mp3"
     },
     "verify-fail--wait--wait--v0": {
-      "text": "Wait is not right yet. Check the field I marked.",
-      "file": "shared/verify-fail--634e1c70.mp3"
+      "text": "[calm] Wait isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--67b9371e.mp3"
     },
     "verify-fail--wait--wait--v1": {
-      "text": "Something in Wait is off. Look at what is in red.",
-      "file": "shared/verify-fail--42e2afdd.mp3"
+      "text": "[calm] Something in Wait's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--6ffd82a4.mp3"
     },
     "verify-fail--web-search--web-search--v0": {
-      "text": "Web Search is not right yet. Check the field I marked.",
-      "file": "shared/verify-fail--2cb24d9e.mp3"
+      "text": "[calm] Web Search isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--68503fd0.mp3"
     },
     "verify-fail--web-search--web-search--v1": {
-      "text": "Something in Web Search is off. Look at what is in red.",
-      "file": "shared/verify-fail--f4cf640d.mp3"
+      "text": "[calm] Something in Web Search's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--c33d0842.mp3"
+    },
+    "verify-params--action--v0": {
+      "text": "[calm] That's the parameters right. You've got one tab left.",
+      "file": "shared/verify-params--b5910941.mp3"
+    },
+    "verify-params--action--v1": {
+      "text": "[calm] Good, those are right. One more tab and this one's done.",
+      "file": "shared/verify-params--87b5af0c.mp3"
+    },
+    "verify-params--calendar-event--v0": {
+      "text": "[calm] That's the parameters right. You've got one tab left.",
+      "file": "shared/verify-params--b5910941.mp3"
+    },
+    "verify-params--calendar-event--v1": {
+      "text": "[calm] Good, those are right. One more tab and this one's done.",
+      "file": "shared/verify-params--87b5af0c.mp3"
+    },
+    "verify-params--chat-gemini--v0": {
+      "text": "[calm] That's the parameters right. You've got one tab left.",
+      "file": "shared/verify-params--b5910941.mp3"
+    },
+    "verify-params--chat-gemini--v1": {
+      "text": "[calm] Good, those are right. One more tab and this one's done.",
+      "file": "shared/verify-params--87b5af0c.mp3"
+    },
+    "verify-params--classify--v0": {
+      "text": "[calm] That's the parameters right. You've got one tab left.",
+      "file": "shared/verify-params--b5910941.mp3"
+    },
+    "verify-params--classify--v1": {
+      "text": "[calm] Good, those are right. One more tab and this one's done.",
+      "file": "shared/verify-params--87b5af0c.mp3"
+    },
+    "verify-params--code--v0": {
+      "text": "[calm] That's the parameters right. You've got one tab left.",
+      "file": "shared/verify-params--b5910941.mp3"
+    },
+    "verify-params--code--v1": {
+      "text": "[calm] Good, those are right. One more tab and this one's done.",
+      "file": "shared/verify-params--87b5af0c.mp3"
+    },
+    "verify-params--filter--v0": {
+      "text": "[calm] That's the parameters right. You've got one tab left.",
+      "file": "shared/verify-params--b5910941.mp3"
+    },
+    "verify-params--filter--v1": {
+      "text": "[calm] Good, those are right. One more tab and this one's done.",
+      "file": "shared/verify-params--87b5af0c.mp3"
+    },
+    "verify-params--google-docs--v0": {
+      "text": "[calm] That's the parameters right. You've got one tab left.",
+      "file": "shared/verify-params--b5910941.mp3"
+    },
+    "verify-params--google-docs--v1": {
+      "text": "[calm] Good, those are right. One more tab and this one's done.",
+      "file": "shared/verify-params--87b5af0c.mp3"
+    },
+    "verify-params--http-request--v0": {
+      "text": "[calm] That's the parameters right. You've got one tab left.",
+      "file": "shared/verify-params--b5910941.mp3"
+    },
+    "verify-params--http-request--v1": {
+      "text": "[calm] Good, those are right. One more tab and this one's done.",
+      "file": "shared/verify-params--87b5af0c.mp3"
+    },
+    "verify-params--notion-page--v0": {
+      "text": "[calm] That's the parameters right. You've got one tab left.",
+      "file": "shared/verify-params--b5910941.mp3"
+    },
+    "verify-params--notion-page--v1": {
+      "text": "[calm] Good, those are right. One more tab and this one's done.",
+      "file": "shared/verify-params--87b5af0c.mp3"
+    },
+    "verify-params--parse--v0": {
+      "text": "[calm] That's the parameters right. You've got one tab left.",
+      "file": "shared/verify-params--b5910941.mp3"
+    },
+    "verify-params--parse--v1": {
+      "text": "[calm] Good, those are right. One more tab and this one's done.",
+      "file": "shared/verify-params--87b5af0c.mp3"
+    },
+    "verify-params--remove-duplicates--v0": {
+      "text": "[calm] That's the parameters right. You've got one tab left.",
+      "file": "shared/verify-params--b5910941.mp3"
+    },
+    "verify-params--remove-duplicates--v1": {
+      "text": "[calm] Good, those are right. One more tab and this one's done.",
+      "file": "shared/verify-params--87b5af0c.mp3"
+    },
+    "verify-params--slack-message--v0": {
+      "text": "[calm] That's the parameters right. You've got one tab left.",
+      "file": "shared/verify-params--b5910941.mp3"
+    },
+    "verify-params--slack-message--v1": {
+      "text": "[calm] Good, those are right. One more tab and this one's done.",
+      "file": "shared/verify-params--87b5af0c.mp3"
+    },
+    "verify-params--summarize--v0": {
+      "text": "[calm] That's the parameters right. You've got one tab left.",
+      "file": "shared/verify-params--b5910941.mp3"
+    },
+    "verify-params--summarize--v1": {
+      "text": "[calm] Good, those are right. One more tab and this one's done.",
+      "file": "shared/verify-params--87b5af0c.mp3"
+    },
+    "verify-params--switch--v0": {
+      "text": "[calm] That's the parameters right. You've got one tab left.",
+      "file": "shared/verify-params--b5910941.mp3"
+    },
+    "verify-params--switch--v1": {
+      "text": "[calm] Good, those are right. One more tab and this one's done.",
+      "file": "shared/verify-params--87b5af0c.mp3"
+    },
+    "verify-params--trigger--v0": {
+      "text": "[calm] That's the parameters right. You've got one tab left.",
+      "file": "shared/verify-params--b5910941.mp3"
+    },
+    "verify-params--trigger--v1": {
+      "text": "[calm] Good, those are right. One more tab and this one's done.",
+      "file": "shared/verify-params--87b5af0c.mp3"
+    },
+    "verify-params--wait--v0": {
+      "text": "[calm] That's the parameters right. You've got one tab left.",
+      "file": "shared/verify-params--b5910941.mp3"
+    },
+    "verify-params--wait--v1": {
+      "text": "[calm] Good, those are right. One more tab and this one's done.",
+      "file": "shared/verify-params--87b5af0c.mp3"
+    },
+    "verify-params--web-search--v0": {
+      "text": "[calm] That's the parameters right. You've got one tab left.",
+      "file": "shared/verify-params--b5910941.mp3"
+    },
+    "verify-params--web-search--v1": {
+      "text": "[calm] Good, those are right. One more tab and this one's done.",
+      "file": "shared/verify-params--87b5af0c.mp3"
     },
     "verify-pass--action--send-reply--v0": {
-      "text": "Yes, Send Reply is set up right.",
-      "file": "shared/verify-pass--18f6d72d.mp3"
+      "text": "[warm] Yes, Send Reply's set up right.",
+      "file": "shared/verify-pass--c124a0ee.mp3"
     },
     "verify-pass--action--send-reply--v1": {
-      "text": "Good, Send Reply is done.",
-      "file": "shared/verify-pass--784d1f11.mp3"
+      "text": "[warm] Good, Send Reply's done.",
+      "file": "shared/verify-pass--ac42a5b3.mp3"
     },
     "verify-pass--action--send-reply--v2": {
-      "text": "Send Reply is correct now.",
-      "file": "shared/verify-pass--a2de9173.mp3"
+      "text": "[warm] Send Reply's right now.",
+      "file": "shared/verify-pass--bd814df0.mp3"
     },
     "verify-pass--calendar-event--google-calendar-create-event--v0": {
-      "text": "Yes, Google Calendar — Create Event is set up right.",
-      "file": "shared/verify-pass--3ae03e22.mp3"
+      "text": "[warm] Yes, Google Calendar — Create Event's set up right.",
+      "file": "shared/verify-pass--7ab32643.mp3"
     },
     "verify-pass--calendar-event--google-calendar-create-event--v1": {
-      "text": "Good, Google Calendar — Create Event is done.",
-      "file": "shared/verify-pass--9b00af6f.mp3"
+      "text": "[warm] Good, Google Calendar — Create Event's done.",
+      "file": "shared/verify-pass--a3b3b19a.mp3"
     },
     "verify-pass--calendar-event--google-calendar-create-event--v2": {
-      "text": "Google Calendar — Create Event is correct now.",
-      "file": "shared/verify-pass--2446312f.mp3"
+      "text": "[warm] Google Calendar — Create Event's right now.",
+      "file": "shared/verify-pass--831ab9c1.mp3"
     },
     "verify-pass--chat-gemini--v0": {
-      "text": "Good. That setting is what makes the routing repeatable instead of a guess.",
-      "file": "order-desk/verify-pass--80e982f4.mp3"
+      "text": "[warm] Good. That setting is what makes the routing repeatable instead of a guess.",
+      "file": "order-desk/verify-pass--f4c87d7c.mp3"
     },
     "verify-pass--classify--classify-with-ai--v0": {
-      "text": "Yes, Classify with AI is set up right.",
-      "file": "shared/verify-pass--48fb0832.mp3"
+      "text": "[warm] Yes, Classify with AI's set up right.",
+      "file": "shared/verify-pass--0d99f3fe.mp3"
     },
     "verify-pass--classify--classify-with-ai--v1": {
-      "text": "Good, Classify with AI is done.",
-      "file": "shared/verify-pass--082a4432.mp3"
+      "text": "[warm] Good, Classify with AI's done.",
+      "file": "shared/verify-pass--c93deb45.mp3"
     },
     "verify-pass--classify--classify-with-ai--v2": {
-      "text": "Classify with AI is correct now.",
-      "file": "shared/verify-pass--a5d3a861.mp3"
+      "text": "[warm] Classify with AI's right now.",
+      "file": "shared/verify-pass--8ca747da.mp3"
     },
     "verify-pass--code--code--v0": {
-      "text": "Yes, Code is set up right.",
-      "file": "shared/verify-pass--c726c1a6.mp3"
+      "text": "[warm] Yes, Code's set up right.",
+      "file": "shared/verify-pass--e0f14b10.mp3"
     },
     "verify-pass--code--code--v1": {
-      "text": "Good, Code is done.",
-      "file": "shared/verify-pass--148fc7c6.mp3"
+      "text": "[warm] Good, Code's done.",
+      "file": "shared/verify-pass--11bf122a.mp3"
     },
     "verify-pass--code--code--v2": {
-      "text": "Code is correct now.",
-      "file": "shared/verify-pass--3b7e2b18.mp3"
+      "text": "[warm] Code's right now.",
+      "file": "shared/verify-pass--4b4c8b3e.mp3"
     },
     "verify-pass--filter--filter--v0": {
-      "text": "Yes, Filter is set up right.",
-      "file": "shared/verify-pass--2eeff363.mp3"
+      "text": "[warm] Yes, Filter's set up right.",
+      "file": "shared/verify-pass--03ab0329.mp3"
     },
     "verify-pass--filter--filter--v1": {
-      "text": "Good, Filter is done.",
-      "file": "shared/verify-pass--de3e93c1.mp3"
+      "text": "[warm] Good, Filter's done.",
+      "file": "shared/verify-pass--c2ccf82a.mp3"
     },
     "verify-pass--filter--filter--v2": {
-      "text": "Filter is correct now.",
-      "file": "shared/verify-pass--db349993.mp3"
+      "text": "[warm] Filter's right now.",
+      "file": "shared/verify-pass--3a3ba4cf.mp3"
     },
     "verify-pass--google-docs--google-docs--v0": {
-      "text": "Yes, Google Docs is set up right.",
-      "file": "shared/verify-pass--f2912411.mp3"
+      "text": "[warm] Yes, Google Docs's set up right.",
+      "file": "shared/verify-pass--0ae3dda5.mp3"
     },
     "verify-pass--google-docs--google-docs--v1": {
-      "text": "Good, Google Docs is done.",
-      "file": "shared/verify-pass--9bde58f1.mp3"
+      "text": "[warm] Good, Google Docs's done.",
+      "file": "shared/verify-pass--6fb34940.mp3"
     },
     "verify-pass--google-docs--google-docs--v2": {
-      "text": "Google Docs is correct now.",
-      "file": "shared/verify-pass--9179037b.mp3"
+      "text": "[warm] Google Docs's right now.",
+      "file": "shared/verify-pass--aeefc7fe.mp3"
     },
     "verify-pass--http-request--http-request--v0": {
-      "text": "Yes, HTTP Request is set up right.",
-      "file": "shared/verify-pass--ac29d8be.mp3"
+      "text": "[warm] Yes, HTTP Request's set up right.",
+      "file": "shared/verify-pass--973e080b.mp3"
     },
     "verify-pass--http-request--http-request--v1": {
-      "text": "Good, HTTP Request is done.",
-      "file": "shared/verify-pass--b034e5ab.mp3"
+      "text": "[warm] Good, HTTP Request's done.",
+      "file": "shared/verify-pass--88f87362.mp3"
     },
     "verify-pass--http-request--http-request--v2": {
-      "text": "HTTP Request is correct now.",
-      "file": "shared/verify-pass--794a173d.mp3"
+      "text": "[warm] HTTP Request's right now.",
+      "file": "shared/verify-pass--a559371b.mp3"
     },
     "verify-pass--notion-page--notion-create-page--v0": {
-      "text": "Yes, Notion — Create Page is set up right.",
-      "file": "shared/verify-pass--2e68e2e3.mp3"
+      "text": "[warm] Yes, Notion — Create Page's set up right.",
+      "file": "shared/verify-pass--ad86c90a.mp3"
     },
     "verify-pass--notion-page--notion-create-page--v1": {
-      "text": "Good, Notion — Create Page is done.",
-      "file": "shared/verify-pass--bf410069.mp3"
+      "text": "[warm] Good, Notion — Create Page's done.",
+      "file": "shared/verify-pass--6a7e84e1.mp3"
     },
     "verify-pass--notion-page--notion-create-page--v2": {
-      "text": "Notion — Create Page is correct now.",
-      "file": "shared/verify-pass--18052f71.mp3"
+      "text": "[warm] Notion — Create Page's right now.",
+      "file": "shared/verify-pass--f0ee88c6.mp3"
     },
     "verify-pass--parse--parse-result--v0": {
-      "text": "Yes, Parse Result is set up right.",
-      "file": "shared/verify-pass--a756c72e.mp3"
+      "text": "[warm] Yes, Parse Result's set up right.",
+      "file": "shared/verify-pass--cfa402cc.mp3"
     },
     "verify-pass--parse--parse-result--v1": {
-      "text": "Good, Parse Result is done.",
-      "file": "shared/verify-pass--5dbe0681.mp3"
+      "text": "[warm] Good, Parse Result's done.",
+      "file": "shared/verify-pass--6bba6948.mp3"
     },
     "verify-pass--parse--parse-result--v2": {
-      "text": "Parse Result is correct now.",
-      "file": "shared/verify-pass--6febedaa.mp3"
+      "text": "[warm] Parse Result's right now.",
+      "file": "shared/verify-pass--b6bca8f5.mp3"
     },
     "verify-pass--remove-duplicates--remove-duplicates--v0": {
-      "text": "Yes, Remove Duplicates is set up right.",
-      "file": "shared/verify-pass--838a29fd.mp3"
+      "text": "[warm] Yes, Remove Duplicates's set up right.",
+      "file": "shared/verify-pass--ecf0d43b.mp3"
     },
     "verify-pass--remove-duplicates--remove-duplicates--v1": {
-      "text": "Good, Remove Duplicates is done.",
-      "file": "shared/verify-pass--c083ac74.mp3"
+      "text": "[warm] Good, Remove Duplicates's done.",
+      "file": "shared/verify-pass--05d63a32.mp3"
     },
     "verify-pass--remove-duplicates--remove-duplicates--v2": {
-      "text": "Remove Duplicates is correct now.",
-      "file": "shared/verify-pass--6e47d440.mp3"
+      "text": "[warm] Remove Duplicates's right now.",
+      "file": "shared/verify-pass--75b37196.mp3"
     },
     "verify-pass--slack-message--slack-send-message--v0": {
-      "text": "Yes, Slack — Send Message is set up right.",
-      "file": "shared/verify-pass--745c515c.mp3"
+      "text": "[warm] Yes, Slack — Send Message's set up right.",
+      "file": "shared/verify-pass--7897360d.mp3"
     },
     "verify-pass--slack-message--slack-send-message--v1": {
-      "text": "Good, Slack — Send Message is done.",
-      "file": "shared/verify-pass--02d3ca5f.mp3"
+      "text": "[warm] Good, Slack — Send Message's done.",
+      "file": "shared/verify-pass--73a78a90.mp3"
     },
     "verify-pass--slack-message--slack-send-message--v2": {
-      "text": "Slack — Send Message is correct now.",
-      "file": "shared/verify-pass--688cfe8e.mp3"
+      "text": "[warm] Slack — Send Message's right now.",
+      "file": "shared/verify-pass--a63e8fdf.mp3"
     },
     "verify-pass--summarize--summarize-with-ai--v0": {
-      "text": "Yes, Summarize with AI is set up right.",
-      "file": "shared/verify-pass--da337714.mp3"
+      "text": "[warm] Yes, Summarize with AI's set up right.",
+      "file": "shared/verify-pass--d04e8a3e.mp3"
     },
     "verify-pass--summarize--summarize-with-ai--v1": {
-      "text": "Good, Summarize with AI is done.",
-      "file": "shared/verify-pass--a171eeff.mp3"
+      "text": "[warm] Good, Summarize with AI's done.",
+      "file": "shared/verify-pass--0d9cd094.mp3"
     },
     "verify-pass--summarize--summarize-with-ai--v2": {
-      "text": "Summarize with AI is correct now.",
-      "file": "shared/verify-pass--2773ebdc.mp3"
+      "text": "[warm] Summarize with AI's right now.",
+      "file": "shared/verify-pass--cd43f947.mp3"
     },
     "verify-pass--switch--v0": {
-      "text": "Eight clean rules. That is the hardest bit of this build done.",
-      "file": "order-desk/verify-pass--e1b6db17.mp3"
+      "text": "[warm] Eight clean rules. That is the hardest bit of this build done.",
+      "file": "order-desk/verify-pass--8490866e.mp3"
     },
     "verify-pass--trigger--new-email--v0": {
-      "text": "Yes, New Email is set up right.",
-      "file": "shared/verify-pass--5a704ef7.mp3"
+      "text": "[warm] Yes, New Email's set up right.",
+      "file": "shared/verify-pass--56819af6.mp3"
     },
     "verify-pass--trigger--new-email--v1": {
-      "text": "Good, New Email is done.",
-      "file": "shared/verify-pass--68da1f21.mp3"
+      "text": "[warm] Good, New Email's done.",
+      "file": "shared/verify-pass--abcd2504.mp3"
     },
     "verify-pass--trigger--new-email--v2": {
-      "text": "New Email is correct now.",
-      "file": "shared/verify-pass--b50a585e.mp3"
+      "text": "[warm] New Email's right now.",
+      "file": "shared/verify-pass--296ea0af.mp3"
     },
     "verify-pass--wait--wait--v0": {
-      "text": "Yes, Wait is set up right.",
-      "file": "shared/verify-pass--f040d3d6.mp3"
+      "text": "[warm] Yes, Wait's set up right.",
+      "file": "shared/verify-pass--a28b53e9.mp3"
     },
     "verify-pass--wait--wait--v1": {
-      "text": "Good, Wait is done.",
-      "file": "shared/verify-pass--5e769591.mp3"
+      "text": "[warm] Good, Wait's done.",
+      "file": "shared/verify-pass--88f77527.mp3"
     },
     "verify-pass--wait--wait--v2": {
-      "text": "Wait is correct now.",
-      "file": "shared/verify-pass--17e7b54a.mp3"
+      "text": "[warm] Wait's right now.",
+      "file": "shared/verify-pass--63c92f43.mp3"
     },
     "verify-pass--web-search--web-search--v0": {
-      "text": "Yes, Web Search is set up right.",
-      "file": "shared/verify-pass--d05fca12.mp3"
+      "text": "[warm] Yes, Web Search's set up right.",
+      "file": "shared/verify-pass--5f68210e.mp3"
     },
     "verify-pass--web-search--web-search--v1": {
-      "text": "Good, Web Search is done.",
-      "file": "shared/verify-pass--bf336829.mp3"
+      "text": "[warm] Good, Web Search's done.",
+      "file": "shared/verify-pass--7ece773a.mp3"
     },
     "verify-pass--web-search--web-search--v2": {
-      "text": "Web Search is correct now.",
-      "file": "shared/verify-pass--d954abc4.mp3"
+      "text": "[warm] Web Search's right now.",
+      "file": "shared/verify-pass--2f56140c.mp3"
     },
     "welcome--v0": {
-      "text": "I will stay with you the whole way. If something is unclear, ask me.",
-      "file": "shared/welcome--440164db.mp3"
+      "text": "[warm] I'll be with you the whole way. If anything's unclear, just ask me.",
+      "file": "shared/welcome--8fc7aa61.mp3"
     },
     "welcome--v1": {
-      "text": "I am here the whole time. Ask me whenever you get stuck.",
-      "file": "shared/welcome--43d5fcb2.mp3"
+      "text": "[warm] I'm here the whole time. Ask me whenever you get stuck.",
+      "file": "shared/welcome--5a573d3a.mp3"
     }
   }
 }

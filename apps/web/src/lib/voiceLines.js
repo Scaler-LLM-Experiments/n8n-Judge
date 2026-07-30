@@ -10,7 +10,14 @@
 // The audience is a non-technical learner reading in simple English, often not
 // their first language. So:
 //
-//   * Short sentences. One idea each.
+//   * Short sentences. One idea each. SHORT, NOT CLIPPED: "You've got one tab left"
+//     is the same length as "One tab left" and sounds like a person rather than a
+//     status readout. Fragments are what make narration feel mechanical.
+//   * USE CONTRACTIONS. Always. "That's", "it's", "let's", "you've", "didn't".
+//     Every line in this file once avoided them — all 99 of them — while the screen
+//     directly underneath said "I'm your mentor" and "you've got the plan". So the
+//     writing contracted everywhere except the one place that is spoken aloud, which
+//     is the place it matters most. Nobody has ever said "let us see" out loud.
 //   * Plain words. No idioms, no "let's dive in", no "nailed it".
 //   * No em dashes. They do not read out loud and they slow a reader down.
 //   * Calm and matter of fact. A patient colleague, not a cheerleader. "That is
@@ -56,16 +63,16 @@ export const LINES = {
   // The greeting screen already says who Iris is, so she does not introduce
   // herself again. She says what she will DO, which is not on the page.
   welcome: [
-    '[warm] I will stay with you the whole way. If something is unclear, ask me.',
-    '[warm] I am here the whole time. Ask me whenever you get stuck.',
+    '[warm] I\'ll be with you the whole way. If anything\'s unclear, just ask me.',
+    '[warm] I\'m here the whole time. Ask me whenever you get stuck.',
   ],
   // The statement is on screen and the learner is reading it. One nudge about HOW
   // to read it, then silence.
   problem_intro: [
-    '[calm] Read it once for the shape, not the detail. We will pull it apart together.',
+    '[calm] Read it once for the shape, not the detail. We\'ll pull it apart together.',
   ],
   understand_start: [
-    '[calm] A few questions first. I want to know how you are thinking about it.',
+    '[calm] A few questions first. I want to see how you\'re thinking about it.',
   ],
 
   // ---- answering ----------------------------------------------------------
@@ -74,9 +81,9 @@ export const LINES = {
   // `{answer}` is what the learner picked, so the verdict is about their actual
   // choice. Naming it is safe: they chose it, and it is already on screen marked.
   answer_correct: [
-    '[warm] Yes, {answer} is right.',
-    '[warm] Correct, {answer} is the one.',
-    '[warm] That is it, {answer}.',
+    '[warm] Yes, {answer}\'s right.',
+    '[warm] That\'s it, {answer} is the one.',
+    '[warm] Yes, it\'s {answer}.',
   ],
   // A SECOND wrong answer on the same question gets a stronger pointer. An
   // instructor does not repeat themselves at the same volume: the first miss is a
@@ -84,15 +91,15 @@ export const LINES = {
   // answer, and the per-question authored version is where the real pointer goes.
   answer_wrong_again: [
     '[thoughtful] Still not it. Go back to the problem and ask what has to happen first.',
-    '[calm] Let us slow down. What does this step actually need before it can run?',
-    '[thoughtful] Try reading the options as jobs. Which job does this flow need doing here?',
+    '[calm] Let\'s slow down. What does this step actually need before it can run?',
+    '[thoughtful] Try reading the options as jobs. Which job does this flow need done here?',
   ],
 
   // Iris notices when a learner has gone quiet. Not a prompt to hurry: an offer.
   // The one thing a real instructor does that a screen never does is look up.
   idle_nudge: [
-    '[calm] Take your time. If you are not sure what goes next, ask me.',
-    '[calm] Still thinking? Tell me what you are stuck on and I will help.',
+    '[calm] Take your time. If you\'re not sure what comes next, just ask me.',
+    '[calm] Still thinking? Tell me what you\'re stuck on and I\'ll help.',
     '[calm] No rush. If it helps, look at what the last node hands over.',
   ],
 
@@ -111,22 +118,22 @@ export const LINES = {
   // reaction, so these are the only lines allowed to be excited. Everywhere else
   // enthusiasm is noise; here it is the payoff.
   understand_done: [
-    '[excited] Yes. You have got the shape of it. Now the fun part, we build it.',
-    '[excited] That is the thinking done. Now let us actually build the thing.',
+    '[excited] You\'ve got the shape of it. Now for the fun part, we build it.',
+    '[excited] That\'s the thinking done. Now let\'s actually build the thing.',
   ],
   phase_complete: [
-    '[excited] That part is done. Nice.',
-    '[excited] Done. That piece works now.',
-    '[excited] Good. One more piece in place.',
+    '[excited] That part\'s done. Nice work.',
+    '[excited] That\'s it, that piece works now.',
+    '[excited] Good, that\'s one more piece in place.',
   ],
   build_complete: [
-    '[excited] The whole flow is built. Let us see if it holds up.',
+    '[excited] The whole flow\'s built. Let\'s see if it holds up.',
   ],
 
   // ---- building -----------------------------------------------------------
   // The canvas and the phase label are both visible, so no line reads them out.
   build_start: [
-    '[calm] One node at a time. Each one does a single job, and passes its result on.',
+    '[calm] One node at a time. Each one does a single job, then hands it on.',
   ],
   // Spoken when a build phase opens. `BuildStage` had been playing this since the
   // mascot mapping existed, but there were no words for it, so Iris animated and
@@ -138,30 +145,39 @@ export const LINES = {
   // and always as a question, never a hint at which node it is.
   phase_intro: [
     '[calm] Start with what this part needs before it can do anything.',
-    '[calm] Ask what this piece hands on to the next one.',
+    '[calm] Ask yourself what this piece hands on to the next one.',
     '[calm] Same idea as before. What has to happen first here?',
   ],
   // `{node}` is the node just placed, so the line is about THAT node rather than
   // being a generic "now configure it".
   node_placed: [
     '[calm] Good. Now open {node} and tell it what to do.',
-    '[calm] {node} is on the board. Open it to set it up.',
+    '[calm] {node}\'s on the board. Open it up and set it up.',
   ],
   node_wrong: [
-    '[thoughtful] That one cannot do the job here. Let me ask you something.',
+    '[thoughtful] That one can\'t do the job here. Let me ask you something.',
   ],
 
   // ---- verifying ----------------------------------------------------------
   // `{node}` is the node just verified. Same reasoning as the answer lines: the
   // learner opened it and configured it, so naming it reveals nothing.
   verify_pass: [
-    '[warm] Yes, {node} is set up right.',
-    '[warm] Good, {node} is done.',
-    '[warm] {node} is correct now.',
+    '[warm] Yes, {node}\'s set up right.',
+    '[warm] Good, {node}\'s done.',
+    '[warm] {node}\'s right now.',
+  ],
+  // Parameters verified, and this node still has a Settings tab to get right. A
+  // separate moment from `verify_pass` because they are separate events: this one
+  // acknowledges and moves you on, and it deliberately does NOT celebrate, because
+  // the node is not finished. Saying the same sentence for both is what made setup
+  // feel like nothing was happening.
+  verify_params: [
+    '[calm] That\'s the parameters right. You\'ve got one tab left.',
+    '[calm] Good, those are right. One more tab and this one\'s done.',
   ],
   verify_fail: [
-    '[calm] {node} is not right yet. Check the field I marked.',
-    '[calm] Something in {node} is off. Look at what is in red.',
+    '[calm] {node} isn\'t right yet. Check the field I marked.',
+    '[calm] Something in {node}\'s off. Have a look at what\'s in red.',
   ],
 
   // ---- running ------------------------------------------------------------
@@ -173,9 +189,9 @@ export const LINES = {
   // is seeing where something lands, and narrating the destination in advance throws
   // that away. It would also hand over the Stress Testing answer on the case that
   // deliberately matches no rule.
-  run_case: ['[calm] Next one. Watch where it goes.'],
-  run_pass: ['[excited] Every case came out right. That flow works.', '[excited] All of them passed. Well built.'],
-  run_fail: ['[calm] Some did not come out right. That is worth knowing. Let us look.'],
+  run_case: ["[calm] Here's the next one. Watch where it goes."],
+  run_pass: ["[excited] Every case came out right. That flow works.", "[excited] All of them passed. That's well built."],
+  run_fail: ["[calm] Some didn't come out right. That's worth knowing. Let's look."],
 
   // ---- finishing ----------------------------------------------------------
   stress_start: ['[calm] Now, does it still make sense when things go wrong?'],
@@ -329,6 +345,7 @@ export const MOMENT_CLIP = {
   node_placed: 'idle',
   node_wrong: 'thinking',
   verify_pass: 'correct',
+  verify_params: 'nod-yes',
   verify_fail: 'shake-no',
   run_start: 'thinking',
   run_case: 'attentive',

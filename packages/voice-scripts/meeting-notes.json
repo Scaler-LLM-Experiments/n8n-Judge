@@ -1,467 +1,499 @@
 {
   "version": 1,
   "problem": "meeting-notes",
-  "renderedWith": "deepgram/aura-2-helena-en",
+  "renderedWith": "elevenlabs/7M69Y78mYqPLZS5ZZSTT/eleven_v3",
   "clips": {
     "answer-correct--save--google-docs-create-document--v0": {
-      "text": "Yes, Google Docs — Create Document is right.",
-      "file": "shared/answer-correct--e8b8e185.mp3"
+      "text": "[warm] Yes, Google Docs — Create Document's right.",
+      "file": "shared/answer-correct--96a7e6ba.mp3"
     },
     "answer-correct--save--google-docs-create-document--v1": {
-      "text": "Correct, Google Docs — Create Document is the one.",
-      "file": "shared/answer-correct--25e53f03.mp3"
+      "text": "[warm] That's it, Google Docs — Create Document is the one.",
+      "file": "shared/answer-correct--0198e165.mp3"
     },
     "answer-correct--save--google-docs-create-document--v2": {
-      "text": "That is it, Google Docs — Create Document.",
-      "file": "shared/answer-correct--60c5a86a.mp3"
+      "text": "[warm] Yes, it's Google Docs — Create Document.",
+      "file": "shared/answer-correct--904eb116.mp3"
     },
     "answer-correct--summarize--summarize-with-ai--v0": {
-      "text": "Yes, Summarize with AI is right.",
-      "file": "shared/answer-correct--d6c67b1b.mp3"
+      "text": "[warm] Yes, Summarize with AI's right.",
+      "file": "shared/answer-correct--3ab43e8f.mp3"
     },
     "answer-correct--summarize--summarize-with-ai--v1": {
-      "text": "Correct, Summarize with AI is the one.",
-      "file": "shared/answer-correct--1221b744.mp3"
+      "text": "[warm] That's it, Summarize with AI is the one.",
+      "file": "shared/answer-correct--cebabc77.mp3"
     },
     "answer-correct--summarize--summarize-with-ai--v2": {
-      "text": "That is it, Summarize with AI.",
-      "file": "shared/answer-correct--5388fadd.mp3"
+      "text": "[warm] Yes, it's Summarize with AI.",
+      "file": "shared/answer-correct--e177cfb4.mp3"
     },
     "answer-correct--trigger--webhook--v0": {
-      "text": "Yes, Webhook is right.",
-      "file": "shared/answer-correct--df689c0e.mp3"
+      "text": "[warm] Yes, Webhook's right.",
+      "file": "shared/answer-correct--61f7bc4f.mp3"
     },
     "answer-correct--trigger--webhook--v1": {
-      "text": "Correct, Webhook is the one.",
-      "file": "shared/answer-correct--cd34292e.mp3"
+      "text": "[warm] That's it, Webhook is the one.",
+      "file": "shared/answer-correct--173db65a.mp3"
     },
     "answer-correct--trigger--webhook--v2": {
-      "text": "That is it, Webhook.",
-      "file": "shared/answer-correct--c76fe140.mp3"
+      "text": "[warm] Yes, it's Webhook.",
+      "file": "shared/answer-correct--7b038b7b.mp3"
     },
     "answer-wrong--save--code--v0": {
-      "text": "Hmm. Do you really think Code belongs here?",
-      "file": "shared/answer-wrong--77e816e0.mp3"
+      "text": "[thoughtful] Hmm. Do you really think Code belongs here?",
+      "file": "shared/answer-wrong--4241685b.mp3"
     },
     "answer-wrong--save--code--v1": {
-      "text": "Are you sure about Code? Think about what it actually does.",
-      "file": "shared/answer-wrong--b42c43cb.mp3"
+      "text": "[thoughtful] Are you sure about Code? Think about what it actually does.",
+      "file": "shared/answer-wrong--370bdbd5.mp3"
     },
     "answer-wrong--save--code--v2": {
-      "text": "Have another look at Code. Would it really work at this point?",
-      "file": "shared/answer-wrong--2fe4c5f1.mp3"
+      "text": "[calm] Have another look at Code. Would it really work at this point?",
+      "file": "shared/answer-wrong--bb642493.mp3"
     },
     "answer-wrong--save--send-reply--v0": {
-      "text": "Hmm. Do you really think Send Reply belongs here?",
-      "file": "shared/answer-wrong--4343abc4.mp3"
+      "text": "[thoughtful] Hmm. Do you really think Send Reply belongs here?",
+      "file": "shared/answer-wrong--454e72e2.mp3"
     },
     "answer-wrong--save--send-reply--v1": {
-      "text": "Are you sure about Send Reply? Think about what it actually does.",
-      "file": "shared/answer-wrong--5fa644f9.mp3"
+      "text": "[thoughtful] Are you sure about Send Reply? Think about what it actually does.",
+      "file": "shared/answer-wrong--3fb01c46.mp3"
     },
     "answer-wrong--save--send-reply--v2": {
-      "text": "Have another look at Send Reply. Would it really work at this point?",
-      "file": "shared/answer-wrong--be0f8a61.mp3"
+      "text": "[calm] Have another look at Send Reply. Would it really work at this point?",
+      "file": "shared/answer-wrong--46b6bf10.mp3"
     },
     "answer-wrong--save--slack-send-message--v0": {
-      "text": "Hmm. Do you really think Slack — Send Message belongs here?",
-      "file": "shared/answer-wrong--011be1a7.mp3"
+      "text": "[thoughtful] Hmm. Do you really think Slack — Send Message belongs here?",
+      "file": "shared/answer-wrong--75e79a9a.mp3"
     },
     "answer-wrong--save--slack-send-message--v1": {
-      "text": "Are you sure about Slack — Send Message? Think about what it actually does.",
-      "file": "shared/answer-wrong--c8ae121b.mp3"
+      "text": "[thoughtful] Are you sure about Slack — Send Message? Think about what it actually does.",
+      "file": "shared/answer-wrong--636db9d4.mp3"
     },
     "answer-wrong--save--slack-send-message--v2": {
-      "text": "Have another look at Slack — Send Message. Would it really work at this point?",
-      "file": "shared/answer-wrong--ee6db40a.mp3"
+      "text": "[calm] Have another look at Slack — Send Message. Would it really work at this point?",
+      "file": "shared/answer-wrong--93fc381e.mp3"
     },
     "answer-wrong--summarize--classify-with-ai--v0": {
-      "text": "Hmm. Do you really think Classify with AI belongs here?",
-      "file": "shared/answer-wrong--c4427977.mp3"
+      "text": "[thoughtful] Hmm. Do you really think Classify with AI belongs here?",
+      "file": "shared/answer-wrong--ee6c816b.mp3"
     },
     "answer-wrong--summarize--classify-with-ai--v1": {
-      "text": "Are you sure about Classify with AI? Think about what it actually does.",
-      "file": "shared/answer-wrong--2e7ae814.mp3"
+      "text": "[thoughtful] Are you sure about Classify with AI? Think about what it actually does.",
+      "file": "shared/answer-wrong--4154b8cf.mp3"
     },
     "answer-wrong--summarize--classify-with-ai--v2": {
-      "text": "Have another look at Classify with AI. Would it really work at this point?",
-      "file": "shared/answer-wrong--47ccb27e.mp3"
+      "text": "[calm] Have another look at Classify with AI. Would it really work at this point?",
+      "file": "shared/answer-wrong--19feedd1.mp3"
     },
     "answer-wrong--summarize--code--v0": {
-      "text": "Hmm. Do you really think Code belongs here?",
-      "file": "shared/answer-wrong--77e816e0.mp3"
+      "text": "[thoughtful] Hmm. Do you really think Code belongs here?",
+      "file": "shared/answer-wrong--4241685b.mp3"
     },
     "answer-wrong--summarize--code--v1": {
-      "text": "Are you sure about Code? Think about what it actually does.",
-      "file": "shared/answer-wrong--b42c43cb.mp3"
+      "text": "[thoughtful] Are you sure about Code? Think about what it actually does.",
+      "file": "shared/answer-wrong--370bdbd5.mp3"
     },
     "answer-wrong--summarize--code--v2": {
-      "text": "Have another look at Code. Would it really work at this point?",
-      "file": "shared/answer-wrong--2fe4c5f1.mp3"
+      "text": "[calm] Have another look at Code. Would it really work at this point?",
+      "file": "shared/answer-wrong--bb642493.mp3"
     },
     "answer-wrong--summarize--switch--v0": {
-      "text": "Hmm. Do you really think Switch belongs here?",
-      "file": "shared/answer-wrong--79929866.mp3"
+      "text": "[thoughtful] Hmm. Do you really think Switch belongs here?",
+      "file": "shared/answer-wrong--983099e8.mp3"
     },
     "answer-wrong--summarize--switch--v1": {
-      "text": "Are you sure about Switch? Think about what it actually does.",
-      "file": "shared/answer-wrong--c4fa6f4b.mp3"
+      "text": "[thoughtful] Are you sure about Switch? Think about what it actually does.",
+      "file": "shared/answer-wrong--8b47f1cf.mp3"
     },
     "answer-wrong--summarize--switch--v2": {
-      "text": "Have another look at Switch. Would it really work at this point?",
-      "file": "shared/answer-wrong--d55d9126.mp3"
+      "text": "[calm] Have another look at Switch. Would it really work at this point?",
+      "file": "shared/answer-wrong--bf855411.mp3"
     },
     "answer-wrong--trigger--chat-trigger--v0": {
-      "text": "Hmm. Do you really think Chat Trigger belongs here?",
-      "file": "shared/answer-wrong--bd18e0aa.mp3"
+      "text": "[thoughtful] Hmm. Do you really think Chat Trigger belongs here?",
+      "file": "shared/answer-wrong--5daa7269.mp3"
     },
     "answer-wrong--trigger--chat-trigger--v1": {
-      "text": "Are you sure about Chat Trigger? Think about what it actually does.",
-      "file": "shared/answer-wrong--5dde5fff.mp3"
+      "text": "[thoughtful] Are you sure about Chat Trigger? Think about what it actually does.",
+      "file": "shared/answer-wrong--daa377a5.mp3"
     },
     "answer-wrong--trigger--chat-trigger--v2": {
-      "text": "Have another look at Chat Trigger. Would it really work at this point?",
-      "file": "shared/answer-wrong--01bf535f.mp3"
+      "text": "[calm] Have another look at Chat Trigger. Would it really work at this point?",
+      "file": "shared/answer-wrong--11d74ede.mp3"
     },
     "answer-wrong--trigger--schedule--v0": {
-      "text": "Hmm. Do you really think Schedule belongs here?",
-      "file": "shared/answer-wrong--c81ecf3c.mp3"
+      "text": "[thoughtful] Hmm. Do you really think Schedule belongs here?",
+      "file": "shared/answer-wrong--8d45155b.mp3"
     },
     "answer-wrong--trigger--schedule--v1": {
-      "text": "Are you sure about Schedule? Think about what it actually does.",
-      "file": "shared/answer-wrong--fc4fc743.mp3"
+      "text": "[thoughtful] Are you sure about Schedule? Think about what it actually does.",
+      "file": "shared/answer-wrong--85a63d8b.mp3"
     },
     "answer-wrong--trigger--schedule--v2": {
-      "text": "Have another look at Schedule. Would it really work at this point?",
-      "file": "shared/answer-wrong--d41705e2.mp3"
+      "text": "[calm] Have another look at Schedule. Would it really work at this point?",
+      "file": "shared/answer-wrong--8c4a65bf.mp3"
     },
     "answer-wrong--trigger--trigger-manually--v0": {
-      "text": "Hmm. Do you really think Trigger manually belongs here?",
-      "file": "shared/answer-wrong--4320454d.mp3"
+      "text": "[thoughtful] Hmm. Do you really think Trigger manually belongs here?",
+      "file": "shared/answer-wrong--0d0fa4b2.mp3"
     },
     "answer-wrong--trigger--trigger-manually--v1": {
-      "text": "Are you sure about Trigger manually? Think about what it actually does.",
-      "file": "shared/answer-wrong--a6b21c9e.mp3"
+      "text": "[thoughtful] Are you sure about Trigger manually? Think about what it actually does.",
+      "file": "shared/answer-wrong--0da3868b.mp3"
     },
     "answer-wrong--trigger--trigger-manually--v2": {
-      "text": "Have another look at Trigger manually. Would it really work at this point?",
-      "file": "shared/answer-wrong--7dc64406.mp3"
+      "text": "[calm] Have another look at Trigger manually. Would it really work at this point?",
+      "file": "shared/answer-wrong--fc504626.mp3"
     },
     "answer-wrong-again--save--v0": {
-      "text": "Still not it. Go back to the problem and ask what has to happen first.",
-      "file": "shared/answer-wrong-again--1cc3945d.mp3"
+      "text": "[thoughtful] Still not it. Go back to the problem and ask what has to happen first.",
+      "file": "shared/answer-wrong-again--10ab0086.mp3"
     },
     "answer-wrong-again--save--v1": {
-      "text": "Let us slow down. What does this step actually need before it can run?",
-      "file": "shared/answer-wrong-again--ee91deb9.mp3"
+      "text": "[calm] Let's slow down. What does this step actually need before it can run?",
+      "file": "shared/answer-wrong-again--69bde770.mp3"
     },
     "answer-wrong-again--save--v2": {
-      "text": "Try reading the options as jobs. Which job does this flow need doing here?",
-      "file": "shared/answer-wrong-again--e8e6f50b.mp3"
+      "text": "[thoughtful] Try reading the options as jobs. Which job does this flow need done here?",
+      "file": "shared/answer-wrong-again--fa253adc.mp3"
     },
     "answer-wrong-again--summarize--v0": {
-      "text": "Still not it. Go back to the problem and ask what has to happen first.",
-      "file": "shared/answer-wrong-again--1cc3945d.mp3"
+      "text": "[thoughtful] Still not it. Go back to the problem and ask what has to happen first.",
+      "file": "shared/answer-wrong-again--10ab0086.mp3"
     },
     "answer-wrong-again--summarize--v1": {
-      "text": "Let us slow down. What does this step actually need before it can run?",
-      "file": "shared/answer-wrong-again--ee91deb9.mp3"
+      "text": "[calm] Let's slow down. What does this step actually need before it can run?",
+      "file": "shared/answer-wrong-again--69bde770.mp3"
     },
     "answer-wrong-again--summarize--v2": {
-      "text": "Try reading the options as jobs. Which job does this flow need doing here?",
-      "file": "shared/answer-wrong-again--e8e6f50b.mp3"
+      "text": "[thoughtful] Try reading the options as jobs. Which job does this flow need done here?",
+      "file": "shared/answer-wrong-again--fa253adc.mp3"
     },
     "answer-wrong-again--trigger--v0": {
-      "text": "Still not it. Go back to the problem and ask what has to happen first.",
-      "file": "shared/answer-wrong-again--1cc3945d.mp3"
+      "text": "[thoughtful] Still not it. Go back to the problem and ask what has to happen first.",
+      "file": "shared/answer-wrong-again--10ab0086.mp3"
     },
     "answer-wrong-again--trigger--v1": {
-      "text": "Let us slow down. What does this step actually need before it can run?",
-      "file": "shared/answer-wrong-again--ee91deb9.mp3"
+      "text": "[calm] Let's slow down. What does this step actually need before it can run?",
+      "file": "shared/answer-wrong-again--69bde770.mp3"
     },
     "answer-wrong-again--trigger--v2": {
-      "text": "Try reading the options as jobs. Which job does this flow need doing here?",
-      "file": "shared/answer-wrong-again--e8e6f50b.mp3"
+      "text": "[thoughtful] Try reading the options as jobs. Which job does this flow need done here?",
+      "file": "shared/answer-wrong-again--fa253adc.mp3"
     },
     "build-complete--summarize-save--v0": {
-      "text": "The whole flow is built. Let us see if it holds up.",
-      "file": "shared/build-complete--50778975.mp3"
+      "text": "[excited] The whole flow's built. Let's see if it holds up.",
+      "file": "shared/build-complete--8ac1e265.mp3"
     },
     "build-complete--trigger--v0": {
-      "text": "The whole flow is built. Let us see if it holds up.",
-      "file": "shared/build-complete--50778975.mp3"
+      "text": "[excited] The whole flow's built. Let's see if it holds up.",
+      "file": "shared/build-complete--8ac1e265.mp3"
     },
     "build-complete--v0": {
-      "text": "The whole flow is built. Let us see if it holds up.",
-      "file": "shared/build-complete--50778975.mp3"
+      "text": "[excited] The whole flow's built. Let's see if it holds up.",
+      "file": "shared/build-complete--8ac1e265.mp3"
     },
     "build-start--v0": {
-      "text": "One node at a time. Each one does a single job, and passes its result on.",
-      "file": "shared/build-start--a0374718.mp3"
+      "text": "[calm] One node at a time. Each one does a single job, then hands it on.",
+      "file": "shared/build-start--e1a471b3.mp3"
     },
     "idle-nudge--v0": {
-      "text": "Take your time. If you are not sure what goes next, ask me.",
-      "file": "shared/idle-nudge--3d8cc9ee.mp3"
+      "text": "[calm] Take your time. If you're not sure what comes next, just ask me.",
+      "file": "shared/idle-nudge--bfee6325.mp3"
     },
     "idle-nudge--v1": {
-      "text": "Still thinking? Tell me what you are stuck on and I will help.",
-      "file": "shared/idle-nudge--5af390b1.mp3"
+      "text": "[calm] Still thinking? Tell me what you're stuck on and I'll help.",
+      "file": "shared/idle-nudge--f2e8403d.mp3"
     },
     "idle-nudge--v2": {
-      "text": "No rush. If it helps, look at what the last node hands over.",
-      "file": "shared/idle-nudge--ac57a36e.mp3"
+      "text": "[calm] No rush. If it helps, look at what the last node hands over.",
+      "file": "shared/idle-nudge--24e98515.mp3"
     },
     "node-placed--chat-gemini--gemini-chat-model--v0": {
-      "text": "Good. Now open Gemini Chat Model and tell it what to do.",
-      "file": "shared/node-placed--6a645ef3.mp3"
+      "text": "[calm] Good. Now open Gemini Chat Model and tell it what to do.",
+      "file": "shared/node-placed--cbb85b65.mp3"
     },
     "node-placed--chat-gemini--gemini-chat-model--v1": {
-      "text": "Gemini Chat Model is on the board. Open it to set it up.",
-      "file": "shared/node-placed--87351073.mp3"
+      "text": "[calm] Gemini Chat Model's on the board. Open it up and set it up.",
+      "file": "shared/node-placed--257f337a.mp3"
     },
     "node-placed--google-docs--google-docs--v0": {
-      "text": "Good. Now open Google Docs and tell it what to do.",
-      "file": "shared/node-placed--8772844b.mp3"
+      "text": "[calm] Good. Now open Google Docs and tell it what to do.",
+      "file": "shared/node-placed--aeb35265.mp3"
     },
     "node-placed--google-docs--google-docs--v1": {
-      "text": "Google Docs is on the board. Open it to set it up.",
-      "file": "shared/node-placed--d91c6b09.mp3"
+      "text": "[calm] Google Docs's on the board. Open it up and set it up.",
+      "file": "shared/node-placed--a13aeed0.mp3"
     },
     "node-placed--summarize--summarize-with-ai--v0": {
-      "text": "Good. Now open Summarize with AI and tell it what to do.",
-      "file": "shared/node-placed--d85b48d9.mp3"
+      "text": "[calm] Good. Now open Summarize with AI and tell it what to do.",
+      "file": "shared/node-placed--2e69feba.mp3"
     },
     "node-placed--summarize--summarize-with-ai--v1": {
-      "text": "Summarize with AI is on the board. Open it to set it up.",
-      "file": "shared/node-placed--cd300c88.mp3"
+      "text": "[calm] Summarize with AI's on the board. Open it up and set it up.",
+      "file": "shared/node-placed--6cf1dba2.mp3"
     },
     "node-placed--webhook--on-webhook-call--v0": {
-      "text": "Good. Now open On webhook call and tell it what to do.",
-      "file": "shared/node-placed--b9078cc6.mp3"
+      "text": "[calm] Good. Now open On webhook call and tell it what to do.",
+      "file": "shared/node-placed--3afa0bb0.mp3"
     },
     "node-placed--webhook--on-webhook-call--v1": {
-      "text": "On webhook call is on the board. Open it to set it up.",
-      "file": "shared/node-placed--5734d3c6.mp3"
+      "text": "[calm] On webhook call's on the board. Open it up and set it up.",
+      "file": "shared/node-placed--555bcb05.mp3"
     },
     "node-wrong--v0": {
-      "text": "That one cannot do the job here. Let me ask you something.",
-      "file": "shared/node-wrong--2ddf338c.mp3"
+      "text": "[thoughtful] That one can't do the job here. Let me ask you something.",
+      "file": "shared/node-wrong--3291483d.mp3"
     },
     "phase-complete--summarize-save--v0": {
-      "text": "That part is done. Nice.",
-      "file": "shared/phase-complete--1924c27d.mp3"
+      "text": "[excited] That part's done. Nice work.",
+      "file": "shared/phase-complete--fd870972.mp3"
     },
     "phase-complete--summarize-save--v1": {
-      "text": "Done. That piece works now.",
-      "file": "shared/phase-complete--68e8951c.mp3"
+      "text": "[excited] That's it, that piece works now.",
+      "file": "shared/phase-complete--f7dc7557.mp3"
     },
     "phase-complete--summarize-save--v2": {
-      "text": "Good. One more piece in place.",
-      "file": "shared/phase-complete--571dd154.mp3"
+      "text": "[excited] Good, that's one more piece in place.",
+      "file": "shared/phase-complete--3e7cb79e.mp3"
     },
     "phase-complete--trigger--v0": {
-      "text": "That part is done. Nice.",
-      "file": "shared/phase-complete--1924c27d.mp3"
+      "text": "[excited] That part's done. Nice work.",
+      "file": "shared/phase-complete--fd870972.mp3"
     },
     "phase-complete--trigger--v1": {
-      "text": "Done. That piece works now.",
-      "file": "shared/phase-complete--68e8951c.mp3"
+      "text": "[excited] That's it, that piece works now.",
+      "file": "shared/phase-complete--f7dc7557.mp3"
     },
     "phase-complete--trigger--v2": {
-      "text": "Good. One more piece in place.",
-      "file": "shared/phase-complete--571dd154.mp3"
+      "text": "[excited] Good, that's one more piece in place.",
+      "file": "shared/phase-complete--3e7cb79e.mp3"
     },
     "phase-complete--v0": {
-      "text": "That part is done. Nice.",
-      "file": "shared/phase-complete--1924c27d.mp3"
+      "text": "[excited] That part's done. Nice work.",
+      "file": "shared/phase-complete--fd870972.mp3"
     },
     "phase-complete--v1": {
-      "text": "Done. That piece works now.",
-      "file": "shared/phase-complete--68e8951c.mp3"
+      "text": "[excited] That's it, that piece works now.",
+      "file": "shared/phase-complete--f7dc7557.mp3"
     },
     "phase-complete--v2": {
-      "text": "Good. One more piece in place.",
-      "file": "shared/phase-complete--571dd154.mp3"
+      "text": "[excited] Good, that's one more piece in place.",
+      "file": "shared/phase-complete--3e7cb79e.mp3"
     },
     "phase-intro--summarize-save--v0": {
-      "text": "Start with what this part needs before it can do anything.",
-      "file": "shared/phase-intro--a6174ab7.mp3"
+      "text": "[calm] Start with what this part needs before it can do anything.",
+      "file": "shared/phase-intro--abc1c89a.mp3"
     },
     "phase-intro--summarize-save--v1": {
-      "text": "Ask what this piece hands on to the next one.",
-      "file": "shared/phase-intro--637494ad.mp3"
+      "text": "[calm] Ask yourself what this piece hands on to the next one.",
+      "file": "shared/phase-intro--d8eb63b8.mp3"
     },
     "phase-intro--summarize-save--v2": {
-      "text": "Same idea as before. What has to happen first here?",
-      "file": "shared/phase-intro--72135c79.mp3"
+      "text": "[calm] Same idea as before. What has to happen first here?",
+      "file": "shared/phase-intro--36a5831c.mp3"
     },
     "phase-intro--trigger--v0": {
-      "text": "Start with what this part needs before it can do anything.",
-      "file": "shared/phase-intro--a6174ab7.mp3"
+      "text": "[calm] Start with what this part needs before it can do anything.",
+      "file": "shared/phase-intro--abc1c89a.mp3"
     },
     "phase-intro--trigger--v1": {
-      "text": "Ask what this piece hands on to the next one.",
-      "file": "shared/phase-intro--637494ad.mp3"
+      "text": "[calm] Ask yourself what this piece hands on to the next one.",
+      "file": "shared/phase-intro--d8eb63b8.mp3"
     },
     "phase-intro--trigger--v2": {
-      "text": "Same idea as before. What has to happen first here?",
-      "file": "shared/phase-intro--72135c79.mp3"
+      "text": "[calm] Same idea as before. What has to happen first here?",
+      "file": "shared/phase-intro--36a5831c.mp3"
     },
     "phase-intro--v0": {
-      "text": "Start with what this part needs before it can do anything.",
-      "file": "shared/phase-intro--a6174ab7.mp3"
+      "text": "[calm] Start with what this part needs before it can do anything.",
+      "file": "shared/phase-intro--abc1c89a.mp3"
     },
     "phase-intro--v1": {
-      "text": "Ask what this piece hands on to the next one.",
-      "file": "shared/phase-intro--637494ad.mp3"
+      "text": "[calm] Ask yourself what this piece hands on to the next one.",
+      "file": "shared/phase-intro--d8eb63b8.mp3"
     },
     "phase-intro--v2": {
-      "text": "Same idea as before. What has to happen first here?",
-      "file": "shared/phase-intro--72135c79.mp3"
+      "text": "[calm] Same idea as before. What has to happen first here?",
+      "file": "shared/phase-intro--36a5831c.mp3"
     },
     "problem-intro--v0": {
-      "text": "Read it once for the shape, not the detail. We will pull it apart together.",
-      "file": "shared/problem-intro--18d41e69.mp3"
+      "text": "[calm] Read it once for the shape, not the detail. We'll pull it apart together.",
+      "file": "shared/problem-intro--2ed3ffcd.mp3"
     },
     "report-ready--v0": {
-      "text": "Here is what stood out, and what I would practise next.",
-      "file": "shared/report-ready--321af75c.mp3"
+      "text": "[calm] Here is what stood out, and what I would practise next.",
+      "file": "shared/report-ready--0d338bc2.mp3"
     },
     "run-case--billing--v0": {
-      "text": "Next one. Watch where it goes.",
-      "file": "shared/run-case--52ba80f3.mp3"
+      "text": "[calm] Here's the next one. Watch where it goes.",
+      "file": "shared/run-case--6bbfc022.mp3"
     },
     "run-case--onboarding--v0": {
-      "text": "Next one. Watch where it goes.",
-      "file": "shared/run-case--52ba80f3.mp3"
+      "text": "[calm] Here's the next one. Watch where it goes.",
+      "file": "shared/run-case--6bbfc022.mp3"
     },
     "run-case--renewal--v0": {
-      "text": "Next one. Watch where it goes.",
-      "file": "shared/run-case--52ba80f3.mp3"
+      "text": "[calm] Here's the next one. Watch where it goes.",
+      "file": "shared/run-case--6bbfc022.mp3"
     },
     "run-case--v0": {
-      "text": "Next one. Watch where it goes.",
-      "file": "shared/run-case--52ba80f3.mp3"
+      "text": "[calm] Here's the next one. Watch where it goes.",
+      "file": "shared/run-case--6bbfc022.mp3"
     },
     "run-fail--v0": {
-      "text": "Some did not come out right. That is worth knowing. Let us look.",
-      "file": "shared/run-fail--5faf3bb0.mp3"
+      "text": "[calm] Some didn't come out right. That's worth knowing. Let's look.",
+      "file": "shared/run-fail--3622edfc.mp3"
     },
     "run-pass--v0": {
-      "text": "Every case came out right. That flow works.",
-      "file": "shared/run-pass--52902725.mp3"
+      "text": "[excited] Every case came out right. That flow works.",
+      "file": "shared/run-pass--8844014c.mp3"
     },
     "run-pass--v1": {
-      "text": "All of them passed. Well built.",
-      "file": "shared/run-pass--b8eb5049.mp3"
+      "text": "[excited] All of them passed. That's well built.",
+      "file": "shared/run-pass--8428ce8c.mp3"
     },
     "run-start--v0": {
-      "text": "Watch what happens to each one as it goes through.",
-      "file": "shared/run-start--06fb793a.mp3"
+      "text": "[calm] Watch what happens to each one as it goes through.",
+      "file": "shared/run-start--b3bd7fb4.mp3"
     },
     "stress-start--v0": {
-      "text": "Now, does it still make sense when things go wrong?",
-      "file": "shared/stress-start--7828c7e1.mp3"
+      "text": "[calm] Now, does it still make sense when things go wrong?",
+      "file": "shared/stress-start--77b1d6f5.mp3"
     },
     "understand-done--v0": {
-      "text": "Yes. You have got the shape of it. Now the fun part, we build it.",
-      "file": "shared/understand-done--fbe759d4.mp3"
+      "text": "[excited] You've got the shape of it. Now for the fun part, we build it.",
+      "file": "shared/understand-done--502f6671.mp3"
     },
     "understand-done--v1": {
-      "text": "That is the thinking done. Now let us actually build the thing.",
-      "file": "shared/understand-done--15705d57.mp3"
+      "text": "[excited] That's the thinking done. Now let's actually build the thing.",
+      "file": "shared/understand-done--d106f6b9.mp3"
     },
     "understand-start--v0": {
-      "text": "A few questions first. I want to know how you are thinking about it.",
-      "file": "shared/understand-start--560ba8b2.mp3"
+      "text": "[calm] A few questions first. I want to see how you're thinking about it.",
+      "file": "shared/understand-start--e73c1b2a.mp3"
     },
     "verify-fail--chat-gemini--gemini-chat-model--v0": {
-      "text": "Gemini Chat Model is not right yet. Check the field I marked.",
-      "file": "shared/verify-fail--31697aba.mp3"
+      "text": "[calm] Gemini Chat Model isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--7cfc27fb.mp3"
     },
     "verify-fail--chat-gemini--gemini-chat-model--v1": {
-      "text": "Something in Gemini Chat Model is off. Look at what is in red.",
-      "file": "shared/verify-fail--9572f615.mp3"
+      "text": "[calm] Something in Gemini Chat Model's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--9a8ac40b.mp3"
     },
     "verify-fail--google-docs--google-docs--v0": {
-      "text": "Google Docs is not right yet. Check the field I marked.",
-      "file": "shared/verify-fail--90788252.mp3"
+      "text": "[calm] Google Docs isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--7c0932b5.mp3"
     },
     "verify-fail--google-docs--google-docs--v1": {
-      "text": "Something in Google Docs is off. Look at what is in red.",
-      "file": "shared/verify-fail--f7e14cf6.mp3"
+      "text": "[calm] Something in Google Docs's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--c2adfda0.mp3"
     },
     "verify-fail--summarize--summarize-with-ai--v0": {
-      "text": "Summarize with AI is not right yet. Check the field I marked.",
-      "file": "shared/verify-fail--6070e74e.mp3"
+      "text": "[calm] Summarize with AI isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--1f548969.mp3"
     },
     "verify-fail--summarize--summarize-with-ai--v1": {
-      "text": "Something in Summarize with AI is off. Look at what is in red.",
-      "file": "shared/verify-fail--e31e9d52.mp3"
+      "text": "[calm] Something in Summarize with AI's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--e54f19e6.mp3"
     },
     "verify-fail--webhook--on-webhook-call--v0": {
-      "text": "On webhook call is not right yet. Check the field I marked.",
-      "file": "shared/verify-fail--c18cc523.mp3"
+      "text": "[calm] On webhook call isn't right yet. Check the field I marked.",
+      "file": "shared/verify-fail--ce806d44.mp3"
     },
     "verify-fail--webhook--on-webhook-call--v1": {
-      "text": "Something in On webhook call is off. Look at what is in red.",
-      "file": "shared/verify-fail--b74406d4.mp3"
+      "text": "[calm] Something in On webhook call's off. Have a look at what's in red.",
+      "file": "shared/verify-fail--bdb12a6b.mp3"
+    },
+    "verify-params--chat-gemini--v0": {
+      "text": "[calm] That's the parameters right. You've got one tab left.",
+      "file": "shared/verify-params--b5910941.mp3"
+    },
+    "verify-params--chat-gemini--v1": {
+      "text": "[calm] Good, those are right. One more tab and this one's done.",
+      "file": "shared/verify-params--87b5af0c.mp3"
+    },
+    "verify-params--google-docs--v0": {
+      "text": "[calm] That's the parameters right. You've got one tab left.",
+      "file": "shared/verify-params--b5910941.mp3"
+    },
+    "verify-params--google-docs--v1": {
+      "text": "[calm] Good, those are right. One more tab and this one's done.",
+      "file": "shared/verify-params--87b5af0c.mp3"
+    },
+    "verify-params--summarize--v0": {
+      "text": "[calm] That's the parameters right. You've got one tab left.",
+      "file": "shared/verify-params--b5910941.mp3"
+    },
+    "verify-params--summarize--v1": {
+      "text": "[calm] Good, those are right. One more tab and this one's done.",
+      "file": "shared/verify-params--87b5af0c.mp3"
+    },
+    "verify-params--webhook--v0": {
+      "text": "[calm] That's the parameters right. You've got one tab left.",
+      "file": "shared/verify-params--b5910941.mp3"
+    },
+    "verify-params--webhook--v1": {
+      "text": "[calm] Good, those are right. One more tab and this one's done.",
+      "file": "shared/verify-params--87b5af0c.mp3"
     },
     "verify-pass--chat-gemini--gemini-chat-model--v0": {
-      "text": "Yes, Gemini Chat Model is set up right.",
-      "file": "shared/verify-pass--6f0219ce.mp3"
+      "text": "[warm] Yes, Gemini Chat Model's set up right.",
+      "file": "shared/verify-pass--5de55dbf.mp3"
     },
     "verify-pass--chat-gemini--gemini-chat-model--v1": {
-      "text": "Good, Gemini Chat Model is done.",
-      "file": "shared/verify-pass--a75550b9.mp3"
+      "text": "[warm] Good, Gemini Chat Model's done.",
+      "file": "shared/verify-pass--e8c55eaf.mp3"
     },
     "verify-pass--chat-gemini--gemini-chat-model--v2": {
-      "text": "Gemini Chat Model is correct now.",
-      "file": "shared/verify-pass--cd34964a.mp3"
+      "text": "[warm] Gemini Chat Model's right now.",
+      "file": "shared/verify-pass--71cdc58d.mp3"
     },
     "verify-pass--google-docs--google-docs--v0": {
-      "text": "Yes, Google Docs is set up right.",
-      "file": "shared/verify-pass--f2912411.mp3"
+      "text": "[warm] Yes, Google Docs's set up right.",
+      "file": "shared/verify-pass--0ae3dda5.mp3"
     },
     "verify-pass--google-docs--google-docs--v1": {
-      "text": "Good, Google Docs is done.",
-      "file": "shared/verify-pass--9bde58f1.mp3"
+      "text": "[warm] Good, Google Docs's done.",
+      "file": "shared/verify-pass--6fb34940.mp3"
     },
     "verify-pass--google-docs--google-docs--v2": {
-      "text": "Google Docs is correct now.",
-      "file": "shared/verify-pass--9179037b.mp3"
+      "text": "[warm] Google Docs's right now.",
+      "file": "shared/verify-pass--aeefc7fe.mp3"
     },
     "verify-pass--summarize--summarize-with-ai--v0": {
-      "text": "Yes, Summarize with AI is set up right.",
-      "file": "shared/verify-pass--da337714.mp3"
+      "text": "[warm] Yes, Summarize with AI's set up right.",
+      "file": "shared/verify-pass--d04e8a3e.mp3"
     },
     "verify-pass--summarize--summarize-with-ai--v1": {
-      "text": "Good, Summarize with AI is done.",
-      "file": "shared/verify-pass--a171eeff.mp3"
+      "text": "[warm] Good, Summarize with AI's done.",
+      "file": "shared/verify-pass--0d9cd094.mp3"
     },
     "verify-pass--summarize--summarize-with-ai--v2": {
-      "text": "Summarize with AI is correct now.",
-      "file": "shared/verify-pass--2773ebdc.mp3"
+      "text": "[warm] Summarize with AI's right now.",
+      "file": "shared/verify-pass--cd43f947.mp3"
     },
     "verify-pass--webhook--on-webhook-call--v0": {
-      "text": "Yes, On webhook call is set up right.",
-      "file": "shared/verify-pass--fd41c5f9.mp3"
+      "text": "[warm] Yes, On webhook call's set up right.",
+      "file": "shared/verify-pass--f7392a04.mp3"
     },
     "verify-pass--webhook--on-webhook-call--v1": {
-      "text": "Good, On webhook call is done.",
-      "file": "shared/verify-pass--e598143c.mp3"
+      "text": "[warm] Good, On webhook call's done.",
+      "file": "shared/verify-pass--62fa8a1c.mp3"
     },
     "verify-pass--webhook--on-webhook-call--v2": {
-      "text": "On webhook call is correct now.",
-      "file": "shared/verify-pass--d28fdc67.mp3"
+      "text": "[warm] On webhook call's right now.",
+      "file": "shared/verify-pass--faeebf2a.mp3"
     },
     "welcome--v0": {
-      "text": "I will stay with you the whole way. If something is unclear, ask me.",
-      "file": "shared/welcome--440164db.mp3"
+      "text": "[warm] I'll be with you the whole way. If anything's unclear, just ask me.",
+      "file": "shared/welcome--8fc7aa61.mp3"
     },
     "welcome--v1": {
-      "text": "I am here the whole time. Ask me whenever you get stuck.",
-      "file": "shared/welcome--43d5fcb2.mp3"
+      "text": "[warm] I'm here the whole time. Ask me whenever you get stuck.",
+      "file": "shared/welcome--5a573d3a.mp3"
     }
   }
 }

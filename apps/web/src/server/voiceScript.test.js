@@ -5,7 +5,8 @@ import { buildScript } from './voiceScript.js';
 import { clipId } from '../lib/voicePath.js';
 import { enumerateSpeakable } from '../lib/voiceCatalogue.js';
 
-const VOICE = { model: 'aura-2-test-en' };
+const VOICE = { vendor: 'elevenlabs', voiceId: 'v-test', model: 'eleven_v3' };
+const DEEPGRAM = { vendor: 'deepgram', voiceId: null, model: 'aura-2-test-en' };
 const build = (slug) => buildScript(problems[slug], NODE_CATALOG, VOICE);
 
 describe('buildScript', () => {
@@ -19,23 +20,39 @@ describe('buildScript', () => {
         for (const variant of item.variants) {
           const id = clipId(item.moment, item.key, item.vars, variant.index);
           expect(table.clips[id], `${slug} is missing ${id}`).toBeTruthy();
-          expect(table.clips[id].text).toBe(variant.caption);
+          expect(table.clips[id].text).toBe(variant.spoken);
         }
       }
     }
   });
 
   it('records what the fingerprints were computed against', () => {
-    expect(build('email-triage').renderedWith).toBe('deepgram/aura-2-test-en');
+    expect(build('email-triage').renderedWith).toBe('elevenlabs/v-test/eleven_v3');
+    expect(buildScript(problems['email-triage'], NODE_CATALOG, DEEPGRAM).renderedWith).toBe(
+      'deepgram/aura-2-test-en'
+    );
   });
 
-  it('sends the sentence WITHOUT the authoring tags', () => {
-    // `[warm]` and friends were ElevenLabs v3 audio tags. Deepgram has no such
-    // concept and would read them aloud, so the table stores the tag-free line —
-    // which is also exactly the caption on screen.
-    for (const clip of Object.values(build('email-triage').clips)) {
-      expect(clip.text, clip.text).not.toMatch(/\[[^\]]*\]/);
-    }
+  it('sends the delivery tags to ElevenLabs and strips them for Deepgram', () => {
+    // The `[warm]`/`[calm]` markers are ElevenLabs v3 audio tags. On v3 they ARE the
+    // emotion control and must reach the vendor; Deepgram has no such concept and
+    // would read them out loud, so for that vendor the tag-free caption is sent.
+    // Getting this backwards is silent in both directions — either flat delivery, or
+    // Iris literally saying "bracket warm".
+    const eleven = Object.values(build('email-triage').clips);
+    expect(eleven.some((c) => /\[[a-z]+\]/.test(c.text)), 'v3 keeps its tags').toBe(true);
+
+    const deepgram = Object.values(buildScript(problems['email-triage'], NODE_CATALOG, DEEPGRAM).clips);
+    for (const clip of deepgram) expect(clip.text, clip.text).not.toMatch(/\[[^\]]*\]/);
+  });
+
+  it('gives the same sentence different files on different vendors', () => {
+    // So both libraries can sit in one bucket and switching back is config, not a
+    // migration.
+    const a = build('email-triage').clips;
+    const b = buildScript(problems['email-triage'], NODE_CATALOG, DEEPGRAM).clips;
+    const id = Object.keys(a)[0];
+    expect(a[id].file).not.toBe(b[id].file);
   });
 });
 
@@ -82,9 +99,9 @@ describe('across the whole catalogue', () => {
   });
 
   it('gives every clip a new file when the voice changes', () => {
-    // A Deepgram Aura model IS the voice, so switching it makes every stored clip
-    // wrong in the same way a rewrite does. Re-rendering everything is correct.
-    const other = buildScript(problems['email-triage'], NODE_CATALOG, { model: 'aura-2-other-en' });
+    // The voice is part of the audio's identity, so switching it makes every stored
+    // clip wrong in the same way a rewrite does. Re-rendering everything is correct.
+    const other = buildScript(problems['email-triage'], NODE_CATALOG, { ...VOICE, voiceId: 'v-other' });
     const id = clipId('welcome', null, {}, 0);
     expect(other.clips[id].file).not.toBe(build('email-triage').clips[id].file);
   });

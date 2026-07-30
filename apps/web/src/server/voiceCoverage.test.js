@@ -72,7 +72,7 @@ function playSites(problem) {
   }
   for (const type of types) {
     const node = labelForNodeType(problem, type, NODE_CATALOG);
-    for (const moment of ['node_placed', 'verify_pass', 'verify_fail']) add(moment, { key: type, node });
+    for (const moment of ['node_placed', 'verify_params', 'verify_pass', 'verify_fail']) add(moment, { key: type, node });
   }
 
   // The Run narrates each test case as it enters — BuildStage plays this keyed by

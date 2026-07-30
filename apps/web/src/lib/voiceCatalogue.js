@@ -39,7 +39,7 @@ const ANSWER_MOMENTS = {
   answer_wrong_again: 'wrong',
 };
 /** Moments whose `{node}` is a node in the problem. */
-const NODE_MOMENTS = ['node_placed', 'verify_pass', 'verify_fail'];
+const NODE_MOMENTS = ['node_placed', 'verify_params', 'verify_pass', 'verify_fail'];
 
 /** Node types a problem actually uses, from its build phases. */
 /** @param {Record<string, any>|null} problem */

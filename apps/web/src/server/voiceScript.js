@@ -30,16 +30,20 @@ export const SCRIPT_VERSION = 1;
 /**
  * The identity of a rendered clip: everything that changes the audio.
  *
- * The model is folded in, not just the text, because a Deepgram Aura model IS the
- * voice (`aura-2-helena-en` names the speaker, not a quality tier). Switching it
- * makes every existing clip wrong in exactly the way a rewrite does — and that is
- * the one case where re-rendering the whole library IS correct.
+ * Vendor, voice and model are all folded in, not just the text. Any of them changing
+ * makes every existing clip wrong in exactly the way a rewrite does, and this is the
+ * one case where re-rendering the whole library IS the correct behaviour. It also
+ * means two vendors' libraries can sit in the same bucket without colliding, so
+ * switching back is a config change rather than a migration.
  *
  * Eight hex characters. Short enough to keep the file name readable, wide enough
  * that an accidental clash across a few hundred clips is not a real concern.
  */
-export function fingerprint(text, model) {
-  return createHash('sha256').update(`${model}\n${text}`).digest('hex').slice(0, 8);
+export function fingerprint(text, { vendor, voiceId, model }) {
+  return createHash('sha256')
+    .update(`${vendor}\n${voiceId ?? ''}\n${model}\n${text}`)
+    .digest('hex')
+    .slice(0, 8);
 }
 
 /**
@@ -47,23 +51,28 @@ export function fingerprint(text, model) {
  *
  * @param problem  the problem object (needs `id`, and whatever `enumerateSpeakable` reads)
  * @param catalog  NODE_CATALOG, for node labels
- * @param voice    { model } the Deepgram model the clips will be rendered with
+ * @param voice    { vendor, voiceId, model } what the clips will be rendered with
  */
-export function buildScript(problem, catalog, { model }) {
+export function buildScript(problem, catalog, voice) {
   const clips = {};
 
   for (const item of enumerateSpeakable(problem, catalog)) {
     for (const variant of item.variants) {
       const id = clipId(item.moment, item.key, item.vars, variant.index);
 
-      // `caption`, not `spoken` — the tag-free sentence.
+      // Whether the `[warm]`/`[calm]` delivery tags reach the vendor depends entirely
+      // on the vendor, so the phrase book keeps them and this decides.
       //
-      // The phrase book annotates delivery with `[warm]`, `[calm]` and friends. Those
-      // were ElevenLabs v3 audio tags; Deepgram has no equivalent and would simply
-      // READ THEM ALOUD. So what goes to the vendor is the sentence a learner reads,
-      // which has the pleasant side effect that the audio and the on-screen caption
-      // are now provably the same words.
-      const text = variant.caption;
+      //   ElevenLabs v3 — they are ITS OWN audio tags and they shape delivery. Send
+      //   them. This is the whole reason for using v3: emotion comes from the tag
+      //   rather than from punctuation tricks.
+      //
+      //   Deepgram Aura — no tag concept at all, so it reads "[warm]" out loud.
+      //   Strip them, which also makes the audio and the on-screen caption identical.
+      //
+      // The caption a learner READS is always tag-free either way: it comes from
+      // `captionFor` in the browser, not from this table.
+      const text = voice.vendor === 'deepgram' ? variant.caption : variant.spoken;
 
       // Two different sentences under one id would mean one silently overwrites the
       // other and a learner hears the wrong explanation — which is exactly what the
@@ -86,7 +95,7 @@ export function buildScript(problem, catalog, { model }) {
         // problem. And the file is keyed by the SENTENCE, not by the id, so the same
         // words reached from several moments are one recording — "Take your time"
         // does not get rendered separately for every node it can follow.
-        file: clipFile(item.scope, item.moment, fingerprint(text, model)),
+        file: clipFile(item.scope, item.moment, fingerprint(text, voice)),
       };
     }
   }
@@ -99,7 +108,7 @@ export function buildScript(problem, catalog, { model }) {
   return {
     version: SCRIPT_VERSION,
     problem: problem?.id ?? null,
-    renderedWith: `deepgram/${model}`,
+    renderedWith: [voice.vendor, voice.voiceId, voice.model].filter(Boolean).join('/'),
     clips: sorted,
   };
 }
