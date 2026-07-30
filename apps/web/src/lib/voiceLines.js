@@ -31,8 +31,16 @@
 //   * Excitement is earned, and only at completion. Everywhere else it is noise;
 //     on finishing a stage it is the payoff.
 //
-// Square brackets are ElevenLabs v3 audio tags. They shape delivery and are NOT
-// spoken. `captionFor` strips them, so the caption is the clean sentence.
+// Square brackets — `[warm]`, `[calm]`, `[thoughtful]`, `[excited]` — are AUTHORING
+// NOTES ONLY. They were ElevenLabs v3 audio tags back when they reached the vendor;
+// narration now renders through Deepgram Aura, which has no tag concept and would
+// read them out loud, so they are stripped before anything is sent. `captionFor`
+// does the stripping, and the generator renders exactly the caption — which is why
+// what a learner hears and what they read are now provably the same words.
+//
+// Keep writing them. They record the intended tone next to the line, which is worth
+// having even though nothing enforces it. To actually change delivery, change the
+// words: shorter sentences land calmer, and an ellipsis buys a beat.
 //
 // Several lines per moment where a learner will hear it repeatedly. Verifying
 // eight fields and hearing one identical sentence eight times is what makes

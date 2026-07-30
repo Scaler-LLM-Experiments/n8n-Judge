@@ -8,7 +8,7 @@ One file per problem: every line Iris can say, by id.
 
 ```jsonc
 "verify-pass--classify--classify-with-ai--v0": {
-  "text": "[warm] Yes, Classify with AI is set up right.",
+  "text": "Yes, Classify with AI is set up right.",
   "file": "shared/verify-pass--a1b2c3d4.mp3"
 }
 ```
@@ -39,8 +39,8 @@ reaches learners immediately, and an untouched one is never re-fetched.
 
 - After editing any line in `voiceLines.js` or a problem's `voice` block.
 - After adding or changing a problem's nodes, questions or build phases.
-- **After changing `ELEVENLABS_VOICE_ID` or `ELEVENLABS_MODEL_ID`** — the voice is part of
-  every fingerprint, so every file is renamed and the whole library re-renders. That is
+- **After changing `DEEPGRAM_TTS_MODEL`** — an Aura model *is* the voice, so it is part of
+  every fingerprint: every file is renamed and the whole library re-renders. That is
   correct, and it is why `renderedWith` is recorded in each file.
 
 ```bash

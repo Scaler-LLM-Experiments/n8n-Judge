@@ -24,9 +24,11 @@ import { problems } from '@judge/problems';
 import { NODE_CATALOG } from '@judge/catalog';
 import { buildScript, filesFrom } from '../apps/web/src/server/voiceScript.js';
 
-const API_KEY = process.env.ELEVENLABS_API_KEY;
-const VOICE_ID = process.env.ELEVENLABS_VOICE_ID;
-const MODEL_ID = process.env.ELEVENLABS_MODEL_ID || 'eleven_v3';
+const API_KEY = process.env.DEEPGRAM_API_KEY;
+// A Deepgram Aura model names the SPEAKER, not a quality tier — `aura-2-helena-en`
+// is a particular voice. So this one value is both "which model" and "which voice",
+// and changing it re-renders everything, which is why it is in every fingerprint.
+const MODEL = process.env.DEEPGRAM_TTS_MODEL || 'aura-2-helena-en';
 const CLIP_DIR = process.env.VOICE_CLIP_DIR || '.voice-clips';
 const SCRIPT_DIR = 'packages/voice-scripts';
 
@@ -35,19 +37,10 @@ const dryRun = args.includes('--dry-run') || process.env.DRY_RUN === '1';
 const prune = args.includes('--prune');
 const only = args.filter((a) => !a.startsWith('-'));
 
-// The voice id is needed even for a dry run, and even with no API key: it is part of
-// every clip's fingerprint, so tables written without it would name files that do not
-// match what a real render produces.
-if (!VOICE_ID) {
-  console.error(
-    'ELEVENLABS_VOICE_ID is required — it is part of every clip fingerprint, so the\n' +
-      'script tables cannot be written without it. Find it in ElevenLabs under Voices.'
-  );
-  process.exit(1);
-}
 // The API key is checked LATER, immediately before rendering. Writing the tables and
-// reporting what is missing needs no vendor account at all, and a run where nothing
-// is missing should not demand a key it will never use.
+// reporting what is missing needs no vendor account at all — the model has a default,
+// so `--dry-run` works on a clean checkout with no environment set — and a run where
+// nothing is missing should not demand a key it will never use.
 
 for (const slug of only) {
   if (!problems[slug]) {
@@ -65,7 +58,7 @@ for (const slug of only) {
 fs.mkdirSync(SCRIPT_DIR, { recursive: true });
 const tables = new Map();
 for (const [slug, problem] of Object.entries(problems)) {
-  const table = buildScript(problem, NODE_CATALOG, { voiceId: VOICE_ID, modelId: MODEL_ID });
+  const table = buildScript(problem, NODE_CATALOG, { model: MODEL });
   tables.set(slug, table);
   const file = path.join(SCRIPT_DIR, `${slug}.json`);
   const next = `${JSON.stringify(table, null, 2)}\n`;
@@ -157,7 +150,7 @@ if (!missing.length) {
 }
 if (!API_KEY) {
   console.error(
-    `\nTables written, but ${missing.length} clip(s) need rendering and ELEVENLABS_API_KEY is not set.`
+    `\nTables written, but ${missing.length} clip(s) need rendering and DEEPGRAM_API_KEY is not set.`
   );
   process.exit(1);
 }
@@ -168,9 +161,11 @@ if (!API_KEY) {
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /**
- * One render. Retries what is worth retrying — a 429 or a 5xx or a dropped socket is
- * a blip in a long run, and abandoning 200 clips because of one is worse than
- * waiting. A 4xx is a bad key or a bad voice id and will not fix itself.
+ * One render, through Deepgram's speak endpoint.
+ *
+ * Retries what is worth retrying — a 429, a 5xx or a dropped socket is a blip in a
+ * long run, and abandoning 200 clips over one is worse than waiting. A 4xx is a bad
+ * key or an unknown model and will not fix itself.
  */
 async function render(text, label, retries = 4) {
   let last;
@@ -181,14 +176,17 @@ async function render(text, label, retries = 4) {
       await sleep(wait);
     }
     try {
-      const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(VOICE_ID)}`, {
+      const res = await fetch(`https://api.deepgram.com/v1/speak?model=${encodeURIComponent(MODEL)}`, {
         method: 'POST',
-        headers: { 'xi-api-key': API_KEY, 'content-type': 'application/json', accept: 'audio/mpeg' },
-        body: JSON.stringify({
-          text,
-          model_id: MODEL_ID,
-          voice_settings: { stability: 0.45, similarity_boost: 0.75, style: 0.3, use_speaker_boost: true },
-        }),
+        headers: {
+          Authorization: `Token ${API_KEY}`,
+          'content-type': 'application/json',
+          accept: 'audio/mpeg',
+        },
+        // Just the text. The delivery annotations in the phrase book (`[warm]` and
+        // friends) were ElevenLabs v3 tags and are stripped before we get here —
+        // Deepgram would read them out loud. Pacing is done with punctuation.
+        body: JSON.stringify({ text }),
       });
       if (res.ok) return Buffer.from(await res.arrayBuffer());
       const detail = `${res.status} ${(await res.text().catch(() => '')).slice(0, 160)}`;
@@ -202,7 +200,7 @@ async function render(text, label, retries = 4) {
   throw new Error(last);
 }
 
-/** Four at a time: inside every ElevenLabs tier's concurrency allowance. */
+/** Four at a time: comfortably inside Deepgram's concurrency allowance. */
 const POOL = 4;
 let done = 0;
 let failed = 0;

@@ -10,7 +10,7 @@ import { clipFile, clipId } from '../lib/voicePath.js';
 // A clip used to be found by DERIVING its path on both sides — once in the
 // generator, once in the browser. Two derivations of the same rule is one rule too
 // many: they drifted, the browser asked for names that were never stored, and the
-// serving route answered a miss by calling ElevenLabs during the learner's session.
+// serving route answered a miss by calling the TTS vendor during the learner's session.
 //
 // So the generator writes down what it made, and everyone else reads that. The
 // browser still derives the readable ID (it must — it knows the moment and the node
@@ -30,15 +30,16 @@ export const SCRIPT_VERSION = 1;
 /**
  * The identity of a rendered clip: everything that changes the audio.
  *
- * Voice and model are folded in, not just the text, because switching either makes
- * every existing clip wrong in exactly the way a rewrite does — and that is the one
- * case where re-rendering the whole library IS correct.
+ * The model is folded in, not just the text, because a Deepgram Aura model IS the
+ * voice (`aura-2-helena-en` names the speaker, not a quality tier). Switching it
+ * makes every existing clip wrong in exactly the way a rewrite does — and that is
+ * the one case where re-rendering the whole library IS correct.
  *
  * Eight hex characters. Short enough to keep the file name readable, wide enough
  * that an accidental clash across a few hundred clips is not a real concern.
  */
-export function fingerprint(text, voiceId, modelId) {
-  return createHash('sha256').update(`${voiceId}\n${modelId}\n${text}`).digest('hex').slice(0, 8);
+export function fingerprint(text, model) {
+  return createHash('sha256').update(`${model}\n${text}`).digest('hex').slice(0, 8);
 }
 
 /**
@@ -46,29 +47,38 @@ export function fingerprint(text, voiceId, modelId) {
  *
  * @param problem  the problem object (needs `id`, and whatever `enumerateSpeakable` reads)
  * @param catalog  NODE_CATALOG, for node labels
- * @param voice    { voiceId, modelId } the clips will be rendered with
+ * @param voice    { model } the Deepgram model the clips will be rendered with
  */
-export function buildScript(problem, catalog, { voiceId, modelId }) {
+export function buildScript(problem, catalog, { model }) {
   const clips = {};
 
   for (const item of enumerateSpeakable(problem, catalog)) {
     for (const variant of item.variants) {
       const id = clipId(item.moment, item.key, item.vars, variant.index);
 
+      // `caption`, not `spoken` — the tag-free sentence.
+      //
+      // The phrase book annotates delivery with `[warm]`, `[calm]` and friends. Those
+      // were ElevenLabs v3 audio tags; Deepgram has no equivalent and would simply
+      // READ THEM ALOUD. So what goes to the vendor is the sentence a learner reads,
+      // which has the pleasant side effect that the audio and the on-screen caption
+      // are now provably the same words.
+      const text = variant.caption;
+
       // Two different sentences under one id would mean one silently overwrites the
       // other and a learner hears the wrong explanation — which is exactly what the
       // previous scheme did 17 times. Loud here, at authoring time, is the only
       // place it can be caught cheaply.
       const existing = clips[id];
-      if (existing && existing.text !== variant.spoken) {
+      if (existing && existing.text !== text) {
         throw new Error(
           `voice: two different lines want the id "${id}" in ${problem?.id}:\n` +
-            `  ${existing.text}\n  ${variant.spoken}`
+            `  ${existing.text}\n  ${text}`
         );
       }
 
       clips[id] = {
-        text: variant.spoken,
+        text,
         // Two things collapse here, and both are money.
         //
         // `item.scope` is '' for a line nobody authored, so the catalogue's generic
@@ -76,7 +86,7 @@ export function buildScript(problem, catalog, { voiceId, modelId }) {
         // problem. And the file is keyed by the SENTENCE, not by the id, so the same
         // words reached from several moments are one recording — "Take your time"
         // does not get rendered separately for every node it can follow.
-        file: clipFile(item.scope, item.moment, fingerprint(variant.spoken, voiceId, modelId)),
+        file: clipFile(item.scope, item.moment, fingerprint(text, model)),
       };
     }
   }
@@ -89,7 +99,7 @@ export function buildScript(problem, catalog, { voiceId, modelId }) {
   return {
     version: SCRIPT_VERSION,
     problem: problem?.id ?? null,
-    renderedWith: `elevenlabs/${voiceId}/${modelId}`,
+    renderedWith: `deepgram/${model}`,
     clips: sorted,
   };
 }

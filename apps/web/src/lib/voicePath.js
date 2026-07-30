@@ -25,7 +25,7 @@
 // `node-placed--classify--classify-with-ai--v0.mp3` while the generator had stored
 // `node-placed--classify-with-ai--v0.mp3`. Every node, verify and answer clip
 // therefore missed storage — and the serving route's response to a miss was to call
-// ElevenLabs and render it live. That is where the latency, the vendor spend and a
+// Deepgram and render it live. That is where the latency, the vendor spend and a
 // large part of the S3 traffic came from. The key is now part of the id, and one
 // function builds it for both sides.
 //

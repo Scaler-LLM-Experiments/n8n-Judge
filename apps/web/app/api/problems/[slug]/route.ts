@@ -41,7 +41,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ slug: string }
       // scoped to the one problem being played. The browser looks a file up here —
       // it never derives one. Deriving it on both sides is exactly how the player
       // and the generator drifted apart, and the old cost of a miss was a live
-      // ElevenLabs render inside the learner's session.
+      // Deepgram render inside the learner's session.
       //
       // No new exposure: the phrase book already ships in the client bundle, so this
       // adds file names, not words. A line with no entry simply plays as a caption

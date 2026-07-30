@@ -40,7 +40,7 @@ collisions → 22,917 characters.
 | Where clips live | **Private S3 bucket.** Not committed, not in the image. |
 | How they reach a learner | **Authenticated proxy** with a read-through disk cache. |
 | Who renders | **A laptop, deliberately.** The app has no vendor credentials in its request path. |
-| Vendor | ElevenLabs (unchanged). |
+| Vendor | **Deepgram Aura** (`aura-2-helena-en`). An Aura model names the speaker, so model and voice are one setting. |
 
 Workflow, as the stakeholder put it: *generate locally → sync to S3 → the app reads from S3.
 Minimal calls, no regeneration.*
@@ -52,21 +52,21 @@ Minimal calls, no regeneration.*
 Replaces derivation. Modelled on `for-emergent`'s `audio-scripts/<caseId>.json`.
 
 ```
-voice-scripts/email-triage.json
-voice-scripts/lead-triage.json
-voice-scripts/meeting-notes.json
-voice-scripts/order-desk.json
+packages/voice-scripts/email-triage.json
+packages/voice-scripts/lead-triage.json
+packages/voice-scripts/meeting-notes.json
+packages/voice-scripts/order-desk.json
 ```
 
 ```jsonc
 {
   "version": 1,
   "problem": "email-triage",
-  "renderedWith": "elevenlabs/<voiceId>/<modelId>",
+  "renderedWith": "deepgram/aura-2-helena-en",
   "clips": {
-    "verify_pass__classify__classify-with-ai--v0": {
-      "text": "[warm] Yes, Classify with AI is set up right.",
-      "file": "shared/verify-pass--classify--classify-with-ai--v0--a1b2c3d4.mp3"
+    "verify-pass--classify--classify-with-ai--v0": {
+      "text": "Yes, Classify with AI is set up right.",
+      "file": "shared/verify-pass--a1b2c3d4.mp3"
     }
   }
 }
@@ -88,22 +88,21 @@ data and asserts each exists in the table, so the two cannot drift.
 **How each side gets the table.** The server `import`s the four JSON files directly — they are
 committed, small, and static, so the bundler traces them and there is no filesystem read to get
 wrong in a container. The browser receives its problem's table **inside the existing
-`GET /api/problems/[slug]` response**, added by `toPublicProblem` as a `voiceClips` field: it is
+`GET /api/problems/[slug]` response**, added by the route as a `voiceClips` field: it is
 the request the journey already makes, it is already authenticated, and it keeps the table
 scoped to the one problem being played (~15 KB). No new endpoint, no new fetch, no new auth
 surface. The table carries only text the browser already has — `voiceLines.js` is bundled and
 `problem.voice` is already served — so this exposes nothing new.
 
-`renderedWith` records the voice and model the fingerprints were computed against. Changing
-either changes every fingerprint, which correctly re-renders the whole library; that is the one
-case where a full re-render *is* the right behaviour, and it should be a deliberate act.
+`renderedWith` records the model the fingerprints were computed against. An Aura model *is*
+the voice, so changing it changes every fingerprint and correctly re-renders the whole
+library; that is the one case where a full re-render *is* right, and it should be deliberate.
 
 ### 2. Clip identity = readable slug + content fingerprint
 
-`verify-pass--classify--classify-with-ai--v0--a1b2c3d4.mp3`
+`shared/verify-pass--a1b2c3d4.mp3`
 
-The fingerprint is the first 8 hex characters of a SHA-256 of `(spoken text, voice id,
-model id)` — enough that an accidental clash across a few hundred clips is not a practical
+The fingerprint is the first 8 hex characters of a SHA-256 of `(spoken text, model)` — enough that an accidental clash across a few hundred clips is not a practical
 concern, short enough to keep the name readable. It buys three things at once:
 
 - **Rewording is self-invalidating.** Clips are served `immutable` with a one-year cache. Under
@@ -127,8 +126,10 @@ sentence determines the filename.
 3. For each distinct `file`, render it **only if that file is absent from the local clip
    directory**. Existence is a stat on local disk. Zero network calls to answer "what is
    missing".
-4. Render via ElevenLabs with the existing voice settings, bounded concurrency, retry with
-   backoff on 429/5xx, fail-fast on 4xx.
+4. Render via Deepgram `POST /v1/speak?model=…`, bounded concurrency, retry with backoff
+   on 429/5xx, fail-fast on 4xx. The phrase book's `[warm]`-style tags were ElevenLabs v3
+   audio tags; Deepgram would read them aloud, so the tag-free caption is what is sent —
+   which also makes the audio and the on-screen text provably identical.
 
 `--dry-run` reports counts and characters and calls nothing.
 
@@ -159,7 +160,7 @@ without further changes.
 
 Authenticated exactly as today. Three properties, in order of importance:
 
-1. **It cannot render.** No ElevenLabs client, no key read, no fallback. A clip that is not in
+1. **It cannot render.** No TTS client, no key read, no fallback. A clip that is not in
    the bucket is a 404 and the learner reads the caption. This is a deletion, not a config
    flag.
 2. **It only asks S3 for paths it knows exist.** At boot the server loads every table and

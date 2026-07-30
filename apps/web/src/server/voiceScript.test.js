@@ -5,7 +5,7 @@ import { buildScript } from './voiceScript.js';
 import { clipId } from '../lib/voicePath.js';
 import { enumerateSpeakable } from '../lib/voiceCatalogue.js';
 
-const VOICE = { voiceId: 'v-test', modelId: 'eleven_v3' };
+const VOICE = { model: 'aura-2-test-en' };
 const build = (slug) => buildScript(problems[slug], NODE_CATALOG, VOICE);
 
 describe('buildScript', () => {
@@ -19,14 +19,23 @@ describe('buildScript', () => {
         for (const variant of item.variants) {
           const id = clipId(item.moment, item.key, item.vars, variant.index);
           expect(table.clips[id], `${slug} is missing ${id}`).toBeTruthy();
-          expect(table.clips[id].text).toBe(variant.spoken);
+          expect(table.clips[id].text).toBe(variant.caption);
         }
       }
     }
   });
 
   it('records what the fingerprints were computed against', () => {
-    expect(build('email-triage').renderedWith).toBe('elevenlabs/v-test/eleven_v3');
+    expect(build('email-triage').renderedWith).toBe('deepgram/aura-2-test-en');
+  });
+
+  it('sends the sentence WITHOUT the authoring tags', () => {
+    // `[warm]` and friends were ElevenLabs v3 audio tags. Deepgram has no such
+    // concept and would read them aloud, so the table stores the tag-free line —
+    // which is also exactly the caption on screen.
+    for (const clip of Object.values(build('email-triage').clips)) {
+      expect(clip.text, clip.text).not.toMatch(/\[[^\]]*\]/);
+    }
   });
 });
 
@@ -73,9 +82,9 @@ describe('across the whole catalogue', () => {
   });
 
   it('gives every clip a new file when the voice changes', () => {
-    // Switching voice or model makes every stored clip wrong in the same way a
-    // rewrite does, so re-rendering everything is the correct behaviour.
-    const other = buildScript(problems['email-triage'], NODE_CATALOG, { ...VOICE, voiceId: 'v-other' });
+    // A Deepgram Aura model IS the voice, so switching it makes every stored clip
+    // wrong in the same way a rewrite does. Re-rendering everything is correct.
+    const other = buildScript(problems['email-triage'], NODE_CATALOG, { model: 'aura-2-other-en' });
     const id = clipId('welcome', null, {}, 0);
     expect(other.clips[id].file).not.toBe(build('email-triage').clips[id].file);
   });

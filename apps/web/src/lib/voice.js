@@ -133,7 +133,7 @@ export function createVoice({ onMoment, problemSlug, problem } = {}) {
    * The old version rebuilt the path here from the moment, node and variant — the
    * same rule the generator applied, implemented twice. They drifted, and because a
    * miss was answered by rendering the line live, the cost of the drift was an
-   * ElevenLabs call and a visible pause on nearly every line a learner heard.
+   * Deepgram call and a visible pause on nearly every line a learner heard.
    *
    * Null is a normal answer: no voice generated yet, or a line added since the last
    * run. It means caption only, and — importantly — NO REQUEST AT ALL, rather than a

@@ -113,7 +113,7 @@ id for `phase_complete`. Moments are listed in `LINES`.
 - **Do not read the screen.** If the words are already on the page, saying them
   competes with reading instead of adding to it.
 - **Open with a delivery tag** (`[warm]`, `[calm]`, `[thoughtful]`, `[excited]`).
-  These are ElevenLabs v3 direction and are not spoken.
+  These are Deepgram v3 direction and are not spoken.
 
 Variables must come from a **closed set** — a node label, an option label — because
 every possible line is pre-rendered ahead of time

@@ -410,10 +410,10 @@ tier, scoped to problem/screen/phase/node. It is **deliberately unhelpful about 
 asked "which node?", it teaches the concept and asks a guiding question. Intended. Without
 `ANTHROPIC_API_KEY` it returns 503 and the UI degrades gracefully.
 
-### Voice — Iris speaks (ElevenLabs)
+### Voice — Iris speaks (Deepgram Aura)
 **Rendered on a laptop, uploaded once, served as files. Nothing renders at runtime and
 nothing polls storage.** That is not a preference — the previous pipeline got Scaler's S3
-credentials flagged after ~1500 calls in a short window, and was calling ElevenLabs during
+credentials flagged after ~1500 calls in a short window, and was calling the TTS vendor during
 learner sessions. Design: [docs/superpowers/specs/2026-07-30-voice-clip-pipeline-design.md](docs/superpowers/specs/2026-07-30-voice-clip-pipeline-design.md).
 
 ```bash
@@ -426,8 +426,9 @@ npm run voice:sync                    # upload to the bucket
   [voiceLines.js](apps/web/src/lib/voiceLines.js) holds every line, keyed by *moment*, with
   the writing rules in its header — they are the feature: short plain sentences, no em
   dashes, calm not cheerleading, **never reveal an answer the learner has not given**, and
-  **do not read the screen**. `[bracketed]` text is an ElevenLabs v3 audio tag, stripped by
-  `captionFor`. Per-problem overrides come from `problem.voice`.
+  **do not read the screen**. `[bracketed]` text is an **authoring note only** — it was an ElevenLabs v3 audio
+  tag, and Deepgram would read it aloud, so `captionFor` strips it and the generator
+  renders exactly the caption. Audio and on-screen text are provably the same words. Per-problem overrides come from `problem.voice`.
   The generator turns that into [`@judge/voice-scripts`](packages/voice-scripts/) — one
   committed JSON table per problem, `id → { text, file }`. **Generated; never hand-edit.**
 - **A clip's name has two halves and they work differently.** The **id**
@@ -470,8 +471,8 @@ npm run voice:sync                    # upload to the bucket
   storage call**, reporting config plus how many clips this container has served.
 
 **Regenerate after** editing any line, changing a problem's nodes/questions/phases, or
-changing `ELEVENLABS_VOICE_ID`/`MODEL_ID` — the voice is in every fingerprint, so changing
-it renames and re-renders the whole library. `renderedWith` in each table records what
+changing `DEEPGRAM_TTS_MODEL` — an Aura model *is* the voice (`aura-2-helena-en` names a
+speaker), so it is in every fingerprint and changing it re-renders the whole library. `renderedWith` in each table records what
 produced it.
 
 

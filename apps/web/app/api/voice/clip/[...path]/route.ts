@@ -14,7 +14,7 @@ import { clipCache } from '../../../../../src/server/voiceCache';
 // ---------------------------------------------------------------------------
 // Three things this route CANNOT do, by construction
 // ---------------------------------------------------------------------------
-// 1. It cannot render. There is no ElevenLabs client here and no API key is read.
+// 1. It cannot render. There is no Deepgram client here and no API key is read.
 //    The previous version answered a cache miss by synthesising the line live, which
 //    is where the latency came from (the learner was waiting for a recording to be
 //    made) and where the vendor spend came from. Worse, the browser and the generator
