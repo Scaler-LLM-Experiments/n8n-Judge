@@ -16,9 +16,14 @@
 // them also deleted their database rows, so restoring one means re-registering it AND
 // re-seeding.
 import { emailTriage } from './email-triage/index.js';
+import { expenseApprovals } from './expense-approvals/index.js';
 
 export const problems = {
   [emailTriage.id]: emailTriage,
+  // Second, not first: it is the same weight of work as email-triage (31 scored
+  // decisions to its 30) and reads as easier once you have met that one, because the
+  // shape is the same and only the judgement is new.
+  [expenseApprovals.id]: expenseApprovals,
 };
 
 export const problemList = Object.values(problems);
