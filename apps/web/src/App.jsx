@@ -1,6 +1,6 @@
 // app/src/App.jsx
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { fetchProblemList, fetchProblem, slugFromUrl } from './data/problemsApi.js';
+import { fetchProblemList, fetchProblem, slugFromUrl, writeSlugToUrl } from './data/problemsApi.js';
 import { AsyncGate } from './components/AsyncGate.jsx';
 import { GradingLoader } from './components/GradingLoader.jsx';
 import { createSession, fetchReport, fetchResumable } from './lib/grader.js';
@@ -190,7 +190,17 @@ export default function App() {
 // card-level fields, so selecting one fetches that problem's full data before
 // the journey mounts. Selecting remounts MainApp fresh.
 function Landing() {
-  const [selected, setSelected] = useState(null);
+  // A challenge is linkable: `/?problem=<slug>` opens it instead of Home, so one
+  // can be sent to a learner ("try this one"). Read once, at mount, because from
+  // then on the address bar is written from state rather than the other way round
+  // — except on Back/Forward, handled below.
+  //
+  // A slug that names nothing published is NOT trusted here: `fetchProblem` 404s
+  // and the catalogue effect below sends them to Home.
+  const [selected, setSelected] = useState(() => {
+    const slug = slugFromUrl();
+    return slug ? { slug, id: slug, title: null } : null;
+  });
   // Bumped by "Redo this challenge", and part of MainApp's key: a redo has to be a
   // FRESH attempt, and everything that makes an attempt — the session, the local
   // grading store, which screen you are on — lives in MainApp's state. Remounting
@@ -219,6 +229,61 @@ function Landing() {
     // has usually changed.
   }, [selected]);
 
+  // Everything that opens or closes a challenge goes through here, so the address
+  // bar cannot drift out of step with the screen. `silent` is for a change that
+  // came FROM the URL (Back/Forward): writing it again would push a duplicate
+  // entry and make the button stop working.
+  const open = useCallback((p, { silent = false, resume: resumePayload = null } = {}) => {
+    setResuming(resumePayload);
+    setSelected(p);
+    if (!silent) writeSlugToUrl(p ? (p.slug ?? p.id) : null);
+  }, []);
+
+  // Back and Forward now mean something, because the URL finally says which
+  // challenge is open. The URL is the source of truth on a pop — re-read it
+  // rather than keeping a second history of our own.
+  useEffect(() => {
+    const onPop = () => {
+      const slug = slugFromUrl();
+      setResuming(null);
+      setSelected((cur) => {
+        if (slug === (cur ? cur.slug ?? cur.id : null)) return cur;
+        if (!slug) return null;
+        return (catalogue.current || []).find((p) => (p.slug ?? p.id) === slug)
+          ?? { slug, id: slug, title: null };
+      });
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+
+  // A deep link skips Home, so the catalogue was never loaded — and the Result
+  // screen reads it to name the next challenge. Fetch it in the background and
+  // upgrade `selected` to the real card, which also gives the loader a title to
+  // show. Same slug, so nothing reloads.
+  //
+  // If the list does not contain the slug, the link is wrong (a typo, or a
+  // challenge that has since been removed) and this returns them to Home with the
+  // param stripped. That is not a silent fallback to different content — there is
+  // no content to serve, and the catalogue is proof rather than a guess.
+  useEffect(() => {
+    if (!selected || catalogue.current) return undefined;
+    const slug = selected.slug ?? selected.id;
+    let cancelled = false;
+    fetchProblemList()
+      .then((list) => {
+        if (cancelled) return;
+        catalogue.current = list;
+        const entry = list.find((p) => (p.slug ?? p.id) === slug);
+        if (entry) setSelected(entry);
+        else open(null);
+      })
+      // Home is not on screen, so a failed list costs only the "next challenge"
+      // button. The journey itself loads from its own request.
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [selected, open]);
+
   if (selected) {
     const list = catalogue.current || [];
     const here = list.findIndex((p) => (p.slug ?? p.id) === (selected.slug ?? selected.id));
@@ -232,7 +297,9 @@ function Landing() {
         <AsyncGate
           load={() => fetchProblem(selected.slug ?? selected.id)}
           deps={[selected.slug ?? selected.id]}
-          label={`Loading ${selected.title}…`}
+          // A deep link knows the slug but not the title until the catalogue
+          // lands, and "Loading undefined…" is worse than saying nothing.
+          label={selected.title ? `Loading ${selected.title}…` : 'Loading challenge…'}
         >
           {(problem) => (
             <MainApp
@@ -243,8 +310,8 @@ function Landing() {
               // different challenge from the grid can never inherit its state.
               resume={resuming && resuming.slug === (problem.slug ?? problem.id) ? resuming : null}
               onRedo={() => { setResuming(null); setAttempt((n) => n + 1); }}
-              onNext={nextProblem ? () => { setResuming(null); setAttempt(0); setSelected(nextProblem); } : undefined}
-              onHome={() => { setResuming(null); setAttempt(0); setSelected(null); }}
+              onNext={nextProblem ? () => { setAttempt(0); open(nextProblem); } : undefined}
+              onHome={() => { setAttempt(0); open(null); }}
             />
           )}
         </AsyncGate>
@@ -258,14 +325,15 @@ function Landing() {
         <HomeScreen
           problems={problems}
           resume={resume}
-          onSelect={(p) => { catalogue.current = problems; setResuming(null); setSelected(p); }}
+          onSelect={(p) => { catalogue.current = problems; open(p); }}
           onResume={(r) => {
             catalogue.current = problems;
-            setResuming(r);
             // Match the catalogue entry so the journey gets the same object shape a
             // card click produces; fall back to the resume payload itself, which
             // carries the slug and title the loader needs.
-            setSelected(problems.find((p) => (p.slug ?? p.id) === r.slug) ?? { slug: r.slug, id: r.slug, title: r.title });
+            const entry = problems.find((p) => (p.slug ?? p.id) === r.slug)
+              ?? { slug: r.slug, id: r.slug, title: r.title };
+            open(entry, { resume: r });
           }}
         />
       )}
@@ -384,6 +452,13 @@ function MainApp({ problem, nextProblem, resume, onRedo, onNext, onHome }) {
         <DissectionScreen
           problem={problem}
           sessionId={sessionId}
+          // Their own answers, replayed from the trace: the quiz rejoins at the
+          // first unanswered question instead of asking all of them again.
+          resume={
+            resume
+              ? { answered: resume.answered?.dissection ?? [], unlockedTypes: resume.unlockedTypes ?? [] }
+              : null
+          }
           onDecision={record}
           onComplete={(result) => {
             setDissection(result);
@@ -399,6 +474,9 @@ function MainApp({ problem, nextProblem, resume, onRedo, onNext, onHome }) {
           // The canvas they left behind, from the last `graph_mutation` in the
           // trace. Undefined on a fresh start, which is the normal case.
           initialGraph={resume?.graph ?? undefined}
+          // …and the phase they were on when they left. Without it the restored
+          // canvas re-clears every earlier phase in turn.
+          resumePhaseId={resume?.phaseId ?? undefined}
           onDecision={record}
           onComplete={(result) => {
             if (result) {
@@ -414,6 +492,9 @@ function MainApp({ problem, nextProblem, resume, onRedo, onNext, onHome }) {
         <EvalScreen
           problem={problem}
           sessionId={sessionId}
+          // Stress questions already on record, so a reload mid-quiz picks up at
+          // the next one rather than the first.
+          resume={resume ? { answered: resume.answered?.stress ?? [] } : null}
           onDecision={record}
           onSubmit={(outcome) => {
             setEvalOutcome(outcome);

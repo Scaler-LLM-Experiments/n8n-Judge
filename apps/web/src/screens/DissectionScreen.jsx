@@ -42,19 +42,51 @@ function resolveVerdict(q, opt, result) {
   };
 }
 
-export function DissectionScreen({ problem, sessionId, onComplete, onDecision }) {
+// Where a resumed learner rejoins the quiz: the first question they have no
+// answer on record for. Any recorded answer counts, right or wrong, because the
+// quiz advances on either — re-asking a question they moved past would offer a
+// second attempt at something already graded.
+//
+// Returns `questions.length` when every question is answered, which reads as "the
+// quiz is behind you" at the call site.
+export function resumeQuizIndex(questions, answeredIds) {
+  if (!answeredIds?.length) return 0;
+  const answered = new Set(answeredIds);
+  const at = questions.findIndex((q) => !answered.has(q.id));
+  return at === -1 ? questions.length : at;
+}
+
+/**
+ * `resume` is this learner's own progress, replayed from their trace:
+ * `{ answered: string[], unlockedTypes: string[] }`. Absent on a fresh start,
+ * which is the normal case.
+ */
+export function DissectionScreen({ problem, sessionId, onComplete, onDecision, resume }) {
   const questions = problem.dissection;
   const voice = useVoiceActions();
-  const [phase, setPhase] = useState('greet'); // greet | problem | quiz | done
-  const [index, setIndex] = useState(0);
+  // Read once, at mount: this is a starting position, not a live input.
+  const [resumeAt] = useState(() => resumeQuizIndex(questions, resume?.answered));
+  const [phase, setPhase] = useState(() => {
+    // A learner who has answered nothing gets the two intro beats. One who is
+    // part way through has already heard them, and replaying Iris's greeting is
+    // how "continue where you left off" stops feeling like starting over.
+    if (resumeAt === 0) return 'greet';
+    return resumeAt >= questions.length ? 'done' : 'quiz';
+  }); // greet | problem | quiz | done
+  const [index, setIndex] = useState(() => Math.min(resumeAt, Math.max(questions.length - 1, 0)));
   const [picked, setPicked] = useState(null); // option index
   const [checking, setChecking] = useState(false); // request for `picked` in flight
   const [verdict, setVerdict] = useState(null); // settled { correct, why, unlocks } for `picked`
   const [attempts, setAttempts] = useState(() => questions.map(() => 0));
   const [firstTryByQuestion, setFirstTryByQuestion] = useState(() => questions.map(() => null));
-  const [unlockedTypes, setUnlockedTypes] = useState([]); // accumulates from correct answers as they land
+  // Accumulates from correct answers as they land, seeded with what the learner
+  // had already unlocked before they left — the summary beat draws the toolkit
+  // from this, so starting it empty would show a resumed learner no tools.
+  const [unlockedTypes, setUnlockedTypes] = useState(() => resume?.unlockedTypes ?? []);
   const [showNote, setShowNote] = useState(true);
-  const [mascotClip, setMascotClip] = useState('hello');
+  // 'hello' belongs to the greeting beat. A resumed learner skips it, so Iris
+  // should not be waving at someone she is mid-conversation with.
+  const [mascotClip, setMascotClip] = useState(resumeAt === 0 ? 'hello' : 'idle');
   const advanceTimer = useRef(null);
   const quizRef = useRef(null);
 

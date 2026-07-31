@@ -11,6 +11,7 @@ import { validateGraph } from '@judge/engine/validateGraph.js';
 import { simulateAll, roleOf } from '@judge/engine/simulate.js';
 import { allBranchesWired } from '@judge/engine/branchReach.js';
 import { checkAnswer } from '../lib/grader.js';
+import { traceableGraph } from '../lib/traceGraph.js';
 import { useTraceContext } from '../lib/TraceContext.jsx';
 import { useVoiceActions } from '../lib/VoiceContext.jsx';
 
@@ -144,14 +145,34 @@ function sequenceProbe(meta, variant = 0) {
 
 // `initialGraph` seeds the canvas: the finished reference flow for the #run-story
 // dev route, or a resumed learner's own half-built graph replayed from the trace.
-export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessionId, initialGraph }) {
+export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessionId, initialGraph, resumePhaseId }) {
   const { trace } = useTraceContext();
   const voice = useVoiceActions();
   const phases = problem.buildPhases;
 
-  const [phaseIndex, setPhaseIndex] = useState(0);
+  // The phase they had reached, from the last `phase_transition` in their trace.
+  //
+  // Starting at 0 regardless — which is what this did — is not a small
+  // inaccuracy: the canvas is restored too, so the phase-cleared effect below
+  // immediately fires for a phase whose nodes are already placed and configured,
+  // and the learner clicks through a celebration for every phase they had
+  // already earned before reaching the one they were actually on.
+  //
+  // An unknown id (a phase renamed since they started) falls back to 0 rather
+  // than to a guess.
+  const [phaseIndex, setPhaseIndex] = useState(() => {
+    if (!resumePhaseId) return 0;
+    const at = phases.findIndex((p) => p.id === resumePhaseId);
+    return at === -1 ? 0 : at;
+  });
   const [stage, setStage] = useState(devAutoRun ? 'preview' : 'building'); // preview | building | clearing | complete | running
-  const [showSpotlight, setShowSpotlight] = useState(!devAutoRun);
+  // The spotlight teaches the first `+` on an EMPTY canvas, and it is a full-screen
+  // overlay. Showing it to a learner whose nodes have just been restored points at
+  // nothing and swallows their first click on the canvas — so it goes if they are
+  // resuming past phase one OR arriving with a graph.
+  const [showSpotlight, setShowSpotlight] = useState(
+    !devAutoRun && !resumePhaseId && !initialGraph?.nodes?.length
+  );
   const [nodesState, setNodesState] = useState([]); // { id, type, configured, wrong }
   const [probe, setProbe] = useState(null); // { type, nodeId, data, anchor }
   // The probe's explanation is server-graded now (`nodeProbes[type].options[].response`
@@ -315,20 +336,12 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
         trace('graph_mutation', {
           op,
           ...(added ? { nodeType: added.type } : {}),
-          // `position` and `data` are carried, not stripped, because this payload is
-          // what a resumed learner's canvas is rebuilt from. Without a position
-          // React Flow throws while seeding ("reading 'x'"), and without
-          // `configured` every node they had already set up comes back as unset.
-          // The extra bytes are a couple of dozen numbers per mutation.
-          graph: {
-            nodes: next.nodes.map((n) => ({
-              id: n.id,
-              type: n.type,
-              position: n.position,
-              data: { configured: !!n.data?.configured, wrong: !!n.data?.wrong },
-            })),
-            edges: next.edges,
-          },
+          // Built from the EDITOR's nodes, not from `next`. `next` has already
+          // dropped `position`, and mapping the traced payload off it recorded
+          // `position: undefined` on every node — which the resume endpoint then
+          // refused, so a learner got their screen back with an empty canvas.
+          // See traceGraph.js.
+          graph: traceableGraph(nodes, edges),
         });
       }
     }

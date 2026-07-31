@@ -10,7 +10,7 @@
 // turns that into a graded signal instead: guessing is allowed, and it scores
 // like guessing, because `firstTry` is what Understanding is built on.
 
-import { parseRuleAspectId, gradeRuleAspect, whyForAspect } from './ruleList.ts';
+import { parseRuleAspectId, gradeRuleAspect, gradeListItems, whyForAspect } from './ruleList.ts';
 
 type Rec = Record<string, unknown>;
 
@@ -34,6 +34,15 @@ export interface CheckResult {
   unlocks?: string[];
   /** Set when the id doesn't exist — a probable tampering attempt. */
   unknown?: boolean;
+  /**
+   * List fields only: this aspect's verdict per ENTRY the learner built, in their
+   * order, so the feedback can sit on the branch it is about instead of stacking
+   * three list-wide messages underneath. Absent for `count` and for every other
+   * kind of field. Scoring is unaffected — the aspect is still one scored item.
+   */
+  items?: boolean[];
+  /** List fields only: how many expected entries are absent. A count, never the names. */
+  missing?: number;
 }
 
 const norm = (v: unknown) =>
@@ -109,7 +118,14 @@ export function checkAnswer(problem: Rec, req: CheckRequest): CheckResult {
         if (!ruleField) return { correct: false, unknown: true };
         const verdict = gradeRuleAspect(ruleField, aspectId.aspect, req.answer);
         if (verdict === null) return { correct: false, unknown: true };
-        return { correct: verdict, why: whyForAspect(ruleField, aspectId.aspect, verdict) };
+        // The same judgement, per entry, so the NDV can put each message on the
+        // branch it belongs to. Feedback only — the aspect above is the score.
+        const perRow = gradeListItems(ruleField, aspectId.aspect, req.answer);
+        return {
+          correct: verdict,
+          why: whyForAspect(ruleField, aspectId.aspect, verdict),
+          ...(perRow.items ? { items: perRow.items, missing: perRow.missing } : {}),
+        };
       }
 
       const field = fields?.find((f) => f.key === key);

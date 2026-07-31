@@ -7,6 +7,7 @@ import {
   isRuleComplete,
   rulesReady,
   gradeRuleAspect,
+  gradeListItems,
   whyForAspect,
 } from './ruleList.ts';
 import { checkAnswer } from './answerCheck.ts';
@@ -179,6 +180,76 @@ describe('through the check endpoint', () => {
 
   it('flags an unknown field as suspicious rather than wrong', () => {
     expect(check('switch:nonsense#count', right).unknown).toBe(true);
+  });
+});
+
+describe('per-entry attribution', () => {
+  const twoWrongNames = {
+    values: [
+      { outputKey: 'Bug Report', left: 'category', operator: 'equals', right: 'Bug Report' },
+      { outputKey: 'Complaints', left: 'category', operator: 'equals', right: 'Complaints' },
+    ],
+  };
+
+  it('says WHICH row has the wrong name', () => {
+    expect(gradeListItems(field, 'categories', twoWrongNames)).toEqual({ items: [true, false], missing: 1 });
+  });
+
+  it('says WHICH row tests the wrong thing', () => {
+    const oneBadCondition = {
+      values: [
+        { outputKey: 'Bug Report', left: 'category', operator: 'equals', right: 'Bug Report' },
+        { outputKey: 'Feature Request', left: 'urgency', operator: 'equals', right: 'Feature Request' },
+      ],
+    };
+    expect(gradeListItems(field, 'conditions', oneBadCondition)).toEqual({ items: [true, false], missing: 0 });
+  });
+
+  it('agrees with the scored aspect — a row-level fail means the aspect failed', () => {
+    for (const aspect of ['categories', 'conditions']) {
+      const { items } = gradeListItems(field, aspect, twoWrongNames);
+      expect(items?.every(Boolean) ?? null).toBe(gradeRuleAspect(field, aspect, twoWrongNames) === true);
+    }
+  });
+
+  it('blames the REPEAT for a duplicate, not the first of the pair', () => {
+    const dupe = {
+      values: [
+        { outputKey: 'Bug Report', left: 'category', operator: 'equals', right: 'Bug Report' },
+        { outputKey: 'Bug Report', left: 'category', operator: 'equals', right: 'Bug Report' },
+      ],
+    };
+    expect(gradeListItems(field, 'categories', dupe).items).toEqual([true, false]);
+  });
+
+  it('counts what is missing without naming it — that would be the answer', () => {
+    const onlyOne = { values: [{ outputKey: 'Bug Report', left: 'category', operator: 'equals', right: 'Bug Report' }] };
+    const out = gradeListItems(field, 'categories', onlyOne);
+    expect(out).toEqual({ items: [true], missing: 1 });
+    expect(JSON.stringify(out)).not.toMatch(/Feature Request/);
+  });
+
+  it('has nothing to attribute for count, which belongs to the list', () => {
+    expect(gradeListItems(field, 'count', twoWrongNames)).toEqual({ items: null, missing: 0 });
+  });
+
+  it('cannot judge in the browser, where the answer key has been stripped', () => {
+    const { expect: _dropped, ...served } = field;
+    expect(gradeListItems(served, 'categories', twoWrongNames)).toEqual({ items: null, missing: 0 });
+  });
+
+  it('reaches the client through the check response', () => {
+    const problem = { nodeSetup: { switch: { fields: [field] } } };
+    const res = checkAnswer(problem as never, { kind: 'field', id: 'switch:rules#categories', answer: twoWrongNames });
+    expect(res.correct).toBe(false);
+    expect(res.items).toEqual([true, false]);
+    expect(res.missing).toBe(1);
+  });
+
+  it('sends no per-row detail for an ordinary field', () => {
+    const problem = { nodeSetup: { switch: { fields: [{ key: 'mode', options: [{ value: 'a', correct: true }] }] } } };
+    const res = checkAnswer(problem as never, { kind: 'field', id: 'switch:mode', answer: 'a' });
+    expect(res.items).toBeUndefined();
   });
 });
 

@@ -67,6 +67,10 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     correct: result.correct,
     why: result.why ?? null,
     unlocks: result.unlocks ?? null,
+    // A rule list's verdict, per branch the learner built, so the NDV can put each
+    // message on the row it is about. This is about THEIR answer, not the authored
+    // one: `missing` is a number and no expected name is ever named.
+    ...(result.items ? { items: result.items, missing: result.missing ?? 0 } : {}),
     attempt: priorAttempts + 1,
     firstTry: priorAttempts === 0,
   });

@@ -49,10 +49,22 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
   // Settings the problem actually grades. The tab always renders the full n8n
   // set; this is just the subset that counts.
   const gradedSettings = setup?.settings || [];
-  const [settings, setSettings] = useState(() => defaultSettings());
+  // Both open on whatever the learner had already entered on this node, and fall
+  // back to empty / real n8n defaults when they have not been here before. A
+  // resumed node arrives with its values from the trace; a node reopened in the
+  // same sitting keeps what was typed into it.
+  //
+  // The VERDICTS are deliberately not restored: `results` starts null, so Verify
+  // has to be pressed again. A green tick is the server's to give, and re-checking
+  // an answer that was already right cannot cost marks — `attemptsFromTrace` keeps
+  // the lowest attempt that was correct.
+  const [settings, setSettings] = useState(() => ({ ...defaultSettings(), ...(node.settings ?? {}) }));
   const [settingsResults, setSettingsResults] = useState(null);
-  const [values, setValues] = useState({});
+  const [values, setValues] = useState(() => ({ ...(node.values ?? {}) }));
   const [results, setResults] = useState(null); // { [key]: 'correct' | 'wrong' }
+  // Per-ROW verdicts for a list field: { '<fieldKey>#<aspect>': { items[], missing } }.
+  // Server-only, so a dev route with no session keeps the list-level messages.
+  const [rowResults, setRowResults] = useState(null);
   // The explanation text for each field, keyed like `results`. Populated at
   // Verify time from the server's answer (or the local fallback) — the
   // "ask Iris why" button reads from here rather than recomputing locally,
@@ -163,6 +175,7 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
     // abandoned must not be submitted — it answers a question no longer asked.
     setValues((v) => pruneHidden(allFields, { ...v, [key]: value }));
     setResults(null);
+    setRowResults(null);
     setFieldWhy(null);
     setSettingsResults(null);
     setFeedback(null);
@@ -242,7 +255,7 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
     setPhase('running');
     setFeedback(null);
     const gradingSettings = stage === 'settings';
-    if (!gradingSettings) setResults(null);
+    if (!gradingSettings) { setResults(null); setRowResults(null); }
 
     const pending = gradingSettings
       ? Promise.all(gradedSettings.map((g) => checkAnswer(sessionId, 'setting', `${node.nodeType}:${g.key}`, settings[g.key])))
@@ -293,6 +306,11 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
         // --- Stage 1: grade the parameters.
         const next = {};
         const why = {};
+        // A list field's verdict per ROW the learner built, keyed the same way as
+        // `results` (`<fieldKey>#<aspect>`). Only the server can fill this in — the
+        // browser has no answer key to compare rows against — so it stays empty on
+        // the dev routes, where the list falls back to its three stacked messages.
+        const rows = {};
         paramChecks.forEach((c, i) => {
           const f = c.field;
           const server = serverResults[i];
@@ -306,6 +324,9 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
           const verdict = ok === true ? 'correct' : ok === false ? 'wrong' : 'unverified';
           next[c.key] = verdict;
           why[c.key] = server ? server.why : c.aspect ? undefined : whyForField(f, values[f.key], verdict);
+          if (c.aspect && Array.isArray(server?.items)) {
+            rows[c.key] = { items: server.items, missing: server.missing ?? 0 };
+          }
           // An unverified field is not a decision. Recording it as `correct:
           // false` would put a wrong answer the learner never gave into the
           // grading store.
@@ -315,6 +336,7 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
         });
         setResults(next);
         setFieldWhy(why);
+        setRowResults(rows);
 
         const paramsPassed = paramChecks.every((c) => next[c.key] === 'correct');
         // Nothing is said when a check could not complete: `unverified` is not a
@@ -354,7 +376,10 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
   // A rule list's rows are keyed `<fieldKey>#<aspect>`, so they read their
   // explanation from the same banked map under that key.
   const explainAspect = (key, verdict) => {
-    const why = fieldWhy?.[key];
+    // A row-level key carries the row index (`rules#categories@2`) so each row
+    // opens its own bubble. The explanation is authored per aspect, not per row,
+    // so the lookup drops the suffix.
+    const why = fieldWhy?.[key.split('@')[0]];
     setFeedback((f) => (f && f.key === key ? null : { key, verdict, why }));
   };
 
@@ -496,6 +521,7 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
                 fields={fields}
                 values={values}
                 results={results}
+                rowResults={rowResults}
                 feedback={feedback}
                 optionFor={optionFor}
                 onChange={setValue}
@@ -589,7 +615,22 @@ function ctaStyle(bg, disabled) {
 // `nodeType` is only used to seed the option shuffle — FieldForm has no other
 // reason to know which node it is rendering, so it is passed rather than
 // reaching for the parent's `node`, which is not in scope here.
-function FieldForm({ nodeType, inputKeys, setup, fields, values, results, feedback, optionFor, onChange, onDrop, onExplain, onExplainAspect, allCorrect }) {
+/**
+ * Has this field been answered at all? Only ever used to choose copy — never to
+ * grade, which is the server's job.
+ *
+ * `false` and `0` are real answers, so this cannot be a falsy check. The list
+ * kinds (Switch rules, Edit Fields assignments) arrive as arrays and a resource
+ * locator as `{ __rl, mode, value }`, where only `value` is the answer.
+ */
+function isEmptyValue(v) {
+  if (v === undefined || v === null || v === '') return true;
+  if (Array.isArray(v)) return v.length === 0;
+  if (typeof v === 'object' && v.__rl) return isEmptyValue(resourceValue(v));
+  return false;
+}
+
+function FieldForm({ nodeType, inputKeys, setup, fields, values, results, rowResults, feedback, optionFor, onChange, onDrop, onExplain, onExplainAspect, allCorrect }) {
   const locked = setup?.locked || [];
   const [hoveredKey, setHoveredKey] = useState(null);
   const [dropKey, setDropKey] = useState(null);
@@ -643,15 +684,39 @@ function FieldForm({ nodeType, inputKeys, setup, fields, values, results, feedba
         const border = verdict === 'correct' ? 'var(--status-success)' : verdict === 'wrong' ? 'var(--status-danger)' : 'var(--brand-primary)';
         const bg = verdict === 'correct' ? 'var(--status-success-bg)' : verdict === 'wrong' ? 'var(--status-danger-bg)' : 'var(--brand-blue-50, rgba(0,85,255,0.05))';
         const showBubble = feedback?.key === f.key;
+        // This list's per-row verdicts, by aspect. Only the server can produce
+        // them, so this is null on the dev routes and every aspect falls back to
+        // its list-level line below.
+        const rowsFor = isRules && rowResults
+          ? Object.fromEntries(
+              aspectsFor(f.kind)
+                .map((aspect) => [aspect, rowResults[`${f.key}#${aspect}`]])
+                .filter(([, r]) => Array.isArray(r?.items))
+            )
+          : null;
+        // An aspect stays at LIST level when it has no row to blame: `count` never
+        // has one, and a failure whose rows all pass means an entry is absent
+        // rather than wrong. Everything else has moved onto its row.
+        const listLevelAspects = aspectsFor(f.kind).filter((aspect) => {
+          const rows = rowsFor?.[aspect];
+          if (!rows) return true;
+          return !rows.items.some((ok) => ok === false);
+        });
         return (
           <div key={f.key} onMouseEnter={() => setHoveredKey(f.key)} onMouseLeave={() => setHoveredKey((k) => (k === f.key ? null : k))}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
               <Label style={{ margin: 0 }}>{f.label}</Label>
               {/* Always visible, not hover-only: this badge is the signal for
                   WHICH field still needs the learner, and a signal you have to
-                  hover to discover is not a signal. */}
+                  hover to discover is not a signal.
+                  It has to name the state it is actually in. A resumed node opens
+                  on the values the learner already chose, and telling them to set
+                  a field they can see is filled in reads as a bug — what is left
+                  to do there is the verify. */}
               {!verdict ? (
-                <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--brand-primary)', border: '1px solid var(--brand-primary)', padding: '1px 6px' }}>Set me up</span>
+                <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--brand-primary)', border: '1px solid var(--brand-primary)', padding: '1px 6px' }}>
+                  {isEmptyValue(values[f.key]) ? 'Set me up' : 'Verify me'}
+                </span>
               ) : null}
             </div>
             {f.subtitle ? <div style={{ fontSize: 11.5, color: 'var(--fg-3)', marginBottom: 7, lineHeight: 1.45 }}>{f.subtitle}</div> : null}
@@ -663,7 +728,16 @@ function FieldForm({ nodeType, inputKeys, setup, fields, values, results, feedba
               style={{ position: 'relative', outline: dropKey === f.key ? '2px dashed var(--brand-primary)' : 'none', outlineOffset: 2 }}
             >
               {isRules ? (
-                <RuleListControl field={f} value={value} border={border} onChange={onChange} />
+                <RuleListControl
+                  field={f}
+                  value={value}
+                  border={border}
+                  onChange={onChange}
+                  /* Per-row verdicts, so each branch carries its own message. */
+                  rowVerdicts={rowsFor}
+                  feedback={feedback}
+                  onExplainAspect={onExplainAspect}
+                />
               ) : (
                 <FieldControl
                   field={f}
@@ -678,10 +752,12 @@ function FieldForm({ nodeType, inputKeys, setup, fields, values, results, feedba
               )}
             </div>
 
-            {/* A rule list's three verdicts, itemised. */}
+            {/* What is left of a rule list's three verdicts once the ones with a
+                row to blame have moved onto that row: `count`, and any aspect
+                that failed because an entry is MISSING rather than wrong. */}
             {isRules && results ? (
               <div style={{ marginTop: 9, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {aspectsFor(f.kind).map((aspect) => {
+                {listLevelAspects.map((aspect) => {
                   const v = results[`${f.key}#${aspect}`];
                   if (!v) return null;
                   const key = `${f.key}#${aspect}`;
@@ -710,8 +786,12 @@ function FieldForm({ nodeType, inputKeys, setup, fields, values, results, feedba
             {/* Three states. "Could not check" says so plainly instead of
                 claiming the answer was wrong — and offers no "ask Iris why",
                 because there is nothing to explain and an empty bubble reads as
-                a broken app. */}
-            {verdict === 'unverified' ? (
+                a broken app.
+                A list has no rolled-up line: it would be a bare "Not right" under
+                rows that have already said which branch is wrong and why, and it
+                carries no explanation of its own (the `why` is authored per
+                aspect). Its aspects and rows are the whole verdict. */}
+            {isRules ? null : verdict === 'unverified' ? (
               <div style={{ marginTop: 7, display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--fg-3)' }}>
                 <Warning size={15} weight="fill" />
                 Could not check this — your answer was not marked wrong
@@ -728,7 +808,11 @@ function FieldForm({ nodeType, inputKeys, setup, fields, values, results, feedba
       })}
 
       {!results && fields.length > 0 ? (
-        <div style={{ fontSize: 12, color: 'var(--fg-3)' }}>Set the highlighted field, then hit <strong style={{ color: 'var(--fg-2)' }}>Verify setup</strong>.</div>
+        <div style={{ fontSize: 12, color: 'var(--fg-3)' }}>
+          {fields.every((f) => !isEmptyValue(values[f.key]))
+            ? <>These are the answers you gave. Hit <strong style={{ color: 'var(--fg-2)' }}>Verify setup</strong> to check them.</>
+            : <>Set the highlighted field, then hit <strong style={{ color: 'var(--fg-2)' }}>Verify setup</strong>.</>}
+        </div>
       ) : null}
     </div>
   );

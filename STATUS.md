@@ -21,7 +21,7 @@ Milestones have been completed out of order. What is actually true, per mileston
 | M0 foundations | ✅ complete |
 | M1 auth + problems from the DB | ✅ complete |
 | **M1.5 fidelity + assessment** | ⬅ **current.** A1, A2, A4/C1, B1, B5 done; B6 partly; rubric wired |
-| M2 persistence + tracing | ✅ complete except **resume-on-reload** (see Known issues) |
+| M2 persistence + tracing | ✅ complete — resume lands on the recorded point as of 2026-07-31 |
 | M3 queue + grading + ratings | ⚠️ **half done** — scoring + Claude narrative live; no worker service, no ratings |
 | M4 admin analytics | ✅ landed early — overview, cases, completion funnel, learners, admins |
 | M5 authoring · M6 voice · M7 SQS | not started |
@@ -244,8 +244,10 @@ Done, in three slices:
   screen transitions go through a single `goTo()` so a new screen cannot be added untraced.
   Graph mutations, NDV opens, run results and Ask-AI turns all report.
 
-**Remaining:** resume-on-reload is only half built — the server reuses the in-progress
-session (`resumed: true`), but the client ignores it and restarts at screen one.
+**Resume is built** (2026-07-31): the server reuses the in-progress session (`resumed: true`)
+and `GET /api/sessions` reports where the learner was — screen, Build phase, questions
+answered, canvas — all replayed from their own trace. See Home §1 above for the rules and
+what is still not restored (field values inside a node).
 
 ### M3 — Queue + grading + ratings ⚠️ half done
 
@@ -480,9 +482,42 @@ Stress Testing exists yet. That review is the first thing to do next.
      `seedNodes` hardcoded `configured: true` (it was written for the dev routes' finished
      reference flow), which marked every restored node as set up and let a learner walk past
      configuration they never did; it now honours `data.configured` when the graph says.
-   - **Not restored:** the field VALUES inside a node. A node that comes back configured
-     opens with empty inputs. Verifying again is free, but it looks odd, and closing it means
-     tracing values.
+   - **It resumes to the POINT, not to the screen** (fixed 2026-07-31). It used to carry
+     `{screen, graph}` and nothing finer: `phase_transition` was not even in the route's
+     `type` filter, and each screen hardcoded its own start. So Build reopened at phase one
+     with the restored canvas already satisfying it, which fired the phase-clear effect and
+     walked the learner through a celebration for every phase they had already earned; the
+     two quizzes asked every question again. The payload now carries `phaseId`, the
+     `answered` question ids per quiz and the `unlockedTypes` their right answers earned,
+     derived in [resumePoint.ts](apps/web/src/server/resumePoint.ts) (pure, 15 tests), and
+     the three screens take a starting position.
+     - A question counts as answered whether it was right or **wrong** — both quizzes advance
+       on either, so re-asking would hand out a second attempt at something already recorded.
+       Reloading must not be a way to improve a score.
+     - `unlockedTypes` is resolved server-side from the pinned version, for correct answers
+       only. Without it the Understand summary came back saying "here is your toolkit" over an
+       empty row.
+     - Guarded by `npm run smoke` (the `resume` check): it synthesises a mid-quiz and a
+       mid-Build state through `/check` and `/events`, then asserts the quiz reopens at the
+       next unanswered question and Build reopens on the right phase with no celebration
+       replay. Verified to FAIL when the fix is reverted.
+   - **Field values come back too** (2026-07-31), and fixing that turned up a second bug:
+     **the canvas had never actually been restorable in real use.** `handleGraph` mapped the
+     graph twice and the traced copy read `position` off the already-stripped one, so every
+     recorded node had `position: undefined` and the endpoint refused the lot — 52 of the 60
+     mutations in the local database had no positions, and the 8 that did came from a test.
+     The mapping is now one tested function,
+     [traceGraph.js](apps/web/src/lib/traceGraph.js), which also carries `values` and
+     `settings`; `seedNodes` puts them back and the NDV opens on them.
+     - Only nodes that verified green carry values — that is when the editor stores them —
+       which matches what happens inside a sitting: closing the NDV half-filled has never
+       kept anything.
+     - Verdicts are NOT restored, so Verify is pressed again; a green tick is the server's to
+       give. A filled-but-unverified field therefore says **VERIFY ME** rather than "set me
+       up", and the footer says "These are the answers you gave".
+     - The spotlight intro is suppressed when a canvas is restored. It teaches the first `+`
+       on an empty canvas and is a full-screen overlay, so it pointed at nothing and swallowed
+       the learner's first click.
 2. ~~Below it, the full list of problems.~~ **Done** (the list was already there; it is now
    two-up).
 3. ~~**Problem card** gets, in this order: cover image, `difficulty | time`, title,
@@ -641,13 +676,11 @@ contract the other three problems will be authored against.
 
 1. **No component tests.** `npm test` covers engine, schema and problem data only. Always
    run `npm run smoke` after touching components.
-2. **Resume-on-reload is half built.** The server reuses an in-progress session, but the
-   browser restarts the learner at screen one. Their score is safe (decisions are recorded
-   server-side and `firstTry` is preserved), but they lose their place, and the trace fills
-   with duplicate `screen_transition` rows — which is what the admin funnel reads.
-3. **`lead-triage` is a structural clone of `email-triage`** — identical node types, field
-   keys, branch count, phase ids. Confirmed still true 2026-07-29: both use exactly the same
-   ten node types. M1.5 §D1 replaces it.
+2. **Resume is complete as of 2026-07-31** — screen, Build phase, answered questions, the
+   canvas and each node's field values all come back. What it still does not carry: values on
+   a node whose setup was never verified green (the editor only stores them then, so there is
+   nothing recorded to restore), and the verdicts themselves, which are re-earned by pressing
+   Verify. Guarded by the `resume` check in `npm run smoke`.
 4. **Beware `replace_all` edits in `.jsx`.** A past `ReferenceError` came from replacing
    every `<TopBar activeStage="statement" />`, including inside inner components with no
    `problem` prop. Check enclosing function scope.

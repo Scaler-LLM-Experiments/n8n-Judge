@@ -72,6 +72,12 @@ interface ListSpec {
   /** Scored aspects, in the order shown. */
   aspects: readonly string[];
   labels: Record<string, string>;
+  /**
+   * The same aspects named for ONE row rather than for the list. "Branch names"
+   * is the right label under a list of five; on the third row it is just "Name".
+   * No entry for `count` — it is a property of the list and belongs to no row.
+   */
+  rowLabels: Record<string, string>;
 }
 
 export const LIST_SPECS: Record<string, ListSpec> = {
@@ -86,6 +92,10 @@ export const LIST_SPECS: Record<string, ListSpec> = {
       categories: 'Branch names',
       conditions: 'What each branch tests',
     },
+    rowLabels: {
+      categories: 'Branch name',
+      conditions: 'What it tests',
+    },
   },
   assignmentList: {
     itemsKey: 'assignments',
@@ -97,6 +107,10 @@ export const LIST_SPECS: Record<string, ListSpec> = {
       count: 'Number of fields',
       names: 'Field names',
       values: 'Where each value comes from',
+    },
+    rowLabels: {
+      names: 'Field name',
+      values: 'Where the value comes from',
     },
   },
 };
@@ -114,6 +128,14 @@ export function aspectsFor(kind: string): readonly string[] {
 /** Human label for one aspect of one kind — used in the NDV and the report. */
 export function aspectLabel(kind: string, aspect: string): string {
   return LIST_SPECS[kind]?.labels[aspect] ?? aspect;
+}
+
+/**
+ * The label for one aspect ON ONE ROW. Empty for `count`, which has no row, so a
+ * caller can use that to decide what stays at list level.
+ */
+export function aspectRowLabel(kind: string, aspect: string): string {
+  return LIST_SPECS[kind]?.rowLabels[aspect] ?? '';
 }
 
 /** Back-compat: the rule list's aspects, which most callers still want by name. */
@@ -252,6 +274,74 @@ export function gradeListAspect(field: Rec, aspect: string, value: unknown): boo
 /** Back-compat alias. */
 export function gradeRuleAspect(field: Rec, aspect: string, value: unknown): boolean | null {
   return gradeListAspect(field, aspect, value);
+}
+
+/**
+ * The same judgement as `gradeListAspect`, attributed to the ENTRY it belongs to.
+ *
+ * Scoring is untouched by this: a list still contributes exactly three items
+ * (`count`, keys, detail), because a per-entry score would make the denominator
+ * move with the length of the learner's answer. This exists only so the feedback
+ * can sit on the branch it is about. Three verdicts stacked under a five-branch
+ * Switch tell a learner that something among fifteen values is wrong; the same
+ * three verdicts, on the rows they came from, tell them which.
+ *
+ * `missing` is a COUNT, never the names. The learner is told that a branch is
+ * absent — the `count` aspect already says as much — but naming it would hand
+ * over the answer to the question being asked.
+ *
+ * Returns `items: null` when the field carries no answer key (the browser: the
+ * projection strips `expect`) and for the `count` aspect, which is a property of
+ * the list as a whole and belongs to no row.
+ */
+export function gradeListItems(
+  field: Rec,
+  aspect: string,
+  value: unknown
+): { items: boolean[] | null; missing: number } {
+  const none = { items: null, missing: 0 };
+  const kind = String(field.kind ?? '');
+  const spec = LIST_SPECS[kind];
+  if (!spec) return none;
+  const expected = (field.expect as Rec | undefined)?.[spec.expectKey] as Rec[] | undefined;
+  if (!Array.isArray(expected)) return none;
+
+  const [countA, keysA] = spec.aspects;
+  if (aspect === countA) return none;
+
+  const items = asListItems(kind, value);
+  const missing = expected.filter(
+    (want) => !items.some((got) => norm(got[spec.keyOf]) === norm(want[spec.keyOf]))
+  ).length;
+
+  if (aspect === keysA) {
+    const wanted = expected.map((i) => norm(i[spec.keyOf]));
+    const seen = new Set<string>();
+    return {
+      items: items.map((got) => {
+        const key = norm(got[spec.keyOf]);
+        // A duplicate is wrong on its second appearance, not its first: two
+        // entries with one name is not two entries, and the row to point at is
+        // the repeat.
+        const ok = wanted.includes(key) && !seen.has(key);
+        seen.add(key);
+        return ok;
+      }),
+      missing,
+    };
+  }
+
+  // Detail. An entry whose key is not expected at all fails here too — there is
+  // nothing to compare its detail against — and the keys aspect has already said
+  // why, on this same row.
+  return {
+    items: items.map((got) => {
+      const want = expected.find((w) => norm(w[spec.keyOf]) === norm(got[spec.keyOf]));
+      if (!want) return false;
+      return spec.detailOf.every((d) => norm(got[d]) === norm(want[d]));
+    }),
+    missing,
+  };
 }
 
 /** The explanation for one aspect's verdict, if the problem authored one. */

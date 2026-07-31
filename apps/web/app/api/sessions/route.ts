@@ -1,6 +1,7 @@
 import { auth } from '../../../auth';
 import { prisma } from '@judge/db';
-import { getPublishedVersion } from '../../../src/server/problemVersions';
+import { getPublishedVersion, getVersionById } from '../../../src/server/problemVersions';
+import { resumePointFromTrace } from '../../../src/server/resumePoint';
 
 // Start an attempt. Minimal on purpose — M2 grows this into full session
 // persistence and tracing; today it exists so that answer checking has
@@ -27,29 +28,6 @@ export const dynamic = 'force-dynamic';
  * Returns `{ resume: null }` rather than a 404 when there is nothing open: Home
  * asks on every visit, and "nothing to continue" is the normal answer.
  */
-/**
- * A traced graph, but only if it can actually seed the canvas.
- *
- * Every node needs a numeric `position` — React Flow reads `position.x` while
- * building its internals and throws on the way in, which takes the whole Build
- * screen down rather than degrading. Graphs recorded before the tracer started
- * carrying positions have none, so this is not a hypothetical: without the check,
- * turning resume on would have crashed every learner mid-flight today.
- *
- * Returning null costs the learner their canvas and nothing else: they resume onto
- * the right screen and rebuild, and their recorded marks are untouched.
- */
-function restorableGraph(graph: unknown): unknown | null {
-  if (!graph || typeof graph !== 'object') return null;
-  const nodes = (graph as { nodes?: unknown }).nodes;
-  if (!Array.isArray(nodes) || !nodes.length) return null;
-  const everyNodePlaceable = nodes.every((n) => {
-    const pos = (n as { position?: { x?: unknown; y?: unknown } })?.position;
-    return pos && typeof pos.x === 'number' && typeof pos.y === 'number';
-  });
-  return everyNodePlaceable ? graph : null;
-}
-
 export async function GET() {
   const session = await auth();
   if (!session?.user?.id) return Response.json({ error: 'unauthenticated' }, { status: 401 });
@@ -60,6 +38,7 @@ export async function GET() {
     select: {
       id: true,
       startedAt: true,
+      problemVersionId: true,
       problem: { select: { slug: true, title: true } },
     },
   });
@@ -68,41 +47,61 @@ export async function GET() {
   const events = await prisma.traceEvent.findMany({
     where: {
       sessionId: open.id,
-      // `decision` is in here to answer "did this learner actually do anything",
-      // not to locate a screen. Understand runs its three beats and its whole quiz
-      // WITHOUT a screen_transition — the first one fires on the way to Build — so a
-      // learner who answered four questions and closed the tab has decisions and
-      // nothing else. Judging progress by transitions alone offered them no resume.
-      type: { in: ['screen_transition', 'graph_mutation', 'decision'] },
+      // `decision` is in here for two reasons: it answers "did this learner
+      // actually do anything" — Understand runs its beats and its whole quiz
+      // WITHOUT a screen_transition, so a learner who answered four questions and
+      // closed the tab has decisions and nothing else — and it names the questions
+      // they answered, which is how the quiz resumes where they stopped.
+      //
+      // `phase_transition` is what puts them back in the right Build phase. It was
+      // missing from this filter, which is why resume dropped a learner at phase one
+      // and made them click through every celebration they had already earned.
+      type: { in: ['screen_transition', 'phase_transition', 'graph_mutation', 'decision'] },
     },
     orderBy: { seq: 'desc' },
     select: { type: true, payload: true, receivedAt: true },
-    // Only the latest of each is needed, but they interleave, so take a window
-    // rather than three queries. A learner generates a few hundred events at most.
+    // The interesting rows interleave, so take a window rather than one query per
+    // type. A learner generates a few hundred events at most.
     take: 500,
   });
-
-  const lastScreen = events.find((e) => e.type === 'screen_transition');
-  const lastGraph = events.find((e) => e.type === 'graph_mutation');
-  // No transition yet means they never left the first screen, which is Understand.
-  const screen = ((lastScreen?.payload as Record<string, unknown> | undefined)?.to as string | undefined) ?? 'statement';
-  const graph = restorableGraph((lastGraph?.payload as Record<string, unknown> | undefined)?.graph);
 
   // An attempt with no events at all is a shell — the journey creates a session on
   // mount, so one exists the moment anyone opens a problem and closes the tab. There
   // is nothing to continue, and offering it is noise.
   if (!events.length) return Response.json({ resume: null });
 
+  // Everything about WHERE they were is derived in one tested place.
+  const point = resumePointFromTrace(events);
+
   return Response.json({
     resume: {
       sessionId: open.id,
       slug: open.problem.slug,
       title: open.problem.title,
-      screen,
-      graph,
+      ...point,
+      // What their right answers unlocked, so the Understand summary comes back
+      // with the toolkit they built rather than an empty row. Resolved against the
+      // version this session PINNED, and only for questions they actually got
+      // right — the same rule /check follows when it returns `unlocks`, so this
+      // tells them nothing they were not already told.
+      unlockedTypes: await unlockedTypesFor(open.problemVersionId, point.solved.dissection),
       lastSeenAt: (events[0]?.receivedAt ?? open.startedAt).toISOString(),
     },
   });
+}
+
+async function unlockedTypesFor(problemVersionId: string, solvedIds: string[]): Promise<string[]> {
+  if (!solvedIds.length) return [];
+  const version = await getVersionById(problemVersionId);
+  const dissection = (version?.data as { dissection?: Array<Record<string, unknown>> } | undefined)?.dissection;
+  if (!Array.isArray(dissection)) return [];
+
+  const types = new Set<string>();
+  for (const q of dissection) {
+    if (typeof q.id !== 'string' || !solvedIds.includes(q.id)) continue;
+    for (const t of (q.unlocks as string[] | undefined) ?? []) types.add(t);
+  }
+  return [...types];
 }
 
 export async function POST(req: Request) {

@@ -54,7 +54,13 @@ function seedNodes(ig) {
         nodeType: n.type,
         label: entry.label,
         params: entry.params,
-        values: {},
+        // The learner's own answers, when the graph carries them. A resumed node
+        // used to come back `configured` but empty, so opening it showed a node
+        // that claimed to be set up over blank inputs — reported as a bug, and it
+        // read as one. The dev routes seed `referenceGraph`, which carries no
+        // `data`, so they still get empty and everything is assumed configured.
+        values: n.data?.values ?? {},
+        settings: n.data?.settings ?? {},
         configured: n.data ? !!n.data.configured : true,
         wrong: n.data ? !!n.data.wrong : false,
         output: entry.output,
@@ -263,7 +269,9 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
     if (!ndvId) return null;
     const n = nodes.find((x) => x.id === ndvId);
     if (!n) return null;
-    return { id: n.id, nodeType: n.data.nodeType, label: n.data.label, params: n.data.params, values: n.data.values, output: n.data.output };
+    // `values` and `settings` are what the learner had already entered — the NDV
+    // opens on them so a reopened (or resumed) node is not blank.
+    return { id: n.id, nodeType: n.data.nodeType, label: n.data.label, params: n.data.params, values: n.data.values, settings: n.data.settings, output: n.data.output };
   })();
 
   const ndvIn = (() => {

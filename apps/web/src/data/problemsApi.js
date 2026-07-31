@@ -42,3 +42,29 @@ export function slugFromUrl() {
   const m = `${window.location.hash || ''}&${window.location.search || ''}`.match(/[?&]problem=([\w-]+)/);
   return m ? m[1] : null;
 }
+
+// The other direction: put the challenge the learner is in INTO the address bar,
+// so a link to it can be copied out and sent.
+//
+// The whole journey is one client-side page — picking a challenge is React state,
+// which means the URL says `/` from Home to Result unless something writes to it.
+// Pure and separate from the browser call below so it can be tested without a DOM
+// (vitest runs on `node` here).
+//
+// Only `problem` is touched. The hash is preserved because the dev routes live
+// there, and any other query param because nothing here owns it.
+export function urlWithSlug(href, slug) {
+  const url = new URL(href);
+  if (slug) url.searchParams.set('problem', slug);
+  else url.searchParams.delete('problem');
+  return `${url.pathname}${url.search}${url.hash}`;
+}
+
+// `replace` for the link the learner arrived on (there is nothing to go back to,
+// and a pushState there would make Back a no-op); `push` for a card click, so
+// Back leaves the challenge and returns to Home.
+export function writeSlugToUrl(slug, { replace = false } = {}) {
+  if (typeof window === 'undefined') return;
+  const next = urlWithSlug(window.location.href, slug);
+  window.history[replace ? 'replaceState' : 'pushState']({ problem: slug ?? null }, '', next);
+}

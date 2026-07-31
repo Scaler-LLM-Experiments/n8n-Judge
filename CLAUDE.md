@@ -12,13 +12,24 @@ and was deleted rather than maintained twice.
 
 "n8n Judge" is a simulator that teaches non-technical Scaler learners to build AI-agent
 workflows in n8n **and grades them while they do it**. Per challenge the learner walks
-**Home → Understand → Build → Stress Testing → Result**. Four challenges ship:
-`email-triage`, `lead-triage` (routing), `meeting-notes` (linear) and `order-desk`
-(21 nodes, 8 routes, two AI nodes — the hard one).
+**Home → Understand → Build → Stress Testing → Result**. **One challenge ships:
+`email-triage`** — the fully-authored reference (voice, cover art, difficulty, brief).
+`lead-triage`, `meeting-notes` and `order-desk` were removed on 2026-07-31 so
+`packages/problems/_template/` could be extracted from one complete problem rather than
+four of unequal age. They live in git history, but the same commit deleted their database
+rows, so restoring one means re-registering **and** re-seeding. Anything describing "four
+challenges" is out of date.
 
 The repo root **is** the monorepo — `apps/web` plus ten `@judge/*` packages. It was
 restructured on 2026-07-27; anything referring to an `innate/` folder or an `app/` Vite
 prototype is out of date, and both are gone.
+
+**Two project skills hold the detail this file only summarises.** Read the matching one
+before touching those paths, because both encode rules that are test-enforced:
+[.claude/skills/authoring-a-problem/SKILL.md](.claude/skills/authoring-a-problem/SKILL.md)
+for `packages/problems/**`, and
+[.claude/skills/iris-voice/SKILL.md](.claude/skills/iris-voice/SKILL.md) for anything under
+`voice*` or `packages/voice-scripts`.
 
 ## Commands
 
@@ -53,7 +64,7 @@ the DB, and the journey is behind auth:
 cp .env.example .env   # set AUTH_SECRET (openssl rand -base64 32); POSTGRES_PORT if 5432 is taken
 npm run db:up          # local Postgres via docker-compose.yml
 npm run db:migrate      # apply committed migrations
-npm run db:seed        # programs, batches, and the four problems as v1 PUBLISHED
+npm run db:seed        # programs, batches, and every registered problem as v1 PUBLISHED
 DATABASE_URL="postgresql://…" npm run db:seed:rubric   # the rubric — not optional, see below
 ```
 
@@ -126,6 +137,32 @@ outbound event queue). Screen changes go through one `goTo()` so a new screen ca
 added without being traced — the admin timeline's "who is stuck where" is built from those
 events.
 
+**A challenge is linkable: `/?problem=<slug>`.** There is one page, so which challenge is
+open is React state in `Landing` — the address bar only reflects it because `open()` writes
+it there, via `writeSlugToUrl()` in
+[problemsApi.js](apps/web/src/data/problemsApi.js) (`urlWithSlug()` is the pure, tested
+half). Four things hang off that and are easy to break separately:
+
+- **`slugFromUrl()` is read once, at mount**, and the state is the source of truth after
+  that — except on `popstate`, where the URL wins again. That is what makes Back mean "leave
+  this challenge" rather than "leave Judge": a card click **pushes**, so there is something
+  to go back to. Arriving *on* a link pushes nothing, so Back exits the site, the same as any
+  other page — smoke asserts the pushed case only, deliberately.
+- **A slug is not trusted.** `fetchProblem` 404s on anything unpublished, and the catalogue
+  fetch that a deep link triggers (Home never ran, so `catalogue.current` is empty and the
+  Result screen has no "next challenge" to name) also **returns the learner to Home with the
+  param stripped** when the list does not contain the slug. Not a silent fallback to other
+  content — there is none to serve, and the catalogue is proof rather than a guess.
+- **Login must not eat the link.** The middleware bounces a signed-out learner to
+  `/login?callbackUrl=<absolute url>`; `auth-form.tsx` used to hardcode `location.href = '/'`
+  and throw it away. [returnPath.ts](apps/web/src/lib/returnPath.ts) is the only thing that
+  decides that value is safe — same **origin**, not merely a leading slash, because NextAuth
+  sends an absolute URL and `//host` resolves to somebody else's site. Never widen it.
+- **Smoke covers both entries** — `<problem>--journey-start` (card click writes the slug,
+  Back returns Home) and `<problem>--deep-link` (the link opens the challenge, not Home).
+  `journey-start` therefore loads `/`, **not** `/?problem=<slug>` as it once did; that URL no
+  longer shows a card to click.
+
 ### Port, don't rewrite
 Prototype `.jsx` moved in untouched. **All new code is TypeScript.** Workspace packages
 ship raw sources and are listed in `transpilePackages` in
@@ -139,8 +176,23 @@ the Prisma client out of the bundle.
 Everything specific to a challenge is **one plain data object** in
 `packages/problems/<id>/index.js`, registered in
 [packages/problems/index.js](packages/problems/index.js) and threaded through the app as
-the `problem` prop. To add or change a challenge you edit data, **not** the engine or UI —
-see [docs/adding-a-problem.md](docs/adding-a-problem.md).
+the `problem` prop. To add or change a challenge you edit data, **not** the engine or UI.
+
+**Use the `authoring-a-problem` skill** — [.claude/skills/authoring-a-problem/SKILL.md](.claude/skills/authoring-a-problem/SKILL.md)
+is the procedure and every enforced rule; [docs/adding-a-problem.md](docs/adding-a-problem.md)
+is now only a pointer to it plus the commands.
+
+**A problem is seven files, not one.** `index.js` only *assembles*; the values live in
+`meta.js` · `dissection.js` · `build.js` · `nodeSetup.js` · `probes.js` · `cases.js` ·
+`voice.js`. `packages/problems/_template/` mirrors that structure exactly — a new challenge
+is `cp -r packages/problems/_template packages/problems/<slug>`, fill the TODOs, register it.
+`email-triage/assembled.snapshot.json` + `index.test.js` assert the assembled object still
+deep-equals what the single-file version produced, so the split is provable; keep that
+snapshot honest when the shape genuinely changes.
+
+Removing a problem is `node packages/db/remove-problem.mjs <slug>` (`--dry-run`, `--yes`) —
+every relation to `Problem` is `Restrict`, so the deletion order *is* the job and it lives
+in that script rather than as ad-hoc SQL.
 
 Key fields: `branches`, `flow` (`start`/`next`/`branchNext`/`modelNext` — the last two
 optional), `flowSummary`, `buildPhases`, `nodeSetup` (per-node NDV: `credential` +
@@ -172,6 +224,21 @@ assignmentList`. The last three are n8n's structurally-different parameter shape
   between attempts. Their check ids are `<type>:<fieldKey>#<aspect>`, all open-ended
   (100/50/0). Downstream code still only ever sees the authored branches, because a phase
   cannot complete until the list verifies green.
+- **The FEEDBACK is per row, though the score is not.** Three verdicts stacked under a
+  five-branch Switch say "what each branch tests — not right" and leave the learner to work
+  out which of five. `gradeListItems()` re-runs the same comparison **per entry**, the check
+  response carries it as `items[]` (+ a `missing` count), and each row shows its own message
+  with its own Iris bubble; `count` and any failure whose rows all pass (an entry is
+  *absent*, not wrong) stay at list level. Rules that hold this together:
+  - **Presentation only.** No new check ids, no per-row decisions recorded, denominator
+    unchanged. If you find yourself adding a scored item per row, re-read
+    [ruleList.ts](packages/problem-schema/ruleList.ts).
+  - **`missing` is a count, never the names.** Telling a learner a branch is absent is fair;
+    naming it answers the question being asked.
+  - **Server-only.** The browser has no `expect` to compare rows against, so `rowResults` is
+    null without a session and the list falls back to its three list-level lines.
+  - The rolled-up "Not right — ask Iris why" line is **suppressed for a list** — it has no
+    `why` of its own (explanations are authored per aspect) and it duplicated the rows.
 
 **Fields can be conditional, and that changes grading.**
 [packages/problem-schema/fieldVisibility.ts](packages/problem-schema/fieldVisibility.ts)
@@ -293,6 +360,68 @@ then-insert produced duplicate `seq`, a 500, and a client that turned that 500 i
 answer. The **attempt count** lives inside the same lock too: unsynchronised, every
 concurrent check of one id counted zero priors and all claimed `firstTry`.
 
+### Resume — "Continue where you left off"
+`GET /api/sessions` answers **where this learner was**, and every part of that answer is
+replayed from their own `TraceEvent` rows, never from `Session.currentScreen` /
+`builtGraphSnapshot` (nothing writes those until a session completes, so trusting them offers
+everyone screen one and an empty canvas). The derivation is one pure, tested function —
+[src/server/resumePoint.ts](apps/web/src/server/resumePoint.ts) — because the route itself
+cannot be unit tested and a resume that is merely *close* to the right place still looks like
+a working feature.
+
+**The trace holds progress at four granularities and the payload must carry all four.** It
+used to carry two, and that was the bug: `phase_transition` was not even in the route's
+`type` filter, so Build reopened at phase one — where the restored canvas satisfied it
+instantly, fired the phase-clear effect, and walked the learner through a celebration for
+every phase they had already earned. The two quizzes asked every question again.
+
+| Event | Becomes | Consumed by |
+|---|---|---|
+| `screen_transition` | `screen` | `MainApp` (`RESUMABLE_SCREENS` — `report` is excluded) |
+| `phase_transition` | `phaseId` | `BuildStage` `resumePhaseId` → initial `phaseIndex`, and it suppresses the first-`+` spotlight |
+| `decision` | `answered.{dissection,stress}`, `solved.dissection` | `DissectionScreen` / `EvalScreen` `resume` → initial question index |
+| `graph_mutation` | `graph` (positions, `configured`, field `values`, `settings`) | `BuildStage` `initialGraph` → `seedNodes` → the NDV |
+
+Rules worth keeping:
+
+- **A question counts as answered whether it was right or wrong.** Both quizzes advance on
+  either verdict, so re-asking one hands out a second attempt at something already recorded —
+  reloading must not be a way to improve a score.
+- **`solved` is narrower than `answered`** and exists for one reason: `unlockedTypes` in the
+  payload, resolved server-side from the pinned version for correct answers only. Without it
+  the Understand summary says "here is your toolkit" over an empty row.
+- **A graph with no numeric node positions is refused** — React Flow reads `position.x` while
+  seeding and throws, taking the whole Build screen down. Returning null costs the canvas and
+  nothing else. **Which is why what gets traced is built by one function,
+  [traceGraph.js](apps/web/src/lib/traceGraph.js), and not mapped inline.** It was mapped
+  twice in `handleGraph`, and the second copy read `n.position` off a list the first copy had
+  already stripped it from — so every recorded graph had `position: undefined` and the
+  endpoint refused all of them. 52 of the 60 mutations recorded locally had no positions, and
+  the 8 that did were written by a test. Resume looked implemented and gave back nothing.
+- **Field values and node settings are traced too, and restored three levels down**:
+  `traceableGraph` records `data.values` / `data.settings` → `seedNodes` puts them back on the
+  node → the `ndvNode` memo passes them → the NDV opens on them. A node used to come back
+  marked configured over blank inputs, which reads as lost work. Only nodes whose setup
+  verified green carry values (that is when the editor stores them), which also means the
+  badge and hint copy has to name the state: a filled-but-unverified field says **VERIFY ME**,
+  not "set me up".
+- **Verdicts are deliberately NOT restored.** `results` starts null, so Verify must be pressed
+  again. A green tick is the server's to give, and re-checking an answer that was already
+  right cannot cost marks.
+- **Guarded by `npm run smoke`** (the `resume` check, which is stateful and runs after the
+  page checks). It builds a mid-quiz and a mid-Build state through `/check` and `/events`,
+  then asserts the quiz reopens at the next unanswered question and Build reopens on the right
+  phase with no celebration replay, that a restored node's selects still hold the learner's
+  answers, and that a node placed **by clicking** comes back at all (the API-seeded scenarios
+  cannot see the position bug above). Every part was verified to fail when its fix is reverted;
+  keep it that way, and keep every wait condition-based.
+  - Two traps cost real time in that check, both worth knowing before adding to it:
+    `getByText(x).first()` is first in **DOM order, not the first visible** match, and the NDV's
+    fields are real `<select>` elements whose `<option>`s Playwright counts as invisible — so
+    assert on `select.value`, not on the option's label. And the node picker has no Escape
+    handler: clicking near its header to dismiss it lands on a node in its own list and **adds
+    one**, after which the NDV opens on a brand new empty node.
+
 ### Scoring — the rubric ([packages/engine/rubric.ts](packages/engine/rubric.ts))
 Replaced "share of decisions correct on the first try", which had two defects: every decision
 weighed the same (email-triage's 13 dropdowns outweighed its 6 node placements), and clicking
@@ -369,7 +498,7 @@ That's by design.
 | `@judge/engine` | Pure, unit-tested `(studentGraph, problem)` logic: `validateGraph` (gates the Run), `simulateCase`/`simulateAll`, `scoreEval`, `grading`, `asWorkflow`/`inferBranches`, `hasConnection`, `branchReach` (does every branch reach a reply), and the **rubric** (`scoreSession`, `attemptsFromTrace`, `phaseBreakdown`, `scoreBand`, `problemComplexity`, `enumerateItems`) |
 | `@judge/workflow` | The canonical n8n workflow model (TS) + React Flow ⇄ n8n conversion |
 | `@judge/catalog` | `NODE_CATALOG` — node vocabulary, params, sample I/O |
-| `@judge/problems` | The four challenges as data + registry + tests (seed source). **Registry order is the catalogue order** — `order-desk` is deliberately last |
+| `@judge/problems` | `email-triage` (seven files) + `_template/` + registry + tests (seed source). **Registry order is the catalogue order** |
 | `@judge/problem-schema` | zod `Problem` schema, `validateProblem()`, `toPublicProblem()`, `checkAnswer()`, `ruleList.ts` (rule/assignment lists) |
 | `@judge/trace` | `TraceEvent` contract + `ingest.ts` — decision, screen/phase transition, ndv_open, graph_mutation, run_result, ask_ai_turn; `CLIENT_FORBIDDEN_TYPES` |
 | `@judge/queue` | Queue interface + pg-boss driver + SQS stub |
@@ -506,9 +635,11 @@ The two rules that matter most, in case the skill is not loaded:
 Design: [docs/superpowers/specs/2026-07-30-voice-clip-pipeline-design.md](docs/superpowers/specs/2026-07-30-voice-clip-pipeline-design.md).
 Copy proposal and rationale: [docs/voice-copy-email-triage.md](docs/voice-copy-email-triage.md).
 
-**Coverage today:** email-triage 60 authored lines, order-desk 53 (written before the
-current rules, needs a pass), **lead-triage and meeting-notes zero** — they run entirely
-on the generic phrase book.
+**Coverage today:** `email-triage` only — its authored lines in
+`packages/problems/email-triage/voice.js`, rendered into
+`packages/voice-scripts/email-triage.json` (533 clips: every line the catalogue says can
+*ever* be spoken, authored plus generic). It is the only clip table in the package, so a
+new problem starts on the generic phrase book until `voice:generate` runs for it.
 
 ### Legacy inside apps/web/src
 `nodes/*.jsx` (`ActionNode`, `ChatModelNode`, `ClassifyNode`, `ProcessNode`, `TriggerNode`,
@@ -518,6 +649,12 @@ on the generic phrase book.
 the Result screen's decision rows were its only two callers and both are gone. Kept, not
 deleted, because it is the one component that animates a case through a learner's own
 graph — but nothing renders it today.
+
+**Screenshot scripts can also go stale.** `apps/web/scripts/shoot-mn.mjs` targets
+`meeting-notes`, which no longer exists, so it cannot run; `shoot-askai.mjs` and
+`shoot-verify.mjs` name removed problems too. `smoke.mjs` is the one that survived the
+removal, because it derives its targets from `problemList` instead of hardcoding slugs —
+copy that habit into any new script.
 
 ## Design conventions
 
@@ -546,19 +683,20 @@ already known to be wrong. Never park the correct option at index 0 as a habit; 
 once found it there in 25/25 fields and 13/13 dissection items
 (`apps/web/scripts/verify-option-balance.mjs` checks this).
 
-**[balanceOptions.ts](packages/problem-schema/balanceOptions.ts) is written but not wired.**
-`balanceGroup` / `balanceProblemOptions` are the intended fix for the above — deterministically
-spread each correct answer's position **server-side, before `toPublicProblem()` strips the
-key** — and they have tests, but nothing in production calls them. The reason they exist:
-EvalScreen's per-tab shuffle is uniform *on average* yet draws each field **independently**, so
-an individual tab can be degenerate (the unluckiest measured session had the answer on top for
-18 of 24 fields, and averages are no comfort to the learner living in that tab). Until it is
-wired, the live defences are authored balance plus that verify script. `evalQuestions` are
-deliberately left alone by it — `scoreEval` grades against the authored `correctIndex`.
+**[balanceOptions.ts](packages/problem-schema/balanceOptions.ts) is wired, and it runs
+FIRST.** `toPublicProblem()` calls `balanceProblemOptions(problem)` on line 1 of its body —
+deterministically spreading each correct answer's position **while the correctness markers
+still exist**, because a moment later they are stripped and nothing downstream can tell which
+option to move. Don't reorder that call. The reason it exists: EvalScreen's per-tab shuffle is
+uniform *on average* yet draws each field **independently**, so an individual tab can be
+degenerate (the unluckiest measured session had the answer on top for 18 of 24 fields, and
+averages are no comfort to the learner living in that tab). `evalQuestions` are deliberately
+left alone by it — `scoreEval` grades against the authored `correctIndex`. Authored balance
+plus `verify-option-balance.mjs` remain the defence for anything the projection never sees.
 
 ### IMPORTANT — copy rules for anything a learner reads BEFORE building
-**Carry these into the problem-authoring skill when M5 lands.** Both are enforced, so a
-violation fails `npm test` rather than reaching a learner.
+Also stated in the `authoring-a-problem` skill, which is the fuller version. Both are
+enforced, so a violation fails `npm test` rather than reaching a learner.
 
 0. **`flowSummary` labels are three words maximum.** The sketch lays each step out in a
    ~96px column and `wrapLabel` breaks at two words per line, so a four-word label is three
@@ -591,9 +729,9 @@ own placeholder). `/api/problems` serves `src` and `alt` but **never the prompt*
 **`nodeSetup` is keyed by node TYPE, not by node instance.** Using the same type twice in
 one problem gives both instances the same NDV and grades one decision that may only make
 sense for one of them, so a large problem should use each type once unless the same
-configuration is genuinely right everywhere (`order-desk` repeats `action` because "send
-the customer a reply" really is the same setup four times, and gives each other job its own
-type).
+configuration is genuinely right everywhere (the removed `order-desk` repeated `action`
+because "send the customer a reply" really was the same setup four times, and gave every
+other job its own type — that is the bar for reusing a type).
 
 ## Deployment
 
@@ -642,7 +780,7 @@ could not see it while the UI showed it as present. Catch it with
 
 - **Never run `npm run build` while `next dev` is running.** They share `.next` and it
   corrupts the running server. Symptoms are alarming and misleading — every route 500s,
-  smoke fails on all 20 screens, API calls return HTML. Kill dev, `rm -rf apps/web/.next`,
+  smoke fails on every screen, API calls return HTML. Kill dev, `rm -rf apps/web/.next`,
   restart.
 - **Editing `packages/problems/*` does nothing until `npm run db:seed`.**
 - **Beware `replace_all` edits in `.jsx`** — check enclosing function scope. A past

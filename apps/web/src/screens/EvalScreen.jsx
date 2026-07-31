@@ -48,7 +48,12 @@ function resolveVerdict(q, chosen, result) {
 
 // No `graph` prop any more: the only thing that needed the learner's built graph
 // here was the post-answer NodeReplay, which is gone.
-export function EvalScreen({ problem, sessionId, onDecision, onSubmit }) {
+/**
+ * `resume` is this learner's own progress from their trace:
+ * `{ answered: string[] }` — the stress questions already on record. Absent on a
+ * fresh start.
+ */
+export function EvalScreen({ problem, sessionId, onDecision, onSubmit, resume }) {
   const voice = useVoiceActions();
   const said = useRef(false);
   useEffect(() => {
@@ -57,7 +62,17 @@ export function EvalScreen({ problem, sessionId, onDecision, onSubmit }) {
     voice.play('stress_start');
   }, [voice]);
   const questions = problem.evalQuestions;
-  const [index, setIndex] = useState(0);
+  // Rejoin at the first question with no answer on record. One answer per
+  // question is all this screen takes, so anything answered is behind them —
+  // asking again would be a second attempt at something already graded.
+  const [index, setIndex] = useState(() => {
+    const answered = new Set(resume?.answered ?? []);
+    if (!answered.size) return 0;
+    const at = questions.findIndex((q) => !answered.has(q.id));
+    // Every question answered and still here means they left on the last verdict
+    // rather than pressing "See Report": show it again instead of an empty screen.
+    return at === -1 ? Math.max(questions.length - 1, 0) : at;
+  });
   const [picked, setPicked] = useState(null);
   const [checking, setChecking] = useState(false); // request for `picked` in flight
   const [verdict, setVerdict] = useState(null); // settled { correct, why } for `picked`

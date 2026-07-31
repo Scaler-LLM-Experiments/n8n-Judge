@@ -14,6 +14,8 @@ export {
   isListKind,
   aspectsFor,
   aspectLabel,
+  aspectRowLabel,
+  gradeListItems,
   asListItems,
   emptyListItem,
   isListItemComplete,

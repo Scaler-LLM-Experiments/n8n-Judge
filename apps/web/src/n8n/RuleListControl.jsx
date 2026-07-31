@@ -1,6 +1,7 @@
 import React from 'react';
-import { Plus, Trash, ArrowUp, ArrowDown } from '@phosphor-icons/react';
-import { asListItems, emptyListItem, LIST_SPECS } from '@judge/problem-schema';
+import { Plus, Trash, ArrowUp, ArrowDown, CheckCircle, XCircle } from '@phosphor-icons/react';
+import { asListItems, emptyListItem, LIST_SPECS, aspectRowLabel } from '@judge/problem-schema';
+import { IrisBubble } from './IrisBubble.jsx';
 
 // n8n's repeatable-group parameters: the Switch's routing `rules` (a
 // fixedCollection of filters) and Edit Fields' `assignments` (name → value).
@@ -74,11 +75,25 @@ function IconBtn({ title, onClick, disabled, children }) {
   );
 }
 
-export function RuleListControl({ field, value, border, onChange }) {
+/**
+ * `rowVerdicts` is the graded answer, attributed to the row it belongs to:
+ * `{ [aspect]: { items: boolean[], missing: number } }`, straight from the check
+ * response. Absent until Verify runs, and absent on the dev routes, where there
+ * is no session to grade against.
+ *
+ * Why it exists: the three aspects of a list used to report as three messages
+ * stacked underneath it, so a five-branch Switch with one bad condition said
+ * "What each branch tests — not right" and left the learner to work out which of
+ * the five. The verdict is still ONE scored item per aspect (see ruleList.ts —
+ * per-row scoring would make the denominator move); only the message moved.
+ */
+export function RuleListControl({ field, value, border, onChange, rowVerdicts, feedback, onExplainAspect }) {
   const kind = field.kind;
   const spec = LIST_SPECS[kind];
   const isRules = kind === 'ruleList';
   const rules = asListItems(kind, value);
+  // Which aspects have a verdict per row at all. `count` never does.
+  const rowAspects = rowVerdicts ? Object.keys(rowVerdicts).filter((a) => aspectRowLabel(kind, a)) : [];
   // Store under n8n's own key for this kind: `values` for Switch rules,
   // `assignments` for Edit Fields.
   const set = (next) => onChange(field.key, { [spec.itemsKey]: next });
@@ -104,8 +119,17 @@ export function RuleListControl({ field, value, border, onChange }) {
         </div>
       ) : null}
 
-      {rules.map((rule, i) => (
-        <div key={i} style={{ border: `1px solid ${border}`, padding: 10, display: 'flex', flexDirection: 'column', gap: 8, background: 'var(--surface-1)' }}>
+      {rules.map((rule, i) => {
+        // This row's own verdict, aspect by aspect. `undefined` means the row was
+        // added after the last Verify — the list is longer than the graded answer
+        // — and an unjudged row must not be coloured either way.
+        const failed = rowAspects.filter((a) => rowVerdicts[a].items[i] === false);
+        const judged = rowAspects.length > 0 && rowAspects.every((a) => typeof rowVerdicts[a].items[i] === 'boolean');
+        const rowState = !judged ? null : failed.length ? 'wrong' : 'correct';
+        const rowBorder =
+          rowState === 'wrong' ? 'var(--status-danger)' : rowState === 'correct' ? 'var(--status-success)' : border;
+        return (
+        <div key={i} style={{ border: `1px solid ${rowBorder}`, padding: 10, display: 'flex', flexDirection: 'column', gap: 8, background: 'var(--surface-1)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--fg-3)', flex: 'none' }}>
               {isRules ? `Output ${i + 1}` : `Field ${i + 1}`}
@@ -141,8 +165,35 @@ export function RuleListControl({ field, value, border, onChange }) {
               <Pick label="Value" value={rule.value} options={field.valueOptions} onChange={(v) => patch(i, 'value', v)} border="var(--border-strong)" flex={2} />
             </div>
           )}
+
+          {/* The verdict for THIS row, which is the whole point of the change: one
+              message per branch, on the branch, instead of three list-wide lines
+              the learner has to map back onto five rows themselves. */}
+          {rowState === 'correct' ? (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 600, color: 'var(--status-success)' }}>
+              <CheckCircle size={14} weight="fill" /> This one’s right
+            </span>
+          ) : null}
+          {failed.map((aspect) => {
+            // Keyed by row as well as aspect, so two rows failing the same aspect
+            // each open their own explanation rather than one bubble jumping.
+            const key = `${field.key}#${aspect}@${i}`;
+            return (
+              <div key={aspect}>
+                <button
+                  type="button"
+                  onClick={() => onExplainAspect?.(key, 'wrong')}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 11.5, fontWeight: 600, textDecoration: 'underline', textUnderlineOffset: 2, color: 'var(--status-danger)' }}
+                >
+                  <XCircle size={14} weight="fill" /> {aspectRowLabel(kind, aspect)} — not right, ask Iris why
+                </button>
+                {feedback?.key === key && feedback.why ? <IrisBubble tone="wrong">{feedback.why}</IrisBubble> : null}
+              </div>
+            );
+          })}
         </div>
-      ))}
+        );
+      })}
 
       <button
         type="button"

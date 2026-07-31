@@ -150,7 +150,11 @@ async function runAll(jobs) {
 const jobs = [{ name: 'home', url: `${base}/` }];
 
 for (const p of PROBLEMS) {
-  jobs.push({ name: `${p}--journey-start`, url: `${base}/?problem=${p}`, extra: async (page, errs) => {
+  // Home, NOT `/?problem=<slug>`. That URL is now a deep link that enters the
+  // challenge on its own, so this check would find no card to click — the point
+  // here is the path a learner actually takes through the grid. The deep link
+  // gets its own check below.
+  jobs.push({ name: `${p}--journey-start`, url: `${base}/`, extra: async (page, errs) => {
     // Enter the journey from THIS problem's card, landing on its Understand screen.
     // Clicking `.first()` used to mean every problem's journey-start check actually
     // opened email-triage, so two of the three Understand screens were never tested.
@@ -186,6 +190,40 @@ for (const p of PROBLEMS) {
     } catch {
       errs.push('never reached the Understand quiz (still on an intro beat?)');
     }
+
+    // Entering from a card must write the slug into the address bar — that is what
+    // makes the challenge linkable at all — and it must push a history entry, so
+    // Back means "go to Home" rather than "leave Judge".
+    if (!page.url().includes(`problem=${p}`)) {
+      errs.push(`entering "${p}" left the URL at ${page.url()} — nothing to copy and share`);
+    }
+    await page.goBack().catch(() => {});
+    await page.waitForTimeout(1200);
+    try {
+      await page.locator(`button[data-problem="${p}"]`).first().waitFor({ state: 'visible', timeout: 8000 });
+    } catch {
+      errs.push('Back did not return to Home');
+    }
+    if (page.url().includes('problem=')) {
+      errs.push(`Back left the slug in the URL (${page.url()}), so a reload would re-enter the challenge`);
+    }
+  } });
+
+  // The shareable link. `/?problem=<slug>` must open the challenge rather than
+  // Home, and must leave the slug in the address bar so it can be copied out and
+  // sent again. Both halves are silent when they break: the link still loads a
+  // working app, just not the challenge someone was told to try.
+  jobs.push({ name: `${p}--deep-link`, url: `${base}/?problem=${p}`, extra: async (page, errs) => {
+    if ((await page.locator(`button[data-problem]`).count()) > 0) {
+      errs.push(`deep link landed on Home instead of opening "${p}"`);
+    }
+    if (!page.url().includes(`problem=${p}`)) {
+      errs.push(`deep link dropped the slug from the URL (now ${page.url()}) — nothing left to share`);
+    }
+    // Deliberately NOT asserting that Back returns to Home here: arriving on a
+    // link is the first entry in that tab's history, so Back leaves the site, the
+    // same as it would on any other page. The in-app history is checked on the
+    // card-click path above, which is where an entry is actually pushed.
   } });
 
   for (const r of ROUTES) {
@@ -216,7 +254,236 @@ for (const p of PROBLEMS) {
 }
 
 await runAll(jobs);
+await resumeCheck();
 await browser.close();
+
+/**
+ * "Continue where you left off" must land on the point in the trace, not at the
+ * top of the screen that point is on.
+ *
+ * Stateful, so it runs on its own after the page checks rather than as one of
+ * them. Progress is synthesised through the real endpoints — /check for answers,
+ * /events for navigation — because the browser does not hold the answers needed
+ * to complete a Build phase by clicking, and a resume test that cannot set up a
+ * mid-Build state cannot test the case that was broken.
+ *
+ * Every wait here is on a condition. A fixed delay on this check would be worse
+ * than no check: resume already looks like it works when it is wrong.
+ */
+/**
+ * Wait for text that is actually VISIBLE, rather than for the first match.
+ *
+ * `getByText(x).first()` is first in DOM order, and every select in the NDV
+ * renders its options in a closed list — so the value a learner picked is on the
+ * page twice, hidden in the list and visible in the control. Waiting on `.first()`
+ * timed out while the value was plainly on screen, and the check reported a bug
+ * that a screenshot disproved.
+ */
+async function waitForVisibleText(page, text, timeout = 10000) {
+  const target = page.getByText(text, { exact: false });
+  for (let waited = 0; waited <= timeout; waited += 250) {
+    const n = await target.count().catch(() => 0);
+    for (let i = 0; i < n; i += 1) {
+      if (await target.nth(i).isVisible().catch(() => false)) return true;
+    }
+    await page.waitForTimeout(250);
+  }
+  return false;
+}
+
+async function resumeCheck() {
+  const problem = problemList[0];
+  const errs = [];
+  const page = await context.newPage();
+  page.on('pageerror', (e) => errs.push(`pageerror: ${e.message}`));
+  await page.goto(`${base}/`, { waitUntil: 'networkidle' });
+
+  const api = (fn, arg) => page.evaluate(fn, arg);
+
+  // Close whatever attempt is open (previous runs included) and start a clean one.
+  const freshSession = () =>
+    api(async (slug) => {
+      const open = await (await fetch('/api/sessions')).json();
+      if (open?.resume?.sessionId) {
+        await fetch(`/api/sessions/${open.resume.sessionId}/report`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ narrative: false }),
+        });
+      }
+      const made = await (await fetch('/api/sessions', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ slug }),
+      })).json();
+      return made.sessionId;
+    }, problem.id);
+
+  const answer = (sessionId, ids) =>
+    api(async ([id, list]) => {
+      for (const q of list) {
+        await fetch(`/api/sessions/${id}/check`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          // Deliberately wrong: a question counts as answered either way, and a
+          // wrong answer is the case that must not be re-asked.
+          body: JSON.stringify({ kind: 'dissection', id: q, answer: '__not_a_node_type__' }),
+        });
+      }
+    }, [sessionId, ids]);
+
+  const continueWhereLeftOff = async () => {
+    await page.goto(`${base}/`, { waitUntil: 'networkidle' });
+    const button = page.getByRole('button', { name: /^Continue$/ });
+    await button.waitFor({ state: 'visible', timeout: 15000 });
+    await button.click();
+  };
+
+  // ---- mid-quiz: rejoin at the first unanswered question -------------------
+  const answeredCount = 2;
+  await answer(await freshSession(), problem.dissection.slice(0, answeredCount).map((q) => q.id));
+  await continueWhereLeftOff();
+  try {
+    await page.getByText(new RegExp(`question ${answeredCount + 1} of`, 'i')).first()
+      .waitFor({ state: 'visible', timeout: 20000 });
+  } catch {
+    const seen = (await page.locator('body').innerText().catch(() => '')).replace(/\s+/g, ' ');
+    errs.push(`resumed Understand did not open question ${answeredCount + 1}: ${seen.slice(0, 160)}`);
+  }
+
+  // ---- mid-Build: rejoin on the phase they were on ------------------------
+  const [firstPhase, secondPhase] = problem.buildPhases;
+  if (secondPhase) {
+    const sessionId = await freshSession();
+    await answer(sessionId, problem.dissection.map((q) => q.id));
+    // One node on the canvas, configured, and the phase after the one it belongs
+    // to: exactly the state that used to re-clear phase one on arrival.
+    const seed = problem.referenceGraph.nodes[0];
+    // Its field values too, so the reopened node is checked for them below.
+    const seedValues = Object.fromEntries(
+      (problem.nodeSetup?.[seed.type]?.fields ?? [])
+        .map((f) => [f.key, (f.options ?? []).find((o) => o.correct)?.value])
+        .filter(([, v]) => v !== undefined)
+    );
+    const node = {
+      id: seed.id,
+      type: seed.type,
+      position: seed.position,
+      data: { configured: true, values: seedValues, settings: {} },
+    };
+    const events = [
+      { type: 'screen_transition', payload: { from: 'statement', to: 'dashboard' } },
+      { type: 'graph_mutation', payload: { op: 'add_node', nodeType: node.type, graph: { nodes: [node], edges: [] } } },
+      { type: 'phase_transition', payload: { phaseId: secondPhase.id, label: secondPhase.label } },
+    ];
+    await api(async ([id, list]) => {
+      await fetch(`/api/sessions/${id}/events`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          events: list.map((e, i) => ({ ...e, clientSeq: i + 1, clientTs: new Date().toISOString() })),
+        }),
+      });
+    }, [sessionId, events]);
+
+    await continueWhereLeftOff();
+    try {
+      await page.locator('.react-flow__node').first().waitFor({ state: 'visible', timeout: 20000 });
+    } catch {
+      errs.push('resumed Build did not restore the canvas');
+    }
+
+    // The bug this guards: with the phase reset to the first one, the restored
+    // canvas satisfies it instantly and the learner is walked through a
+    // celebration for work they had already finished.
+    const celebrating = (await page.locator('body').innerText().catch(() => '')).match(/Keep building|— done/i);
+    if (celebrating) errs.push(`resumed Build replayed the "${firstPhase.label}" celebration`);
+
+    // The node must reopen on the values the learner gave. It used to come back
+    // marked configured over blank inputs, which reads as lost work.
+    //
+    // Checked BEFORE the picker below, on purpose: the picker drawer has no
+    // Escape handler and closing it by clicking near its header landed on a node
+    // in its own list, which ADDED one — so the NDV then opened on a brand new
+    // empty node and this check failed for a reason that had nothing to do with
+    // resume. Two interactions, in the order that keeps them independent.
+    const wanted = Object.values(seedValues);
+    if (wanted.length) {
+      await page.locator('.react-flow__node').first().dblclick().catch(() => {});
+      let ndvOpen = true;
+      try {
+        await page.getByText('Parameters', { exact: true }).first().waitFor({ state: 'visible', timeout: 10000 });
+      } catch {
+        ndvOpen = false;
+        errs.push('could not open the NDV on a restored node');
+      }
+      if (ndvOpen) {
+        // Read the controls, not the page text. Every field here is a real
+        // `<select>`, and Playwright counts an `<option>` as not visible — so
+        // matching on the option's label reported the value missing while a
+        // screenshot showed it plainly selected.
+        let picked = [];
+        for (let waited = 0; waited <= 10000; waited += 250) {
+          picked = await page.locator('select').evaluateAll((els) => els.map((e) => e.value)).catch(() => []);
+          if (wanted.every((v) => picked.includes(v))) break;
+          await page.waitForTimeout(250);
+        }
+        const missing = wanted.filter((v) => !picked.includes(v));
+        if (missing.length) {
+          errs.push(`a restored configured node lost its saved answers (${missing.join(', ')} not selected; selects hold ${picked.join(', ') || 'nothing'})`);
+        }
+        await page.locator('button[aria-label="Close setup"]').first().click().catch(() => {});
+        await page.getByText('Parameters', { exact: true }).first()
+          .waitFor({ state: 'hidden', timeout: 8000 }).catch(() => {});
+      }
+    }
+
+    // Which phase is live is not written on screen, so ask the picker: each phase
+    // offers its own nodes.
+    const expected = problem.nodePalette.find((n) => secondPhase.nodeTypes.includes(n.type))?.label;
+    await page.locator('button[title="Add next node"]').first().click().catch(() => {});
+    if (!(await waitForVisibleText(page, expected))) {
+      errs.push(`resumed Build is not on "${secondPhase.label}" — its picker never offered "${expected}"`);
+    }
+  }
+
+  // ---- the tracing itself: a REAL placement must record a position ---------
+  // Everything above seeds the trace through the API, so none of it would notice
+  // the client recording `position: undefined` — which is exactly what happened,
+  // silently, and made resume hand back no canvas at all. So place a node by
+  // clicking, then ask the endpoint whether it would give that canvas back.
+  await freshSession();
+  await page.goto(`${base}/#build?problem=${problem.id}`, { waitUntil: 'networkidle' });
+  const addFirst = page.getByText(/add first step/i).first();
+  try {
+    await addFirst.waitFor({ state: 'visible', timeout: 20000 });
+    await addFirst.click();
+    const firstNodeLabel = problem.nodePalette.find((n) => problem.buildPhases[0].nodeTypes.includes(n.type))?.label;
+    await page.getByText(firstNodeLabel, { exact: false }).first().click();
+    await page.locator('.react-flow__node').first().waitFor({ state: 'visible', timeout: 15000 });
+  } catch (e) {
+    errs.push(`could not place a node to test tracing: ${e.message.split('\n')[0]}`);
+  }
+  // The trace queue batches, so wait for the server to have the graph rather than
+  // for a fixed delay.
+  let offered = null;
+  for (let tries = 0; tries < 20 && !offered; tries += 1) {
+    offered = await api(async () => (await (await fetch('/api/sessions')).json())?.resume?.graph ?? null);
+    if (!offered) await page.waitForTimeout(500);
+  }
+  if (!offered) {
+    errs.push('a node placed by clicking was not offered back by resume — positions are missing from the trace again');
+  }
+
+  await page.close();
+  if (errs.length) {
+    failures.push({ name: 'resume', url: `${base}/`, errs });
+    console.log('✗ resume');
+    for (const e of errs) console.log(`    ${e}`);
+  } else {
+    console.log('✓ resume');
+  }
+}
 
 if (failures.length) {
   console.log(`\n${failures.length} screen(s) with errors.`);

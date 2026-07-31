@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
+import { returnPathFromUrl } from '../../src/lib/returnPath';
 
 // One form for both login and signup — the two differ only by an invite-code
 // field and which request fires first. Styled with the app's CSS custom
@@ -96,7 +97,11 @@ export function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
         setBusy(false);
         return;
       }
-      window.location.href = '/';
+      // Back to where they were headed, not always Home: a shared challenge link
+      // (`/?problem=<slug>`) is bounced through here by the middleware, and going
+      // to Home instead would quietly throw away the challenge that was picked
+      // for them. `returnPathFromUrl` is what decides that value is safe.
+      window.location.href = returnPathFromUrl();
     } catch {
       setError('Something went wrong. Please try again.');
       setBusy(false);
