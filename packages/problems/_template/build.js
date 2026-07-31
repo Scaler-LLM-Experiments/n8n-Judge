@@ -4,8 +4,16 @@
  * The drawer's contents. `isDistractor: true` is a node that does NOT belong — each one
  * is a chance to probe a misconception, so give the ones you expect a probe in probes.js.
  */
+// At least two entries, and at least one distractor — the schema and
+// `validateProblem()` both insist, because a palette with nothing wrong in it asks the
+// learner to pick from a list of one right answer.
+// A flow has to start and finish, so the palette must require at least one `trigger`
+// and one `action` category node — `validateProblem()` errors otherwise. An AI node
+// additionally requires a `model`.
 export const nodePalette = [
-  { type: 'TODO-catalog-type', label: 'TODO Label', category: 'trigger', isDistractor: false },
+  { type: 'TODO-trigger-type', label: 'TODO Trigger Label', category: 'trigger', isDistractor: false },
+  { type: 'TODO-action-type', label: 'TODO Action Label', category: 'action', isDistractor: false },
+  { type: 'TODO-distractor-type', label: 'TODO Plausible Wrong', category: 'trigger', isDistractor: true },
 ];
 
 /** A router's outputs. Empty for a linear problem — the engine handles both. */

@@ -92,6 +92,9 @@ removes them (they're marked by the `demo.judge.local` email domain).
 Other db scripts: `db:down`, `db:migrate:dev` (new migration from schema changes),
 `db:generate`, `db:studio`.
 
+Authoring: `problem:new`, `problem:check`, `problem:draft` — see *Problem-as-data* below.
+`problem:check` is offline and safe to run on anything, including an unregistered draft.
+
 `npm run covers:generate` draws the Home cards' cover art **on this machine** (OpenAI
 `gpt-image-1`, needs `OPENAI_API_KEY`), writing `apps/web/public/covers/<id>.png`. Same
 deal as voice and for the same reason — **the app never calls an image API**; the output is
@@ -193,6 +196,33 @@ snapshot honest when the shape genuinely changes.
 Removing a problem is `node packages/db/remove-problem.mjs <slug>` (`--dry-run`, `--yes`) —
 every relation to `Problem` is `Restrict`, so the deletion order *is* the job and it lives
 in that script rather than as ad-hoc SQL.
+
+**The authoring pipeline is three npm scripts** (the skill is the long version):
+
+| Command | Does |
+|---|---|
+| `npm run problem:new -- <slug> "Title"` | Copies `_template`, sets the slug and export name, drops the template's own test. Deliberately does **not** register it — registering a folder of TODOs makes it the catalogue and fails `npm test`. |
+| `npm run problem:check -- <slug>` | The gate to run constantly: validation, leftover TODOs, scored-decision count vs the authored `difficulty`, where the correct option sits, narration coverage, cover art. **Offline** — no database, no dev server, no API key — so it works on a problem that has never been seeded, and on one that is not registered yet. |
+| `npm run problem:draft -- <slug> "brief"` | Claude drafts the seven files from a brief (needs `ANTHROPIC_API_KEY`). A first pass at the shape, banner-marked as unreviewed. |
+
+Two things about `problem:draft` that will look like bugs otherwise:
+
+- **It cannot use structured output.** A zod `.record()` converts to a schema-valued
+  `additionalProperties`, which `output_config.format` rejects — and `nodeSetup`, `nodeProbes`
+  and `voice` are all records keyed by node type or moment. The schema is handed over as
+  prompt text and `problemSchema.safeParse` gates the write; a failing draft is printed, not
+  saved.
+- **`max_tokens` caps thinking *and* output together**, and a problem is ~10k tokens of JSON.
+  At 32k the first run spent the budget thinking and stopped mid-object; it runs at 64k with
+  `effort: medium`.
+
+[packages/llm/authoringPrompt.ts](packages/llm/authoringPrompt.ts) is a **second copy of the
+authoring rules**, because the model cannot read the skill file — so it is the one piece of
+documentation that can rot without anyone noticing. Two of its original constraints had already
+reversed before anything used it (it demanded the retired fixed topology, and *required* the
+"I added it by mistake" escape hatch that `validateProblem()` now rejects), which is why
+`authoringPrompt.test.ts` pins them. Change the skill, change this, or drafts will validate and
+teach the wrong thing.
 
 Key fields: `branches`, `flow` (`start`/`next`/`branchNext`/`modelNext` — the last two
 optional), `flowSummary`, `buildPhases`, `nodeSetup` (per-node NDV: `credential` +

@@ -3,7 +3,7 @@
 **The single source of truth for what's built and what's next.** Update this file as work
 lands — don't start a new handoff doc.
 
-Last updated: 2026-07-29 · Branch: `sudhanva/nextjs`
+Last updated: 2026-07-31 · Branch: `sudhanva/nextjs`
 
 ---
 
@@ -24,9 +24,11 @@ Milestones have been completed out of order. What is actually true, per mileston
 | M2 persistence + tracing | ✅ complete — resume lands on the recorded point as of 2026-07-31 |
 | M3 queue + grading + ratings | ⚠️ **half done** — scoring + Claude narrative live; no worker service, no ratings |
 | M4 admin analytics | ✅ landed early — overview, cases, completion funnel, learners, admins |
-| M5 authoring · M6 voice · M7 SQS | not started |
+| **M5 authoring** | ⚠️ half done — the CLI pipeline ships (`problem:new/check/draft`); no admin editor |
+| M6 voice · M7 SQS | M6 largely done in practice (see Voice); M7 not started |
 
-Verified 2026-07-29: **252/252 unit tests**, smoke green on all 20 screens.
+Verified 2026-07-31: **458/458 unit tests**, both typecheck halves, smoke green on every screen
+(including the new `resume` check).
 
 ---
 
@@ -276,9 +278,34 @@ and refuses to run against a non-local database without `ALLOW_REMOTE=1`.
 
 **Not done:** rubric editor with versions and re-grade; ratings view (nothing to show yet).
 
-### M5 — Authoring pipeline
-`draft-with-ai` → hybrid form/JSON editor with `validateProblem()` and live
-`BuildPreview` → versioned publish → assign. Then ship more problems through it.
+### M5 — Authoring pipeline ⚠️ half done — the CLI half works
+**Done (2026-07-31): the pipeline as three commands**, chosen over the admin editor first so
+problems can actually ship while the UI is still a plan.
+
+- `npm run problem:new -- <slug> "Title"` — copies `_template`, sets the slug and export
+  name, prints the registry line. Does not register: a folder of TODOs must not become the
+  catalogue.
+- `npm run problem:check -- <slug>` — one offline report (no DB, no dev server, no API key,
+  works unregistered): `validateProblem()` with placeholders separated from real errors,
+  leftover TODOs, the scored-decision count from `enumerateItems` against the authored
+  `difficulty`, where the correct option sits in every graded list, narration coverage vs
+  rendered clips, cover art on disk. Exits non-zero only on what a learner would see.
+- `npm run problem:draft -- <slug> "brief"` — Claude drafts the seven files
+  (`ANTHROPIC_API_KEY`). Verified end to end: a one-line brief produced a schema-valid
+  29-decision problem with the correct answer spread across positions. Every value is
+  unreviewed and each file says so in a banner.
+
+Building it found three things that were already broken: **a fresh scaffold did not validate**
+(`sampleCases` was missing four required fields, `locked` was the wrong shape, the palette was
+below the minimum and had no action node, and the template's own voice line carried a banned em
+dash), and **[authoringPrompt.ts](packages/llm/authoringPrompt.ts) had rotted before anything
+used it** — it demanded the retired fixed topology and *required* the escape-hatch probe option
+that `validateProblem()` now rejects. All fixed; the prompt's rules are now pinned by
+`authoringPrompt.test.ts`, since it is a second copy of the skill that no reader will check.
+
+**Not done:** the in-app editor — `/admin` draft → form/JSON editing with live validation →
+`BuildPreview` → versioned publish → assign. The CLI proves the steps; the UI is what makes
+authoring a non-engineer's job.
 
 ### M6 — Voice / mascot (flag-gated, parallel)
 Per [docs/mascot-system-porting-guide.md](docs/mascot-system-porting-guide.md). Nothing

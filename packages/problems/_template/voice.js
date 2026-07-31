@@ -36,7 +36,10 @@ export const voice = {
 
   // Opens on the trigger. Never says where it lands.
   'run_case:TODO-case-id': ['[calm] TODO. A customer sends… / a transcript arrives…'],
-  run_pass: ['[excited] TODO. Say what passed, first — the line may be cut short.'],
+  // No em dashes in a spoken line, here or anywhere: they do not read aloud, and the
+  // rule is test-enforced. This one used to have one, and the template's own scaffold
+  // therefore shipped a warning to every new problem.
+  run_pass: ['[excited] TODO. Say what passed, first. The line may be cut short.'],
   run_fail: ['[calm] TODO. Name it plainly, then point back to the flow.'],
 
   stress_start: ['[excited] TODO. What this section is testing.'],

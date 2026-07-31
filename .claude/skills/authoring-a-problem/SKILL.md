@@ -22,8 +22,12 @@ it is fully authored — voice, cover art, every field. Read it alongside this.
 ## 1. The pipeline
 
 ```bash
-cp -r packages/problems/_template packages/problems/<slug>   # 7 files, every field, each with its rule
-# fill in the TODOs, rename the export in index.js
+npm run problem:new -- <slug> "Title"     # copies _template, sets the slug + export name
+# …or start from a draft instead:
+npm run problem:draft -- <slug> "what the learner builds, and why"   # Claude, needs a key
+
+# fill in / correct every value, then:
+npm run problem:check -- <slug>   # structure, size, answer balance, voice, cover — offline
 # register it in packages/problems/index.js   ← registry order IS the catalogue order
 
 npm test                  # validateProblem() runs per problem; copy rules are tests
@@ -34,6 +38,31 @@ npm run voice:sync        # upload to the bucket
 npm run db:seed           # again, if voice or any problem file changed
 npm run smoke             # there are no component tests — this is the real gate
 ```
+
+**`problem:check` is the one to run constantly.** It needs no database, no dev server and no
+API key, so it works on a problem that has never been seeded — which is exactly when you want
+it. It reports, in one pass: `validateProblem()` errors and warnings (separating "still a
+placeholder" from "wrong", so an unfinished draft is readable); leftover `TODO`s, blocking only
+once the problem is registered; the scored-decision count from `enumerateItems` against the
+`difficulty` you authored; where the correct option sits across every graded list; how much
+narration exists and whether its clips are rendered; and whether the cover art is on disk.
+Warnings are judgement calls — read them rather than clearing them.
+
+**`problem:draft` is a first pass at the SHAPE, not a problem.** It gets the field count and
+the vocabulary right (the real catalog is in the prompt, so it cannot invent a node type) and
+writes the seven files with a banner saying every value is unreviewed. Judge grades learners,
+so a plausible-but-wrong `correct` marks someone down for being right: read every option and
+every `why` before registering it. Two things about the call, both non-obvious:
+
+- **It does not use structured output.** The problem schema cannot be expressed in the
+  supported JSON Schema subset — a zod `.record()` becomes a schema-valued
+  `additionalProperties`, which is rejected, and `nodeSetup`, `nodeProbes` and `voice` are all
+  records. The schema goes into the prompt as reference text and `problemSchema.safeParse`
+  gates the write instead; a draft that fails it is printed, never saved.
+- **`max_tokens` covers thinking and output together.** A whole problem is ~10k tokens of
+  JSON; at 32k the first attempt spent the budget thinking and stopped mid-object. It runs at
+  64k and `effort: medium`, because this is a long mechanical generation against an exemplar
+  rather than a reasoning problem.
 
 **The two commands people forget, and what forgetting looks like:**
 
@@ -64,7 +93,45 @@ not in the assembly.
 
 ---
 
-## 3. Rules that are enforced
+## 3. Field kinds — where the answer lives changes per kind
+
+Most fields are a `select` with one `correct: true` option. The rest are n8n's other
+parameter shapes, and each puts the answer somewhere else. Getting this wrong does not fail
+quietly: `validateProblem()` checks all of them.
+
+| `kind` | The learner sees | Where the answer lives | Explanation lives in |
+|---|---|---|---|
+| `select` | a dropdown | `options[].correct` (exactly one) | per-option `why` |
+| `text` · `number` · `expression` | a typed input | `correct`, or `accepts: []` for several right answers | `whyCorrect` / `whyWrong` |
+| `boolean` | a toggle | `correct: true \| false` | `whyCorrect` / `whyWrong` |
+| `resourceLocator` | n8n's "which record?" control | `correct` (or `accepts`) — the **resource**, never the lookup mode used to reach it | `whyCorrect` / `whyWrong` |
+| `ruleList` | Switch `rules`, a list they build | `expect.rules[]` | `why.<aspect>.correct` / `.wrong` |
+| `assignmentList` | Edit Fields `assignments` | `expect.assignments[]` | `why.<aspect>.correct` / `.wrong` |
+
+**The two list kinds are graded as exactly three items** — `count` / `categories` /
+`conditions` for rules, `count` / `names` / `values` for assignments — whatever the learner
+builds. A variable-length answer has no option count to decay against, and per-entry scoring
+would make the denominator move between attempts. So:
+
+- every aspect needs **both** `why.<aspect>.correct` and `why.<aspect>.wrong` (warned);
+- `expect` may only name keys the options offer (**error** — otherwise the right answer is
+  unbuildable);
+- write the `why` as advice about **one branch**, not a summary of the list: the NDV shows
+  each verdict on the row it came from, so "your branch names are wrong" appears next to a
+  specific branch.
+
+**Conditional fields: `showWhen`.** A map of other-field-key → accepted values (every key
+must match; any listed value satisfies a key), mirroring n8n's `displayOptions.show`. It
+changes grading, not only rendering, because n8n's own rule is that a required parameter is
+only missing while it is *displayed*: Verify requires only visible fields, the rubric does
+not score a hidden one, and a field that becomes hidden has its value **dropped** — n8n
+stores only displayed parameters, so keeping it submits an answer to a question no longer
+being asked. All handled; `_template/nodeSetup.js` carries the example. No shipped problem
+uses it yet, so there is no precedent to copy — only the mechanism.
+
+---
+
+## 4. Rules that are enforced
 
 These fail `npm test`. They are here so you know *why*, not just *that*.
 
@@ -98,7 +165,7 @@ report groups by; an unlabelled one has nothing to print.
 
 ---
 
-## 4. Rules that are not enforced, and matter more
+## 5. Rules that are not enforced, and matter more
 
 **Never park the correct option at index 0.** An audit found it there in 25/25 fields and
 13/13 dissection items — a learner who always clicks the top option would have passed.
@@ -145,7 +212,7 @@ ever probed and removed can live outside the catalog — `validateProblem()` war
 
 ---
 
-## 5. Voice and cover art
+## 6. Voice and cover art
 
 Voice has its own contract: **read `.claude/skills/iris-voice/SKILL.md`** before writing a
 line. The three things that bite hardest:
@@ -163,7 +230,7 @@ at the API boundary; it never reaches a browser.
 
 ---
 
-## 6. Definition of done
+## 7. Definition of done
 
 A problem is finished when all four are true:
 

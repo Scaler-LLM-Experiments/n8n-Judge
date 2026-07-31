@@ -11,7 +11,8 @@
  */
 export const referenceGraph = {
   nodes: [
-    { id: 'TODO-node-1', type: 'TODO-trigger-type', position: { x: 0, y: 180 }, requiredLabel: 'TODO Label' },
+    { id: 'TODO-node-1', type: 'TODO-trigger-type', position: { x: 0, y: 180 }, requiredLabel: 'TODO Trigger Label' },
+    { id: 'TODO-node-2', type: 'TODO-action-type', position: { x: 340, y: 180 }, requiredLabel: 'TODO Action Label' },
   ],
   edges: [
     { source: 'TODO-node-1', target: 'TODO-node-2' },
@@ -38,9 +39,32 @@ export const testCases = [
  * TRIGGER — "a customer sends an email saying…" — because that is the node the learner
  * wired up. It must never name the destination; watching it land is the point.
  */
+// Every field here is required by the schema. `urgency` is one of LOW | MEDIUM | HIGH,
+// `branch` is a declared branch id or null, and `reply` is what that branch sends (null
+// on a fall-through, because nothing is sent).
+//
+// `from` and `subject` are named for email because the first problem was email triage.
+// A non-email challenge still fills them in — read them as "who this came from" and
+// "what it says" — and they are what Iris's `run_case` line is written from.
 export const sampleCases = [
-  { id: 'TODO-case-id', input: 'TODO. What arrives.', branch: 'TODO_branch_id', reply: 'TODO Expected Reply' },
-  { id: 'TODO-gap-case', input: 'TODO. Something that matches nothing.', branch: null },
+  {
+    id: 'TODO-case-id',
+    from: 'TODO@example.com',
+    subject: 'TODO. What arrives, in the sender’s own words.',
+    category: 'TODO_CATEGORY',
+    urgency: 'MEDIUM',
+    branch: 'TODO_branch_id',
+    reply: 'TODO Expected Reply',
+  },
+  {
+    id: 'TODO-gap-case',
+    from: 'TODO@example.com',
+    subject: 'TODO. Something that matches none of the rules.',
+    category: 'TODO_UNHANDLED',
+    urgency: 'LOW',
+    branch: null,
+    reply: null,
+  },
 ];
 
 /**
