@@ -45,15 +45,18 @@ function MetaLine({ level, minutes }) {
 // error state: a tinted block carrying the problem's own icon. Fixed aspect ratio
 // either way, so cards keep their rhythm when half the art exists.
 //
-// 21:9 slot; art is generated full-bleed then masked to the centre ~75% so the
-// motif reads larger on the card (scale 4/3 ≈ show 75% of the frame).
+// Cover band height is 65% of a full 21:9 frame (same width, shorter strip).
+// Art is still generated 21:9 and centre-cropped with object-fit: cover.
 // See scripts/generate-covers.mjs for the shared style.
+// aspect-ratio width/height = 21 / (9 * 0.65) = 21 / 5.85
+const COVER_ASPECT = '21 / 5.85';
+
 function Cover({ problem, Icon }) {
   const art = problem.coverImage;
   return (
     <div
       style={{
-        aspectRatio: '21 / 9',
+        aspectRatio: COVER_ASPECT,
         background: 'var(--surface-soft-blue)',
         display: 'flex',
         alignItems: 'center',
@@ -75,9 +78,6 @@ function Cover({ problem, Icon }) {
             height: '100%',
             objectFit: 'cover',
             objectPosition: 'center',
-            // 1 / 0.75 ≈ 1.333 — centre crop shows three-quarters of the art.
-            transform: 'scale(1.333)',
-            transformOrigin: 'center center',
             display: 'block',
           }}
         />
