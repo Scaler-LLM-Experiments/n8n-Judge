@@ -183,7 +183,7 @@ export const voice = {
   // The phase title and its description are both on screen. These give the
   // question to hold in your head while you look at the palette, and never the
   // node that answers it.
-  'phase_intro:trigger': ["[calm] Nothing here runs until something starts it, so begin at the top."],
+  'phase_intro:trigger': ["[calm] Now that you know the exact nodes, lets dive in deeper. Start Building."],
   'phase_intro:brain': ["[calm] This part has to read plain English and decide. Think about what that needs."],
   'phase_intro:route': ["[calm] Now the paths split. Every category needs somewhere of its own to go."],
 

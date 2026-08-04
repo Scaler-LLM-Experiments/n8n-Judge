@@ -1,767 +1,443 @@
 {
   "version": 1,
-  "problem": "email-triage",
+  "problem": "expense-approvals",
   "renderedWith": "elevenlabs/7M69Y78mYqPLZS5ZZSTT/eleven_v3",
   "clips": {
-    "answer-correct--action--send-reply--v0": {
-      "text": "[warm] Yes. Send Reply is what actually reaches the customer at the end.",
-      "file": "email-triage/answer-correct--1d081954.mp3"
+    "answer-correct--action--v0": {
+      "text": "[warm] Yes. That one actually reaches the person who sent the claim in.",
+      "file": "expense-approvals/answer-correct--df4795a4.mp3"
     },
     "answer-correct--classify--classify-with-ai--v0": {
-      "text": "[warm] Right. Classify with AI reads the words and works out what kind of message it is.",
-      "file": "email-triage/answer-correct--e14f739b.mp3"
+      "text": "[warm] Right. Classify with AI reads what somebody wrote and makes the call on it.",
+      "file": "expense-approvals/answer-correct--f7ee8cce.mp3"
     },
     "answer-correct--parse--parse-result--v0": {
-      "text": "[warm] Yes. Parse Result turns that blob of text into separate, usable fields.",
-      "file": "email-triage/answer-correct--9f69caa4.mp3"
+      "text": "[warm] Yes. Parse Result turns that blob of text into fields anything can read.",
+      "file": "expense-approvals/answer-correct--93bbf26f.mp3"
     },
     "answer-correct--switch--switch--v0": {
-      "text": "[warm] Exactly. Switch takes one email in and sends it out down one path.",
-      "file": "email-triage/answer-correct--d8f6da3a.mp3"
+      "text": "[warm] Exactly. Switch takes one claim in and sends it out one way.",
+      "file": "expense-approvals/answer-correct--f9452d5a.mp3"
     },
     "answer-correct--trigger--new-email--v0": {
-      "text": "[warm] Yes. New Email wakes this up on its own, every time mail arrives.",
-      "file": "email-triage/answer-correct--8d52f5b0.mp3"
+      "text": "[warm] Yes. New Email hears the claim land, on its own, every single time.",
+      "file": "expense-approvals/answer-correct--b7fff174.mp3"
     },
-    "answer-wrong--action--do-nothing--v0": {
-      "text": "[thoughtful] Would the person who wrote in ever see Do nothing? They want a reply.",
-      "file": "email-triage/answer-wrong--3d7bf255.mp3"
-    },
-    "answer-wrong--action--google-docs--v0": {
-      "text": "[thoughtful] Would the person who wrote in ever see Google Docs? They want a reply.",
-      "file": "email-triage/answer-wrong--0e73c17b.mp3"
-    },
-    "answer-wrong--action--slack-send-message--v0": {
-      "text": "[thoughtful] Would the person who wrote in ever see Slack — Send Message? They want a reply.",
-      "file": "email-triage/answer-wrong--2bf39189.mp3"
+    "answer-wrong--action--v0": {
+      "text": "[thoughtful] The claimant emailed, and is waiting. Would they ever see the outcome that way?",
+      "file": "expense-approvals/answer-wrong--08473df0.mp3"
     },
     "answer-wrong--classify--code--v0": {
-      "text": "[thoughtful] Could Code really judge what the email's about? Have another look.",
-      "file": "email-triage/answer-wrong--299582be.mp3"
+      "text": "[thoughtful] Could Code tell a complete claim from a vague one? Have another look.",
+      "file": "expense-approvals/answer-wrong--8435b61d.mp3"
+    },
+    "answer-wrong--classify--http-request--v0": {
+      "text": "[thoughtful] Could HTTP Request tell a complete claim from a vague one? Have another look.",
+      "file": "expense-approvals/answer-wrong--2af0c04c.mp3"
     },
     "answer-wrong--classify--if--v0": {
-      "text": "[thoughtful] Could If really judge what the email's about? Have another look.",
-      "file": "email-triage/answer-wrong--8192a635.mp3"
+      "text": "[thoughtful] Could If tell a complete claim from a vague one? Have another look.",
+      "file": "expense-approvals/answer-wrong--2d84d87b.mp3"
     },
-    "answer-wrong--classify--switch--v0": {
-      "text": "[thoughtful] Could Switch really judge what the email's about? Have another look.",
-      "file": "email-triage/answer-wrong--2ea790d9.mp3"
+    "answer-wrong--parse--drop-everything-that-does-not-match--v0": {
+      "text": "[thoughtful] The answer is one lump of text right now. Does Drop everything that does not match help with that?",
+      "file": "expense-approvals/answer-wrong--efe64f50.mp3"
     },
-    "answer-wrong--parse--do-nothing--v0": {
-      "text": "[thoughtful] The answer's one lump of text right now. Does Do nothing help with that?",
-      "file": "email-triage/answer-wrong--24bf933f.mp3"
+    "answer-wrong--parse--reply-to-the-claimant-now--v0": {
+      "text": "[thoughtful] The answer is one lump of text right now. Does Reply to the claimant now help with that?",
+      "file": "expense-approvals/answer-wrong--93902ce2.mp3"
     },
-    "answer-wrong--parse--send-it-straight-to-switch--v0": {
-      "text": "[thoughtful] The answer's one lump of text right now. Does Send it straight to Switch help with that?",
-      "file": "email-triage/answer-wrong--3f2cd188.mp3"
+    "answer-wrong--parse--send-it-straight-on-to-be-split-up--v0": {
+      "text": "[thoughtful] The answer is one lump of text right now. Does Send it straight on to be split up help with that?",
+      "file": "expense-approvals/answer-wrong--a42ce4cf.mp3"
     },
-    "answer-wrong--parse--send-reply-now--v0": {
-      "text": "[thoughtful] The answer's one lump of text right now. Does Send Reply now help with that?",
-      "file": "email-triage/answer-wrong--4bbc0a51.mp3"
+    "answer-wrong--switch--code--v0": {
+      "text": "[thoughtful] Code gives you fewer ways out than you need. Count the outcomes again.",
+      "file": "expense-approvals/answer-wrong--4e97394a.mp3"
     },
     "answer-wrong--switch--filter--v0": {
-      "text": "[thoughtful] Filter gives you one way out. You need one in and three out.",
-      "file": "email-triage/answer-wrong--ee4c591e.mp3"
+      "text": "[thoughtful] Filter gives you fewer ways out than you need. Count the outcomes again.",
+      "file": "expense-approvals/answer-wrong--1d757b65.mp3"
     },
     "answer-wrong--switch--if--v0": {
-      "text": "[thoughtful] If gives you one way out. You need one in and three out.",
-      "file": "email-triage/answer-wrong--3b3c5a3d.mp3"
-    },
-    "answer-wrong--switch--merge--v0": {
-      "text": "[thoughtful] Merge gives you one way out. You need one in and three out.",
-      "file": "email-triage/answer-wrong--2fb966d2.mp3"
+      "text": "[thoughtful] If gives you fewer ways out than you need. Count the outcomes again.",
+      "file": "expense-approvals/answer-wrong--44ef7497.mp3"
     },
     "answer-wrong--trigger--chat-trigger--v0": {
-      "text": "[thoughtful] Would Chat Trigger start on its own? Nobody's sitting here pressing anything.",
-      "file": "email-triage/answer-wrong--d452c247.mp3"
+      "text": "[thoughtful] Would Chat Trigger notice a claim arriving? Nobody's sitting here pressing anything.",
+      "file": "expense-approvals/answer-wrong--72abea4b.mp3"
     },
-    "answer-wrong--trigger--schedule--v0": {
-      "text": "[thoughtful] Would Schedule start on its own? Nobody's sitting here pressing anything.",
-      "file": "email-triage/answer-wrong--c55fb1ee.mp3"
+    "answer-wrong--trigger--on-a-schedule--v0": {
+      "text": "[thoughtful] Would On a Schedule notice a claim arriving? Nobody's sitting here pressing anything.",
+      "file": "expense-approvals/answer-wrong--fd88e9a1.mp3"
     },
-    "answer-wrong--trigger--webhook--v0": {
-      "text": "[thoughtful] Would Webhook start on its own? Nobody's sitting here pressing anything.",
-      "file": "email-triage/answer-wrong--a5b5b831.mp3"
+    "answer-wrong--trigger--on-webhook-call--v0": {
+      "text": "[thoughtful] Would On Webhook Call notice a claim arriving? Nobody's sitting here pressing anything.",
+      "file": "expense-approvals/answer-wrong--94166fcf.mp3"
     },
     "answer-wrong-again--action--v0": {
-      "text": "[calm] Think about the person who wrote in. What do they actually receive?",
-      "file": "email-triage/answer-wrong-again--de064ca7.mp3"
+      "text": "[calm] They wrote in by email, and they're waiting on an answer to it.",
+      "file": "expense-approvals/answer-wrong-again--fa360a1a.mp3"
     },
     "answer-wrong-again--classify--v0": {
-      "text": "[calm] The email's free text. You need something that understands meaning, not something matching rules.",
-      "file": "email-triage/answer-wrong-again--75deee2e.mp3"
+      "text": "[calm] A claim is free text, written differently every time. You need something that reads meaning.",
+      "file": "expense-approvals/answer-wrong-again--d5a6bff9.mp3"
     },
     "answer-wrong-again--parse--v0": {
       "text": "[calm] Ask what shape the next node needs its input in, then work backwards.",
-      "file": "email-triage/answer-wrong-again--5e38a0a4.mp3"
+      "file": "expense-approvals/answer-wrong-again--5e38a0a4.mp3"
     },
     "answer-wrong-again--switch--v0": {
-      "text": "[calm] Count the outputs you need. Three categories means three separate exits.",
-      "file": "email-triage/answer-wrong-again--e7f14d82.mp3"
+      "text": "[calm] Count the ways out you need. Three outcomes means three separate exits.",
+      "file": "expense-approvals/answer-wrong-again--e4c46ccd.mp3"
     },
     "answer-wrong-again--trigger--v0": {
-      "text": "[calm] Think about who or what begins this. The mail arrives without anyone asking.",
-      "file": "email-triage/answer-wrong-again--a7b3d57d.mp3"
+      "text": "[calm] Think about what begins this. A claim arrives without anybody asking for it.",
+      "file": "expense-approvals/answer-wrong-again--6dfc69f9.mp3"
     },
-    "build-complete--brain--v0": {
-      "text": "[excited] The whole thing's wired up! [pause] Let's throw some real emails at it.",
-      "file": "email-triage/build-complete--50561c38.mp3"
+    "build-complete--intake--v0": {
+      "text": "[excited] The whole thing's wired up! [pause] Let's throw some real claims at it and see.",
+      "file": "expense-approvals/build-complete--e5307f2d.mp3"
+    },
+    "build-complete--judge--v0": {
+      "text": "[excited] The whole thing's wired up! [pause] Let's throw some real claims at it and see.",
+      "file": "expense-approvals/build-complete--e5307f2d.mp3"
     },
     "build-complete--route--v0": {
-      "text": "[excited] The whole thing's wired up! [pause] Let's throw some real emails at it.",
-      "file": "email-triage/build-complete--50561c38.mp3"
-    },
-    "build-complete--trigger--v0": {
-      "text": "[excited] The whole thing's wired up! [pause] Let's throw some real emails at it.",
-      "file": "email-triage/build-complete--50561c38.mp3"
+      "text": "[excited] The whole thing's wired up! [pause] Let's throw some real claims at it and see.",
+      "file": "expense-approvals/build-complete--e5307f2d.mp3"
     },
     "build-complete--v0": {
-      "text": "[excited] The whole thing's wired up! [pause] Let's throw some real emails at it.",
-      "file": "email-triage/build-complete--50561c38.mp3"
+      "text": "[excited] The whole thing's wired up! [pause] Let's throw some real claims at it and see.",
+      "file": "expense-approvals/build-complete--e5307f2d.mp3"
     },
     "build-start--v0": {
-      "text": "[calm] Right, you've got all your nodes. Now let's build your setup, in the order the email travels.",
-      "file": "email-triage/build-start--c26cc475.mp3"
+      "text": "[calm] Right, you've got your nodes. Now let's set each one up, in the order a claim travels.",
+      "file": "expense-approvals/build-start--e34aaa03.mp3"
     },
     "idle-nudge--v0": {
-      "text": "[calm] Take your time. If it helps, ask what the last node handed over.",
-      "file": "email-triage/idle-nudge--ccd38b42.mp3"
+      "text": "[calm] Take your time. If you'd like a hand, just ask me.",
+      "file": "expense-approvals/idle-nudge--bd3c1509.mp3"
     },
     "idle-nudge--v1": {
-      "text": "[calm] Still thinking? Tell me what's unclear and I'll help.",
-      "file": "email-triage/idle-nudge--fc53f98c.mp3"
+      "text": "[calm] Still with me? I'm here if you want to talk it through.",
+      "file": "expense-approvals/idle-nudge--26444400.mp3"
     },
     "idle-nudge--v2": {
-      "text": "[calm] No rush at all. Look at what this step is given, and what it owes the next one.",
-      "file": "email-triage/idle-nudge--2e24c93a.mp3"
+      "text": "[thoughtful] No rush at all. Say the word if you'd like a nudge.",
+      "file": "expense-approvals/idle-nudge--e3c97926.mp3"
     },
     "node-placed--action--v0": {
-      "text": "[calm] This is the reply itself. Whatever reaches it gets an email back.",
-      "file": "email-triage/node-placed--114a5c1b.mp3"
+      "text": "[calm] This is the reply itself. Whatever reaches it goes back to the claimant.",
+      "file": "expense-approvals/node-placed--e90838df.mp3"
     },
     "node-placed--chat-gemini--v0": {
-      "text": "[calm] That's the brain the classifier borrows. How it's set up decides how steady its answers are.",
-      "file": "email-triage/node-placed--2f1a3f5a.mp3"
+      "text": "[calm] That's the brain it borrows. How you set it up decides how steady its answers are.",
+      "file": "expense-approvals/node-placed--dca65388.mp3"
     },
     "node-placed--classify--v0": {
-      "text": "[calm] This is what reads the email and decides what kind it is. It needs a model to think with.",
-      "file": "email-triage/node-placed--ee1af933.mp3"
+      "text": "[calm] This is what reads a claim and decides. It needs a model to think with.",
+      "file": "expense-approvals/node-placed--ed537861.mp3"
     },
     "node-placed--parse--v0": {
-      "text": "[calm] The model replies as text. This turns it into fields the next nodes can actually read.",
-      "file": "email-triage/node-placed--ce71859b.mp3"
+      "text": "[calm] The model answers as text. This turns it into fields the next nodes can read.",
+      "file": "expense-approvals/node-placed--6cdc31c2.mp3"
     },
     "node-placed--switch--v0": {
-      "text": "[calm] This is where the kinds of email split apart. Each branch you build is one path out.",
-      "file": "email-triage/node-placed--e37eb0eb.mp3"
+      "text": "[calm] This is where the outcomes part company. Each branch you build is one path out.",
+      "file": "expense-approvals/node-placed--9c7733e0.mp3"
     },
     "node-placed--trigger--v0": {
-      "text": "[calm] That's the way in. Everything after it runs once per email that arrives.",
-      "file": "email-triage/node-placed--ef0fe8d8.mp3"
+      "text": "[calm] That's the way in. Everything after it runs once per claim that arrives.",
+      "file": "expense-approvals/node-placed--57834803.mp3"
     },
     "node-wrong--action--v0": {
-      "text": "[thoughtful] Hmm. [pause] That one won't do this job here. Let me ask you something.",
-      "file": "email-triage/node-wrong--010721fb.mp3"
+      "text": "[calm] Hmm. That one can't do the job this step needs. Have a think about why.",
+      "file": "expense-approvals/node-wrong--03e8858a.mp3"
     },
     "node-wrong--action--v1": {
-      "text": "[thoughtful] Ah, not that one. There's something I'd like you to think about.",
-      "file": "email-triage/node-wrong--52afa8f0.mp3"
+      "text": "[thoughtful] Ah, not that one. Look at what this step actually has to produce.",
+      "file": "expense-approvals/node-wrong--16f89795.mp3"
     },
     "node-wrong--action--v2": {
-      "text": "[calm] Not quite. Before you try again, answer me this.",
-      "file": "email-triage/node-wrong--75233647.mp3"
+      "text": "[calm] That's not it. What does the next node need handed to it?",
+      "file": "expense-approvals/node-wrong--e47bcf01.mp3"
     },
     "node-wrong--action--v3": {
-      "text": "[thoughtful] Hold on. That can't give this step what it needs.",
-      "file": "email-triage/node-wrong--3e12450d.mp3"
+      "text": "[thoughtful] Hmm, no. Read that node’s job again, then read the step’s.",
+      "file": "expense-approvals/node-wrong--335f8ae6.mp3"
     },
     "node-wrong--action--v4": {
-      "text": "[calm] That's not the one. Let's work out why together.",
-      "file": "email-triage/node-wrong--d3d6d3bb.mp3"
-    },
-    "node-wrong--action--v5": {
-      "text": "[thoughtful] Hmm. Wrong tool for this job. One question first.",
-      "file": "email-triage/node-wrong--9f33d4ac.mp3"
-    },
-    "node-wrong--action--v6": {
-      "text": "[calm] Nearly, but no. Let me check something with you.",
-      "file": "email-triage/node-wrong--f04b8e30.mp3"
-    },
-    "node-wrong--action--v7": {
-      "text": "[thoughtful] Careful. That node does something else entirely.",
-      "file": "email-triage/node-wrong--f9493e22.mp3"
-    },
-    "node-wrong--action--v8": {
-      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
-      "file": "email-triage/node-wrong--b7caf5c0.mp3"
-    },
-    "node-wrong--action--v9": {
-      "text": "[thoughtful] Hmm, no. Here's the question to ask yourself.",
-      "file": "email-triage/node-wrong--bf2e6d4b.mp3"
+      "text": "[calm] Not that one. Ask what this step has to decide before anything else can happen.",
+      "file": "expense-approvals/node-wrong--9828eb49.mp3"
     },
     "node-wrong--chat-trigger--v0": {
-      "text": "[thoughtful] Hmm. [pause] That one won't do this job here. Let me ask you something.",
-      "file": "email-triage/node-wrong--010721fb.mp3"
+      "text": "[calm] Hmm. That one can't do the job this step needs. Have a think about why.",
+      "file": "expense-approvals/node-wrong--03e8858a.mp3"
     },
     "node-wrong--chat-trigger--v1": {
-      "text": "[thoughtful] Ah, not that one. There's something I'd like you to think about.",
-      "file": "email-triage/node-wrong--52afa8f0.mp3"
+      "text": "[thoughtful] Ah, not that one. Look at what this step actually has to produce.",
+      "file": "expense-approvals/node-wrong--16f89795.mp3"
     },
     "node-wrong--chat-trigger--v2": {
-      "text": "[calm] Not quite. Before you try again, answer me this.",
-      "file": "email-triage/node-wrong--75233647.mp3"
+      "text": "[calm] That's not it. What does the next node need handed to it?",
+      "file": "expense-approvals/node-wrong--e47bcf01.mp3"
     },
     "node-wrong--chat-trigger--v3": {
-      "text": "[thoughtful] Hold on. That can't give this step what it needs.",
-      "file": "email-triage/node-wrong--3e12450d.mp3"
+      "text": "[thoughtful] Hmm, no. Read that node’s job again, then read the step’s.",
+      "file": "expense-approvals/node-wrong--335f8ae6.mp3"
     },
     "node-wrong--chat-trigger--v4": {
-      "text": "[calm] That's not the one. Let's work out why together.",
-      "file": "email-triage/node-wrong--d3d6d3bb.mp3"
-    },
-    "node-wrong--chat-trigger--v5": {
-      "text": "[thoughtful] Hmm. Wrong tool for this job. One question first.",
-      "file": "email-triage/node-wrong--9f33d4ac.mp3"
-    },
-    "node-wrong--chat-trigger--v6": {
-      "text": "[calm] Nearly, but no. Let me check something with you.",
-      "file": "email-triage/node-wrong--f04b8e30.mp3"
-    },
-    "node-wrong--chat-trigger--v7": {
-      "text": "[thoughtful] Careful. That node does something else entirely.",
-      "file": "email-triage/node-wrong--f9493e22.mp3"
-    },
-    "node-wrong--chat-trigger--v8": {
-      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
-      "file": "email-triage/node-wrong--b7caf5c0.mp3"
-    },
-    "node-wrong--chat-trigger--v9": {
-      "text": "[thoughtful] Hmm, no. Here's the question to ask yourself.",
-      "file": "email-triage/node-wrong--bf2e6d4b.mp3"
+      "text": "[calm] Not that one. Ask what this step has to decide before anything else can happen.",
+      "file": "expense-approvals/node-wrong--9828eb49.mp3"
     },
     "node-wrong--classify--v0": {
-      "text": "[thoughtful] Hmm. [pause] That one won't do this job here. Let me ask you something.",
-      "file": "email-triage/node-wrong--010721fb.mp3"
+      "text": "[calm] Hmm. That one can't do the job this step needs. Have a think about why.",
+      "file": "expense-approvals/node-wrong--03e8858a.mp3"
     },
     "node-wrong--classify--v1": {
-      "text": "[thoughtful] Ah, not that one. There's something I'd like you to think about.",
-      "file": "email-triage/node-wrong--52afa8f0.mp3"
+      "text": "[thoughtful] Ah, not that one. Look at what this step actually has to produce.",
+      "file": "expense-approvals/node-wrong--16f89795.mp3"
     },
     "node-wrong--classify--v2": {
-      "text": "[calm] Not quite. Before you try again, answer me this.",
-      "file": "email-triage/node-wrong--75233647.mp3"
+      "text": "[calm] That's not it. What does the next node need handed to it?",
+      "file": "expense-approvals/node-wrong--e47bcf01.mp3"
     },
     "node-wrong--classify--v3": {
-      "text": "[thoughtful] Hold on. That can't give this step what it needs.",
-      "file": "email-triage/node-wrong--3e12450d.mp3"
+      "text": "[thoughtful] Hmm, no. Read that node’s job again, then read the step’s.",
+      "file": "expense-approvals/node-wrong--335f8ae6.mp3"
     },
     "node-wrong--classify--v4": {
-      "text": "[calm] That's not the one. Let's work out why together.",
-      "file": "email-triage/node-wrong--d3d6d3bb.mp3"
-    },
-    "node-wrong--classify--v5": {
-      "text": "[thoughtful] Hmm. Wrong tool for this job. One question first.",
-      "file": "email-triage/node-wrong--9f33d4ac.mp3"
-    },
-    "node-wrong--classify--v6": {
-      "text": "[calm] Nearly, but no. Let me check something with you.",
-      "file": "email-triage/node-wrong--f04b8e30.mp3"
-    },
-    "node-wrong--classify--v7": {
-      "text": "[thoughtful] Careful. That node does something else entirely.",
-      "file": "email-triage/node-wrong--f9493e22.mp3"
-    },
-    "node-wrong--classify--v8": {
-      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
-      "file": "email-triage/node-wrong--b7caf5c0.mp3"
-    },
-    "node-wrong--classify--v9": {
-      "text": "[thoughtful] Hmm, no. Here's the question to ask yourself.",
-      "file": "email-triage/node-wrong--bf2e6d4b.mp3"
+      "text": "[calm] Not that one. Ask what this step has to decide before anything else can happen.",
+      "file": "expense-approvals/node-wrong--9828eb49.mp3"
     },
     "node-wrong--code--v0": {
-      "text": "[thoughtful] Hmm. [pause] That one won't do this job here. Let me ask you something.",
-      "file": "email-triage/node-wrong--010721fb.mp3"
+      "text": "[calm] Hmm. That one can't do the job this step needs. Have a think about why.",
+      "file": "expense-approvals/node-wrong--03e8858a.mp3"
     },
     "node-wrong--code--v1": {
-      "text": "[thoughtful] Ah, not that one. There's something I'd like you to think about.",
-      "file": "email-triage/node-wrong--52afa8f0.mp3"
+      "text": "[thoughtful] Ah, not that one. Look at what this step actually has to produce.",
+      "file": "expense-approvals/node-wrong--16f89795.mp3"
     },
     "node-wrong--code--v2": {
-      "text": "[calm] Not quite. Before you try again, answer me this.",
-      "file": "email-triage/node-wrong--75233647.mp3"
+      "text": "[calm] That's not it. What does the next node need handed to it?",
+      "file": "expense-approvals/node-wrong--e47bcf01.mp3"
     },
     "node-wrong--code--v3": {
-      "text": "[thoughtful] Hold on. That can't give this step what it needs.",
-      "file": "email-triage/node-wrong--3e12450d.mp3"
+      "text": "[thoughtful] Hmm, no. Read that node’s job again, then read the step’s.",
+      "file": "expense-approvals/node-wrong--335f8ae6.mp3"
     },
     "node-wrong--code--v4": {
-      "text": "[calm] That's not the one. Let's work out why together.",
-      "file": "email-triage/node-wrong--d3d6d3bb.mp3"
-    },
-    "node-wrong--code--v5": {
-      "text": "[thoughtful] Hmm. Wrong tool for this job. One question first.",
-      "file": "email-triage/node-wrong--9f33d4ac.mp3"
-    },
-    "node-wrong--code--v6": {
-      "text": "[calm] Nearly, but no. Let me check something with you.",
-      "file": "email-triage/node-wrong--f04b8e30.mp3"
-    },
-    "node-wrong--code--v7": {
-      "text": "[thoughtful] Careful. That node does something else entirely.",
-      "file": "email-triage/node-wrong--f9493e22.mp3"
-    },
-    "node-wrong--code--v8": {
-      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
-      "file": "email-triage/node-wrong--b7caf5c0.mp3"
-    },
-    "node-wrong--code--v9": {
-      "text": "[thoughtful] Hmm, no. Here's the question to ask yourself.",
-      "file": "email-triage/node-wrong--bf2e6d4b.mp3"
+      "text": "[calm] Not that one. Ask what this step has to decide before anything else can happen.",
+      "file": "expense-approvals/node-wrong--9828eb49.mp3"
     },
     "node-wrong--filter--v0": {
-      "text": "[thoughtful] Hmm. [pause] That one won't do this job here. Let me ask you something.",
-      "file": "email-triage/node-wrong--010721fb.mp3"
+      "text": "[calm] Hmm. That one can't do the job this step needs. Have a think about why.",
+      "file": "expense-approvals/node-wrong--03e8858a.mp3"
     },
     "node-wrong--filter--v1": {
-      "text": "[thoughtful] Ah, not that one. There's something I'd like you to think about.",
-      "file": "email-triage/node-wrong--52afa8f0.mp3"
+      "text": "[thoughtful] Ah, not that one. Look at what this step actually has to produce.",
+      "file": "expense-approvals/node-wrong--16f89795.mp3"
     },
     "node-wrong--filter--v2": {
-      "text": "[calm] Not quite. Before you try again, answer me this.",
-      "file": "email-triage/node-wrong--75233647.mp3"
+      "text": "[calm] That's not it. What does the next node need handed to it?",
+      "file": "expense-approvals/node-wrong--e47bcf01.mp3"
     },
     "node-wrong--filter--v3": {
-      "text": "[thoughtful] Hold on. That can't give this step what it needs.",
-      "file": "email-triage/node-wrong--3e12450d.mp3"
+      "text": "[thoughtful] Hmm, no. Read that node’s job again, then read the step’s.",
+      "file": "expense-approvals/node-wrong--335f8ae6.mp3"
     },
     "node-wrong--filter--v4": {
-      "text": "[calm] That's not the one. Let's work out why together.",
-      "file": "email-triage/node-wrong--d3d6d3bb.mp3"
-    },
-    "node-wrong--filter--v5": {
-      "text": "[thoughtful] Hmm. Wrong tool for this job. One question first.",
-      "file": "email-triage/node-wrong--9f33d4ac.mp3"
-    },
-    "node-wrong--filter--v6": {
-      "text": "[calm] Nearly, but no. Let me check something with you.",
-      "file": "email-triage/node-wrong--f04b8e30.mp3"
-    },
-    "node-wrong--filter--v7": {
-      "text": "[thoughtful] Careful. That node does something else entirely.",
-      "file": "email-triage/node-wrong--f9493e22.mp3"
-    },
-    "node-wrong--filter--v8": {
-      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
-      "file": "email-triage/node-wrong--b7caf5c0.mp3"
-    },
-    "node-wrong--filter--v9": {
-      "text": "[thoughtful] Hmm, no. Here's the question to ask yourself.",
-      "file": "email-triage/node-wrong--bf2e6d4b.mp3"
+      "text": "[calm] Not that one. Ask what this step has to decide before anything else can happen.",
+      "file": "expense-approvals/node-wrong--9828eb49.mp3"
     },
     "node-wrong--google-docs--v0": {
-      "text": "[thoughtful] Hmm. [pause] That one won't do this job here. Let me ask you something.",
-      "file": "email-triage/node-wrong--010721fb.mp3"
+      "text": "[calm] Hmm. That one can't do the job this step needs. Have a think about why.",
+      "file": "expense-approvals/node-wrong--03e8858a.mp3"
     },
     "node-wrong--google-docs--v1": {
-      "text": "[thoughtful] Ah, not that one. There's something I'd like you to think about.",
-      "file": "email-triage/node-wrong--52afa8f0.mp3"
+      "text": "[thoughtful] Ah, not that one. Look at what this step actually has to produce.",
+      "file": "expense-approvals/node-wrong--16f89795.mp3"
     },
     "node-wrong--google-docs--v2": {
-      "text": "[calm] Not quite. Before you try again, answer me this.",
-      "file": "email-triage/node-wrong--75233647.mp3"
+      "text": "[calm] That's not it. What does the next node need handed to it?",
+      "file": "expense-approvals/node-wrong--e47bcf01.mp3"
     },
     "node-wrong--google-docs--v3": {
-      "text": "[thoughtful] Hold on. That can't give this step what it needs.",
-      "file": "email-triage/node-wrong--3e12450d.mp3"
+      "text": "[thoughtful] Hmm, no. Read that node’s job again, then read the step’s.",
+      "file": "expense-approvals/node-wrong--335f8ae6.mp3"
     },
     "node-wrong--google-docs--v4": {
-      "text": "[calm] That's not the one. Let's work out why together.",
-      "file": "email-triage/node-wrong--d3d6d3bb.mp3"
+      "text": "[calm] Not that one. Ask what this step has to decide before anything else can happen.",
+      "file": "expense-approvals/node-wrong--9828eb49.mp3"
     },
-    "node-wrong--google-docs--v5": {
-      "text": "[thoughtful] Hmm. Wrong tool for this job. One question first.",
-      "file": "email-triage/node-wrong--9f33d4ac.mp3"
+    "node-wrong--http-request--v0": {
+      "text": "[calm] Hmm. That one can't do the job this step needs. Have a think about why.",
+      "file": "expense-approvals/node-wrong--03e8858a.mp3"
     },
-    "node-wrong--google-docs--v6": {
-      "text": "[calm] Nearly, but no. Let me check something with you.",
-      "file": "email-triage/node-wrong--f04b8e30.mp3"
+    "node-wrong--http-request--v1": {
+      "text": "[thoughtful] Ah, not that one. Look at what this step actually has to produce.",
+      "file": "expense-approvals/node-wrong--16f89795.mp3"
     },
-    "node-wrong--google-docs--v7": {
-      "text": "[thoughtful] Careful. That node does something else entirely.",
-      "file": "email-triage/node-wrong--f9493e22.mp3"
+    "node-wrong--http-request--v2": {
+      "text": "[calm] That's not it. What does the next node need handed to it?",
+      "file": "expense-approvals/node-wrong--e47bcf01.mp3"
     },
-    "node-wrong--google-docs--v8": {
-      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
-      "file": "email-triage/node-wrong--b7caf5c0.mp3"
+    "node-wrong--http-request--v3": {
+      "text": "[thoughtful] Hmm, no. Read that node’s job again, then read the step’s.",
+      "file": "expense-approvals/node-wrong--335f8ae6.mp3"
     },
-    "node-wrong--google-docs--v9": {
-      "text": "[thoughtful] Hmm, no. Here's the question to ask yourself.",
-      "file": "email-triage/node-wrong--bf2e6d4b.mp3"
+    "node-wrong--http-request--v4": {
+      "text": "[calm] Not that one. Ask what this step has to decide before anything else can happen.",
+      "file": "expense-approvals/node-wrong--9828eb49.mp3"
     },
     "node-wrong--if--v0": {
-      "text": "[thoughtful] Hmm. [pause] That one won't do this job here. Let me ask you something.",
-      "file": "email-triage/node-wrong--010721fb.mp3"
+      "text": "[calm] Hmm. That one can't do the job this step needs. Have a think about why.",
+      "file": "expense-approvals/node-wrong--03e8858a.mp3"
     },
     "node-wrong--if--v1": {
-      "text": "[thoughtful] Ah, not that one. There's something I'd like you to think about.",
-      "file": "email-triage/node-wrong--52afa8f0.mp3"
+      "text": "[thoughtful] Ah, not that one. Look at what this step actually has to produce.",
+      "file": "expense-approvals/node-wrong--16f89795.mp3"
     },
     "node-wrong--if--v2": {
-      "text": "[calm] Not quite. Before you try again, answer me this.",
-      "file": "email-triage/node-wrong--75233647.mp3"
+      "text": "[calm] That's not it. What does the next node need handed to it?",
+      "file": "expense-approvals/node-wrong--e47bcf01.mp3"
     },
     "node-wrong--if--v3": {
-      "text": "[thoughtful] Hold on. That can't give this step what it needs.",
-      "file": "email-triage/node-wrong--3e12450d.mp3"
+      "text": "[thoughtful] Hmm, no. Read that node’s job again, then read the step’s.",
+      "file": "expense-approvals/node-wrong--335f8ae6.mp3"
     },
     "node-wrong--if--v4": {
-      "text": "[calm] That's not the one. Let's work out why together.",
-      "file": "email-triage/node-wrong--d3d6d3bb.mp3"
-    },
-    "node-wrong--if--v5": {
-      "text": "[thoughtful] Hmm. Wrong tool for this job. One question first.",
-      "file": "email-triage/node-wrong--9f33d4ac.mp3"
-    },
-    "node-wrong--if--v6": {
-      "text": "[calm] Nearly, but no. Let me check something with you.",
-      "file": "email-triage/node-wrong--f04b8e30.mp3"
-    },
-    "node-wrong--if--v7": {
-      "text": "[thoughtful] Careful. That node does something else entirely.",
-      "file": "email-triage/node-wrong--f9493e22.mp3"
-    },
-    "node-wrong--if--v8": {
-      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
-      "file": "email-triage/node-wrong--b7caf5c0.mp3"
-    },
-    "node-wrong--if--v9": {
-      "text": "[thoughtful] Hmm, no. Here's the question to ask yourself.",
-      "file": "email-triage/node-wrong--bf2e6d4b.mp3"
-    },
-    "node-wrong--merge--v0": {
-      "text": "[thoughtful] Hmm. [pause] That one won't do this job here. Let me ask you something.",
-      "file": "email-triage/node-wrong--010721fb.mp3"
-    },
-    "node-wrong--merge--v1": {
-      "text": "[thoughtful] Ah, not that one. There's something I'd like you to think about.",
-      "file": "email-triage/node-wrong--52afa8f0.mp3"
-    },
-    "node-wrong--merge--v2": {
-      "text": "[calm] Not quite. Before you try again, answer me this.",
-      "file": "email-triage/node-wrong--75233647.mp3"
-    },
-    "node-wrong--merge--v3": {
-      "text": "[thoughtful] Hold on. That can't give this step what it needs.",
-      "file": "email-triage/node-wrong--3e12450d.mp3"
-    },
-    "node-wrong--merge--v4": {
-      "text": "[calm] That's not the one. Let's work out why together.",
-      "file": "email-triage/node-wrong--d3d6d3bb.mp3"
-    },
-    "node-wrong--merge--v5": {
-      "text": "[thoughtful] Hmm. Wrong tool for this job. One question first.",
-      "file": "email-triage/node-wrong--9f33d4ac.mp3"
-    },
-    "node-wrong--merge--v6": {
-      "text": "[calm] Nearly, but no. Let me check something with you.",
-      "file": "email-triage/node-wrong--f04b8e30.mp3"
-    },
-    "node-wrong--merge--v7": {
-      "text": "[thoughtful] Careful. That node does something else entirely.",
-      "file": "email-triage/node-wrong--f9493e22.mp3"
-    },
-    "node-wrong--merge--v8": {
-      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
-      "file": "email-triage/node-wrong--b7caf5c0.mp3"
-    },
-    "node-wrong--merge--v9": {
-      "text": "[thoughtful] Hmm, no. Here's the question to ask yourself.",
-      "file": "email-triage/node-wrong--bf2e6d4b.mp3"
+      "text": "[calm] Not that one. Ask what this step has to decide before anything else can happen.",
+      "file": "expense-approvals/node-wrong--9828eb49.mp3"
     },
     "node-wrong--parse--v0": {
-      "text": "[thoughtful] Hmm. [pause] That one won't do this job here. Let me ask you something.",
-      "file": "email-triage/node-wrong--010721fb.mp3"
+      "text": "[calm] Hmm. That one can't do the job this step needs. Have a think about why.",
+      "file": "expense-approvals/node-wrong--03e8858a.mp3"
     },
     "node-wrong--parse--v1": {
-      "text": "[thoughtful] Ah, not that one. There's something I'd like you to think about.",
-      "file": "email-triage/node-wrong--52afa8f0.mp3"
+      "text": "[thoughtful] Ah, not that one. Look at what this step actually has to produce.",
+      "file": "expense-approvals/node-wrong--16f89795.mp3"
     },
     "node-wrong--parse--v2": {
-      "text": "[calm] Not quite. Before you try again, answer me this.",
-      "file": "email-triage/node-wrong--75233647.mp3"
+      "text": "[calm] That's not it. What does the next node need handed to it?",
+      "file": "expense-approvals/node-wrong--e47bcf01.mp3"
     },
     "node-wrong--parse--v3": {
-      "text": "[thoughtful] Hold on. That can't give this step what it needs.",
-      "file": "email-triage/node-wrong--3e12450d.mp3"
+      "text": "[thoughtful] Hmm, no. Read that node’s job again, then read the step’s.",
+      "file": "expense-approvals/node-wrong--335f8ae6.mp3"
     },
     "node-wrong--parse--v4": {
-      "text": "[calm] That's not the one. Let's work out why together.",
-      "file": "email-triage/node-wrong--d3d6d3bb.mp3"
-    },
-    "node-wrong--parse--v5": {
-      "text": "[thoughtful] Hmm. Wrong tool for this job. One question first.",
-      "file": "email-triage/node-wrong--9f33d4ac.mp3"
-    },
-    "node-wrong--parse--v6": {
-      "text": "[calm] Nearly, but no. Let me check something with you.",
-      "file": "email-triage/node-wrong--f04b8e30.mp3"
-    },
-    "node-wrong--parse--v7": {
-      "text": "[thoughtful] Careful. That node does something else entirely.",
-      "file": "email-triage/node-wrong--f9493e22.mp3"
-    },
-    "node-wrong--parse--v8": {
-      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
-      "file": "email-triage/node-wrong--b7caf5c0.mp3"
-    },
-    "node-wrong--parse--v9": {
-      "text": "[thoughtful] Hmm, no. Here's the question to ask yourself.",
-      "file": "email-triage/node-wrong--bf2e6d4b.mp3"
+      "text": "[calm] Not that one. Ask what this step has to decide before anything else can happen.",
+      "file": "expense-approvals/node-wrong--9828eb49.mp3"
     },
     "node-wrong--schedule--v0": {
-      "text": "[thoughtful] Hmm. [pause] That one won't do this job here. Let me ask you something.",
-      "file": "email-triage/node-wrong--010721fb.mp3"
+      "text": "[calm] Hmm. That one can't do the job this step needs. Have a think about why.",
+      "file": "expense-approvals/node-wrong--03e8858a.mp3"
     },
     "node-wrong--schedule--v1": {
-      "text": "[thoughtful] Ah, not that one. There's something I'd like you to think about.",
-      "file": "email-triage/node-wrong--52afa8f0.mp3"
+      "text": "[thoughtful] Ah, not that one. Look at what this step actually has to produce.",
+      "file": "expense-approvals/node-wrong--16f89795.mp3"
     },
     "node-wrong--schedule--v2": {
-      "text": "[calm] Not quite. Before you try again, answer me this.",
-      "file": "email-triage/node-wrong--75233647.mp3"
+      "text": "[calm] That's not it. What does the next node need handed to it?",
+      "file": "expense-approvals/node-wrong--e47bcf01.mp3"
     },
     "node-wrong--schedule--v3": {
-      "text": "[thoughtful] Hold on. That can't give this step what it needs.",
-      "file": "email-triage/node-wrong--3e12450d.mp3"
+      "text": "[thoughtful] Hmm, no. Read that node’s job again, then read the step’s.",
+      "file": "expense-approvals/node-wrong--335f8ae6.mp3"
     },
     "node-wrong--schedule--v4": {
-      "text": "[calm] That's not the one. Let's work out why together.",
-      "file": "email-triage/node-wrong--d3d6d3bb.mp3"
-    },
-    "node-wrong--schedule--v5": {
-      "text": "[thoughtful] Hmm. Wrong tool for this job. One question first.",
-      "file": "email-triage/node-wrong--9f33d4ac.mp3"
-    },
-    "node-wrong--schedule--v6": {
-      "text": "[calm] Nearly, but no. Let me check something with you.",
-      "file": "email-triage/node-wrong--f04b8e30.mp3"
-    },
-    "node-wrong--schedule--v7": {
-      "text": "[thoughtful] Careful. That node does something else entirely.",
-      "file": "email-triage/node-wrong--f9493e22.mp3"
-    },
-    "node-wrong--schedule--v8": {
-      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
-      "file": "email-triage/node-wrong--b7caf5c0.mp3"
-    },
-    "node-wrong--schedule--v9": {
-      "text": "[thoughtful] Hmm, no. Here's the question to ask yourself.",
-      "file": "email-triage/node-wrong--bf2e6d4b.mp3"
+      "text": "[calm] Not that one. Ask what this step has to decide before anything else can happen.",
+      "file": "expense-approvals/node-wrong--9828eb49.mp3"
     },
     "node-wrong--slack-message--v0": {
-      "text": "[thoughtful] Hmm. [pause] That one won't do this job here. Let me ask you something.",
-      "file": "email-triage/node-wrong--010721fb.mp3"
+      "text": "[calm] Hmm. That one can't do the job this step needs. Have a think about why.",
+      "file": "expense-approvals/node-wrong--03e8858a.mp3"
     },
     "node-wrong--slack-message--v1": {
-      "text": "[thoughtful] Ah, not that one. There's something I'd like you to think about.",
-      "file": "email-triage/node-wrong--52afa8f0.mp3"
+      "text": "[thoughtful] Ah, not that one. Look at what this step actually has to produce.",
+      "file": "expense-approvals/node-wrong--16f89795.mp3"
     },
     "node-wrong--slack-message--v2": {
-      "text": "[calm] Not quite. Before you try again, answer me this.",
-      "file": "email-triage/node-wrong--75233647.mp3"
+      "text": "[calm] That's not it. What does the next node need handed to it?",
+      "file": "expense-approvals/node-wrong--e47bcf01.mp3"
     },
     "node-wrong--slack-message--v3": {
-      "text": "[thoughtful] Hold on. That can't give this step what it needs.",
-      "file": "email-triage/node-wrong--3e12450d.mp3"
+      "text": "[thoughtful] Hmm, no. Read that node’s job again, then read the step’s.",
+      "file": "expense-approvals/node-wrong--335f8ae6.mp3"
     },
     "node-wrong--slack-message--v4": {
-      "text": "[calm] That's not the one. Let's work out why together.",
-      "file": "email-triage/node-wrong--d3d6d3bb.mp3"
-    },
-    "node-wrong--slack-message--v5": {
-      "text": "[thoughtful] Hmm. Wrong tool for this job. One question first.",
-      "file": "email-triage/node-wrong--9f33d4ac.mp3"
-    },
-    "node-wrong--slack-message--v6": {
-      "text": "[calm] Nearly, but no. Let me check something with you.",
-      "file": "email-triage/node-wrong--f04b8e30.mp3"
-    },
-    "node-wrong--slack-message--v7": {
-      "text": "[thoughtful] Careful. That node does something else entirely.",
-      "file": "email-triage/node-wrong--f9493e22.mp3"
-    },
-    "node-wrong--slack-message--v8": {
-      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
-      "file": "email-triage/node-wrong--b7caf5c0.mp3"
-    },
-    "node-wrong--slack-message--v9": {
-      "text": "[thoughtful] Hmm, no. Here's the question to ask yourself.",
-      "file": "email-triage/node-wrong--bf2e6d4b.mp3"
+      "text": "[calm] Not that one. Ask what this step has to decide before anything else can happen.",
+      "file": "expense-approvals/node-wrong--9828eb49.mp3"
     },
     "node-wrong--switch--v0": {
-      "text": "[thoughtful] Hmm. [pause] That one won't do this job here. Let me ask you something.",
-      "file": "email-triage/node-wrong--010721fb.mp3"
+      "text": "[calm] Hmm. That one can't do the job this step needs. Have a think about why.",
+      "file": "expense-approvals/node-wrong--03e8858a.mp3"
     },
     "node-wrong--switch--v1": {
-      "text": "[thoughtful] Ah, not that one. There's something I'd like you to think about.",
-      "file": "email-triage/node-wrong--52afa8f0.mp3"
+      "text": "[thoughtful] Ah, not that one. Look at what this step actually has to produce.",
+      "file": "expense-approvals/node-wrong--16f89795.mp3"
     },
     "node-wrong--switch--v2": {
-      "text": "[calm] Not quite. Before you try again, answer me this.",
-      "file": "email-triage/node-wrong--75233647.mp3"
+      "text": "[calm] That's not it. What does the next node need handed to it?",
+      "file": "expense-approvals/node-wrong--e47bcf01.mp3"
     },
     "node-wrong--switch--v3": {
-      "text": "[thoughtful] Hold on. That can't give this step what it needs.",
-      "file": "email-triage/node-wrong--3e12450d.mp3"
+      "text": "[thoughtful] Hmm, no. Read that node’s job again, then read the step’s.",
+      "file": "expense-approvals/node-wrong--335f8ae6.mp3"
     },
     "node-wrong--switch--v4": {
-      "text": "[calm] That's not the one. Let's work out why together.",
-      "file": "email-triage/node-wrong--d3d6d3bb.mp3"
-    },
-    "node-wrong--switch--v5": {
-      "text": "[thoughtful] Hmm. Wrong tool for this job. One question first.",
-      "file": "email-triage/node-wrong--9f33d4ac.mp3"
-    },
-    "node-wrong--switch--v6": {
-      "text": "[calm] Nearly, but no. Let me check something with you.",
-      "file": "email-triage/node-wrong--f04b8e30.mp3"
-    },
-    "node-wrong--switch--v7": {
-      "text": "[thoughtful] Careful. That node does something else entirely.",
-      "file": "email-triage/node-wrong--f9493e22.mp3"
-    },
-    "node-wrong--switch--v8": {
-      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
-      "file": "email-triage/node-wrong--b7caf5c0.mp3"
-    },
-    "node-wrong--switch--v9": {
-      "text": "[thoughtful] Hmm, no. Here's the question to ask yourself.",
-      "file": "email-triage/node-wrong--bf2e6d4b.mp3"
+      "text": "[calm] Not that one. Ask what this step has to decide before anything else can happen.",
+      "file": "expense-approvals/node-wrong--9828eb49.mp3"
     },
     "node-wrong--trigger--v0": {
-      "text": "[thoughtful] Hmm. [pause] That one won't do this job here. Let me ask you something.",
-      "file": "email-triage/node-wrong--010721fb.mp3"
+      "text": "[calm] Hmm. That one can't do the job this step needs. Have a think about why.",
+      "file": "expense-approvals/node-wrong--03e8858a.mp3"
     },
     "node-wrong--trigger--v1": {
-      "text": "[thoughtful] Ah, not that one. There's something I'd like you to think about.",
-      "file": "email-triage/node-wrong--52afa8f0.mp3"
+      "text": "[thoughtful] Ah, not that one. Look at what this step actually has to produce.",
+      "file": "expense-approvals/node-wrong--16f89795.mp3"
     },
     "node-wrong--trigger--v2": {
-      "text": "[calm] Not quite. Before you try again, answer me this.",
-      "file": "email-triage/node-wrong--75233647.mp3"
+      "text": "[calm] That's not it. What does the next node need handed to it?",
+      "file": "expense-approvals/node-wrong--e47bcf01.mp3"
     },
     "node-wrong--trigger--v3": {
-      "text": "[thoughtful] Hold on. That can't give this step what it needs.",
-      "file": "email-triage/node-wrong--3e12450d.mp3"
+      "text": "[thoughtful] Hmm, no. Read that node’s job again, then read the step’s.",
+      "file": "expense-approvals/node-wrong--335f8ae6.mp3"
     },
     "node-wrong--trigger--v4": {
-      "text": "[calm] That's not the one. Let's work out why together.",
-      "file": "email-triage/node-wrong--d3d6d3bb.mp3"
-    },
-    "node-wrong--trigger--v5": {
-      "text": "[thoughtful] Hmm. Wrong tool for this job. One question first.",
-      "file": "email-triage/node-wrong--9f33d4ac.mp3"
-    },
-    "node-wrong--trigger--v6": {
-      "text": "[calm] Nearly, but no. Let me check something with you.",
-      "file": "email-triage/node-wrong--f04b8e30.mp3"
-    },
-    "node-wrong--trigger--v7": {
-      "text": "[thoughtful] Careful. That node does something else entirely.",
-      "file": "email-triage/node-wrong--f9493e22.mp3"
-    },
-    "node-wrong--trigger--v8": {
-      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
-      "file": "email-triage/node-wrong--b7caf5c0.mp3"
-    },
-    "node-wrong--trigger--v9": {
-      "text": "[thoughtful] Hmm, no. Here's the question to ask yourself.",
-      "file": "email-triage/node-wrong--bf2e6d4b.mp3"
-    },
-    "node-wrong--web-search--v0": {
-      "text": "[thoughtful] Hmm. [pause] That one won't do this job here. Let me ask you something.",
-      "file": "email-triage/node-wrong--010721fb.mp3"
-    },
-    "node-wrong--web-search--v1": {
-      "text": "[thoughtful] Ah, not that one. There's something I'd like you to think about.",
-      "file": "email-triage/node-wrong--52afa8f0.mp3"
-    },
-    "node-wrong--web-search--v2": {
-      "text": "[calm] Not quite. Before you try again, answer me this.",
-      "file": "email-triage/node-wrong--75233647.mp3"
-    },
-    "node-wrong--web-search--v3": {
-      "text": "[thoughtful] Hold on. That can't give this step what it needs.",
-      "file": "email-triage/node-wrong--3e12450d.mp3"
-    },
-    "node-wrong--web-search--v4": {
-      "text": "[calm] That's not the one. Let's work out why together.",
-      "file": "email-triage/node-wrong--d3d6d3bb.mp3"
-    },
-    "node-wrong--web-search--v5": {
-      "text": "[thoughtful] Hmm. Wrong tool for this job. One question first.",
-      "file": "email-triage/node-wrong--9f33d4ac.mp3"
-    },
-    "node-wrong--web-search--v6": {
-      "text": "[calm] Nearly, but no. Let me check something with you.",
-      "file": "email-triage/node-wrong--f04b8e30.mp3"
-    },
-    "node-wrong--web-search--v7": {
-      "text": "[thoughtful] Careful. That node does something else entirely.",
-      "file": "email-triage/node-wrong--f9493e22.mp3"
-    },
-    "node-wrong--web-search--v8": {
-      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
-      "file": "email-triage/node-wrong--b7caf5c0.mp3"
-    },
-    "node-wrong--web-search--v9": {
-      "text": "[thoughtful] Hmm, no. Here's the question to ask yourself.",
-      "file": "email-triage/node-wrong--bf2e6d4b.mp3"
+      "text": "[calm] Not that one. Ask what this step has to decide before anything else can happen.",
+      "file": "expense-approvals/node-wrong--9828eb49.mp3"
     },
     "node-wrong--webhook--v0": {
-      "text": "[thoughtful] Hmm. [pause] That one won't do this job here. Let me ask you something.",
-      "file": "email-triage/node-wrong--010721fb.mp3"
+      "text": "[calm] Hmm. That one can't do the job this step needs. Have a think about why.",
+      "file": "expense-approvals/node-wrong--03e8858a.mp3"
     },
     "node-wrong--webhook--v1": {
-      "text": "[thoughtful] Ah, not that one. There's something I'd like you to think about.",
-      "file": "email-triage/node-wrong--52afa8f0.mp3"
+      "text": "[thoughtful] Ah, not that one. Look at what this step actually has to produce.",
+      "file": "expense-approvals/node-wrong--16f89795.mp3"
     },
     "node-wrong--webhook--v2": {
-      "text": "[calm] Not quite. Before you try again, answer me this.",
-      "file": "email-triage/node-wrong--75233647.mp3"
+      "text": "[calm] That's not it. What does the next node need handed to it?",
+      "file": "expense-approvals/node-wrong--e47bcf01.mp3"
     },
     "node-wrong--webhook--v3": {
-      "text": "[thoughtful] Hold on. That can't give this step what it needs.",
-      "file": "email-triage/node-wrong--3e12450d.mp3"
+      "text": "[thoughtful] Hmm, no. Read that node’s job again, then read the step’s.",
+      "file": "expense-approvals/node-wrong--335f8ae6.mp3"
     },
     "node-wrong--webhook--v4": {
-      "text": "[calm] That's not the one. Let's work out why together.",
-      "file": "email-triage/node-wrong--d3d6d3bb.mp3"
+      "text": "[calm] Not that one. Ask what this step has to decide before anything else can happen.",
+      "file": "expense-approvals/node-wrong--9828eb49.mp3"
     },
-    "node-wrong--webhook--v5": {
-      "text": "[thoughtful] Hmm. Wrong tool for this job. One question first.",
-      "file": "email-triage/node-wrong--9f33d4ac.mp3"
+    "phase-complete--intake--v0": {
+      "text": "[excited] The flow's got a way in now! That's a good start.",
+      "file": "expense-approvals/phase-complete--51637ea9.mp3"
     },
-    "node-wrong--webhook--v6": {
-      "text": "[calm] Nearly, but no. Let me check something with you.",
-      "file": "email-triage/node-wrong--f04b8e30.mp3"
-    },
-    "node-wrong--webhook--v7": {
-      "text": "[thoughtful] Careful. That node does something else entirely.",
-      "file": "email-triage/node-wrong--f9493e22.mp3"
-    },
-    "node-wrong--webhook--v8": {
-      "text": "[calm] That one can't do it. Let's find out what you're picturing.",
-      "file": "email-triage/node-wrong--b7caf5c0.mp3"
-    },
-    "node-wrong--webhook--v9": {
-      "text": "[thoughtful] Hmm, no. Here's the question to ask yourself.",
-      "file": "email-triage/node-wrong--bf2e6d4b.mp3"
-    },
-    "phase-complete--brain--v0": {
-      "text": "[excited] It can read an email and understand it now! [pause] That was the hard part.",
-      "file": "email-triage/phase-complete--18002e69.mp3"
+    "phase-complete--judge--v0": {
+      "text": "[excited] It can read a claim and judge it now! [pause] That was the hard part.",
+      "file": "expense-approvals/phase-complete--2f115232.mp3"
     },
     "phase-complete--route--v0": {
       "text": "[excited] Right, that part's done. Nice work!",
@@ -775,10 +451,6 @@
       "text": "[excited] Good, that's one more piece in place.",
       "file": "shared/phase-complete--3e7cb79e.mp3"
     },
-    "phase-complete--trigger--v0": {
-      "text": "[excited] The flow's got a way in now. That's a good start!",
-      "file": "email-triage/phase-complete--8fa3ba1b.mp3"
-    },
     "phase-complete--v0": {
       "text": "[excited] Right, that part's done. Nice work!",
       "file": "shared/phase-complete--580e20f5.mp3"
@@ -791,17 +463,17 @@
       "text": "[excited] Good, that's one more piece in place.",
       "file": "shared/phase-complete--3e7cb79e.mp3"
     },
-    "phase-intro--brain--v0": {
-      "text": "[calm] This part has to read plain English and decide. Think about what that needs.",
-      "file": "email-triage/phase-intro--97a2eaf4.mp3"
+    "phase-intro--intake--v0": {
+      "text": "[calm] Now that you know the exact nodes, lets dive in deeper. Start Building",
+      "file": "expense-approvals/phase-intro--152b8909.mp3"
+    },
+    "phase-intro--judge--v0": {
+      "text": "[calm] This part has to read plain English and make a call. Think about what that needs.",
+      "file": "expense-approvals/phase-intro--913b9075.mp3"
     },
     "phase-intro--route--v0": {
-      "text": "[calm] Now the paths split. Every category needs somewhere of its own to go.",
-      "file": "email-triage/phase-intro--989d6b21.mp3"
-    },
-    "phase-intro--trigger--v0": {
-      "text": "[calm] Now that you know the exact nodes, lets dive in deeper. Start Building.",
-      "file": "email-triage/phase-intro--b9956ec9.mp3"
+      "text": "[calm] Now the paths split. Every outcome needs somewhere of its own to go.",
+      "file": "expense-approvals/phase-intro--8249fe48.mp3"
     },
     "phase-intro--v0": {
       "text": "[calm] Start with what this part needs before it can do anything.",
@@ -1007,6 +679,38 @@
       "text": "[calm] That's the one. Back to the board.",
       "file": "shared/probe-correct--be7deb2c.mp3"
     },
+    "probe-correct--http-request--v0": {
+      "text": "[warm] Yes, exactly that. Now put the right one in.",
+      "file": "shared/probe-correct--d3d647bc.mp3"
+    },
+    "probe-correct--http-request--v1": {
+      "text": "[warm] Right. So you can see why it wouldn't work here.",
+      "file": "shared/probe-correct--ce323351.mp3"
+    },
+    "probe-correct--http-request--v2": {
+      "text": "[warm] That's it. Go on and pick the one that fits.",
+      "file": "shared/probe-correct--e29bbaa3.mp3"
+    },
+    "probe-correct--http-request--v3": {
+      "text": "[warm] Ah, you've got it. Try the placement again.",
+      "file": "shared/probe-correct--769abdd3.mp3"
+    },
+    "probe-correct--http-request--v4": {
+      "text": "[calm] Correct. That's the thing to watch for next time.",
+      "file": "shared/probe-correct--dd3d43bb.mp3"
+    },
+    "probe-correct--http-request--v5": {
+      "text": "[warm] Yes. Now you know what this step actually needs.",
+      "file": "shared/probe-correct--efae4fbb.mp3"
+    },
+    "probe-correct--http-request--v6": {
+      "text": "[warm] Exactly right. Let's get the proper node in there.",
+      "file": "shared/probe-correct--485de88c.mp3"
+    },
+    "probe-correct--http-request--v7": {
+      "text": "[calm] That's the one. Back to the board.",
+      "file": "shared/probe-correct--be7deb2c.mp3"
+    },
     "probe-correct--if--v0": {
       "text": "[warm] Yes, exactly that. Now put the right one in.",
       "file": "shared/probe-correct--d3d647bc.mp3"
@@ -1036,38 +740,6 @@
       "file": "shared/probe-correct--485de88c.mp3"
     },
     "probe-correct--if--v7": {
-      "text": "[calm] That's the one. Back to the board.",
-      "file": "shared/probe-correct--be7deb2c.mp3"
-    },
-    "probe-correct--merge--v0": {
-      "text": "[warm] Yes, exactly that. Now put the right one in.",
-      "file": "shared/probe-correct--d3d647bc.mp3"
-    },
-    "probe-correct--merge--v1": {
-      "text": "[warm] Right. So you can see why it wouldn't work here.",
-      "file": "shared/probe-correct--ce323351.mp3"
-    },
-    "probe-correct--merge--v2": {
-      "text": "[warm] That's it. Go on and pick the one that fits.",
-      "file": "shared/probe-correct--e29bbaa3.mp3"
-    },
-    "probe-correct--merge--v3": {
-      "text": "[warm] Ah, you've got it. Try the placement again.",
-      "file": "shared/probe-correct--769abdd3.mp3"
-    },
-    "probe-correct--merge--v4": {
-      "text": "[calm] Correct. That's the thing to watch for next time.",
-      "file": "shared/probe-correct--dd3d43bb.mp3"
-    },
-    "probe-correct--merge--v5": {
-      "text": "[warm] Yes. Now you know what this step actually needs.",
-      "file": "shared/probe-correct--efae4fbb.mp3"
-    },
-    "probe-correct--merge--v6": {
-      "text": "[warm] Exactly right. Let's get the proper node in there.",
-      "file": "shared/probe-correct--485de88c.mp3"
-    },
-    "probe-correct--merge--v7": {
       "text": "[calm] That's the one. Back to the board.",
       "file": "shared/probe-correct--be7deb2c.mp3"
     },
@@ -1228,38 +900,6 @@
       "file": "shared/probe-correct--485de88c.mp3"
     },
     "probe-correct--trigger--v7": {
-      "text": "[calm] That's the one. Back to the board.",
-      "file": "shared/probe-correct--be7deb2c.mp3"
-    },
-    "probe-correct--web-search--v0": {
-      "text": "[warm] Yes, exactly that. Now put the right one in.",
-      "file": "shared/probe-correct--d3d647bc.mp3"
-    },
-    "probe-correct--web-search--v1": {
-      "text": "[warm] Right. So you can see why it wouldn't work here.",
-      "file": "shared/probe-correct--ce323351.mp3"
-    },
-    "probe-correct--web-search--v2": {
-      "text": "[warm] That's it. Go on and pick the one that fits.",
-      "file": "shared/probe-correct--e29bbaa3.mp3"
-    },
-    "probe-correct--web-search--v3": {
-      "text": "[warm] Ah, you've got it. Try the placement again.",
-      "file": "shared/probe-correct--769abdd3.mp3"
-    },
-    "probe-correct--web-search--v4": {
-      "text": "[calm] Correct. That's the thing to watch for next time.",
-      "file": "shared/probe-correct--dd3d43bb.mp3"
-    },
-    "probe-correct--web-search--v5": {
-      "text": "[warm] Yes. Now you know what this step actually needs.",
-      "file": "shared/probe-correct--efae4fbb.mp3"
-    },
-    "probe-correct--web-search--v6": {
-      "text": "[warm] Exactly right. Let's get the proper node in there.",
-      "file": "shared/probe-correct--485de88c.mp3"
-    },
-    "probe-correct--web-search--v7": {
       "text": "[calm] That's the one. Back to the board.",
       "file": "shared/probe-correct--be7deb2c.mp3"
     },
@@ -1487,6 +1127,38 @@
       "text": "[calm] No. One of the others describes it properly.",
       "file": "shared/probe-wrong--054fb738.mp3"
     },
+    "probe-wrong--http-request--v0": {
+      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
+      "file": "shared/probe-wrong--4e8c0a2a.mp3"
+    },
+    "probe-wrong--http-request--v1": {
+      "text": "[calm] Hmm, no. Think about what that node actually produces.",
+      "file": "shared/probe-wrong--d330e69d.mp3"
+    },
+    "probe-wrong--http-request--v2": {
+      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
+      "file": "shared/probe-wrong--d1b6fbe1.mp3"
+    },
+    "probe-wrong--http-request--v3": {
+      "text": "[calm] Not quite. What would this step have to work with?",
+      "file": "shared/probe-wrong--38064f84.mp3"
+    },
+    "probe-wrong--http-request--v4": {
+      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
+      "file": "shared/probe-wrong--b6c81816.mp3"
+    },
+    "probe-wrong--http-request--v5": {
+      "text": "[calm] That isn't it. Try again, and take your time.",
+      "file": "shared/probe-wrong--6b23d200.mp3"
+    },
+    "probe-wrong--http-request--v6": {
+      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
+      "file": "shared/probe-wrong--62db845c.mp3"
+    },
+    "probe-wrong--http-request--v7": {
+      "text": "[calm] No. One of the others describes it properly.",
+      "file": "shared/probe-wrong--054fb738.mp3"
+    },
     "probe-wrong--if--v0": {
       "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
       "file": "shared/probe-wrong--4e8c0a2a.mp3"
@@ -1516,38 +1188,6 @@
       "file": "shared/probe-wrong--62db845c.mp3"
     },
     "probe-wrong--if--v7": {
-      "text": "[calm] No. One of the others describes it properly.",
-      "file": "shared/probe-wrong--054fb738.mp3"
-    },
-    "probe-wrong--merge--v0": {
-      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
-      "file": "shared/probe-wrong--4e8c0a2a.mp3"
-    },
-    "probe-wrong--merge--v1": {
-      "text": "[calm] Hmm, no. Think about what that node actually produces.",
-      "file": "shared/probe-wrong--d330e69d.mp3"
-    },
-    "probe-wrong--merge--v2": {
-      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
-      "file": "shared/probe-wrong--d1b6fbe1.mp3"
-    },
-    "probe-wrong--merge--v3": {
-      "text": "[calm] Not quite. What would this step have to work with?",
-      "file": "shared/probe-wrong--38064f84.mp3"
-    },
-    "probe-wrong--merge--v4": {
-      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
-      "file": "shared/probe-wrong--b6c81816.mp3"
-    },
-    "probe-wrong--merge--v5": {
-      "text": "[calm] That isn't it. Try again, and take your time.",
-      "file": "shared/probe-wrong--6b23d200.mp3"
-    },
-    "probe-wrong--merge--v6": {
-      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
-      "file": "shared/probe-wrong--62db845c.mp3"
-    },
-    "probe-wrong--merge--v7": {
       "text": "[calm] No. One of the others describes it properly.",
       "file": "shared/probe-wrong--054fb738.mp3"
     },
@@ -1711,38 +1351,6 @@
       "text": "[calm] No. One of the others describes it properly.",
       "file": "shared/probe-wrong--054fb738.mp3"
     },
-    "probe-wrong--web-search--v0": {
-      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
-      "file": "shared/probe-wrong--4e8c0a2a.mp3"
-    },
-    "probe-wrong--web-search--v1": {
-      "text": "[calm] Hmm, no. Think about what that node actually produces.",
-      "file": "shared/probe-wrong--d330e69d.mp3"
-    },
-    "probe-wrong--web-search--v2": {
-      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
-      "file": "shared/probe-wrong--d1b6fbe1.mp3"
-    },
-    "probe-wrong--web-search--v3": {
-      "text": "[calm] Not quite. What would this step have to work with?",
-      "file": "shared/probe-wrong--38064f84.mp3"
-    },
-    "probe-wrong--web-search--v4": {
-      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
-      "file": "shared/probe-wrong--b6c81816.mp3"
-    },
-    "probe-wrong--web-search--v5": {
-      "text": "[calm] That isn't it. Try again, and take your time.",
-      "file": "shared/probe-wrong--6b23d200.mp3"
-    },
-    "probe-wrong--web-search--v6": {
-      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
-      "file": "shared/probe-wrong--62db845c.mp3"
-    },
-    "probe-wrong--web-search--v7": {
-      "text": "[calm] No. One of the others describes it properly.",
-      "file": "shared/probe-wrong--054fb738.mp3"
-    },
     "probe-wrong--webhook--v0": {
       "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
       "file": "shared/probe-wrong--4e8c0a2a.mp3"
@@ -1776,356 +1384,404 @@
       "file": "shared/probe-wrong--054fb738.mp3"
     },
     "problem-intro--v0": {
-      "text": "[calm] Okay, let's get started. Today's problem statement is simple. Your support inbox gets every kind of message at once. Read it through properly.",
-      "file": "email-triage/problem-intro--0005e21e.mp3"
+      "text": "[calm] Right, expense claims. Finance reads every one and decides what happens to it. You're going to build the thing that does that.",
+      "file": "expense-approvals/problem-intro--213a7063.mp3"
     },
     "report-ready--v0": {
       "text": "[excited] Alright, here it is! [pause] What stood out, and what I'd practise next.",
-      "file": "email-triage/report-ready--6dfba195.mp3"
+      "file": "expense-approvals/report-ready--6dfba195.mp3"
     },
-    "run-case--bug--v0": {
-      "text": "[calm] Okay, here's the first. A customer sends an email saying the app crashes when they log in.",
-      "file": "email-triage/run-case--704a721c.mp3"
+    "run-case--cab--v0": {
+      "text": "[calm] Okay, here's the first. Somebody emails in a cab fare, with the receipt underneath.",
+      "file": "expense-approvals/run-case--dcd12740.mp3"
     },
-    "run-case--feature--v0": {
-      "text": "[calm] Right, next up. A customer emails asking for something that doesn't exist yet.",
-      "file": "email-triage/run-case--acb47a97.mp3"
+    "run-case--laptop--v0": {
+      "text": "[calm] Right, next. Somebody emails a claim for a laptop, ninety two thousand rupees.",
+      "file": "expense-approvals/run-case--111ac83e.mp3"
     },
-    "run-case--question--v0": {
-      "text": "[calm] And the last one. A customer emails just to ask a question. Keep an eye on this one.",
-      "file": "email-triage/run-case--d087c1fa.mp3"
-    },
-    "run-case--urgent--v0": {
-      "text": "[calm] Ah, this third one. A customer emails, angry, charged twice and nobody's helping.",
-      "file": "email-triage/run-case--1661b482.mp3"
+    "run-case--payroll--v0": {
+      "text": "[calm] And the last one. Somebody emails the claims address with a question. Keep an eye on this.",
+      "file": "expense-approvals/run-case--f5b26308.mp3"
     },
     "run-case--v0": {
       "text": "[calm] Okay, here's the next one arriving. Watch where it goes.",
       "file": "shared/run-case--c4c5095e.mp3"
     },
+    "run-case--vague--v0": {
+      "text": "[calm] Ah, this one. Somebody emails asking to be paid back for travel, and says nothing else.",
+      "file": "expense-approvals/run-case--844c93b9.mp3"
+    },
     "run-fail--v0": {
-      "text": "[calm] Hmm. Some didn't land where they should. That's useful to know, so let's follow one.",
-      "file": "email-triage/run-fail--32c3966c.mp3"
+      "text": "[calm] Hmm. One of those didn't land where it should have. Let's look at the flow again.",
+      "file": "expense-approvals/run-fail--2a2c7a77.mp3"
     },
     "run-fail--v1": {
-      "text": "[calm] Not all of them landed right. Follow one that missed and see where it turned.",
-      "file": "email-triage/run-fail--878e0da4.mp3"
+      "text": "[calm] Ah. Something went somewhere it shouldn't. Have a look at where it stopped.",
+      "file": "expense-approvals/run-fail--13fa5f57.mp3"
     },
     "run-pass--v0": {
-      "text": "[excited] All four test cases passed! [pause] Every email went exactly where it should.",
-      "file": "email-triage/run-pass--f0ff4a2e.mp3"
+      "text": "[excited] Every claim with a decision landed on the right path! [pause] That's your flow working.",
+      "file": "expense-approvals/run-pass--f5ca4407.mp3"
     },
     "run-start--v0": {
-      "text": "[calm] Right, let's see if what you built holds up. Four real emails, one at a time.",
-      "file": "email-triage/run-start--b747a5f3.mp3"
+      "text": "[calm] Right, let's see if what you built holds up. Four real claims, one at a time.",
+      "file": "expense-approvals/run-start--62e11821.mp3"
     },
-    "stress-correct--general-question-gap--v0": {
+    "stress-correct--model-pulled-out--v0": {
       "text": "[warm] Yes, that's the one.",
       "file": "shared/stress-correct--2abf3ab6.mp3"
     },
-    "stress-correct--general-question-gap--v1": {
+    "stress-correct--model-pulled-out--v1": {
       "text": "[warm] Right. You've thought that through.",
       "file": "shared/stress-correct--250c25f6.mp3"
     },
-    "stress-correct--general-question-gap--v2": {
+    "stress-correct--model-pulled-out--v2": {
       "text": "[warm] Exactly. That's what would happen.",
       "file": "shared/stress-correct--fe3af405.mp3"
     },
-    "stress-correct--general-question-gap--v3": {
+    "stress-correct--model-pulled-out--v3": {
       "text": "[calm] Correct. Read why, then carry on.",
       "file": "shared/stress-correct--a1c37bb2.mp3"
     },
-    "stress-correct--general-question-gap--v4": {
+    "stress-correct--model-pulled-out--v4": {
       "text": "[warm] Ah, good. That's it.",
       "file": "shared/stress-correct--15f1fa1d.mp3"
     },
-    "stress-correct--general-question-gap--v5": {
+    "stress-correct--model-pulled-out--v5": {
       "text": "[warm] Yes. You can see how it behaves now.",
       "file": "shared/stress-correct--c75a90d6.mp3"
     },
-    "stress-correct--general-question-gap--v6": {
+    "stress-correct--model-pulled-out--v6": {
       "text": "[calm] That's right. Have a read of the reason.",
       "file": "shared/stress-correct--17c32256.mp3"
     },
-    "stress-correct--general-question-gap--v7": {
+    "stress-correct--model-pulled-out--v7": {
       "text": "[warm] Got it in one.",
       "file": "shared/stress-correct--34665bf6.mp3"
     },
-    "stress-correct--why-fixed-path--v0": {
+    "stress-correct--not-a-claim--v0": {
       "text": "[warm] Yes, that's the one.",
       "file": "shared/stress-correct--2abf3ab6.mp3"
     },
-    "stress-correct--why-fixed-path--v1": {
+    "stress-correct--not-a-claim--v1": {
       "text": "[warm] Right. You've thought that through.",
       "file": "shared/stress-correct--250c25f6.mp3"
     },
-    "stress-correct--why-fixed-path--v2": {
+    "stress-correct--not-a-claim--v2": {
       "text": "[warm] Exactly. That's what would happen.",
       "file": "shared/stress-correct--fe3af405.mp3"
     },
-    "stress-correct--why-fixed-path--v3": {
+    "stress-correct--not-a-claim--v3": {
       "text": "[calm] Correct. Read why, then carry on.",
       "file": "shared/stress-correct--a1c37bb2.mp3"
     },
-    "stress-correct--why-fixed-path--v4": {
+    "stress-correct--not-a-claim--v4": {
       "text": "[warm] Ah, good. That's it.",
       "file": "shared/stress-correct--15f1fa1d.mp3"
     },
-    "stress-correct--why-fixed-path--v5": {
+    "stress-correct--not-a-claim--v5": {
       "text": "[warm] Yes. You can see how it behaves now.",
       "file": "shared/stress-correct--c75a90d6.mp3"
     },
-    "stress-correct--why-fixed-path--v6": {
+    "stress-correct--not-a-claim--v6": {
       "text": "[calm] That's right. Have a read of the reason.",
       "file": "shared/stress-correct--17c32256.mp3"
     },
-    "stress-correct--why-fixed-path--v7": {
+    "stress-correct--not-a-claim--v7": {
+      "text": "[warm] Got it in one.",
+      "file": "shared/stress-correct--34665bf6.mp3"
+    },
+    "stress-correct--route-on-amount--v0": {
+      "text": "[warm] Yes, that's the one.",
+      "file": "shared/stress-correct--2abf3ab6.mp3"
+    },
+    "stress-correct--route-on-amount--v1": {
+      "text": "[warm] Right. You've thought that through.",
+      "file": "shared/stress-correct--250c25f6.mp3"
+    },
+    "stress-correct--route-on-amount--v2": {
+      "text": "[warm] Exactly. That's what would happen.",
+      "file": "shared/stress-correct--fe3af405.mp3"
+    },
+    "stress-correct--route-on-amount--v3": {
+      "text": "[calm] Correct. Read why, then carry on.",
+      "file": "shared/stress-correct--a1c37bb2.mp3"
+    },
+    "stress-correct--route-on-amount--v4": {
+      "text": "[warm] Ah, good. That's it.",
+      "file": "shared/stress-correct--15f1fa1d.mp3"
+    },
+    "stress-correct--route-on-amount--v5": {
+      "text": "[warm] Yes. You can see how it behaves now.",
+      "file": "shared/stress-correct--c75a90d6.mp3"
+    },
+    "stress-correct--route-on-amount--v6": {
+      "text": "[calm] That's right. Have a read of the reason.",
+      "file": "shared/stress-correct--17c32256.mp3"
+    },
+    "stress-correct--route-on-amount--v7": {
       "text": "[warm] Got it in one.",
       "file": "shared/stress-correct--34665bf6.mp3"
     },
     "stress-start--v0": {
-      "text": "[excited] Wonderful! [pause] Now let's stress test it. What does yours do with an email it wasn't expecting?",
-      "file": "email-triage/stress-start--4d8eb676.mp3"
+      "text": "[excited] Lovely! [pause] Now let's stress test it. What does yours do with mail it wasn't expecting?",
+      "file": "expense-approvals/stress-start--7e625a9e.mp3"
     },
-    "stress-wrong--general-question-gap--v0": {
+    "stress-wrong--model-pulled-out--v0": {
       "text": "[thoughtful] Hmm, not that one. Read what actually happens.",
       "file": "shared/stress-wrong--bbd74376.mp3"
     },
-    "stress-wrong--general-question-gap--v1": {
+    "stress-wrong--model-pulled-out--v1": {
       "text": "[calm] No. Have a read of why, it's worth knowing.",
       "file": "shared/stress-wrong--870b4dee.mp3"
     },
-    "stress-wrong--general-question-gap--v2": {
+    "stress-wrong--model-pulled-out--v2": {
       "text": "[thoughtful] Ah, that's the trap. Read the explanation.",
       "file": "shared/stress-wrong--9a249e2f.mp3"
     },
-    "stress-wrong--general-question-gap--v3": {
+    "stress-wrong--model-pulled-out--v3": {
       "text": "[calm] Not quite. This one catches most people.",
       "file": "shared/stress-wrong--c3c7c91e.mp3"
     },
-    "stress-wrong--general-question-gap--v4": {
+    "stress-wrong--model-pulled-out--v4": {
       "text": "[thoughtful] Hmm. Read what really happens there.",
       "file": "shared/stress-wrong--8b6fd747.mp3"
     },
-    "stress-wrong--general-question-gap--v5": {
+    "stress-wrong--model-pulled-out--v5": {
       "text": "[calm] That isn't it. The reason underneath is the useful part.",
       "file": "shared/stress-wrong--fe5019e4.mp3"
     },
-    "stress-wrong--general-question-gap--v6": {
+    "stress-wrong--model-pulled-out--v6": {
       "text": "[thoughtful] No, but it's a fair guess. Read on.",
       "file": "shared/stress-wrong--ad2d032d.mp3"
     },
-    "stress-wrong--general-question-gap--v7": {
+    "stress-wrong--model-pulled-out--v7": {
       "text": "[calm] Wrong one. Worth understanding why.",
       "file": "shared/stress-wrong--945d71b7.mp3"
     },
-    "stress-wrong--why-fixed-path--v0": {
+    "stress-wrong--not-a-claim--v0": {
       "text": "[thoughtful] Hmm, not that one. Read what actually happens.",
       "file": "shared/stress-wrong--bbd74376.mp3"
     },
-    "stress-wrong--why-fixed-path--v1": {
+    "stress-wrong--not-a-claim--v1": {
       "text": "[calm] No. Have a read of why, it's worth knowing.",
       "file": "shared/stress-wrong--870b4dee.mp3"
     },
-    "stress-wrong--why-fixed-path--v2": {
+    "stress-wrong--not-a-claim--v2": {
       "text": "[thoughtful] Ah, that's the trap. Read the explanation.",
       "file": "shared/stress-wrong--9a249e2f.mp3"
     },
-    "stress-wrong--why-fixed-path--v3": {
+    "stress-wrong--not-a-claim--v3": {
       "text": "[calm] Not quite. This one catches most people.",
       "file": "shared/stress-wrong--c3c7c91e.mp3"
     },
-    "stress-wrong--why-fixed-path--v4": {
+    "stress-wrong--not-a-claim--v4": {
       "text": "[thoughtful] Hmm. Read what really happens there.",
       "file": "shared/stress-wrong--8b6fd747.mp3"
     },
-    "stress-wrong--why-fixed-path--v5": {
+    "stress-wrong--not-a-claim--v5": {
       "text": "[calm] That isn't it. The reason underneath is the useful part.",
       "file": "shared/stress-wrong--fe5019e4.mp3"
     },
-    "stress-wrong--why-fixed-path--v6": {
+    "stress-wrong--not-a-claim--v6": {
       "text": "[thoughtful] No, but it's a fair guess. Read on.",
       "file": "shared/stress-wrong--ad2d032d.mp3"
     },
-    "stress-wrong--why-fixed-path--v7": {
+    "stress-wrong--not-a-claim--v7": {
+      "text": "[calm] Wrong one. Worth understanding why.",
+      "file": "shared/stress-wrong--945d71b7.mp3"
+    },
+    "stress-wrong--route-on-amount--v0": {
+      "text": "[thoughtful] Hmm, not that one. Read what actually happens.",
+      "file": "shared/stress-wrong--bbd74376.mp3"
+    },
+    "stress-wrong--route-on-amount--v1": {
+      "text": "[calm] No. Have a read of why, it's worth knowing.",
+      "file": "shared/stress-wrong--870b4dee.mp3"
+    },
+    "stress-wrong--route-on-amount--v2": {
+      "text": "[thoughtful] Ah, that's the trap. Read the explanation.",
+      "file": "shared/stress-wrong--9a249e2f.mp3"
+    },
+    "stress-wrong--route-on-amount--v3": {
+      "text": "[calm] Not quite. This one catches most people.",
+      "file": "shared/stress-wrong--c3c7c91e.mp3"
+    },
+    "stress-wrong--route-on-amount--v4": {
+      "text": "[thoughtful] Hmm. Read what really happens there.",
+      "file": "shared/stress-wrong--8b6fd747.mp3"
+    },
+    "stress-wrong--route-on-amount--v5": {
+      "text": "[calm] That isn't it. The reason underneath is the useful part.",
+      "file": "shared/stress-wrong--fe5019e4.mp3"
+    },
+    "stress-wrong--route-on-amount--v6": {
+      "text": "[thoughtful] No, but it's a fair guess. Read on.",
+      "file": "shared/stress-wrong--ad2d032d.mp3"
+    },
+    "stress-wrong--route-on-amount--v7": {
       "text": "[calm] Wrong one. Worth understanding why.",
       "file": "shared/stress-wrong--945d71b7.mp3"
     },
     "understand-done--v0": {
-      "text": "[excited] That's the hard part done! [pause] You worked out every piece before touching the canvas.",
-      "file": "email-triage/understand-done--b622652a.mp3"
+      "text": "[excited] That's the whole plan worked out! [pause] You did it before touching the canvas, which is the right order.",
+      "file": "expense-approvals/understand-done--74c0018e.mp3"
     },
     "understand-start--v0": {
-      "text": "[calm] Before we build anything, I want to see how you're reading this.",
-      "file": "email-triage/understand-start--089659fa.mp3"
+      "text": "[calm] Before we build anything, I want to see how you're reading this one.",
+      "file": "expense-approvals/understand-start--4e1480f0.mp3"
     },
     "verify-fail--action--v0": {
-      "text": "[calm] Ah, not right yet. Check who it's replying to, and where the words come from.",
-      "file": "email-triage/verify-fail--9226a983.mp3"
+      "text": "[calm] Not yet. Ask who's actually waiting on this reply.",
+      "file": "expense-approvals/verify-fail--dcf5753a.mp3"
     },
     "verify-fail--action--v1": {
-      "text": "[calm] Not yet. Who is this reply actually going to?",
-      "file": "email-triage/verify-fail--6a3485b3.mp3"
+      "text": "[thoughtful] Hmm. Have another look at the address you're sending to.",
+      "file": "expense-approvals/verify-fail--c6451c36.mp3"
     },
     "verify-fail--action--v2": {
-      "text": "[thoughtful] Hmm. Check the address, and then the body underneath.",
-      "file": "email-triage/verify-fail--161b717e.mp3"
-    },
-    "verify-fail--action--v3": {
-      "text": "[calm] Close. Look at where the message text is coming from.",
-      "file": "email-triage/verify-fail--565c2369.mp3"
-    },
-    "verify-fail--action--v4": {
-      "text": "[thoughtful] Not quite. Check the recipient on this one.",
-      "file": "email-triage/verify-fail--52962d17.mp3"
+      "text": "[calm] Close. Think about what a person would want to find in that email.",
+      "file": "expense-approvals/verify-fail--ae432347.mp3"
     },
     "verify-fail--chat-gemini--v0": {
-      "text": "[thoughtful] Hmm. [pause] Not yet. Think about whether the same email should always get the same answer.",
-      "file": "email-triage/verify-fail--5995271b.mp3"
+      "text": "[calm] Not yet. Think about whether the same claim should get the same answer twice.",
+      "file": "expense-approvals/verify-fail--3d11e705.mp3"
     },
     "verify-fail--chat-gemini--v1": {
-      "text": "[calm] Not right yet. Should this give the same answer twice for the same email?",
-      "file": "email-triage/verify-fail--8fde123a.mp3"
+      "text": "[thoughtful] Hmm. That number decides how much it's allowed to wander. Have another go.",
+      "file": "expense-approvals/verify-fail--f28a073d.mp3"
     },
     "verify-fail--chat-gemini--v2": {
-      "text": "[thoughtful] Hmm. That setting decides how much it improvises. Have a think.",
-      "file": "email-triage/verify-fail--2c3f18ec.mp3"
-    },
-    "verify-fail--chat-gemini--v3": {
-      "text": "[calm] Not yet. Triage has to be repeatable. What does that mean here?",
-      "file": "email-triage/verify-fail--727ee026.mp3"
-    },
-    "verify-fail--chat-gemini--v4": {
-      "text": "[thoughtful] Have another look. Consistency is the whole point of this one.",
-      "file": "email-triage/verify-fail--7030c73c.mp3"
+      "text": "[calm] Not quite. Ask what repeatable means here, then pick the value that gives you it.",
+      "file": "expense-approvals/verify-fail--a907e300.mp3"
     },
     "verify-fail--classify--v0": {
       "text": "[calm] Ah, not yet. Check what you pointed it at, because it only reads what you hand it.",
-      "file": "email-triage/verify-fail--ae7b9c9b.mp3"
+      "file": "expense-approvals/verify-fail--ae7b9c9b.mp3"
     },
     "verify-fail--classify--v1": {
-      "text": "[calm] Hmm, not right. It can only work with the text you feed it. Look there.",
-      "file": "email-triage/verify-fail--1751e5b2.mp3"
+      "text": "[thoughtful] Hmm. Have another look at the shape you asked it to answer in.",
+      "file": "expense-approvals/verify-fail--e4dc27cc.mp3"
     },
     "verify-fail--classify--v2": {
-      "text": "[thoughtful] Not yet. What did you give it to read?",
-      "file": "email-triage/verify-fail--e76549ca.mp3"
+      "text": "[calm] Not quite. What did you give it to read?",
+      "file": "expense-approvals/verify-fail--4066240d.mp3"
     },
     "verify-fail--classify--v3": {
-      "text": "[calm] Close. Check the field holding what it's meant to classify.",
-      "file": "email-triage/verify-fail--d8de4a35.mp3"
-    },
-    "verify-fail--classify--v4": {
-      "text": "[thoughtful] Hmm. Have another look at what's going into it.",
-      "file": "email-triage/verify-fail--7c229bdb.mp3"
+      "text": "[thoughtful] Close. Think about what the nodes after this one have to be able to read.",
+      "file": "expense-approvals/verify-fail--a4e32030.mp3"
     },
     "verify-fail--parse--v0": {
-      "text": "[calm] Ah, not yet. Look at what it's reading from, and the names you asked it for.",
-      "file": "email-triage/verify-fail--e43ae144.mp3"
+      "text": "[calm] Not yet. Check what you're parsing before you check what you pulled out of it.",
+      "file": "expense-approvals/verify-fail--aac1bada.mp3"
     },
     "verify-fail--parse--v1": {
-      "text": "[calm] Not right. Check the field names you typed against what came out of the AI.",
-      "file": "email-triage/verify-fail--41448bb8.mp3"
+      "text": "[thoughtful] Hmm. Work backwards from what the split has to read.",
+      "file": "expense-approvals/verify-fail--7f7c1edb.mp3"
     },
     "verify-fail--parse--v2": {
-      "text": "[thoughtful] Hmm. Is it reading from the right place?",
-      "file": "email-triage/verify-fail--ce1d1c1b.mp3"
+      "text": "[calm] Close. One of those fields is the claim, and one is the answer about the claim.",
+      "file": "expense-approvals/verify-fail--9f6d7243.mp3"
     },
     "verify-fail--parse--v3": {
-      "text": "[calm] Close. The names have to match what the step before produced.",
-      "file": "email-triage/verify-fail--4d6ce609.mp3"
-    },
-    "verify-fail--parse--v4": {
-      "text": "[thoughtful] Not yet. Have another look at what you asked it to pull out.",
-      "file": "email-triage/verify-fail--10471ac8.mp3"
+      "text": "[thoughtful] Not right yet. Have another look at where each value is coming from.",
+      "file": "expense-approvals/verify-fail--ca3f4656.mp3"
     },
     "verify-fail--switch--v0": {
-      "text": "[calm] Hmm, not right yet. Look at what each branch is testing, and what the AI actually gave you.",
-      "file": "email-triage/verify-fail--00483d1a.mp3"
+      "text": "[calm] Not yet. Have another look at what each branch is testing.",
+      "file": "expense-approvals/verify-fail--c81965a2.mp3"
     },
     "verify-fail--switch--v1": {
-      "text": "[calm] Not yet. Check the value each rule is matching on.",
-      "file": "email-triage/verify-fail--d9ef9211.mp3"
+      "text": "[thoughtful] Hmm. Read what the classifier's told to answer with, then read your branch names.",
+      "file": "expense-approvals/verify-fail--46108c55.mp3"
     },
     "verify-fail--switch--v2": {
-      "text": "[thoughtful] Hmm. Do your rules match what the step before produces?",
-      "file": "email-triage/verify-fail--932f4ad0.mp3"
+      "text": "[calm] Close. Count your branches against the answers it can actually give.",
+      "file": "expense-approvals/verify-fail--fc229e28.mp3"
     },
     "verify-fail--switch--v3": {
-      "text": "[calm] Close. Look again at what each branch is comparing.",
-      "file": "email-triage/verify-fail--9e486f98.mp3"
-    },
-    "verify-fail--switch--v4": {
-      "text": "[thoughtful] Not quite. Check the field your rules are reading.",
-      "file": "email-triage/verify-fail--47dedef7.mp3"
+      "text": "[thoughtful] Not quite. Check the value you're splitting on.",
+      "file": "expense-approvals/verify-fail--033a0c21.mp3"
     },
     "verify-fail--trigger--v0": {
-      "text": "[thoughtful] Hmm. [pause] Not quite. Check which inbox it's watching, and which part it reads.",
-      "file": "email-triage/verify-fail--1c95c8c8.mp3"
+      "text": "[calm] Not yet. Have another look at where this one's picking mail up from.",
+      "file": "expense-approvals/verify-fail--f66827b8.mp3"
     },
     "verify-fail--trigger--v1": {
-      "text": "[calm] Not yet. Which mailbox is it meant to be watching?",
-      "file": "email-triage/verify-fail--ee9f3d3e.mp3"
+      "text": "[thoughtful] Hmm, not quite. One of those two is about the shape each email arrives in.",
+      "file": "expense-approvals/verify-fail--55144d96.mp3"
     },
     "verify-fail--trigger--v2": {
-      "text": "[thoughtful] Hmm. Have another look at what part of the email it takes.",
-      "file": "email-triage/verify-fail--99cab313.mp3"
+      "text": "[calm] Close. Check which mail it is watching before anything else.",
+      "file": "expense-approvals/verify-fail--265ac07e.mp3"
     },
     "verify-fail--trigger--v3": {
-      "text": "[calm] Close. Check the inbox and the field underneath it.",
-      "file": "email-triage/verify-fail--cfc53379.mp3"
-    },
-    "verify-fail--trigger--v4": {
-      "text": "[thoughtful] Not right yet. Where is it listening, and for what?",
-      "file": "email-triage/verify-fail--1275b7fe.mp3"
+      "text": "[thoughtful] Not right yet. Read what each option would actually hand to the next node.",
+      "file": "expense-approvals/verify-fail--4ecd67f9.mp3"
     },
     "verify-params--action--v0": {
-      "text": "[calm] Right, that's it. You've got one tab left on this one.",
-      "file": "email-triage/verify-params--bed9df2a.mp3"
+      "text": "[calm] That's the parameters right. You've got one tab left.",
+      "file": "shared/verify-params--b5910941.mp3"
+    },
+    "verify-params--action--v1": {
+      "text": "[calm] Good, those are right. One more tab and this one's done.",
+      "file": "shared/verify-params--87b5af0c.mp3"
     },
     "verify-params--chat-gemini--v0": {
-      "text": "[calm] Okay, that's the model set up. One more tab and it's done.",
-      "file": "email-triage/verify-params--918b3c35.mp3"
+      "text": "[calm] That's the parameters right. You've got one tab left.",
+      "file": "shared/verify-params--b5910941.mp3"
+    },
+    "verify-params--chat-gemini--v1": {
+      "text": "[calm] Good, those are right. One more tab and this one's done.",
+      "file": "shared/verify-params--87b5af0c.mp3"
     },
     "verify-params--classify--v0": {
-      "text": "[calm] Right, that's what it reads. Now tell it what to do when things go wrong.",
-      "file": "email-triage/verify-params--6d260d02.mp3"
+      "text": "[calm] Right, that's what it reads. Now tell it what to do when things break.",
+      "file": "expense-approvals/verify-params--ddefed2a.mp3"
     },
     "verify-params--parse--v0": {
-      "text": "[calm] Good, those are the right fields. Now the rest of it.",
-      "file": "email-triage/verify-params--04471259.mp3"
+      "text": "[calm] That's the parameters right. You've got one tab left.",
+      "file": "shared/verify-params--b5910941.mp3"
+    },
+    "verify-params--parse--v1": {
+      "text": "[calm] Good, those are right. One more tab and this one's done.",
+      "file": "shared/verify-params--87b5af0c.mp3"
     },
     "verify-params--switch--v0": {
-      "text": "[calm] Okay, your rules are right. Now, what happens to anything matching none of them?",
-      "file": "email-triage/verify-params--42e86824.mp3"
+      "text": "[calm] Okay, your rules are right. Now, what about anything matching none of them?",
+      "file": "expense-approvals/verify-params--04023709.mp3"
     },
     "verify-params--trigger--v0": {
-      "text": "[calm] Okay, that's the parameters right. You've got one tab left.",
-      "file": "email-triage/verify-params--db4398ba.mp3"
+      "text": "[calm] That's the parameters right. You've got one tab left.",
+      "file": "shared/verify-params--b5910941.mp3"
+    },
+    "verify-params--trigger--v1": {
+      "text": "[calm] Good, those are right. One more tab and this one's done.",
+      "file": "shared/verify-params--87b5af0c.mp3"
     },
     "verify-pass--action--v0": {
       "text": "[warm] And that's the last piece. Whatever reaches it goes back to a real person.",
-      "file": "email-triage/verify-pass--a7b939f3.mp3"
+      "file": "expense-approvals/verify-pass--a7b939f3.mp3"
     },
     "verify-pass--chat-gemini--v0": {
-      "text": "[warm] That's done. That setting is the difference between triage you can trust and a coin toss.",
-      "file": "email-triage/verify-pass--bc5284f6.mp3"
+      "text": "[warm] Good. Same claim, same answer, every time. That's what makes a policy a policy.",
+      "file": "expense-approvals/verify-pass--50a255c1.mp3"
     },
     "verify-pass--classify--v0": {
-      "text": "[warm] Ah, that one's the whole idea. It reads an email like a person would, and it calls it.",
-      "file": "email-triage/verify-pass--53b77023.mp3"
+      "text": "[warm] Ah, that one's the whole idea. It reads a claim and applies the policy itself.",
+      "file": "expense-approvals/verify-pass--1e43f21e.mp3"
     },
     "verify-pass--parse--v0": {
-      "text": "[warmly] Look at that. [pause] A paragraph went in, and clean fields came out. Now the Switch can read it.",
-      "file": "email-triage/verify-pass--d83a7bf4.mp3"
+      "text": "[warmly] Look at that. A sentence went in, and clean fields came out.",
+      "file": "expense-approvals/verify-pass--09df9965.mp3"
     },
     "verify-pass--switch--v0": {
       "text": "[warm] Okay. Three ways out, and you decided every one of them. That's your routing done.",
-      "file": "email-triage/verify-pass--423ff2e0.mp3"
+      "file": "expense-approvals/verify-pass--423ff2e0.mp3"
     },
     "verify-pass--trigger--v0": {
-      "text": "[warm] That's your first node working. It's watching the inbox now, and every email starts a run.",
-      "file": "email-triage/verify-pass--76a89973.mp3"
+      "text": "[warm] That's your first node working. It's watching the claims label now, and every claim starts a run.",
+      "file": "expense-approvals/verify-pass--59dd0739.mp3"
     },
     "welcome--v0": {
       "text": "[cheerfully] Hey there! I'm Iris, your mentor. [pause] I'll be guiding you through this whole n8n simulation. Ready when you are?",

@@ -10,11 +10,18 @@ apps/web/public/dotlottie-player.wasm
 .env
 .env.local
 
+.graphify-out/
 shots/
 .superpowers/
+
+graphify-out/
 
 # throwaway verification scripts — never commit these
 tmp-*.mjs
 *_tmp.mjs
 
 .voice-clips/
+# the app's own copy of each clip it has fetched from the bucket, and the folder
+# `voice:verify --isolate` parks the rendered clips in while it proves S3 is live
+.voice-cache/
+.voice-clips.parked/

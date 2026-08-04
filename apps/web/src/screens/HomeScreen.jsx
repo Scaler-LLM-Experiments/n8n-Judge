@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import { ArrowRight, EnvelopeSimpleOpen, UsersThree, NotePencil, Package, Robot } from '@phosphor-icons/react';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
 import { Button } from '../design-system/Button.jsx';
@@ -11,13 +11,6 @@ const ICONS = {
   'meeting-notes': NotePencil,
   'order-desk': Package,
 };
-
-// The cover slot's background. A literal rather than a design token on purpose: this
-// is not a UI surface, it is the ARTWORK's own canvas colour. It exists so the padding
-// around a `contain`-fitted illustration reads as part of the picture instead of as a
-// frame around it. `scripts/generate-covers.mjs` names the same value in its style
-// prompt, so the two halves cannot drift apart.
-const COVER_BG = '#F9F6F2';
 
 // Difficulty, as the author declared it. Deliberately NOT derived from
 // `problemComplexity()`: that counts graded decisions to order the catalogue, which
@@ -51,20 +44,43 @@ function MetaLine({ level, minutes }) {
 // `coverImage.prompt`, so the placeholder is the normal case for now, not an
 // error state: a tinted block carrying the problem's own icon. Fixed aspect ratio
 // either way, so cards keep their rhythm when half the art exists.
+//
+// 21:9 slot; art is generated full-bleed then masked to the centre ~75% so the
+// motif reads larger on the card (scale 4/3 ≈ show 75% of the frame).
+// See scripts/generate-covers.mjs for the shared style.
 function Cover({ problem, Icon }) {
   const art = problem.coverImage;
   return (
-    // `contain` inside a padded box, not `cover`. The art is composed as a whole
-    // scene with its own margins, so filling the slot cropped it and pushed the
-    // illustration hard into the card's edges — the parcels and cubes were being
-    // sliced by the border. Padding plus contain keeps the whole scene visible and
-    // gives it room to breathe. The slot's background matches the art's own
-    // off-white, so the inset reads as part of the picture rather than as a frame.
-    // 2:1 rather than 16:9. A node setup is a wide, shallow left-to-right thing, so
-    // the art is too — a squarer slot forced the illustration to shrink to fit.
-    <div style={{ aspectRatio: '2 / 1', background: art?.src ? COVER_BG : 'var(--surface-soft-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderBottom: '1px solid var(--border-subtle)', padding: art?.src ? 16 : 0, boxSizing: 'border-box' }}>
+    <div
+      style={{
+        aspectRatio: '21 / 9',
+        background: 'var(--surface-soft-blue)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+        borderBottom: '1px solid var(--border-subtle)',
+        boxSizing: 'border-box',
+        position: 'relative',
+      }}
+    >
       {art?.src ? (
-        <img src={art.src} alt={art.alt || ''} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', display: 'block' }} />
+        <img
+          src={art.src}
+          alt={art.alt || ''}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'center',
+            // 1 / 0.75 ≈ 1.333 — centre crop shows three-quarters of the art.
+            transform: 'scale(1.333)',
+            transformOrigin: 'center center',
+            display: 'block',
+          }}
+        />
       ) : (
         <Icon size={40} weight="duotone" color="var(--brand-primary)" />
       )}
@@ -81,7 +97,7 @@ const RESUME_STAGE = {
   report: 'at your result',
 };
 
-function ContinueCard({ resume, onResume }) {
+function ContinueCard({ resume, onResume, onRestart }) {
   const where = RESUME_STAGE[resume.screen] ?? 'partway through';
   return (
     <div style={{ marginBottom: 36 }}>
@@ -95,16 +111,26 @@ function ContinueCard({ resume, onResume }) {
             You’re {where}. Your marks so far are safe.
           </div>
         </div>
-        <Button variant="primary" size="lg" iconRight={<ArrowRight size={16} weight="bold" />} onClick={() => onResume(resume)} style={{ flex: 'none' }}>
-          Continue
-        </Button>
+        <div style={{ display: 'flex', gap: 10, flex: 'none' }}>
+          <Button variant="outline" size="lg" onClick={() => onRestart(resume)}>
+            Start over
+          </Button>
+          <Button variant="primary" size="lg" iconRight={<ArrowRight size={16} weight="bold" />} onClick={() => onResume(resume)}>
+            Resume
+          </Button>
+        </div>
       </div>
     </div>
   );
 }
 
 // Landing page: pick a challenge, each launches its own build journey.
-export function HomeScreen({ problems, onSelect, resume, onResume }) {
+export function HomeScreen({ problems, onSelect, resume, onResume, onRestart }) {
+  // Wave three times, then rest on idle — a permanent hello loop on the catalogue
+  // reads as a broken GIF rather than a greeting.
+  const [heroClip, setHeroClip] = useState('hello');
+  const onHeroDone = useCallback(() => setHeroClip('idle'), []);
+
   return (
     <div style={{ height: '100%', overflowY: 'auto', background: 'var(--surface-0)' }}>
       {/* Home is outside any problem journey — no activeStage/problem to pass, and
@@ -119,7 +145,13 @@ export function HomeScreen({ problems, onSelect, resume, onResume }) {
         {/* hero */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 12, marginBottom: 40 }}>
           <div style={{ width: 96, height: 96 }}>
-            <MascotPlayer clip="hello" once={false} onceDone={() => {}} />
+            <MascotPlayer
+              clip={heroClip}
+              once={false}
+              times={heroClip === 'hello' ? 3 : undefined}
+              onceDone={onHeroDone}
+              pulse={false}
+            />
           </div>
           <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--brand-primary)', fontWeight: 700 }}>Agent Builder · Judge</div>
           <h1 style={{ fontFamily: 'var(--font-headline)', fontSize: 38, fontWeight: 600, color: 'var(--fg-1)', lineHeight: 1.15, margin: 0 }}>n8n Node Simulator</h1>
@@ -130,7 +162,7 @@ export function HomeScreen({ problems, onSelect, resume, onResume }) {
 
         {/* An attempt already in progress comes first: it is the one thing on this
             screen the learner has already invested in. */}
-        {resume && onResume ? <ContinueCard resume={resume} onResume={onResume} /> : null}
+        {resume && onResume && onRestart ? <ContinueCard resume={resume} onResume={onResume} onRestart={onRestart} /> : null}
 
         {/* problem cards */}
         <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--fg-2)', fontWeight: 700, marginBottom: 12 }}>Choose a challenge</div>
@@ -152,6 +184,7 @@ export function HomeScreen({ problems, onSelect, resume, onResume }) {
               so it cannot push the button out of line with the card beside it. */}
           {problems.map((p) => {
             const Icon = ICONS[p.id] || Robot;
+            const hasSavedAttempt = resume?.slug === (p.slug ?? p.id);
             return (
               <div key={p.id} style={{ display: 'flex', flexDirection: 'column', background: 'var(--surface-0)', border: '1px solid var(--border-subtle)' }}>
                 <Cover problem={p} Icon={Icon} />
@@ -192,9 +225,20 @@ export function HomeScreen({ problems, onSelect, resume, onResume }) {
                       the test could only click the first card, so `?problem=<id>`
                       silently re-tested the first problem's Understand screen. */}
                   <div style={{ marginTop: 'auto', paddingTop: 18 }}>
-                    <Button variant="primary" size="md" data-problem={p.id} iconRight={<ArrowRight size={16} weight="bold" />} onClick={() => onSelect(p)} style={{ width: '100%', justifyContent: 'center' }}>
-                      Start
-                    </Button>
+                    {hasSavedAttempt ? (
+                      <div style={{ display: 'flex', gap: 10 }}>
+                        <Button variant="outline" size="md" data-problem={p.id} onClick={() => onRestart(p)} style={{ flex: 1 }}>
+                          Start over
+                        </Button>
+                        <Button variant="primary" size="md" iconRight={<ArrowRight size={16} weight="bold" />} onClick={() => onResume(resume)} style={{ flex: 1 }}>
+                          Resume
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button variant="primary" size="md" data-problem={p.id} iconRight={<ArrowRight size={16} weight="bold" />} onClick={() => onSelect(p)} style={{ width: '100%', justifyContent: 'center' }}>
+                        Start
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>

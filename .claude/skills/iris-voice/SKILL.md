@@ -80,6 +80,38 @@ Two halves of a clip's name, and the distinction matters:
 Many ids point at one file, and that is the saving. A line no problem authored lives in
 `shared/` and is rendered once for the whole catalogue rather than once per problem.
 
+### The `shared/` clips already exist — you are not paying for them again
+
+This is the part worth knowing **before** you decide how much to author.
+
+Every moment you leave alone resolves to the generic phrase book, which means it resolves
+to a `shared/` file that a previous problem already rendered. Only a moment you author
+lands in `<slug>/` and needs new audio. So the cost of a new problem is the lines you
+wrote, not the journey.
+
+Snapshot at the time of writing — 2 problems, 980 ids, 236 distinct files:
+
+| | files | its own | `shared/` |
+|---|---|---|---|
+| `email-triage` | 147 | 106 | 41 |
+| `expense-approvals` | 130 | 87 | 43 |
+| **distinct across both** | **236** | 193 | **43** |
+
+Sharing removes 41 renders there, and the `shared/` half is ~13% of the characters. A third
+problem would pay for roughly its own 85–110 lines and reuse those 43 for free.
+
+Numbers move with every added problem and every reworded line, so re-derive rather than
+trust them: `npm run voice:generate -- --dry-run` prints exactly what would be rendered and
+what it would bill, spends nothing, and needs no API key.
+
+**What this should and should not change about your writing.** It is not an argument for
+leaving `voice.js` empty — a problem that names its own nodes and cases is the point, and
+`shared/` lines say "that one" where an authored line says "Send Reply". It *is* an argument
+against overriding moments that were never problem-specific in the first place: a bespoke
+`phase_complete` costs a render and reads no better than "Right, that part's done." Author
+where the problem's own vocabulary earns it, and let the scaffolding stay generic. `welcome`
+is the extreme case and is already marked never-override below.
+
 ---
 
 ## 2. The journey, in order

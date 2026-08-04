@@ -201,6 +201,9 @@ function Landing() {
     const slug = slugFromUrl();
     return slug ? { slug, id: slug, title: null } : null;
   });
+  // A URL-opened challenge is normally a refresh or a shared deep link. Check
+  // for this learner's saved attempt before deciding whether it is a fresh run.
+  const [openMode, setOpenMode] = useState(() => (slugFromUrl() ? 'auto' : 'fresh'));
   // Bumped by "Redo this challenge", and part of MainApp's key: a redo has to be a
   // FRESH attempt, and everything that makes an attempt — the session, the local
   // grading store, which screen you are on — lives in MainApp's state. Remounting
@@ -223,7 +226,10 @@ function Landing() {
   useEffect(() => {
     if (selected) return undefined;
     let cancelled = false;
-    fetchResumable().then((r) => { if (!cancelled) setResume(r); });
+    fetchResumable()
+      .then((r) => { if (!cancelled) setResume(r); })
+      // Home can still show the catalogue if the optional continue card fails.
+      .catch(() => { if (!cancelled) setResume(null); });
     return () => { cancelled = true; };
     // Re-asked whenever the learner comes back to Home, because by then the answer
     // has usually changed.
@@ -235,6 +241,7 @@ function Landing() {
   // entry and make the button stop working.
   const open = useCallback((p, { silent = false, resume: resumePayload = null } = {}) => {
     setResuming(resumePayload);
+    setOpenMode(p ? (resumePayload ? 'resume' : 'fresh') : 'fresh');
     setSelected(p);
     if (!silent) writeSlugToUrl(p ? (p.slug ?? p.id) : null);
   }, []);
@@ -246,6 +253,7 @@ function Landing() {
     const onPop = () => {
       const slug = slugFromUrl();
       setResuming(null);
+      setOpenMode(slug ? 'auto' : 'fresh');
       setSelected((cur) => {
         if (slug === (cur ? cur.slug ?? cur.id : null)) return cur;
         if (!slug) return null;
@@ -285,8 +293,9 @@ function Landing() {
   }, [selected, open]);
 
   if (selected) {
+    const slug = selected.slug ?? selected.id;
     const list = catalogue.current || [];
-    const here = list.findIndex((p) => (p.slug ?? p.id) === (selected.slug ?? selected.id));
+    const here = list.findIndex((p) => (p.slug ?? p.id) === slug);
     // Registry order is the catalogue order, so "next" is simply the next card.
     // Null on the last challenge (and when the list was never loaded, e.g. a
     // deep link), which hides the button rather than looping the learner back to
@@ -295,25 +304,38 @@ function Landing() {
     return (
       <div style={{ height: '100vh' }}>
         <AsyncGate
-          load={() => fetchProblem(selected.slug ?? selected.id)}
-          deps={[selected.slug ?? selected.id]}
+          load={async () => {
+            const [problem, autoResume] = await Promise.all([
+              fetchProblem(slug),
+              openMode === 'auto' ? fetchResumable(slug) : Promise.resolve(null),
+            ]);
+            return { problem, autoResume };
+          }}
+          deps={[slug, openMode]}
           // A deep link knows the slug but not the title until the catalogue
           // lands, and "Loading undefined…" is worse than saying nothing.
           label={selected.title ? `Loading ${selected.title}…` : 'Loading challenge…'}
         >
-          {(problem) => (
-            <MainApp
-              key={`${problem.id}:${attempt}`}
-              problem={problem}
-              nextProblem={nextProblem}
-              // Only honoured when this problem IS the resumed one, so picking a
-              // different challenge from the grid can never inherit its state.
-              resume={resuming && resuming.slug === (problem.slug ?? problem.id) ? resuming : null}
-              onRedo={() => { setResuming(null); setAttempt((n) => n + 1); }}
-              onNext={nextProblem ? () => { setAttempt(0); open(nextProblem); } : undefined}
-              onHome={() => { setAttempt(0); open(null); }}
-            />
-          )}
+          {({ problem, autoResume }) => {
+            const resumePayload = openMode === 'auto' ? autoResume : resuming;
+            const matchingResume = resumePayload?.slug === (problem.slug ?? problem.id)
+              ? resumePayload
+              : null;
+            return (
+              <MainApp
+                key={`${problem.id}:${attempt}:${openMode}:${matchingResume?.sessionId ?? ''}`}
+                problem={problem}
+                nextProblem={nextProblem}
+                // Only honoured when this problem IS the resumed one, so picking a
+                // different challenge from the grid can never inherit its state.
+                resume={matchingResume}
+                restart={openMode === 'fresh'}
+                onRedo={() => { setResuming(null); setOpenMode('fresh'); setAttempt((n) => n + 1); }}
+                onNext={nextProblem ? () => { setAttempt(0); open(nextProblem); } : undefined}
+                onHome={() => { setAttempt(0); open(null); }}
+              />
+            );
+          }}
         </AsyncGate>
       </div>
     );
@@ -335,6 +357,12 @@ function Landing() {
               ?? { slug: r.slug, id: r.slug, title: r.title };
             open(entry, { resume: r });
           }}
+          onRestart={(r) => {
+            if (!window.confirm('Start a new attempt? Your current attempt will stay in history as abandoned.')) return;
+            catalogue.current = problems;
+            const entry = problems.find((p) => (p.slug ?? p.id) === r.slug) ?? r;
+            open(entry);
+          }}
         />
       )}
     </AsyncGate>
@@ -352,15 +380,20 @@ function Landing() {
 // returns "could not verify", because the browser holds no answers to grade
 // against — so #build could not verify a single field, and every screenshot
 // taken from it was of a broken grader.
-function useSession(problemId) {
+function useSession(problemId, { restart = false } = {}) {
   const [sessionId, setSessionId] = useState(null);
+  const request = useRef(null);
   useEffect(() => {
     let cancelled = false;
-    createSession(problemId)
+    const key = `${problemId}:${restart}`;
+    if (request.current?.key !== key) {
+      request.current = { key, promise: createSession(problemId, { restart }) };
+    }
+    request.current.promise
       .then((s) => { if (!cancelled) setSessionId(s.sessionId); })
       .catch((err) => console.error('[session] could not start:', err));
     return () => { cancelled = true; };
-  }, [problemId]);
+  }, [problemId, restart]);
   return sessionId;
 }
 
@@ -408,7 +441,7 @@ function BuildPreview({ problem, devAutoRun }) {
 // `attemptsFromTrace` keeps the LOWEST attempt that was correct.
 const RESUMABLE_SCREENS = new Set([SCREEN.STATEMENT, SCREEN.DASHBOARD, SCREEN.EVAL]);
 
-function MainApp({ problem, nextProblem, resume, onRedo, onNext, onHome }) {
+function MainApp({ problem, nextProblem, resume, restart = false, onRedo, onNext, onHome }) {
   const [screen, setScreen] = useState(
     resume && RESUMABLE_SCREENS.has(resume.screen) ? resume.screen : SCREEN.STATEMENT
   );
@@ -420,7 +453,7 @@ function MainApp({ problem, nextProblem, resume, onRedo, onNext, onHome }) {
   const [gradingReport, setGradingReport] = useState(false);
   const [serverReport, setServerReport] = useState(null);
   const record = (d) => setGrading((s) => recordDecision(s, d));
-  const sessionId = useSession(problem.id);
+  const sessionId = useSession(problem.id, { restart });
   const trace = useTrace(sessionId);
 
   // One place for screen changes, so a new screen cannot be added without being

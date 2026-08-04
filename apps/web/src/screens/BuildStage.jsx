@@ -443,8 +443,8 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
       // Spoken once the verdict is settled, and only when it IS settled: a check
       // that could not complete returns `correct: null`, and reacting to that would
       // be Iris telling the learner they were wrong when nobody graded them.
-      if (correct === true) voice.play('probe_correct', { scope: `probe:${type}` });
-      else if (correct === false) voice.play('probe_wrong', { scope: `probe:${type}` });
+      if (correct === true) voice.play('probe_correct', { key: type, scope: `probe:${type}` });
+      else if (correct === false) voice.play('probe_wrong', { key: type, scope: `probe:${type}` });
     });
   };
   const closeProbe = () => {

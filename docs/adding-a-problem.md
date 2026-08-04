@@ -9,13 +9,21 @@ when it touches `packages/problems/**` rather than needing to be told this file 
 Deepgram direction tags was describing a layout and a vendor that are both gone. It was
 kept as a pointer rather than deleted because it is linked from CLAUDE.md and STATUS.md.)
 
-The short version, for a human who just wants the commands:
+**For a human walking through it, read [authoring-a-case.md](authoring-a-case.md)** — the
+step-by-step process, the current npm scripts, and the traps that are live right now
+(the `_template` `settings` shape, the deliberately-red `balanceOptions` test).
+
+The short version:
 
 ```bash
-cp -r packages/problems/_template packages/problems/<slug>
-# fill in the TODOs; register it in packages/problems/index.js
+npm run problem:new -- <slug> "Title"   # scaffolds; does NOT register
+# fill in the values; register it in packages/problems/index.js
+npm run problem:check -- <slug>
 npm test && npm run db:seed
 ```
+
+(`cp -r packages/problems/_template …` by hand is what this file used to say; there is a
+script for it now, and it also renames the export and drops the template's own test.)
 
 Two things catch everyone, and are most of why the long version exists:
 

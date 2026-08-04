@@ -28,12 +28,18 @@ export const dynamic = 'force-dynamic';
  * Returns `{ resume: null }` rather than a 404 when there is nothing open: Home
  * asks on every visit, and "nothing to continue" is the normal answer.
  */
-export async function GET() {
+export async function GET(req: Request) {
   const session = await auth();
   if (!session?.user?.id) return Response.json({ error: 'unauthenticated' }, { status: 401 });
 
+  const slug = new URL(req.url).searchParams.get('slug')?.trim() || null;
+
   const open = await prisma.session.findFirst({
-    where: { userId: session.user.id, status: 'IN_PROGRESS' },
+    where: {
+      userId: session.user.id,
+      status: 'IN_PROGRESS',
+      ...(slug ? { problem: { slug } } : {}),
+    },
     orderBy: { startedAt: 'desc' },
     select: {
       id: true,
@@ -107,14 +113,18 @@ async function unlockedTypesFor(problemVersionId: string, solvedIds: string[]): 
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.id) return Response.json({ error: 'unauthenticated' }, { status: 401 });
+  const userId = session.user.id;
 
-  let body: { slug?: string };
+  let body: { slug?: string; restart?: unknown };
   try {
     body = await req.json();
   } catch {
     return Response.json({ error: 'bad_request' }, { status: 400 });
   }
   if (!body.slug) return Response.json({ error: 'slug_required' }, { status: 400 });
+  if (body.restart !== undefined && typeof body.restart !== 'boolean') {
+    return Response.json({ error: 'restart_must_be_boolean' }, { status: 400 });
+  }
 
   const version = await getPublishedVersion(body.slug);
   if (!version) return Response.json({ error: 'not_found' }, { status: 404 });
@@ -127,37 +137,45 @@ export async function POST(req: Request) {
   // them empty shells, which would have made "how many learners attempted this"
   // meaningless the moment anyone looked at it.
   //
-  // A genuine retry still gets its own row, because finishing a session marks it
-  // COMPLETED (see the report route) and only IN_PROGRESS rows are reused. So
-  // "one row per attempt" still holds — a reload is simply not an attempt.
-  const existing = await prisma.session.findFirst({
-    where: {
-      userId: session.user.id,
+  // A genuine retry either follows a completed attempt or sends `restart: true`,
+  // which abandons the open attempt before creating a separate new row. So "one row
+  // per attempt" still holds — a reload is simply not an attempt.
+  const opened = await prisma.$transaction(async (tx) => {
+    // React mounts effects twice in development, and double-clicks happen in every
+    // environment. Serialize this user/problem pair so either request reuses the row
+    // the other just created instead of opening two attempts.
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`session:${userId}:${version.id}`}))`;
+
+    const where = {
+      userId,
       problemVersionId: version.id,
-      status: 'IN_PROGRESS',
-    },
-    orderBy: { startedAt: 'desc' },
-    select: { id: true, problemVersionId: true },
+      status: 'IN_PROGRESS' as const,
+    };
+    const existing = await tx.session.findFirst({
+      where,
+      orderBy: { startedAt: 'desc' },
+      select: { id: true, problemVersionId: true },
+    });
+
+    if (existing && body.restart !== true) {
+      return { sessionId: existing.id, problemVersionId: existing.problemVersionId, version: version.version, resumed: true };
+    }
+
+    if (body.restart === true) {
+      await tx.session.updateMany({ where, data: { status: 'ABANDONED' } });
+    }
+
+    const created = await tx.session.create({
+      data: {
+        userId,
+        problemId: version.problemId,
+        problemVersionId: version.id,
+      },
+      select: { id: true, problemVersionId: true },
+    });
+
+    return { sessionId: created.id, problemVersionId: created.problemVersionId, version: version.version, resumed: false };
   });
 
-  if (existing) {
-    return Response.json(
-      { sessionId: existing.id, problemVersionId: existing.problemVersionId, version: version.version, resumed: true },
-      { status: 200 }
-    );
-  }
-
-  const created = await prisma.session.create({
-    data: {
-      userId: session.user.id,
-      problemId: version.problemId,
-      problemVersionId: version.id,
-    },
-    select: { id: true, problemVersionId: true, startedAt: true },
-  });
-
-  return Response.json(
-    { sessionId: created.id, problemVersionId: created.problemVersionId, version: version.version, resumed: false },
-    { status: 201 }
-  );
+  return Response.json(opened, { status: opened.resumed ? 200 : 201 });
 }

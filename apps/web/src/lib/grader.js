@@ -15,27 +15,25 @@
  * The attempt this learner already has open, for Home's "Continue where you left
  * off" — or `null` when there is nothing to continue.
  *
- * Never throws: Home renders with or without this, and a failed lookup should cost
- * the learner a shortcut, not the whole screen.
+ * Throws when the lookup fails. Home treats the card as optional; a direct
+ * refresh surfaces the error rather than silently opening the saved attempt at
+ * the wrong screen.
  *
  * @returns {Promise<{sessionId: string, slug: string, title: string, screen: string|null, graph: object|null, lastSeenAt: string}|null>}
  */
-export async function fetchResumable() {
-  try {
-    const res = await fetch('/api/sessions');
-    if (!res.ok) return null;
-    const body = await res.json();
-    return body?.resume ?? null;
-  } catch {
-    return null;
-  }
+export async function fetchResumable(slug) {
+  const query = slug ? `?slug=${encodeURIComponent(slug)}` : '';
+  const res = await fetch(`/api/sessions${query}`);
+  if (!res.ok) throw new Error(`Could not load saved progress (${res.status})`);
+  const body = await res.json();
+  return body?.resume ?? null;
 }
 
-export async function createSession(slug) {
+export async function createSession(slug, { restart = false } = {}) {
   const res = await fetch('/api/sessions', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ slug }),
+    body: JSON.stringify({ slug, restart }),
   });
   if (!res.ok) throw new Error(`Could not start this challenge (${res.status})`);
   return res.json(); // { sessionId, problemVersionId, version }

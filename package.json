@@ -28,6 +28,7 @@
     "covers:generate": "node --env-file=.env scripts/generate-covers.mjs",
     "voice:generate": "node --env-file=.env scripts/generate-voice.mjs",
     "voice:sync": "node --env-file=.env scripts/sync-voice-clips.mjs",
+    "voice:verify": "node --env-file=.env scripts/verify-voice-s3.mjs",
     "problem:new": "node scripts/problem-new.mjs",
     "problem:check": "node scripts/problem-check.mjs",
     "problem:draft": "node --env-file=.env scripts/problem-draft.mjs"

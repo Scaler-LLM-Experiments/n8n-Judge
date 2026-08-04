@@ -170,6 +170,9 @@ for (const p of PROBLEMS) {
       errs.push(`no home card for "${p}" — cannot enter its journey`);
       return;
     }
+    if ((await card.innerText()) === 'Start over') {
+      page.once('dialog', (dialog) => dialog.accept());
+    }
     await card.click().catch(() => {});
 
     // Understand opens on two narrated beats (Iris greeting, then the problem
@@ -314,7 +317,7 @@ async function resumeCheck() {
       const made = await (await fetch('/api/sessions', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ slug }),
+        body: JSON.stringify({ slug, restart: true }),
       })).json();
       return made.sessionId;
     }, problem.id);
@@ -334,7 +337,7 @@ async function resumeCheck() {
 
   const continueWhereLeftOff = async () => {
     await page.goto(`${base}/`, { waitUntil: 'networkidle' });
-    const button = page.getByRole('button', { name: /^Continue$/ });
+    const button = page.getByRole('button', { name: /^Resume$/ }).first();
     await button.waitFor({ state: 'visible', timeout: 15000 });
     await button.click();
   };

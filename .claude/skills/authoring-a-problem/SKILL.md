@@ -224,6 +224,14 @@ line. The three things that bite hardest:
   names the destination;
 - a copy edit means `voice:generate` **and** `db:seed`.
 
+**A moment you do not author costs nothing to voice.** It falls back to the phrase book,
+which resolves to a `shared/` clip an earlier problem already rendered — so a new problem
+only bills for the lines it wrote itself (~85–110, against ~43 reused). That is a reason to
+author where this problem's own vocabulary earns it and to leave the journey scaffolding
+(`phase_complete` and friends) generic — not a reason to ship an empty `voice.js`, since
+naming this problem's nodes and cases is the point and is part of done. `npm run
+voice:generate -- --dry-run` prints the real cost before you spend it.
+
 Cover art: author `coverImage.prompt` (wide, sparse, left-to-right — the slot is 2:1),
 run `covers:generate`, then set `src`. The prompt is production material and is stripped
 at the API boundary; it never reaches a browser.

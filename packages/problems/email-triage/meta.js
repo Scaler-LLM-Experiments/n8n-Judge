@@ -25,8 +25,10 @@ export const difficultyNote = 'One router, three branches, and every node needs 
 export const estimatedMinutes = 25;
 
 export const coverImage = {
+  // Motif reserved for this case only: soft diagonal chevron (not X, not sparkles).
+  // Palette reserved: bright brand / electric blue (keep it vivid, not navy-black).
   prompt:
-    'A single retro pixel-art computer on the left, and three simple cube trays on the right, with one envelope travelling between them on a short stream of binary. Wide, sparse, left to right.',
+    'Bright vivid electric blue and sky-blue colour field — saturated #0055FF to luminous cyan-blue gradients, airy and high-key, not dark navy. Soft spray-paint grain. Single large soft-edged pale white-blue diagonal chevron or arrow-shard in the upper-left, slightly soft-focus. Empty bright lower-right atmosphere. No other symbols.',
   src: '/covers/email-triage.png',
-  alt: 'A retro computer streaming an email up into three sorting bins',
+  alt: 'Bright blue spray field with a soft diagonal chevron',
 };

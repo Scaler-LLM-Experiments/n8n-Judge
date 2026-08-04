@@ -54,7 +54,7 @@ export const voice = {
   // ---- building --------------------------------------------------------------
   build_start: ["[calm] Right, you've got your nodes. Now let's set each one up, in the order a claim travels."],
 
-  'phase_intro:intake': ['[calm] Nothing here runs until something notices a claim. Start at the top.'],
+  'phase_intro:intake': ['[calm] Now that you know the exact nodes, lets dive in deeper. Start Building'],
   'phase_intro:judge': ['[calm] This part has to read plain English and make a call. Think about what that needs.'],
   'phase_intro:route': ['[calm] Now the paths split. Every outcome needs somewhere of its own to go.'],
 

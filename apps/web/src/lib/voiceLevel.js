@@ -16,6 +16,12 @@
 //      asymmetric looks like a voice, because speech starts abruptly and trails.
 //   3. Hold a FLOOR. Speech has gaps between words, and a level that falls to zero
 //      in every gap makes the whole thing flicker.
+//
+// The analyser is passed as a GETTER, not a node. A new spoken line tears down the
+// previous MediaElementSource and builds a fresh AnalyserNode while `speaking`
+// stays true — so a loop that captured the old node once would sit on silence for
+// every line after the first. Re-resolving each frame keeps the glow and the
+// mascot on the live waveform.
 
 /** Level never drops below this while she is speaking. */
 export const FLOOR = 0.32;
@@ -26,30 +32,51 @@ const RELEASE = 0.09;
 const RMS_GAIN = 3.2;
 
 /**
+ * Caption-only / no-Web-Audio loudness. Same envelope `voice.js` uses when it
+ * cannot play a clip, so the mascot and the glow still breathe together when the
+ * line is words on screen with no waveform behind them.
+ */
+export function syntheticAmp(tMs) {
+  return Math.max(0, Math.min(1, 0.42 + 0.26 * Math.sin(tMs / 220) + 0.1 * Math.sin(tMs / 95)));
+}
+
+/**
  * Call `onLevel(level)` every frame with a 0..1 loudness, where `level` is never
  * below FLOOR.
  *
- * @param {AnalyserNode | null} analyser
+ * @param {AnalyserNode | null | (() => AnalyserNode | null)} analyserOrGet
+ *   Prefer a getter (`() => getAnalyser()`). A bare node is accepted for tests
+ *   and one-shot call sites, but it goes stale across spoken lines.
  * @param {(level: number) => void} onLevel
- * @returns {(() => void) | null} stop function, or null when there is no analyser
- *   to read (a normal state: Web Audio may be missing, or the line may be
- *   caption-only because no clip exists — callers fall back to a timed breathe).
+ * @returns {() => void} stop function — always, even when there is no analyser
+ *   yet (the loop falls back to a synthetic envelope until one appears).
  */
-export function driveVoiceLevel(analyser, onLevel) {
-  if (!analyser) return null;
+export function driveVoiceLevel(analyserOrGet, onLevel) {
+  const get =
+    typeof analyserOrGet === 'function' ? analyserOrGet : () => analyserOrGet ?? null;
 
-  const buf = new Uint8Array(analyser.fftSize);
+  let buf = new Uint8Array(256);
   let smoothed = 0;
   let rafId = null;
+  const started = performance.now();
 
   const tick = () => {
-    analyser.getByteTimeDomainData(buf);
-    let sumSq = 0;
-    for (let i = 0; i < buf.length; i += 1) {
-      const v = (buf[i] - 128) / 128;
-      sumSq += v * v;
+    const analyser = get();
+    let amp;
+    if (analyser) {
+      if (buf.length !== analyser.fftSize) {
+        buf = new Uint8Array(analyser.fftSize);
+      }
+      analyser.getByteTimeDomainData(buf);
+      let sumSq = 0;
+      for (let i = 0; i < buf.length; i += 1) {
+        const v = (buf[i] - 128) / 128;
+        sumSq += v * v;
+      }
+      amp = Math.min(1, Math.sqrt(sumSq / buf.length) * RMS_GAIN);
+    } else {
+      amp = syntheticAmp(performance.now() - started);
     }
-    const amp = Math.min(1, Math.sqrt(sumSq / buf.length) * RMS_GAIN);
     smoothed =
       amp > smoothed
         ? smoothed + (amp - smoothed) * ATTACK

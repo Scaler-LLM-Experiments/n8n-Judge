@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { useVoiceActions, useVoiceGlowHidden, useVoiceSpeaking } from '../lib/VoiceContext.jsx';
-import { FLOOR, driveVoiceLevel } from '../lib/voiceLevel.js';
+import { driveVoiceLevel } from '../lib/voiceLevel.js';
 
 // "Iris is speaking", as a glow blooming out of the bottom-left corner.
 //
@@ -74,34 +74,22 @@ function CornerGlow() {
     const lineOpacity = gsap.quickTo(line, 'opacity', { duration: 0.18, ease: 'power2.out' });
     const lineScale = gsap.quickTo(line, 'scaleX', { duration: 0.24, ease: 'power2.out' });
 
-    const analyser = getAnalyser?.() ?? null;
-    let idle = null;
-
-    // Shared with the mascot's own pulse, so the two move as one effect rather than
-    // as two things that happen to be blue.
-    const stopLevel = driveVoiceLevel(analyser, (level) => {
+    // Getter, not a snapshot: each spoken line mints a new AnalyserNode while
+    // `speaking` stays true. Capturing the node once left every line after the
+    // first stuck on silence. Shared with the mascot's own pulse (`voiceLevel.js`)
+    // so the two move as one effect rather than as two things that happen to be blue.
+    // No analyser is a normal state (caption-only, missing Web Audio) — the driver
+    // falls back to a synthetic envelope until one appears.
+    const stopLevel = driveVoiceLevel(() => getAnalyser?.() ?? null, (level) => {
       glowOpacity(0.35 + level * 0.85);
       glowScale(0.85 + level * 0.75);
       lineOpacity(0.35 + level * 0.95);
       lineScale(0.9 + level * 0.2);
     });
 
-    if (!stopLevel) {
-      // No analyser is a normal state, not a failure: Web Audio may be missing, or
-      // the line may be caption-only because no clip exists. The signal is "Iris is
-      // saying something", which is still true, so it breathes on a timer instead.
-      gsap.set(glow, { opacity: 0.55, scaleY: 0.9 });
-      gsap.set(line, { opacity: 0.45, scaleX: 0.96 });
-      idle = gsap.timeline({ repeat: -1, yoyo: true });
-      idle
-        .to(glow, { opacity: 1, scaleY: 1.12, duration: 0.45, ease: 'sine.inOut' })
-        .to(line, { opacity: 0.9, scaleX: 1.02, duration: 0.7, ease: 'sine.inOut' }, 0);
-    }
-
     return () => {
       enter.kill();
-      if (stopLevel) stopLevel();
-      if (idle) idle.kill();
+      stopLevel();
     };
   }, [mounted, getAnalyser]);
 

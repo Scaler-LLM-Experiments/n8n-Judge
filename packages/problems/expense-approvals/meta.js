@@ -26,8 +26,10 @@ export const difficultyNote = 'One AI judgement, three outcomes, and a spending 
 export const estimatedMinutes = 25;
 
 export const coverImage = {
+  // Motif reserved for this case only: multi-size four-point sparkles (not chevron, not X).
+  // Palette reserved: bright coral / hot peach (not dusty muted rose).
   prompt:
-    'A single retro pixel-art envelope on the left with a long paper receipt spilling out of it, and three simple cube trays on the right, one stamped, one holding a small key, one empty. A short stream of binary carries the receipt from the envelope towards the trays. Wide, sparse, left to right.',
-  src: null,
-  alt: 'A receipt spilling out of an envelope and streaming towards three sorting trays',
+    'Bright vivid coral and hot peach-orange colour field — saturated warm pink-coral to sunny peach gradients, high-key and cheerful, not dusty or brown. Soft spray-paint grain. Three four-point sparkles of different sizes on the right half — one large pale near-white sparkle, two smaller softer ones — lightly soft-focus. Empty bright left atmosphere. No chevrons, no X marks, no other symbols.',
+  src: '/covers/expense-approvals.png',
+  alt: 'Bright coral spray field with soft four-point sparkles',
 };

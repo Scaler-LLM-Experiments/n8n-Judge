@@ -46,10 +46,12 @@ export const estimatedMinutes = 25;
  *
  * A null `src` is a normal state — the card draws its own placeholder. The prompt is
  * production material and is stripped at the API boundary, never sent to a browser.
- * Keep it wide, sparse and left-to-right: the slot is 2:1 and a node setup reads that way.
+ * Slot is 21:9 full-bleed abstract: name ONE unique motif and ONE colour field that no
+ * other problem uses (see existing covers before inventing a new X or sparkle).
  */
 export const coverImage = {
-  prompt: 'TODO. A wide, sparse, left-to-right scene. Style comes from scripts/generate-covers.mjs.',
+  prompt:
+    'TODO. One colour field + one unique geometric motif. Style comes from scripts/generate-covers.mjs.',
   src: null,
   alt: 'TODO. What the picture shows, for a screen reader.',
 };

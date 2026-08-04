@@ -90,7 +90,9 @@ export function IrisMascot({ resting = 'idle', size = 84 }) {
   }, [speaking]);
 
   return (
-    <div style={{ width: size, height: size }}>
+    // overflow visible so the voice-reactive scale can grow past the box —
+    // clipping here made the pulse look like it was doing nothing.
+    <div style={{ width: size, height: size, overflow: 'visible' }}>
       <MascotPlayer clip={clip} once={once} onceDone={onReactionDone} />
     </div>
   );
