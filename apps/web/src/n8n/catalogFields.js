@@ -76,28 +76,47 @@ export function resolveNodePorts(entry = {}, values = {}) {
   let outputs = variant?.outputs ?? entry.outputs;
   const dynamicOutputs = entry.dynamicOutputs;
   if (dynamicOutputs?.enabled) {
-    const mode = effectiveValues[dynamicOutputs.modeParameter ?? 'mode'];
-    const spec = dynamicOutputs.modes?.[mode];
-    if (spec?.countParameter) {
-      const count = Math.max(0, Number(effectiveValues[spec.countParameter] ?? spec.defaultCount));
-      outputs = Array.from({ length: count }, (_, index) => ({ type: 'main', label: String(index), name: String(index), index }));
-    } else if (spec?.rulesPath) {
-      const rules = atPath(effectiveValues, spec.rulesPath) ?? [];
-      outputs = rules.map((rule, index) => ({
-        type: 'main',
-        label: rule[spec.labelParameter] || String(index),
+    if (dynamicOutputs.strategy === 'fixed-collection-labels') {
+      const rows = atPath(effectiveValues, dynamicOutputs.collectionPath) ?? [];
+      outputs = rows.map((row, index) => ({
+        type: dynamicOutputs.outputType ?? 'main',
+        label: row?.[dynamicOutputs.labelParameter] ?? '',
         name: String(index),
         index,
       }));
-      const fallback = atPath(effectiveValues, spec.fallbackPath);
-      if (fallback === spec.extraFallbackValue) {
+      if (atPath(effectiveValues, dynamicOutputs.fallbackParameter) === dynamicOutputs.fallbackValue) {
         const index = outputs.length;
         outputs.push({
-          type: 'main',
-          label: atPath(effectiveValues, spec.fallbackLabelPath) || spec.defaultFallbackLabel,
+          type: dynamicOutputs.outputType ?? 'main',
+          label: dynamicOutputs.fallbackLabel,
           name: String(index),
           index,
         });
+      }
+    } else {
+      const mode = effectiveValues[dynamicOutputs.modeParameter ?? 'mode'];
+      const spec = dynamicOutputs.modes?.[mode];
+      if (spec?.countParameter) {
+        const count = Math.max(0, Number(effectiveValues[spec.countParameter] ?? spec.defaultCount));
+        outputs = Array.from({ length: count }, (_, index) => ({ type: 'main', label: String(index), name: String(index), index }));
+      } else if (spec?.rulesPath) {
+        const rules = atPath(effectiveValues, spec.rulesPath) ?? [];
+        outputs = rules.map((rule, index) => ({
+          type: 'main',
+          label: rule[spec.labelParameter] || String(index),
+          name: String(index),
+          index,
+        }));
+        const fallback = atPath(effectiveValues, spec.fallbackPath);
+        if (fallback === spec.extraFallbackValue) {
+          const index = outputs.length;
+          outputs.push({
+            type: 'main',
+            label: atPath(effectiveValues, spec.fallbackLabelPath) || spec.defaultFallbackLabel,
+            name: String(index),
+            index,
+          });
+        }
       }
     }
   }

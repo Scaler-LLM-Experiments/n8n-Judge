@@ -36,6 +36,7 @@ import graphql from './graphql.js';
 import html from './html.js';
 import httpRequest from './http-request.js';
 import ifNode from './if.js';
+import informationExtractor from './information-extractor.js';
 import jwt from './jwt.js';
 import ldap from './ldap.js';
 import localFileTrigger from './local-file-trigger.js';
@@ -60,8 +61,10 @@ import loopOverItems from './loop-over-items.js';
 import sseTrigger from './sse-trigger.js';
 import ssh from './ssh.js';
 import stopAndError from './stop-and-error.js';
+import summarizationChain from './summarization-chain.js';
 import summarizeItems from './summarize-items.js';
 import switchNode from './switch.js';
+import textClassifier from './text-classifier.js';
 import totp from './totp.js';
 import wait from './wait.js';
 import webhook from './webhook.js';
@@ -151,9 +154,9 @@ export const CLUSTER_NODE_INVENTORY = [
   { type: 'ai-agent', docsSlug: 'n8n-nodes-langchain.agent', label: 'AI Agent', clusterRole: 'root', status: 'complete' },
   { type: 'basic-llm-chain', docsSlug: 'n8n-nodes-langchain.chainllm', label: 'Basic LLM Chain', clusterRole: 'root', status: 'complete' },
   { type: 'question-answer-chain', docsSlug: 'n8n-nodes-langchain.chainretrievalqa', label: 'Question and Answer Chain', clusterRole: 'root', status: 'complete' },
-  { type: 'summarization-chain', docsSlug: 'n8n-nodes-langchain.chainsummarization', label: 'Summarization Chain', clusterRole: 'root', status: 'pending' },
-  { type: 'information-extractor', docsSlug: 'n8n-nodes-langchain.information-extractor', label: 'Information Extractor', clusterRole: 'root', status: 'pending' },
-  { type: 'text-classifier', docsSlug: 'n8n-nodes-langchain.text-classifier', label: 'Text Classifier', clusterRole: 'root', status: 'pending' },
+  { type: 'summarization-chain', docsSlug: 'n8n-nodes-langchain.chainsummarization', label: 'Summarization Chain', clusterRole: 'root', status: 'complete' },
+  { type: 'information-extractor', docsSlug: 'n8n-nodes-langchain.information-extractor', label: 'Information Extractor', clusterRole: 'root', status: 'complete' },
+  { type: 'text-classifier', docsSlug: 'n8n-nodes-langchain.text-classifier', label: 'Text Classifier', clusterRole: 'root', status: 'complete' },
   { type: 'sentiment-analysis', docsSlug: 'n8n-nodes-langchain.sentimentanalysis', label: 'Sentiment Analysis', clusterRole: 'root', status: 'pending' },
   { type: 'langchain-code', docsSlug: 'n8n-nodes-langchain.code', label: 'LangChain Code', clusterRole: 'root', status: 'pending' },
   { type: 'microsoft-agent-365-trigger', docsSlug: 'n8n-nodes-langchain.microsoftagent365trigger', label: 'Microsoft Agent 365 Trigger', clusterRole: 'root', status: 'pending' },
@@ -246,6 +249,7 @@ export const CLUSTER_NODE_INVENTORY = [
 export const CORE_NODE_CATALOG = Object.fromEntries(
   [
     aiAgent, basicLlmChain, questionAnswerChain,
+    summarizationChain, informationExtractor, textClassifier,
     aiTransform, code, compareDatasets,
     compression, convertToFile, crypto,
     dataTable, dateTime, debugHelper,

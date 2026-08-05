@@ -1,6 +1,6 @@
 # n8n node library catalog
 
-Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **104 canonical nodes** (26 triggers, 24 app actions, 54 core/data/AI nodes) plus 10 compatibility aliases.
+Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **107 canonical nodes** (26 triggers, 24 app actions, 57 core/data/AI nodes) plus 10 compatibility aliases.
 
 ## How to choose
 
@@ -79,7 +79,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | YouTube | `youtube` | Consume YouTube API |
 | Zoom | `zoom` | Consume Zoom API |
 
-## Core, data, and AI building blocks (54)
+## Core, data, and AI building blocks (57)
 
 | Node | Catalog type | Function |
 |---|---|---|
@@ -111,6 +111,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | HTML | `html` | Work with HTML |
 | HTTP Request | `http-request` | Makes an HTTP request and returns the response data |
 | If | `if` | Route items to different branches (true/false) |
+| Information Extractor | `information-extractor` | Extract structured information from text using a connected language model |
 | JWT | `jwt` | JWT |
 | Ldap | `ldap` | Interact with LDAP servers |
 | Limit | `limit` | Restrict the number of items |
@@ -132,8 +133,10 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Split Out | `split-out` | Turn a list inside item(s) into separate items |
 | SSH | `ssh` | Execute commands via SSH |
 | Stop and Error | `stop-and-error` | Throw an error in the workflow |
+| Summarization Chain | `summarization-chain` | Summarize JSON, binary, or loaded documents with configurable chunking and prompts |
 | Summarize | `summarize-items` | Sum, count, max, etc. across items |
 | Switch | `switch` | Route items depending on defined expression or rules |
+| Text Classifier | `text-classifier` | Classify text into authored category output branches |
 | TOTP | `totp` | Generate a time-based one-time password |
 | Wait | `wait` | Wait before continue with execution |
 | XML | `xml` | Convert data from and to XML |

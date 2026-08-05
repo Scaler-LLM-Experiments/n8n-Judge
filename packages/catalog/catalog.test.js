@@ -467,6 +467,36 @@ describe('cluster-node batch 1 carries the current root-node authoring surface',
   });
 });
 
+describe('cluster-node batch 2 carries the current root-node authoring surface', () => {
+  it('models Summarization Chain v2.1 inputs, methods, prompts, and batching', () => {
+    const node = NODE_CATALOG['summarization-chain'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 2.1, n8nType: '@n8n/n8n-nodes-langchain.chainSummarization' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 17, dynamicInputShapeCount: 3 });
+    expect(params.operationMode.options.map(({ value }) => value)).toEqual(['nodeInputJson', 'nodeInputBinary', 'documentLoader']);
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['binaryDataKey', 'summarizationMethodAndPrompts', 'batching']);
+  });
+
+  it('models Information Extractor v1.2 schema choices and attributes', () => {
+    const node = NODE_CATALOG['information-extractor'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.2, n8nType: '@n8n/n8n-nodes-langchain.informationExtractor' });
+    expect(node.authoringParity.recursiveFieldCount).toBe(15);
+    expect(params.schemaType.options.map(({ value }) => value)).toEqual(['fromAttributes', 'fromJson', 'manual']);
+    expect(params.attributes.fields.map(({ key }) => key)).toEqual(['attributeName', 'attributeType', 'attributeDescription', 'attributeRequired']);
+  });
+
+  it('models Text Classifier v1.1 fields and category-named outputs', () => {
+    const node = NODE_CATALOG['text-classifier'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.1, n8nType: '@n8n/n8n-nodes-langchain.textClassifier' });
+    expect(node.authoringParity.recursiveFieldCount).toBe(12);
+    expect(params.categories.fields.map(({ key }) => key)).toEqual(['category', 'description']);
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['multiClass', 'fallback', 'systemPromptTemplate', 'enableAutoFixing', 'batching']);
+    expect(node.dynamicOutputs).toMatchObject({ strategy: 'fixed-collection-labels', fallbackLabel: 'Other' });
+  });
+});
+
 // Judge does not implement typeVersion — one shipped schema per node type is the
 // right simplification — but every node must SAY which real node and version it
 // models, or the catalogue drifts from the n8n a learner meets next and nobody

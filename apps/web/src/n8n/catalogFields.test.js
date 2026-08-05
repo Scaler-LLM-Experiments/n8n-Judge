@@ -72,6 +72,25 @@ describe('catalog-backed node setup', () => {
     }).outputs.map((port) => port.label)).toEqual(['Paid', '1', 'Other']);
   });
 
+  it('renders Text Classifier outputs from category rows and fallback', () => {
+    const categories = { categories: [{ category: 'Bug' }, { category: 'Feature' }] };
+    expect(resolveNodePorts(NODE_CATALOG['text-classifier'], { categories }).outputs.map((port) => port.label)).toEqual(['Bug', 'Feature']);
+    expect(resolveNodePorts(NODE_CATALOG['text-classifier'], {
+      categories,
+      options: { fallback: 'other' },
+    }).outputs.map((port) => port.label)).toEqual(['Bug', 'Feature', 'Other']);
+    expect(resolveNodePorts(NODE_CATALOG['text-classifier'], {}).outputs).toEqual([]);
+  });
+
+  it('renders Summarization Chain connector variants', () => {
+    expect(resolveNodePorts(NODE_CATALOG['summarization-chain'], {}).inputs.map((port) => port.type)).toEqual(['main', 'ai_languageModel']);
+    expect(resolveNodePorts(NODE_CATALOG['summarization-chain'], { operationMode: 'documentLoader' }).inputs.map((port) => port.type)).toEqual(['main', 'ai_languageModel', 'ai_document']);
+    expect(resolveNodePorts(NODE_CATALOG['summarization-chain'], {
+      operationMode: 'nodeInputJson',
+      chunkingMode: 'advanced',
+    }).inputs.map((port) => port.type)).toEqual(['main', 'ai_languageModel', 'ai_textSplitter']);
+  });
+
   it('renders one Webhook output per selected HTTP method', () => {
     expect(resolveNodePorts(NODE_CATALOG.webhook, {}).outputs.map((port) => port.label)).toEqual(['GET']);
     expect(resolveNodePorts(NODE_CATALOG.webhook, {
