@@ -869,6 +869,40 @@ describe('cluster-node batch 14 carries current Cohere, DeepSeek, and Gemini cha
   });
 });
 
+describe('cluster-node batch 15 carries current Vertex, Groq, and Lemonade chat models', () => {
+  it('models Google Vertex v1 projects, regions, safety, and thinking budget', () => {
+    const node = NODE_CATALOG['google-vertex-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    const safety = params.options.fields.find(({ key }) => key === 'safetySettings');
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmChatGoogleVertex' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 14, credentialEditorFieldCount: 8, credentialRegionOptionCount: 44, dynamicFieldCount: 2 });
+    expect(params.projectId).toMatchObject({ kind: 'resourceLocator', required: true, locked: true });
+    expect(params.location.options.map(({ value }) => value)).toEqual(['', 'global', 'eu', 'us']);
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['maxOutputTokens', 'temperature', 'topK', 'topP', 'safetySettings', 'thinkingBudget']);
+    expect(safety.fields.map(({ sourceN8nKey }) => sourceN8nKey)).toEqual(['category', 'threshold']);
+  });
+
+  it('models Groq v1 filtered model discovery and two completion options', () => {
+    const node = NODE_CATALOG['groq-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmChatGroq' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 6, credentialEditorFieldCount: 1, dynamicFieldCount: 2 });
+    expect(params.model).toMatchObject({ value: 'llama3-8b-8192', locked: true, options: [] });
+    expect(params.model.dynamicOptions.filterExpression).toContain('$responseItem.active === true');
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['maxTokensToSample', 'temperature']);
+  });
+
+  it('models Lemonade v1 required model discovery and six native options', () => {
+    const node = NODE_CATALOG['lemonade-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmChatLemonade' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 10, credentialEditorFieldCount: 2, dynamicFieldCount: 2 });
+    expect(params.model).toMatchObject({ value: '', required: true, locked: true, options: [] });
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['temperature', 'topP', 'frequencyPenalty', 'presencePenalty', 'maxTokens', 'stop']);
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_languageModel', label: 'Model' })]);
+  });
+});
+
 // Judge does not implement typeVersion — one shipped schema per node type is the
 // right simplification — but every node must SAY which real node and version it
 // models, or the catalogue drifts from the n8n a learner meets next and nobody

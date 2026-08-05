@@ -54,6 +54,8 @@ import git from './git.js';
 import githubDocumentLoader from './github-document-loader.js';
 import graphql from './graphql.js';
 import googleGeminiChatModel from './google-gemini-chat-model.js';
+import googleVertexChatModel from './google-vertex-chat-model.js';
+import groqChatModel from './groq-chat-model.js';
 import html from './html.js';
 import httpRequest from './http-request.js';
 import ifNode from './if.js';
@@ -61,6 +63,7 @@ import informationExtractor from './information-extractor.js';
 import jwt from './jwt.js';
 import langchainCode from './langchain-code.js';
 import ldap from './ldap.js';
+import lemonadeChatModel from './lemonade-chat-model.js';
 import localFileTrigger from './local-file-trigger.js';
 import manual from './manual.js';
 import markdown from './markdown.js';
@@ -230,9 +233,9 @@ export const CLUSTER_NODE_INVENTORY = [
   { type: 'cohere-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatcohere', label: 'Cohere Chat Model', clusterRole: 'sub', status: 'complete' },
   { type: 'deepseek-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatdeepseek', label: 'DeepSeek Chat Model', clusterRole: 'sub', status: 'complete' },
   { type: 'google-gemini-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatgooglegemini', label: 'Google Gemini Chat Model', clusterRole: 'sub', status: 'complete' },
-  { type: 'google-vertex-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatgooglevertex', label: 'Google Vertex Chat Model', clusterRole: 'sub', status: 'pending' },
-  { type: 'groq-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatgroq', label: 'Groq Chat Model', clusterRole: 'sub', status: 'pending' },
-  { type: 'lemonade-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatlemonade', label: 'Lemonade Chat Model', clusterRole: 'sub', status: 'pending' },
+  { type: 'google-vertex-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatgooglevertex', label: 'Google Vertex Chat Model', clusterRole: 'sub', status: 'complete' },
+  { type: 'groq-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatgroq', label: 'Groq Chat Model', clusterRole: 'sub', status: 'complete' },
+  { type: 'lemonade-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatlemonade', label: 'Lemonade Chat Model', clusterRole: 'sub', status: 'complete' },
   { type: 'minimax-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatminimax', label: 'MiniMax Chat Model', clusterRole: 'sub', status: 'pending' },
   { type: 'mistral-cloud-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatmistralcloud', label: 'Mistral Cloud Chat Model', clusterRole: 'sub', status: 'pending' },
   { type: 'moonshot-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatmoonshot', label: 'Moonshot Kimi Chat Model', clusterRole: 'sub', status: 'pending' },
@@ -298,6 +301,7 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
     embeddingsOpenAi, embeddingsOracleDatabase, qwenCloudChatModel,
     anthropicChatModel, awsBedrockChatModel, azureOpenAiChatModel,
     cohereChatModel, deepSeekChatModel, googleGeminiChatModel,
+    googleVertexChatModel, groqChatModel, lemonadeChatModel,
     aiTransform, code, compareDatasets,
     compression, convertToFile, crypto,
     dataTable, dateTime, debugHelper,

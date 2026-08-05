@@ -1,6 +1,6 @@
 # n8n node library catalog
 
-Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **143 canonical nodes** (27 triggers, 24 app actions, 92 core/data/AI nodes) plus 10 compatibility aliases.
+Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **146 canonical nodes** (27 triggers, 24 app actions, 95 core/data/AI nodes) plus 10 compatibility aliases.
 
 ## How to choose
 
@@ -80,7 +80,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | YouTube | `youtube` | Consume YouTube API |
 | Zoom | `zoom` | Consume Zoom API |
 
-## Core, data, and AI building blocks (92)
+## Core, data, and AI building blocks (95)
 
 | Node | Catalog type | Function |
 |---|---|---|
@@ -128,7 +128,9 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Git | `git` | Control git. |
 | GitHub Document Loader | `github-document-loader` | Configure GitHub repository documents and text splitting for AI workflows |
 | Google Gemini Chat Model | `google-gemini-chat-model` | Configure a Google Gemini chat model and safety settings |
+| Google Vertex Chat Model | `google-vertex-chat-model` | Configure a Gemini chat model on Google Vertex AI |
 | GraphQL | `graphql` | Makes a GraphQL request and returns the received data |
+| Groq Chat Model | `groq-chat-model` | Configure a Groq-hosted chat model and completion controls |
 | Guardrails | `guardrails` | Safeguard AI models from malicious input or prevent them from generating undesirable responses |
 | HTML | `html` | Work with HTML |
 | HTTP Request | `http-request` | Makes an HTTP request and returns the response data |
@@ -137,6 +139,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | JWT | `jwt` | JWT |
 | LangChain Code | `langchain-code` | Author inert JavaScript text and custom LangChain connection shapes |
 | Ldap | `ldap` | Interact with LDAP servers |
+| Lemonade Chat Model | `lemonade-chat-model` | Configure a Lemonade chat model and completion controls |
 | Limit | `limit` | Restrict the number of items |
 | Loop Over Items (Split in Batches) | `loop-over-items` | Split data into batches and iterate over each batch |
 | Markdown | `markdown` | Convert data between Markdown and HTML |
