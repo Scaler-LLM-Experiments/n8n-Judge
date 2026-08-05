@@ -280,6 +280,69 @@ async function checkSeeded(slug) {
 }
 
 /**
+ * Would the app, right now, serve every problem the database says it has?
+ *
+ * ---------------------------------------------------------------------------
+ * The database is branch-independent. The files it points at are not.
+ * ---------------------------------------------------------------------------
+ * Postgres does not roll back when you `git switch`. So a case seeded on its branch stays
+ * PUBLISHED after you move to a branch that never had it — and the app keeps serving it,
+ * pointing at a cover PNG and a clip table that are no longer on disk. The symptoms are
+ * exactly the two most confusing ones available: a **missing cover image** (404 on a path
+ * the served problem still names) and **no audio at all** (the clip table is absent, so
+ * none of its files are in `VALID_CLIP_FILES`, and the route refuses every request by
+ * design — degrading silently to captions, which looks identical to a broken render).
+ *
+ * Every other check in this file passed while this was broken, because they all ran on the
+ * branch that HAD the files. Found the hard way after moving a case onto its own branch to
+ * keep two PRs separate.
+ *
+ * This is the one check that asks about the working tree and the database together.
+ */
+async function checkServable() {
+  const results = [];
+  let prisma;
+  try {
+    ({ prisma } = await import('@judge/db'));
+    const rows = await prisma.problem.findMany({
+      include: { versions: { where: { status: 'PUBLISHED' }, orderBy: { version: 'desc' }, take: 1 } },
+    });
+    const { problems } = await import('@judge/problems');
+
+    for (const row of rows) {
+      const data = row.versions[0]?.data;
+      if (!data) continue;
+      const missing = [];
+
+      // Registered here? An unregistered-but-published case is servable (the API reads the
+      // DB) yet invisible to voice:generate and covers:generate, so it silently stops
+      // getting new clips and art.
+      if (!problems[row.slug]) missing.push('not in the repo registry');
+
+      const src = data.coverImage?.src;
+      if (src && !fs.existsSync(path.join('apps/web/public', src))) missing.push(`cover ${src} not on disk`);
+
+      const table = path.join(SCRIPT_DIR, `${row.slug}.json`);
+      if (!fs.existsSync(table)) missing.push(`clip table ${row.slug}.json absent — ALL narration will be refused`);
+
+      results.push(
+        missing.length
+          ? fail('servable', `${row.slug} is PUBLISHED but ${missing.join('; ')}`)
+          : pass('servable', `${row.slug} v${row.versions[0].version} — cover and clip table both present`)
+      );
+    }
+    if (!results.length) results.push(fail('servable', 'no PUBLISHED problems in the database'));
+    return results;
+  } catch (err) {
+    const line = `${err.message}`.split('\n')[0];
+    const isConnection = /P1001|P1010|ECONNREFUSED|ENOTFOUND|timeout|Can't reach database/i.test(err.message);
+    return [fail('servable', isConnection ? `could not reach Postgres: ${line}` : `check itself failed: ${line}`)];
+  } finally {
+    await prisma?.$disconnect().catch(() => {});
+  }
+}
+
+/**
  * We are really standing on the branch we think we are.
  *
  * Added after a real incident: a run's two commits landed on `main` instead of the case
@@ -342,6 +405,8 @@ const USAGE = [
   '  voice-rendered <slug>   every clip the table names is on disk',
   '  voice-uploaded <slug>   every clip is in the bucket (one list request)',
   '  seeded <slug>           Postgres serves THIS content, not an older version',
+  '  servable <anything>     EVERY published problem still has its cover + clip table on disk',
+  '                          (the database does not roll back when you `git switch`)',
   '  on-branch <name>        HEAD is really on this branch — run BEFORE every commit',
   '  branch <name>           the branch is really on origin',
 ].join('\n');
@@ -380,6 +445,9 @@ switch (cmd) {
   case 'on-branch':
     results = checkOnBranch(target);
     break;
+  case 'servable':
+    results = await checkServable();
+    break;
   case 'all': {
     const slug = target;
     console.log(bold(`\nverifying ${slug}\n`));
@@ -396,6 +464,9 @@ switch (cmd) {
       console.log(dim('  (fake mode: skipping voice-uploaded, seeded and branch)'));
     } else {
       results.push(...(await checkVoiceUploaded(slug)), ...(await checkSeeded(slug)));
+      // Asks about EVERY published problem, not just this one: switching branches breaks
+      // whichever cases the new branch never had, which is usually not the one being worked on.
+      results.push(...(await checkServable()));
       const branch = flag('branch');
       if (branch) results.push(...checkBranch(branch));
     }

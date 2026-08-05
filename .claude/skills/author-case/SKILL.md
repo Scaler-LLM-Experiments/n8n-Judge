@@ -442,6 +442,37 @@ If clips were already rendered and uploaded they stay in the bucket as orphans. 
 harmless — every clip is addressed by a hash of its own text, so an orphan is unreachable
 rather than wrong. `voice:generate -- --prune` clears the local copies.
 
+## The database does not roll back when you `git switch`
+
+**The single most confusing failure this pipeline has produced.** Read it before moving a case
+between branches.
+
+Postgres is branch-independent. A case seeded on its own branch stays `PUBLISHED` after you
+switch to a branch that never had it — and the app keeps serving it, pointing at files that are
+no longer on disk. The learner sees:
+
+- **a missing cover image** — the served problem still names `/covers/<slug>.png`, which now 404s;
+- **no audio at all** — `packages/voice-scripts/<slug>.json` is absent, so none of its files are
+  in `VALID_CLIP_FILES` and the route refuses every request *by design*, degrading silently to
+  captions. Which looks exactly like a broken render, and sends you to the wrong problem entirely.
+
+**Every other check in this file passed while this was broken**, because they all ran on the
+branch that had the files. So:
+
+```bash
+npm run case:verify -- servable x    # every PUBLISHED problem still has its cover + clip table
+```
+
+It asks about **all** published problems, not the one you are working on, because switching
+branches breaks whichever cases the new branch never had. Run it after any `git switch`,
+`git merge` or branch move, and before telling anyone the app works. It is part of
+`case:verify all`.
+
+The fix is always the same: get the files and the database back into agreement — check out (or
+merge) the branch that carries the case. Do **not** re-seed to "fix" it; re-seeding an
+unregistered case does nothing, and re-seeding a case whose files you cannot see is how a
+version gets published from a half-populated tree.
+
 ## Another worktree may be editing the catalog — check before you start
 
 The `@judge/catalog` node vocabulary is being extended in a **separate worktree**, and it collides
