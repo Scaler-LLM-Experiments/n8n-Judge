@@ -36,6 +36,9 @@ import httpRequest from './http-request.js';
 import ifNode from './if.js';
 import jwt from './jwt.js';
 import ldap from './ldap.js';
+import localFileTrigger from './local-file-trigger.js';
+import manual from './manual.js';
+import markdown from './markdown.js';
 
 export const SOURCE_COMMIT = '3d68c29b9281f14097aa9f15e01ac0777e538b11';
 
@@ -73,9 +76,9 @@ export const CORE_NODE_INVENTORY = [
   { type: 'jwt', docsSlug: 'n8n-nodes-base.jwt', label: 'JWT', status: 'complete' },
   { type: 'ldap', docsSlug: 'n8n-nodes-base.ldap', label: 'LDAP', status: 'complete' },
   { type: 'limit', docsSlug: 'n8n-nodes-base.limit', label: 'Limit', status: 'complete' },
-  { type: 'local-file-trigger', docsSlug: 'n8n-nodes-base.localfiletrigger', label: 'Local File Trigger', status: 'pending' },
-  { type: 'manual', docsSlug: 'n8n-nodes-base.manualworkflowtrigger', label: 'Manual Trigger', status: 'pending' },
-  { type: 'markdown', docsSlug: 'n8n-nodes-base.markdown', label: 'Markdown', status: 'pending' },
+  { type: 'local-file-trigger', docsSlug: 'n8n-nodes-base.localfiletrigger', label: 'Local File Trigger', status: 'complete' },
+  { type: 'manual', docsSlug: 'n8n-nodes-base.manualworkflowtrigger', label: 'Manual Trigger', status: 'complete' },
+  { type: 'markdown', docsSlug: 'n8n-nodes-base.markdown', label: 'Markdown', status: 'complete' },
   { type: 'merge', docsSlug: 'n8n-nodes-base.merge', label: 'Merge', status: 'pending' },
   { type: 'n8n-trigger', docsSlug: 'n8n-nodes-base.n8ntrigger', label: 'n8n Trigger', status: 'pending' },
   { type: 'n8n', docsSlug: 'n8n-nodes-base.n8n', label: 'n8n', status: 'pending' },
@@ -124,6 +127,7 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
     form, ftp, git,
     graphql, html, httpRequest,
     ifNode, jwt, ldap,
+    localFileTrigger, manual, markdown,
   ].map((node) => [node.type, node])
 );
 
