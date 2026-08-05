@@ -616,6 +616,39 @@ describe('cluster-node batch 6 carries the current hosted vector-store surfaces'
   });
 });
 
+describe('cluster-node batch 7 carries the remaining current hosted vector-store surfaces', () => {
+  it('models Redis v1.3 index lookup, native option keys, credentials, and update mode', () => {
+    const node = NODE_CATALOG['redis-vector-store'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.3, n8nType: '@n8n/n8n-nodes-langchain.vectorStoreRedis' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 31, credentialEditorFieldCount: 7, operationCount: 5 });
+    expect(params.redisIndex).toMatchObject({ kind: 'resourceLocator', locked: true });
+    expect(params.insertOptions.fields.map(({ key }) => key)).toEqual(['keyPrefix', 'overwriteDocuments', 'metadataKey', 'contentKey', 'vectorKey', 'ttl']);
+    expect(node.portVariants).toHaveLength(8);
+  });
+
+  it('models Supabase v1.3 table lookup and native query-name collections', () => {
+    const node = NODE_CATALOG['supabase-vector-store'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.3, n8nType: '@n8n/n8n-nodes-langchain.vectorStoreSupabase' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldOccurrenceCount: 26, credentialEditorFieldCount: 2, operationCount: 5 });
+    expect(params.tableName).toMatchObject({ kind: 'resourceLocator', locked: true });
+    expect(params.insertOptions.fields.map(({ key }) => key)).toEqual(['queryName']);
+    expect(params.loadToolOptions.fields.map(({ key }) => key)).toEqual(['queryName', 'metadata']);
+  });
+
+  it('models Weaviate v1.3 hybrid-search fields without the unsupported update mode', () => {
+    const node = NODE_CATALOG['weaviate-vector-store'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.3, n8nType: '@n8n/n8n-nodes-langchain.vectorStoreWeaviate' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 54, credentialEditorFieldCount: 9, operationCount: 4 });
+    expect(params.weaviateCollection).toMatchObject({ kind: 'resourceLocator', locked: true });
+    expect(params.insertOptions.fields.map(({ key }) => key)).toEqual(['tenant', 'textKey', 'skip_init_checks', 'timeout_init', 'timeout_insert', 'timeout_query', 'proxy_grpc', 'clearStore']);
+    expect(params.loadAndToolOptions.fields.map(({ key }) => key)).toEqual(['searchFilterJson', 'metadataKeys', 'hybridQuery', 'hybridExplainScore', 'fusionType', 'autoCutLimit', 'alpha', 'queryProperties', 'maxVectorDistance', 'tenant', 'textKey', 'skip_init_checks', 'timeout_init', 'timeout_insert', 'timeout_query', 'proxy_grpc']);
+    expect(params.mode.options.map(({ value }) => value)).toEqual(['load', 'insert', 'retrieve', 'retrieve-as-tool']);
+  });
+});
+
 // Judge does not implement typeVersion — one shipped schema per node type is the
 // right simplification — but every node must SAY which real node and version it
 // models, or the catalogue drifts from the n8n a learner meets next and nobody

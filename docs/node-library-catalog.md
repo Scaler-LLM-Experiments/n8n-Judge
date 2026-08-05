@@ -1,6 +1,6 @@
 # n8n node library catalog
 
-Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **119 canonical nodes** (27 triggers, 24 app actions, 68 core/data/AI nodes) plus 10 compatibility aliases.
+Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **122 canonical nodes** (27 triggers, 24 app actions, 71 core/data/AI nodes) plus 10 compatibility aliases.
 
 ## How to choose
 
@@ -80,7 +80,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | YouTube | `youtube` | Consume YouTube API |
 | Zoom | `zoom` | Consume Zoom API |
 
-## Core, data, and AI building blocks (68)
+## Core, data, and AI building blocks (71)
 
 | Node | Catalog type | Function |
 |---|---|---|
@@ -134,6 +134,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Qdrant Vector Store | `qdrant-vector-store` | Configure Qdrant insertion, search, retrieval, and tool modes |
 | Question and Answer Chain | `question-answer-chain` | Answer questions using a connected retriever and language model |
 | Read/Write Files from Disk | `read-write-file` | Read or write files from the computer that runs n8n |
+| Redis Vector Store | `redis-vector-store` | Configure Redis vector-index insertion, search, retrieval, tool, and update modes |
 | Remove Duplicates | `remove-duplicates` | Delete items with matching field values |
 | Rename Keys | `rename-keys` | Update item field names |
 | Respond to Webhook | `respond-to-webhook` | Returns data for Webhook |
@@ -145,12 +146,14 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Split Out | `split-out` | Turn a list inside item(s) into separate items |
 | SSH | `ssh` | Execute commands via SSH |
 | Stop and Error | `stop-and-error` | Throw an error in the workflow |
+| Supabase Vector Store | `supabase-vector-store` | Configure Supabase insertion, search, retrieval, tool, and update modes |
 | Summarization Chain | `summarization-chain` | Summarize JSON, binary, or loaded documents with configurable chunking and prompts |
 | Summarize | `summarize-items` | Sum, count, max, etc. across items |
 | Switch | `switch` | Route items depending on defined expression or rules |
 | Text Classifier | `text-classifier` | Classify text into authored category output branches |
 | TOTP | `totp` | Generate a time-based one-time password |
 | Wait | `wait` | Wait before continue with execution |
+| Weaviate Vector Store | `weaviate-vector-store` | Configure Weaviate insertion, search, retrieval, and tool modes |
 | XML | `xml` | Convert data from and to XML |
 
 ## Compatibility-only aliases (10)
