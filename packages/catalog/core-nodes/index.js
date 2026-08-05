@@ -27,6 +27,7 @@ import compression from './compression.js';
 import convertToFile from './convert-to-file.js';
 import contextualCompressionRetriever from './contextual-compression-retriever.js';
 import crypto from './crypto.js';
+import customCodeTool from './custom-code-tool.js';
 import dataTable from './data-table.js';
 import defaultDataLoader from './default-data-loader.js';
 import dateTime from './date-time.js';
@@ -113,6 +114,7 @@ import rssFeedTrigger from './rss-feed-trigger.js';
 import rssRead from './rss-read.js';
 import schedule from './schedule.js';
 import sendEmail from './send-email.js';
+import searXngTool from './searxng-tool.js';
 import sentimentAnalysis from './sentiment-analysis.js';
 import simpleMemory from './simple-memory.js';
 import simpleVectorStore from './simple-vector-store.js';
@@ -145,6 +147,7 @@ import chatTrigger from './chat-trigger.js';
 import chat from './chat.js';
 import guardrails from './guardrails.js';
 import mcpClient from './mcp-client.js';
+import mcpClientTool from './mcp-client-tool.js';
 import mcpServerTrigger from './mcp-server-trigger.js';
 
 export const SOURCE_COMMIT = '3d68c29b9281f14097aa9f15e01ac0777e538b11';
@@ -302,9 +305,9 @@ export const CLUSTER_NODE_INVENTORY = [
   { type: 'token-splitter', docsSlug: 'n8n-nodes-langchain.textsplittertokensplitter', label: 'Token Splitter', clusterRole: 'sub', status: 'complete' },
   { type: 'ai-agent-tool', docsSlug: 'n8n-nodes-langchain.toolaiagent', label: 'AI Agent Tool', clusterRole: 'sub', status: 'complete' },
   { type: 'calculator', docsSlug: 'n8n-nodes-langchain.toolcalculator', label: 'Calculator', clusterRole: 'sub', status: 'complete' },
-  { type: 'custom-code-tool', docsSlug: 'n8n-nodes-langchain.toolcode', label: 'Custom Code Tool', clusterRole: 'sub', status: 'pending' },
-  { type: 'mcp-client-tool', docsSlug: 'n8n-nodes-langchain.toolmcp', label: 'MCP Client Tool', clusterRole: 'sub', status: 'pending' },
-  { type: 'searxng-tool', docsSlug: 'n8n-nodes-langchain.toolsearxng', label: 'SearXNG Tool', clusterRole: 'sub', status: 'pending' },
+  { type: 'custom-code-tool', docsSlug: 'n8n-nodes-langchain.toolcode', label: 'Custom Code Tool', clusterRole: 'sub', status: 'complete' },
+  { type: 'mcp-client-tool', docsSlug: 'n8n-nodes-langchain.toolmcp', label: 'MCP Client Tool', clusterRole: 'sub', status: 'complete' },
+  { type: 'searxng-tool', docsSlug: 'n8n-nodes-langchain.toolsearxng', label: 'SearXNG Tool', clusterRole: 'sub', status: 'complete' },
   { type: 'serpapi-tool', docsSlug: 'n8n-nodes-langchain.toolserpapi', label: 'SerpApi (Google Search)', clusterRole: 'sub', status: 'pending' },
   { type: 'think-tool', docsSlug: 'n8n-nodes-langchain.toolthink', label: 'Think Tool', clusterRole: 'sub', status: 'pending' },
   { type: 'vector-store-question-answer-tool', docsSlug: 'n8n-nodes-langchain.toolvectorstore', label: 'Vector Store Question Answer Tool', clusterRole: 'sub', status: 'pending' },
@@ -346,6 +349,7 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
     contextualCompressionRetriever, multiQueryRetriever, vectorStoreRetriever,
     workflowRetriever, characterTextSplitter, recursiveCharacterTextSplitter,
     tokenSplitter, aiAgentTool, calculator,
+    customCodeTool, mcpClientTool, searXngTool,
     aiTransform, code, compareDatasets,
     compression, convertToFile, crypto,
     dataTable, dateTime, debugHelper,

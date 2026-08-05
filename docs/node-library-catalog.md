@@ -1,6 +1,6 @@
 # n8n node library catalog
 
-Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **179 canonical nodes** (27 triggers, 24 app actions, 128 core/data/AI nodes) plus 10 compatibility aliases.
+Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **182 canonical nodes** (27 triggers, 24 app actions, 131 core/data/AI nodes) plus 10 compatibility aliases.
 
 ## How to choose
 
@@ -80,7 +80,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | YouTube | `youtube` | Consume YouTube API |
 | Zoom | `zoom` | Consume Zoom API |
 
-## Core, data, and AI building blocks (128)
+## Core, data, and AI building blocks (131)
 
 | Node | Catalog type | Function |
 |---|---|---|
@@ -107,6 +107,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Convert to File | `convert-to-file` | Convert JSON data to binary data |
 | Contextual Compression Retriever | `contextual-compression-retriever` | Connect a model and retriever for contextual-compression retrieval configuration |
 | Crypto | `crypto` | Provide cryptographic utilities |
+| Custom Code Tool | `custom-code-tool` | Author inert JavaScript or Python tool code with an optional input schema |
 | Data table | `data-table` | Permanently save data across workflow executions in a table |
 | Date & Time | `date-time` | Manipulate date and time values |
 | Default Data Loader | `default-data-loader` | Configure JSON or binary document loading with simple or custom text splitting |
@@ -154,6 +155,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Loop Over Items (Split in Batches) | `loop-over-items` | Split data into batches and iterate over each batch |
 | Markdown | `markdown` | Convert data between Markdown and HTML |
 | MCP Client | `mcp-client` | Standalone MCP Client |
+| MCP Client Tool | `mcp-client-tool` | Configure an MCP endpoint, authentication, and exposed tool filters |
 | Merge | `merge` | Merges data of multiple streams once data from both is available |
 | Milvus Vector Store | `milvus-vector-store` | Configure Milvus insertion, search, retrieval, and tool modes |
 | MiniMax Chat Model | `minimax-chat-model` | Configure a MiniMax M2 chat model and reasoning controls |
@@ -187,6 +189,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Respond to Webhook | `respond-to-webhook` | Returns data for Webhook |
 | RSS Read | `rss-read` | Reads data from an RSS Feed |
 | Send Email | `send-email` | Sends an email using SMTP protocol |
+| SearXNG Tool | `searxng-tool` | Configure a SearXNG search tool and locked API URL credential |
 | Sentiment Analysis | `sentiment-analysis` | Configure sentiment categories with one authored output branch per label |
 | Simple Memory | `simple-memory` | Configure a local window of recent chat interactions for one session |
 | Simple Vector Store | `simple-vector-store` | Configure an experimental in-memory vector store without external setup |

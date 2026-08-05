@@ -1320,6 +1320,55 @@ describe('cluster-node batch 26 carries Token Splitter, AI Agent Tool, and Calcu
   });
 });
 
+describe('cluster-node batch 27 carries current code, MCP, and SearXNG tool surfaces', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((param) => [param.key, param]));
+  const fields = (param) => Object.fromEntries(param.fields.map((field) => [field.key, field]));
+
+  it('models Custom Code Tool current v1.3 editors and schema branches', () => {
+    const node = NODE_CATALOG['custom-code-tool'];
+    const p = params('custom-code-tool');
+    expect(node).toMatchObject({ n8nVersion: 1.3, defaultVersion: 1.3, n8nType: '@n8n/n8n-nodes-langchain.toolCode' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 11, helperGeneratedFieldCount: 5, dynamicFieldCount: 0, totalAuthoringFieldCount: 11 });
+    expect(p.language.options.map(({ value }) => value)).toEqual(['javaScript', 'python']);
+    expect(p.jsCode).toMatchObject({ kind: 'code', editor: 'jsEditor', showWhen: { language: ['javaScript'] } });
+    expect(p.pythonCode).toMatchObject({ kind: 'code', editor: 'codeNodeEditor', editorLanguage: 'python', showWhen: { language: ['python'] } });
+    expect(p.jsonSchemaExample).toMatchObject({ kind: 'textarea', sourceKind: 'json', editor: 'json', rows: 10 });
+    expect(p.inputSchema).toMatchObject({ kind: 'textarea', sourceKind: 'json', editor: 'json', rows: 10 });
+    expect(node.excludedHistoricalAuthoring.map(({ sourceVersionCondition }) => sourceVersionCondition)).toEqual(['@version = 1', '@version = 1.1']);
+  });
+
+  it('models MCP Client Tool current v1.4 fields, credentials, and locked discovery', () => {
+    const node = NODE_CATALOG['mcp-client-tool'];
+    const p = params('mcp-client-tool');
+    const options = fields(p.options);
+    expect(node).toMatchObject({ n8nVersion: 1.4, defaultVersion: 1.4, n8nType: '@n8n/n8n-nodes-langchain.mcpClientTool' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 10, credentialDefinitionCount: 4, credentialEditorFieldCount: 24, dynamicFieldCount: 3, totalAuthoringFieldCount: 34 });
+    expect(p.serverTransport).toMatchObject({ value: 'httpStreamable' });
+    expect(p.authentication.options.map(({ value }) => value)).toEqual(['bearerAuth', 'headerAuth', 'mcpOAuth2Api', 'multipleHeadersAuth', 'none']);
+    expect(p.credentials).toMatchObject({ kind: 'select', sourceKind: 'credentials', locked: true });
+    expect(p.includeTools).toMatchObject({ kind: 'multiSelect', showWhen: { include: ['selected'] } });
+    expect(p.includeTools.dynamicOptions).toMatchObject({ source: 'getTools', locked: true, inert: true });
+    expect(p.excludeTools.dynamicOptions).toMatchObject({ source: 'getTools', locked: true, inert: true });
+    expect(options.timeout).toMatchObject({ value: 60000, min: 1 });
+    expect(node.credentialUiMetadata.find(({ type }) => type === 'mcpOAuth2Api').fields).toHaveLength(16);
+    expect(node.excludedHistoricalAuthoring.map(({ sourceVersionCondition }) => sourceVersionCondition)).toEqual(['@version = 1', '@version = 1.1', '@version < 1.2']);
+  });
+
+  it('models SearXNG v1 options and its locked API URL credential', () => {
+    const node = NODE_CATALOG['searxng-tool'];
+    const p = params('searxng-tool');
+    const options = fields(p.options);
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.toolSearXng' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 7, credentialEditorFieldCount: 1, dynamicFieldCount: 1, totalAuthoringFieldCount: 8 });
+    expect(node.credentialUiMetadata[0].fields).toEqual([expect.objectContaining({ key: 'apiUrl', required: true, locked: true })]);
+    expect(options.numResults.value).toBe(10);
+    expect(options.pageNumber.value).toBe(1);
+    expect(options.language.value).toBe('en');
+    expect(options.safesearch.options.map(({ value }) => value)).toEqual([0, 1, 2]);
+    expect(node.simulation).toMatchObject({ searchRequest: false, httpRequest: false, htmlStripping: false });
+  });
+});
+
 // Judge does not implement typeVersion — one shipped schema per node type is the
 // right simplification — but every node must SAY which real node and version it
 // models, or the catalogue drifts from the n8n a learner meets next and nobody
