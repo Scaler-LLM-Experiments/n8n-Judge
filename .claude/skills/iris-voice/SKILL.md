@@ -112,6 +112,27 @@ against overriding moments that were never problem-specific in the first place: 
 where the problem's own vocabulary earns it, and let the scaffolding stay generic. `welcome`
 is the extreme case and is already marked never-override below.
 
+### The paraphrase test: if an authored line is a shared line with a word changed, delete the key
+
+Authoring a moment replaces the shared set **wholesale** — it does not merge. So a paraphrase
+bills a render per line *and cuts the variant count*, which is the worst of both.
+
+`trial-signup-desk` authored `probe_correct` and `probe_wrong` as five rewordings each of the
+shared eight ("Now put in something that can do this step" for "Now put the right one in"; one
+line was byte-identical). That bought **ten renders in exchange for making both moments repeat
+sooner**. Deleting both keys was a strict improvement: more variety, better copy, zero renders —
+and it took the run's bill from 93 clips to 86 while *raising* speakable lines from 282 to 365.
+
+Before authoring a moment, name the thing in **this problem's** vocabulary that your line says
+and the shared one cannot. If there is nothing, the shared line is better, free, and already in
+the bucket.
+
+Where a case genuinely needs its own — `trial-signup-desk` grades node *order*, so `node_wrong`
+earns the "it isn't its turn yet" framing the shared set cannot express — you must still write
+the **whole** rotation, because you cannot mix. So write the rest as genuinely different lines
+rather than paraphrasing the set you just replaced. Ten renders should buy ten ideas; that case
+shipped ten renders buying about six.
+
 ---
 
 ## 2. The journey, in order
@@ -261,6 +282,46 @@ arrives", not "the call ended".
 
 Still no destination — see *Never reveal an answer the learner has not given*.
 
+### A `run_case` line may only describe what that case's own data renders
+
+`sampleCases` carries `from`, `subject` and `category`, and the run card shows those. A person's
+name, or any field the case **spec** had and the problem's data does not, is invisible at that
+moment — so a line built on it points at nothing while the learner looks straight at the card.
+
+`trial-signup-desk` drafted *"an apostrophe in the name and in the referral"* for a case whose
+only rendered name is `ivy.obrien@example.com`. The spec's row 10 said `Ivy O'Brien`; the shipped
+`sampleCases` never did. **Author from the problem files, never from the spec document.**
+
+### `verify_params` names the tab and stops
+
+It is the only moment that speaks about a graded field *before* the learner has answered it, and
+therefore without that field's own `why` on screen beside it. So it may say which tab is left,
+and nothing about the setting.
+
+Never characterise it. *"Its name is misleading"* **is** the answer when the setting is a boolean
+whose correct value is the default, because the name is the only argument for the other value.
+`SETTINGS_SPEC` already prints the honest hint next to the toggle, and the shared line ("That's
+the parameters right. You've got one tab left.") already does the rest, for free.
+
+Watch for the nudge **relocating**: deleted from `verify_params`, it reappeared in
+`verify_fail:http-request` — where it is worse, because the rotation cannot tell which field
+failed and Settings is locked until Parameters verify green, so it can tell a learner stuck on
+the URL to re-read a field they cannot open. **A `verify_fail` rotation on a multi-field node
+must be field-agnostic.**
+
+### Nothing spoken on arrival may assert a score
+
+Both quizzes advance on a wrong answer, so `understand_done` plays for a learner who missed half
+the questions. *"Four jobs, four nodes, and you named every one"* congratulates that learner for
+something they did not do — over an unlocked-types row that may be empty. An arrival line says
+**where they are**, never how they did.
+
+### `run_pass` may say the run passed and no more
+
+On a flow with a deliberate gap, *"that's the whole job, done without you"* reads as a claim that
+every case survived end to end — which on `trial-signup-desk` is the first Stress Testing answer.
+Say the count with its noun and stop: *"All six signups held up in your flow!"*
+
 ### Say what a number counts
 
 `run_pass` was "All four of them!" — a count with nothing attached, and if the
@@ -325,6 +386,19 @@ strips tags, so the caption a learner reads is always clean.
 - **React StrictMode.** A cleanup calling `voice.stop()` fires a fraction of a second
   after mount, and child effects run before the parent's, so the first line of the
   session was killed before a word came out. `VoiceContext` defers the stop by a tick.
+- **Quoting a field's `subtitle` in `verify_fail`.** "Look at what this node does to the sheet
+  each time it runs" was the Operation field's subtitle word for word. Pointing at the field is
+  the job; reciting its label is reading the screen.
+- **`voice:generate` rewrites EVERY problem's table, not just the one you name.** That is
+  deliberate (a shared line changing is a real change to their tables), but it means the commit
+  legitimately touches `packages/voice-scripts/*.json` for problems you never authored — and it
+  means **two worktrees must never render narration concurrently.** A catalog change in one
+  worktree alters what `enumerateSpeakable` produces, so the tables diverge and the merge reads
+  as a broken render rather than a conflict. Render from one worktree, and re-run
+  `voice:generate -- --dry-run` after any catalog merge.
+- **Editing the shared phrase book bills the next case.** `voiceLines.js` was edited on a branch
+  and never re-rendered, so three `shared/idle_nudge` clips were missing — and the next case's
+  generate run paid for them. Not a defect, but do not read those characters as over-authoring.
 
 ---
 
