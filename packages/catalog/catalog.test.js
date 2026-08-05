@@ -13,6 +13,8 @@ describe('core-node completion inventory', () => {
       'workflow-trigger',
     ]);
     expect(CORE_NODE_INVENTORY.filter((node) => node.status !== 'excluded-deprecated')).toHaveLength(65);
+    expect(CORE_NODE_INVENTORY.filter((node) => node.status === 'complete')).toHaveLength(65);
+    expect(CORE_NODE_INVENTORY.filter((node) => node.status === 'pending')).toEqual([]);
   });
 
   it('publishes only reviewed complete nodes', () => {
@@ -122,6 +124,33 @@ describe('picker options exist in the catalog', () => {
     for (const t of [...TRIGGER_OPTIONS, ...NODE_OPTIONS]) {
       expect(NODE_CATALOG[t], `${t} is offered but not in the catalog`).toBeTruthy();
     }
+  });
+});
+
+describe('final MCP core-node batch preserves the inert editor surface', () => {
+  it('models MCP Client v1.1 without a client runtime', () => {
+    const node = NODE_CATALOG['mcp-client'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.1, inputs: ['main'], outputs: ['main'] });
+    expect(params.serverTransport.value).toBe('httpStreamable');
+    expect(params.authentication.options.map(({ value }) => value)).toEqual([
+      'bearerAuth', 'headerAuth', 'mcpOAuth2Api', 'multipleHeadersAuth', 'none',
+    ]);
+    expect(params.tool).toMatchObject({ kind: 'resourceLocator', required: true });
+    expect(params.inputMode.options.map(({ value }) => value)).toEqual(['manual', 'json']);
+    expect(node.execute).toBeUndefined();
+  });
+
+  it('models MCP Server Trigger v2 without a server or webhook runtime', () => {
+    const node = NODE_CATALOG['mcp-server-trigger'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 2, inputs: [{ type: 'ai_tool', label: 'Tools' }], outputs: [] });
+    expect(params.authentication.options.map(({ value }) => value)).toEqual([
+      'none', 'n8nOAuth2', 'bearerAuth', 'headerAuth',
+    ]);
+    expect(params.path).toMatchObject({ value: '', required: true });
+    expect(node.webhooks.map(({ httpMethod }) => httpMethod)).toEqual(['GET', 'POST', 'DELETE']);
+    expect(node.webhook).toBeUndefined();
   });
 });
 

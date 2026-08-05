@@ -66,6 +66,8 @@ import xml from './xml.js';
 import chatTrigger from './chat-trigger.js';
 import chat from './chat.js';
 import guardrails from './guardrails.js';
+import mcpClient from './mcp-client.js';
+import mcpServerTrigger from './mcp-server-trigger.js';
 
 export const SOURCE_COMMIT = '3d68c29b9281f14097aa9f15e01ac0777e538b11';
 
@@ -135,8 +137,8 @@ export const CORE_NODE_INVENTORY = [
   { type: 'chat-trigger', docsSlug: 'n8n-nodes-langchain.chattrigger', label: 'Chat Trigger', status: 'complete' },
   { type: 'chat', docsSlug: 'n8n-nodes-langchain.chat', label: 'Chat', status: 'complete' },
   { type: 'guardrails', docsSlug: 'n8n-nodes-langchain.guardrails', label: 'Guardrails', status: 'complete' },
-  { type: 'mcp-client', docsSlug: 'n8n-nodes-langchain.mcpclient', label: 'MCP Client', status: 'pending' },
-  { type: 'mcp-server-trigger', docsSlug: 'n8n-nodes-langchain.mcptrigger', label: 'MCP Server Trigger', status: 'pending' },
+  { type: 'mcp-client', docsSlug: 'n8n-nodes-langchain.mcpclient', label: 'MCP Client', status: 'complete' },
+  { type: 'mcp-server-trigger', docsSlug: 'n8n-nodes-langchain.mcptrigger', label: 'MCP Server Trigger', status: 'complete' },
 ];
 
 // Descriptors are imported here after each three-node batch is reviewed. Keeping
@@ -164,6 +166,7 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
     summarizeItems, switchNode, totp,
     wait, webhook, xml,
     chatTrigger, chat, guardrails,
+    mcpClient, mcpServerTrigger,
   ].map((node) => [node.type, node])
 );
 
