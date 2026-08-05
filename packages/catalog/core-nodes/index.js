@@ -22,6 +22,9 @@ import dateTime from './date-time.js';
 import debugHelper from './debug-helper.js';
 import editImage from './edit-image.js';
 import emailTriggerImap from './email-trigger-imap.js';
+import embeddingsAwsBedrock from './embeddings-aws-bedrock.js';
+import embeddingsAzureOpenAi from './embeddings-azure-openai.js';
+import embeddingsCohere from './embeddings-cohere.js';
 import errorTrigger from './error-trigger.js';
 import evaluationTrigger from './evaluation-trigger.js';
 import evaluation from './evaluation.js';
@@ -193,9 +196,9 @@ export const CLUSTER_NODE_INVENTORY = [
   { type: 'zep-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstorezep', label: 'Zep Vector Store', clusterRole: 'root', status: 'complete' },
   { type: 'default-data-loader', docsSlug: 'n8n-nodes-langchain.documentdefaultdataloader', label: 'Default Data Loader', clusterRole: 'sub', status: 'complete' },
   { type: 'github-document-loader', docsSlug: 'n8n-nodes-langchain.documentgithubloader', label: 'GitHub Document Loader', clusterRole: 'sub', status: 'complete' },
-  { type: 'embeddings-aws-bedrock', docsSlug: 'n8n-nodes-langchain.embeddingsawsbedrock', label: 'Embeddings AWS Bedrock', clusterRole: 'sub', status: 'pending' },
-  { type: 'embeddings-azure-openai', docsSlug: 'n8n-nodes-langchain.embeddingsazureopenai', label: 'Embeddings Azure OpenAI', clusterRole: 'sub', status: 'pending' },
-  { type: 'embeddings-cohere', docsSlug: 'n8n-nodes-langchain.embeddingscohere', label: 'Embeddings Cohere', clusterRole: 'sub', status: 'pending' },
+  { type: 'embeddings-aws-bedrock', docsSlug: 'n8n-nodes-langchain.embeddingsawsbedrock', label: 'Embeddings AWS Bedrock', clusterRole: 'sub', status: 'complete' },
+  { type: 'embeddings-azure-openai', docsSlug: 'n8n-nodes-langchain.embeddingsazureopenai', label: 'Embeddings Azure OpenAI', clusterRole: 'sub', status: 'complete' },
+  { type: 'embeddings-cohere', docsSlug: 'n8n-nodes-langchain.embeddingscohere', label: 'Embeddings Cohere', clusterRole: 'sub', status: 'complete' },
   { type: 'embeddings-google-gemini', docsSlug: 'n8n-nodes-langchain.embeddingsgooglegemini', label: 'Embeddings Google Gemini', clusterRole: 'sub', status: 'pending' },
   { type: 'embeddings-google-palm', docsSlug: 'n8n-nodes-langchain.embeddingsgooglepalm', label: 'Embeddings Google PaLM', clusterRole: 'sub', status: 'excluded-deprecated' },
   { type: 'embeddings-google-vertex', docsSlug: 'n8n-nodes-langchain.embeddingsgooglevertex', label: 'Embeddings Google Vertex', clusterRole: 'sub', status: 'pending' },
@@ -274,6 +277,7 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
     chromaVectorStore, pineconeVectorStore, qdrantVectorStore,
     redisVectorStore, supabaseVectorStore, weaviateVectorStore,
     zepVectorStore, defaultDataLoader, githubDocumentLoader,
+    embeddingsAwsBedrock, embeddingsAzureOpenAi, embeddingsCohere,
     aiTransform, code, compareDatasets,
     compression, convertToFile, crypto,
     dataTable, dateTime, debugHelper,

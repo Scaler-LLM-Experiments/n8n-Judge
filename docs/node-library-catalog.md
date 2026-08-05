@@ -1,6 +1,6 @@
 # n8n node library catalog
 
-Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **125 canonical nodes** (27 triggers, 24 app actions, 74 core/data/AI nodes) plus 10 compatibility aliases.
+Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **128 canonical nodes** (27 triggers, 24 app actions, 77 core/data/AI nodes) plus 10 compatibility aliases.
 
 ## How to choose
 
@@ -80,7 +80,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | YouTube | `youtube` | Consume YouTube API |
 | Zoom | `zoom` | Consume Zoom API |
 
-## Core, data, and AI building blocks (74)
+## Core, data, and AI building blocks (77)
 
 | Node | Catalog type | Function |
 |---|---|---|
@@ -102,6 +102,9 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | DebugHelper | `debug-helper` | Causes problems intentionally and generates useful data for debugging |
 | Edit Fields (Set) | `edit-fields` | Modify, add, or remove item fields |
 | Edit Image | `edit-image` | Edits an image like blur, resize or adding border and text |
+| Embeddings AWS Bedrock | `embeddings-aws-bedrock` | Configure an AWS Bedrock embedding model and request options |
+| Embeddings Azure OpenAI | `embeddings-azure-openai` | Configure an Azure OpenAI embedding deployment and request options |
+| Embeddings Cohere | `embeddings-cohere` | Choose a Cohere embedding model for an AI vector workflow |
 | Evaluation | `evaluation` | Runs an evaluation |
 | Execute Command | `execute-command` | Executes a command on the host |
 | Execute Sub-workflow | `execute-subworkflow` | Execute another workflow |

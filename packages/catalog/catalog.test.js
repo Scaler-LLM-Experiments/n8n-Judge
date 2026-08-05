@@ -680,6 +680,38 @@ describe('cluster-node batch 8 carries the final root node and current document 
   });
 });
 
+describe('cluster-node batch 9 carries the first current embedding-model surfaces', () => {
+  it('models AWS Bedrock v1 auth branches, locked model discovery, and request options', () => {
+    const node = NODE_CATALOG['embeddings-aws-bedrock'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.embeddingsAwsBedrock' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 9, credentialEditorFieldCount: 33, regionOptionCount: 38 });
+    expect(params.authentication.options.map(({ value }) => value)).toEqual(['iam', 'assumeRole']);
+    expect(params.model).toMatchObject({ kind: 'select', locked: true, options: [] });
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['additionalModelRequestFields', 'maxRetries', 'timeout']);
+  });
+
+  it('models Azure OpenAI v1 deployment text and all four native request options', () => {
+    const node = NODE_CATALOG['embeddings-azure-openai'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.embeddingsAzureOpenAi' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 8, credentialEditorFieldCount: 4, dynamicModelLookupCount: 0 });
+    expect(params.model).toMatchObject({ kind: 'text', dynamic: false });
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['batchSize', 'stripNewLines', 'timeout', 'dimensions']);
+    expect(params.options.fields[3].options.map(({ value }) => value)).toEqual([256, 512, 1024, 1536, 3072]);
+  });
+
+  it('models Cohere v1 with the exact static seven-model list', () => {
+    const node = NODE_CATALOG['embeddings-cohere'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.embeddingsCohere' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 4, credentialEditorFieldCount: 2, modelOptionCount: 7 });
+    expect(params.modelName.value).toBe('embed-english-v2.0');
+    expect(params.modelName.options).toHaveLength(7);
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_embedding', label: 'Embeddings' })]);
+  });
+});
+
 // Judge does not implement typeVersion — one shipped schema per node type is the
 // right simplification — but every node must SAY which real node and version it
 // models, or the catalogue drifts from the n8n a learner meets next and nobody
