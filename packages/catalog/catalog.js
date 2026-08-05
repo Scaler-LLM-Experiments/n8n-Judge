@@ -1,5 +1,5 @@
 import { COMPLETE_CORE_NODE_TYPES, CORE_NODE_CATALOG } from './core-nodes/index.js';
-import { APP_NODE_CATALOG, COMPLETE_APP_NODE_TYPES } from './app-nodes/index.js';
+import { APP_NODE_CATALOG, COMPLETE_APP_NODE_TYPES, COMPLETE_APP_TRIGGER_NODE_TYPES } from './app-nodes/index.js';
 
 // The n8n node catalog for the editor kit: what each node is, its parameters
 // (Scaler API credentials shown locked), and the sample Input/Output JSON that
@@ -493,6 +493,7 @@ const completeCoreActions = COMPLETE_CORE_NODE_TYPES.filter((type) => NODE_CATAL
 export const TRIGGER_OPTIONS = [...new Set([
   'trigger', 'chat-trigger', 'schedule', 'webhook', 'form-trigger',
   ...completeCoreTriggers,
+  ...COMPLETE_APP_TRIGGER_NODE_TYPES,
 ])];
 export const NODE_OPTIONS = [...new Set([
   'classify', 'summarize', 'parse', 'switch', 'action', 'code', 'if',

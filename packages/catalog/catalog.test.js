@@ -2,7 +2,13 @@ import { describe, it, expect } from 'vitest';
 import { existsSync } from 'node:fs';
 import { NODE_CATALOG, AI_SUB_NODE_PORTS, TRIGGER_OPTIONS, NODE_OPTIONS } from './catalog.js';
 import { CORE_NODE_INVENTORY, COMPLETE_CORE_NODE_TYPES, SOURCE_COMMIT } from './core-nodes/index.js';
-import { APP_NODE_INVENTORY, APP_SOURCE_COMMIT, COMPLETE_APP_NODE_TYPES } from './app-nodes/index.js';
+import {
+  APP_NODE_INVENTORY,
+  APP_SOURCE_COMMIT,
+  APP_TRIGGER_NODE_INVENTORY,
+  COMPLETE_APP_NODE_TYPES,
+  COMPLETE_APP_TRIGGER_NODE_TYPES,
+} from './app-nodes/index.js';
 
 const supportedFieldKinds = new Set([
   'assignmentList', 'boolean', 'button', 'code', 'collection', 'color', 'expression',
@@ -294,6 +300,37 @@ describe('essential app-node batch 8 carries the real operation surface', () => 
     expect(node).toMatchObject({ n8nVersion: 1, usableAsTool: true, operationCount: 20 });
     expect(params('stripe').resource.options).toHaveLength(8);
     expect(operationParams.reduce((total, param) => total + param.options.length, 0)).toBe(20);
+  });
+});
+
+describe('app-trigger library', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((param) => [param.key, param]));
+
+  it('tracks every live matching trigger while publishing only selected complete nodes', () => {
+    expect(APP_TRIGGER_NODE_INVENTORY).toHaveLength(15);
+    expect(new Set(APP_TRIGGER_NODE_INVENTORY.map((node) => node.type)).size).toBe(15);
+    expect(COMPLETE_APP_TRIGGER_NODE_TYPES).toEqual(
+      APP_TRIGGER_NODE_INVENTORY.filter((node) => node.status === 'complete').map((node) => node.type)
+    );
+    for (const type of COMPLETE_APP_TRIGGER_NODE_TYPES) {
+      const inventory = APP_TRIGGER_NODE_INVENTORY.find((node) => node.type === type);
+      const node = NODE_CATALOG[type];
+      expect(NODE_CATALOG[inventory.actionType], `${type} has no matching main node`).toBeTruthy();
+      expect(node).toMatchObject({ category: 'trigger', source: { commit: APP_SOURCE_COMMIT }, simulation: { voice: false } });
+      expect(TRIGGER_OPTIONS).toContain(type);
+      expect(NODE_OPTIONS).not.toContain(type);
+      inspectFields(type, node.params, '', true);
+      expect(node.execute).toBeUndefined();
+      expect(node.trigger).toBeUndefined();
+      expect(node.webhook).toBeUndefined();
+    }
+  });
+
+  it('models the first three source-accurate trigger surfaces', () => {
+    expect(params('github-trigger').events.options).toHaveLength(43);
+    expect(params('google-calendar-trigger').triggerOn.options).toHaveLength(5);
+    expect(params('google-drive-trigger').triggerOn.options.map(({ value }) => value)).toEqual(['specificFile', 'specificFolder']);
+    expect(params('google-drive-trigger').specificFolderEvent.options).toHaveLength(5);
   });
 });
 

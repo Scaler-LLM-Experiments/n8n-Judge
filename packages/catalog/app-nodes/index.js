@@ -28,6 +28,9 @@ import microsoftOutlook from './microsoft-outlook.js';
 import notion from './notion.js';
 import telegram from './telegram.js';
 import stripe from './stripe.js';
+import githubTrigger from './github-trigger.js';
+import googleCalendarTrigger from './google-calendar-trigger.js';
+import googleDriveTrigger from './google-drive-trigger.js';
 
 export const APP_SOURCE_COMMIT = '3d68c29b9281f14097aa9f15e01ac0777e538b11';
 
@@ -58,6 +61,27 @@ export const APP_NODE_INVENTORY = [
   { type: 'stripe', docsSlug: 'n8n-nodes-base.stripe', label: 'Stripe', status: 'complete' },
 ];
 
+// Live app triggers whose corresponding action node is already in this library.
+// The curated scope favors broadly useful workflow entry points; lower-priority
+// live triggers stay recorded here so a later batch does not rediscover them.
+export const APP_TRIGGER_NODE_INVENTORY = [
+  { type: 'github-trigger', actionType: 'github', docsSlug: 'n8n-nodes-base.githubtrigger', label: 'GitHub Trigger', status: 'complete' },
+  { type: 'google-calendar-trigger', actionType: 'google-calendar', docsSlug: 'n8n-nodes-base.googlecalendartrigger', label: 'Google Calendar Trigger', status: 'complete' },
+  { type: 'google-drive-trigger', actionType: 'google-drive', docsSlug: 'n8n-nodes-base.googledrivetrigger', label: 'Google Drive Trigger', status: 'complete' },
+  { type: 'gmail-trigger', actionType: 'gmail', docsSlug: 'n8n-nodes-base.gmailtrigger', label: 'Gmail Trigger', status: 'pending' },
+  { type: 'google-sheets-trigger', actionType: 'google-sheets', docsSlug: 'n8n-nodes-base.googlesheetstrigger', label: 'Google Sheets Trigger', status: 'pending' },
+  { type: 'slack-trigger', actionType: 'slack', docsSlug: 'n8n-nodes-base.slacktrigger', label: 'Slack Trigger', status: 'pending' },
+  { type: 'stripe-trigger', actionType: 'stripe', docsSlug: 'n8n-nodes-base.stripetrigger', label: 'Stripe Trigger', status: 'pending' },
+  { type: 'microsoft-outlook-trigger', actionType: 'microsoft-outlook', docsSlug: 'n8n-nodes-base.microsoftoutlooktrigger', label: 'Microsoft Outlook Trigger', status: 'pending' },
+  { type: 'microsoft-teams-trigger', actionType: 'microsoft-teams', docsSlug: 'n8n-nodes-base.microsoftteamstrigger', label: 'Microsoft Teams Trigger', status: 'pending' },
+  { type: 'telegram-trigger', actionType: 'telegram', docsSlug: 'n8n-nodes-base.telegramtrigger', label: 'Telegram Trigger', status: 'pending' },
+  { type: 'notion-trigger', actionType: 'notion', docsSlug: 'n8n-nodes-base.notiontrigger', label: 'Notion Trigger', status: 'pending' },
+  { type: 'postgres-trigger', actionType: 'postgres', docsSlug: 'n8n-nodes-base.postgrestrigger', label: 'Postgres Trigger', status: 'pending' },
+  { type: 'microsoft-onedrive-trigger', actionType: 'microsoft-onedrive', docsSlug: 'n8n-nodes-base.microsoftonedrivetrigger', label: 'Microsoft OneDrive Trigger', status: 'deferred-low-priority' },
+  { type: 'paypal-trigger', actionType: 'paypal', docsSlug: 'n8n-nodes-base.paypaltrigger', label: 'PayPal Trigger', status: 'deferred-low-priority' },
+  { type: 'twilio-trigger', actionType: 'twilio', docsSlug: 'n8n-nodes-base.twiliotrigger', label: 'Twilio Trigger', status: 'deferred-low-priority' },
+];
+
 // Descriptors are added here only after each three-node batch is reviewed.
 export const APP_NODE_CATALOG = Object.fromEntries(
   [
@@ -69,9 +93,14 @@ export const APP_NODE_CATALOG = Object.fromEntries(
     zoom, youtube, gmail,
     slack, googleCalendar, microsoftOutlook,
     notion, telegram, stripe,
+    githubTrigger, googleCalendarTrigger, googleDriveTrigger,
   ].map((node) => [node.type, node])
 );
 
 export const COMPLETE_APP_NODE_TYPES = APP_NODE_INVENTORY
+  .filter((node) => node.status === 'complete')
+  .map((node) => node.type);
+
+export const COMPLETE_APP_TRIGGER_NODE_TYPES = APP_TRIGGER_NODE_INVENTORY
   .filter((node) => node.status === 'complete')
   .map((node) => node.type);
