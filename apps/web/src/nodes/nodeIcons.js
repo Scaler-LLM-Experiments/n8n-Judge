@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkle, BracketsCurly, ArrowsSplit, ChatCircle, Lightning, Plug, FlowArrow, Brain, Clock, Code, GitBranch, ArrowsMerge, FunnelSimple, Prohibit, Broadcast, CopySimple, HourglassMedium, Globe } from '@phosphor-icons/react';
+import { Sparkle, BracketsCurly, ArrowsSplit, ChatCircle, Lightning, Plug, FlowArrow, Brain, Clock, Code, GitBranch, ArrowsMerge, FunnelSimple, Prohibit, Broadcast, CopySimple, HourglassMedium, Globe, Table, ClipboardText } from '@phosphor-icons/react';
 
 // Real, full-color app icons (favicons / product branding), background stripped
 // with ImageMagick. Preferred over abstract glyphs for any node that maps to a
@@ -62,6 +62,15 @@ export const nodeIcons = {
   'remove-duplicates': CopySimple,
   wait: HourglassMedium,
   'http-request': Globe,
+  // Added 2026-08-04 with the two new catalog types.
+  //
+  // Google Sheets is a real product and by this file's own rule belongs in
+  // `nodeImageIcons` with its brand logo — there is no `sheets.png` in
+  // public/node-icons/ yet, so it renders a glyph until one is added. It is
+  // deliberately NOT pointed at the generic `google.png`: `web-search` already uses
+  // that, and two different nodes wearing one icon is worse than an honest glyph.
+  'google-sheets': Table,
+  'form-trigger': ClipboardText,
   noop: Prohibit,
 };
 
@@ -112,8 +121,10 @@ export const typeCategory = {
   'calendar-event': 'action',
   'notion-page': 'action',
   'google-docs': 'action',
+  'google-sheets': 'action',
   schedule: 'trigger',
   webhook: 'trigger',
+  'form-trigger': 'trigger',
   // 'manual' has no dedicated glyph in nodeIcons (Trigger Manually is a rare
   // distractor, not a real flow node) — category it correctly so NodeIcon's
   // fallback shows a trigger glyph (Lightning) rather than the generic core one.
@@ -122,6 +133,19 @@ export const typeCategory = {
   if: 'core',
   merge: 'core',
   filter: 'core',
+  // These three were in the catalog and in the picker's option list but NOT here, and
+  // that is not a cosmetic omission: NodePickerDrawer builds its groups with
+  // `items.filter((n) => typeCategory[n.type] === cat)`, so a type missing from this
+  // map matches no category and is dropped from the drawer entirely — offered by the
+  // options list and impossible to click. Found 2026-08-04 while adding `http-request`
+  // to NODE_OPTIONS, which would otherwise have been silently unpickable.
+  //
+  // Every entry here duplicates `category` in packages/catalog/catalog.js. The real fix
+  // is for the picker to fall back to the catalog rather than requiring this map to be
+  // kept in step by hand; until then, a new catalog type needs a line here.
+  'remove-duplicates': 'core',
+  wait: 'core',
+  'http-request': 'core',
   noop: 'core',
 };
 
@@ -204,5 +228,16 @@ export const nodeParams = {
   'google-docs': [
     { kind: 'select', label: 'Document', value: 'Ticket log' },
     { kind: 'textarea', label: 'Text', value: 'Logged.' },
+  ],
+  'google-sheets': [
+    { kind: 'select', label: 'Document', value: 'Signups' },
+    { kind: 'select', label: 'Sheet', value: 'Signups' },
+    // Left blank on purpose — which operation to use is a gradeable decision, so naming one
+    // here would print the answer wherever this ever gets rendered.
+    { kind: 'select', label: 'Operation', value: '' },
+  ],
+  'form-trigger': [
+    { kind: 'text', label: 'Form Title', value: 'Free Trial Signup' },
+    { kind: 'text', label: 'Form Fields', value: 'Full Name, Email, Plan, Referral Source' },
   ],
 };

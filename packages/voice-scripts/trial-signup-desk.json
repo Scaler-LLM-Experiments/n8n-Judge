@@ -1,0 +1,1467 @@
+{
+  "version": 1,
+  "problem": "trial-signup-desk",
+  "renderedWith": "elevenlabs/7M69Y78mYqPLZS5ZZSTT/eleven_v3",
+  "clips": {
+    "answer-correct--form-trigger--on-form-submission--v0": {
+      "text": "[warm] Yes. On form submission fires the moment somebody presses submit, and it knows all four answers by name.",
+      "file": "trial-signup-desk/answer-correct--db5b30e9.mp3"
+    },
+    "answer-correct--log--google-sheets--v0": {
+      "text": "[warm] Yes. Google Sheets thinks in rows and columns, which is exactly what this step needs.",
+      "file": "trial-signup-desk/answer-correct--827884df.mp3"
+    },
+    "answer-correct--rate--http-request--v0": {
+      "text": "[warm] Right. HTTP Request goes and asks for the number, and brings it back as data.",
+      "file": "trial-signup-desk/answer-correct--0f77dd00.mp3"
+    },
+    "answer-correct--welcome--send-reply--v0": {
+      "text": "[warm] Exactly. Send Reply reaches the person who just filled in your form.",
+      "file": "trial-signup-desk/answer-correct--fccc8b42.mp3"
+    },
+    "answer-wrong--form-trigger--v0": {
+      "text": "[thoughtful] Hmm. They're still on the page waiting for a mail. Would that one know they'd pressed submit?",
+      "file": "trial-signup-desk/answer-wrong--d152549c.mp3"
+    },
+    "answer-wrong--form-trigger--v1": {
+      "text": "[thoughtful] Have another look. Does that one find out at the moment of the submission, or later?",
+      "file": "trial-signup-desk/answer-wrong--e1cf7d82.mp3"
+    },
+    "answer-wrong--log--v0": {
+      "text": "[thoughtful] Hmm. The team wants to sort by plan and count last week's trials. Could they, with that?",
+      "file": "trial-signup-desk/answer-wrong--c919d9f1.mp3"
+    },
+    "answer-wrong--log--v1": {
+      "text": "[calm] Have another look. Each answer has to land under its own heading, in its own cell.",
+      "file": "trial-signup-desk/answer-wrong--5419ec3b.mp3"
+    },
+    "answer-wrong--rate--v0": {
+      "text": "[thoughtful] Hmm. That number lives on somebody else's server and changes daily. Would that one go and ask?",
+      "file": "trial-signup-desk/answer-wrong--fbfd9387.mp3"
+    },
+    "answer-wrong--rate--v1": {
+      "text": "[calm] Have another think. You'll need a value a single spreadsheet cell can hold.",
+      "file": "trial-signup-desk/answer-wrong--a0b3910f.mp3"
+    },
+    "answer-wrong--welcome--v0": {
+      "text": "[thoughtful] Hmm. All you've got is an address they typed into a form. Would they ever see that?",
+      "file": "trial-signup-desk/answer-wrong--92b1308b.mp3"
+    },
+    "answer-wrong--welcome--v1": {
+      "text": "[calm] Think about the person, not your team. Where are they actually looking?",
+      "file": "trial-signup-desk/answer-wrong--47fc2c07.mp3"
+    },
+    "answer-wrong-again--form-trigger--v0": {
+      "text": "[calm] Ask what starts this. Nobody's watching for signups, and the welcome mail is meant to feel instant.",
+      "file": "trial-signup-desk/answer-wrong-again--2d6c303d.mp3"
+    },
+    "answer-wrong-again--log--v0": {
+      "text": "[calm] Read the options as places to put things. Which one has headings you can point a value at?",
+      "file": "trial-signup-desk/answer-wrong-again--25ff0179.mp3"
+    },
+    "answer-wrong-again--rate--v0": {
+      "text": "[calm] Let's slow down. Something has to call out to the world and bring one number home.",
+      "file": "trial-signup-desk/answer-wrong-again--3ffe87d2.mp3"
+    },
+    "answer-wrong-again--welcome--v0": {
+      "text": "[calm] Go back to the person who filled the form in. They're sitting there waiting to hear something.",
+      "file": "trial-signup-desk/answer-wrong-again--e783b88a.mp3"
+    },
+    "build-complete--intake--v0": {
+      "text": "[excited] The whole thing's wired up! [pause] Let's push some real signups through it and see.",
+      "file": "trial-signup-desk/build-complete--eb93cd93.mp3"
+    },
+    "build-complete--log-and-welcome--v0": {
+      "text": "[excited] The whole thing's wired up! [pause] Let's push some real signups through it and see.",
+      "file": "trial-signup-desk/build-complete--eb93cd93.mp3"
+    },
+    "build-complete--rate--v0": {
+      "text": "[excited] The whole thing's wired up! [pause] Let's push some real signups through it and see.",
+      "file": "trial-signup-desk/build-complete--eb93cd93.mp3"
+    },
+    "build-complete--v0": {
+      "text": "[excited] The whole thing's wired up! [pause] Let's push some real signups through it and see.",
+      "file": "trial-signup-desk/build-complete--eb93cd93.mp3"
+    },
+    "build-start--v0": {
+      "text": "[calm] Right, you've got your four nodes. Now let's set each one up, in the order a signup travels.",
+      "file": "trial-signup-desk/build-start--a546427b.mp3"
+    },
+    "idle-nudge--v0": {
+      "text": "[calm] Take your time. And if you're not sure what comes next, just ask.",
+      "file": "shared/idle-nudge--29401f58.mp3"
+    },
+    "idle-nudge--v1": {
+      "text": "[calm] Still thinking? Tell me what you're stuck on and I'll help.",
+      "file": "shared/idle-nudge--f2e8403d.mp3"
+    },
+    "idle-nudge--v2": {
+      "text": "[calm] No rush. If it helps, look at what the last node hands over.",
+      "file": "shared/idle-nudge--24e98515.mp3"
+    },
+    "node-placed--action--v0": {
+      "text": "[calm] And this is the welcome mail, the only part the person signing up ever sees.",
+      "file": "trial-signup-desk/node-placed--e8601376.mp3"
+    },
+    "node-placed--form-trigger--v0": {
+      "text": "[calm] That's the way in. It publishes the form, so the four answers arrive with names on them.",
+      "file": "trial-signup-desk/node-placed--8347a170.mp3"
+    },
+    "node-placed--google-sheets--v0": {
+      "text": "[calm] This is the sheet. Open it up and decide what goes under each heading.",
+      "file": "trial-signup-desk/node-placed--d21044b8.mp3"
+    },
+    "node-placed--http-request--v0": {
+      "text": "[calm] That one calls out to the world. What comes back is data, and its shape matters.",
+      "file": "trial-signup-desk/node-placed--dc34c5eb.mp3"
+    },
+    "node-wrong--action--v0": {
+      "text": "[calm] Not that one. Either it's wrong for this step, or it isn't its turn yet.",
+      "file": "trial-signup-desk/node-wrong--4c805c58.mp3"
+    },
+    "node-wrong--action--v1": {
+      "text": "[thoughtful] Ah, hold on. A node can only use what the one before it handed over.",
+      "file": "trial-signup-desk/node-wrong--bfb9aef2.mp3"
+    },
+    "node-wrong--action--v2": {
+      "text": "[thoughtful] Hmm, no. Think about what this part of the flow has to hand on.",
+      "file": "trial-signup-desk/node-wrong--ce0e8061.mp3"
+    },
+    "node-wrong--action--v3": {
+      "text": "[calm] Careful. The right node in the wrong place breaks this just as thoroughly. One question first.",
+      "file": "trial-signup-desk/node-wrong--22e55e26.mp3"
+    },
+    "node-wrong--action--v4": {
+      "text": "[thoughtful] Hmm. Follow one signup through in your head, and see where you've got to.",
+      "file": "trial-signup-desk/node-wrong--d5e6eb1a.mp3"
+    },
+    "node-wrong--action--v5": {
+      "text": "[calm] Not there. Ask what a signup is carrying by the time it reaches this step.",
+      "file": "trial-signup-desk/node-wrong--6a99d4e8.mp3"
+    },
+    "node-wrong--action--v6": {
+      "text": "[thoughtful] Hold on. Every step here depends on the one before it. Let me ask you something.",
+      "file": "trial-signup-desk/node-wrong--ce0e0dee.mp3"
+    },
+    "node-wrong--action--v7": {
+      "text": "[calm] Nearly. Check the order as well as the node, then answer me this.",
+      "file": "trial-signup-desk/node-wrong--9af8ad4c.mp3"
+    },
+    "node-wrong--action--v8": {
+      "text": "[thoughtful] Hmm. Read the board left to right, and ask what's missing between here and there.",
+      "file": "trial-signup-desk/node-wrong--d0e90bb9.mp3"
+    },
+    "node-wrong--action--v9": {
+      "text": "[calm] Not that. A step can't use something the flow hasn't produced yet. One question first.",
+      "file": "trial-signup-desk/node-wrong--9bdab15d.mp3"
+    },
+    "node-wrong--code--v0": {
+      "text": "[calm] Not that one. Either it's wrong for this step, or it isn't its turn yet.",
+      "file": "trial-signup-desk/node-wrong--4c805c58.mp3"
+    },
+    "node-wrong--code--v1": {
+      "text": "[thoughtful] Ah, hold on. A node can only use what the one before it handed over.",
+      "file": "trial-signup-desk/node-wrong--bfb9aef2.mp3"
+    },
+    "node-wrong--code--v2": {
+      "text": "[thoughtful] Hmm, no. Think about what this part of the flow has to hand on.",
+      "file": "trial-signup-desk/node-wrong--ce0e8061.mp3"
+    },
+    "node-wrong--code--v3": {
+      "text": "[calm] Careful. The right node in the wrong place breaks this just as thoroughly. One question first.",
+      "file": "trial-signup-desk/node-wrong--22e55e26.mp3"
+    },
+    "node-wrong--code--v4": {
+      "text": "[thoughtful] Hmm. Follow one signup through in your head, and see where you've got to.",
+      "file": "trial-signup-desk/node-wrong--d5e6eb1a.mp3"
+    },
+    "node-wrong--code--v5": {
+      "text": "[calm] Not there. Ask what a signup is carrying by the time it reaches this step.",
+      "file": "trial-signup-desk/node-wrong--6a99d4e8.mp3"
+    },
+    "node-wrong--code--v6": {
+      "text": "[thoughtful] Hold on. Every step here depends on the one before it. Let me ask you something.",
+      "file": "trial-signup-desk/node-wrong--ce0e0dee.mp3"
+    },
+    "node-wrong--code--v7": {
+      "text": "[calm] Nearly. Check the order as well as the node, then answer me this.",
+      "file": "trial-signup-desk/node-wrong--9af8ad4c.mp3"
+    },
+    "node-wrong--code--v8": {
+      "text": "[thoughtful] Hmm. Read the board left to right, and ask what's missing between here and there.",
+      "file": "trial-signup-desk/node-wrong--d0e90bb9.mp3"
+    },
+    "node-wrong--code--v9": {
+      "text": "[calm] Not that. A step can't use something the flow hasn't produced yet. One question first.",
+      "file": "trial-signup-desk/node-wrong--9bdab15d.mp3"
+    },
+    "node-wrong--form-trigger--v0": {
+      "text": "[calm] Not that one. Either it's wrong for this step, or it isn't its turn yet.",
+      "file": "trial-signup-desk/node-wrong--4c805c58.mp3"
+    },
+    "node-wrong--form-trigger--v1": {
+      "text": "[thoughtful] Ah, hold on. A node can only use what the one before it handed over.",
+      "file": "trial-signup-desk/node-wrong--bfb9aef2.mp3"
+    },
+    "node-wrong--form-trigger--v2": {
+      "text": "[thoughtful] Hmm, no. Think about what this part of the flow has to hand on.",
+      "file": "trial-signup-desk/node-wrong--ce0e8061.mp3"
+    },
+    "node-wrong--form-trigger--v3": {
+      "text": "[calm] Careful. The right node in the wrong place breaks this just as thoroughly. One question first.",
+      "file": "trial-signup-desk/node-wrong--22e55e26.mp3"
+    },
+    "node-wrong--form-trigger--v4": {
+      "text": "[thoughtful] Hmm. Follow one signup through in your head, and see where you've got to.",
+      "file": "trial-signup-desk/node-wrong--d5e6eb1a.mp3"
+    },
+    "node-wrong--form-trigger--v5": {
+      "text": "[calm] Not there. Ask what a signup is carrying by the time it reaches this step.",
+      "file": "trial-signup-desk/node-wrong--6a99d4e8.mp3"
+    },
+    "node-wrong--form-trigger--v6": {
+      "text": "[thoughtful] Hold on. Every step here depends on the one before it. Let me ask you something.",
+      "file": "trial-signup-desk/node-wrong--ce0e0dee.mp3"
+    },
+    "node-wrong--form-trigger--v7": {
+      "text": "[calm] Nearly. Check the order as well as the node, then answer me this.",
+      "file": "trial-signup-desk/node-wrong--9af8ad4c.mp3"
+    },
+    "node-wrong--form-trigger--v8": {
+      "text": "[thoughtful] Hmm. Read the board left to right, and ask what's missing between here and there.",
+      "file": "trial-signup-desk/node-wrong--d0e90bb9.mp3"
+    },
+    "node-wrong--form-trigger--v9": {
+      "text": "[calm] Not that. A step can't use something the flow hasn't produced yet. One question first.",
+      "file": "trial-signup-desk/node-wrong--9bdab15d.mp3"
+    },
+    "node-wrong--google-docs--v0": {
+      "text": "[calm] Not that one. Either it's wrong for this step, or it isn't its turn yet.",
+      "file": "trial-signup-desk/node-wrong--4c805c58.mp3"
+    },
+    "node-wrong--google-docs--v1": {
+      "text": "[thoughtful] Ah, hold on. A node can only use what the one before it handed over.",
+      "file": "trial-signup-desk/node-wrong--bfb9aef2.mp3"
+    },
+    "node-wrong--google-docs--v2": {
+      "text": "[thoughtful] Hmm, no. Think about what this part of the flow has to hand on.",
+      "file": "trial-signup-desk/node-wrong--ce0e8061.mp3"
+    },
+    "node-wrong--google-docs--v3": {
+      "text": "[calm] Careful. The right node in the wrong place breaks this just as thoroughly. One question first.",
+      "file": "trial-signup-desk/node-wrong--22e55e26.mp3"
+    },
+    "node-wrong--google-docs--v4": {
+      "text": "[thoughtful] Hmm. Follow one signup through in your head, and see where you've got to.",
+      "file": "trial-signup-desk/node-wrong--d5e6eb1a.mp3"
+    },
+    "node-wrong--google-docs--v5": {
+      "text": "[calm] Not there. Ask what a signup is carrying by the time it reaches this step.",
+      "file": "trial-signup-desk/node-wrong--6a99d4e8.mp3"
+    },
+    "node-wrong--google-docs--v6": {
+      "text": "[thoughtful] Hold on. Every step here depends on the one before it. Let me ask you something.",
+      "file": "trial-signup-desk/node-wrong--ce0e0dee.mp3"
+    },
+    "node-wrong--google-docs--v7": {
+      "text": "[calm] Nearly. Check the order as well as the node, then answer me this.",
+      "file": "trial-signup-desk/node-wrong--9af8ad4c.mp3"
+    },
+    "node-wrong--google-docs--v8": {
+      "text": "[thoughtful] Hmm. Read the board left to right, and ask what's missing between here and there.",
+      "file": "trial-signup-desk/node-wrong--d0e90bb9.mp3"
+    },
+    "node-wrong--google-docs--v9": {
+      "text": "[calm] Not that. A step can't use something the flow hasn't produced yet. One question first.",
+      "file": "trial-signup-desk/node-wrong--9bdab15d.mp3"
+    },
+    "node-wrong--google-sheets--v0": {
+      "text": "[calm] Not that one. Either it's wrong for this step, or it isn't its turn yet.",
+      "file": "trial-signup-desk/node-wrong--4c805c58.mp3"
+    },
+    "node-wrong--google-sheets--v1": {
+      "text": "[thoughtful] Ah, hold on. A node can only use what the one before it handed over.",
+      "file": "trial-signup-desk/node-wrong--bfb9aef2.mp3"
+    },
+    "node-wrong--google-sheets--v2": {
+      "text": "[thoughtful] Hmm, no. Think about what this part of the flow has to hand on.",
+      "file": "trial-signup-desk/node-wrong--ce0e8061.mp3"
+    },
+    "node-wrong--google-sheets--v3": {
+      "text": "[calm] Careful. The right node in the wrong place breaks this just as thoroughly. One question first.",
+      "file": "trial-signup-desk/node-wrong--22e55e26.mp3"
+    },
+    "node-wrong--google-sheets--v4": {
+      "text": "[thoughtful] Hmm. Follow one signup through in your head, and see where you've got to.",
+      "file": "trial-signup-desk/node-wrong--d5e6eb1a.mp3"
+    },
+    "node-wrong--google-sheets--v5": {
+      "text": "[calm] Not there. Ask what a signup is carrying by the time it reaches this step.",
+      "file": "trial-signup-desk/node-wrong--6a99d4e8.mp3"
+    },
+    "node-wrong--google-sheets--v6": {
+      "text": "[thoughtful] Hold on. Every step here depends on the one before it. Let me ask you something.",
+      "file": "trial-signup-desk/node-wrong--ce0e0dee.mp3"
+    },
+    "node-wrong--google-sheets--v7": {
+      "text": "[calm] Nearly. Check the order as well as the node, then answer me this.",
+      "file": "trial-signup-desk/node-wrong--9af8ad4c.mp3"
+    },
+    "node-wrong--google-sheets--v8": {
+      "text": "[thoughtful] Hmm. Read the board left to right, and ask what's missing between here and there.",
+      "file": "trial-signup-desk/node-wrong--d0e90bb9.mp3"
+    },
+    "node-wrong--google-sheets--v9": {
+      "text": "[calm] Not that. A step can't use something the flow hasn't produced yet. One question first.",
+      "file": "trial-signup-desk/node-wrong--9bdab15d.mp3"
+    },
+    "node-wrong--http-request--v0": {
+      "text": "[calm] Not that one. Either it's wrong for this step, or it isn't its turn yet.",
+      "file": "trial-signup-desk/node-wrong--4c805c58.mp3"
+    },
+    "node-wrong--http-request--v1": {
+      "text": "[thoughtful] Ah, hold on. A node can only use what the one before it handed over.",
+      "file": "trial-signup-desk/node-wrong--bfb9aef2.mp3"
+    },
+    "node-wrong--http-request--v2": {
+      "text": "[thoughtful] Hmm, no. Think about what this part of the flow has to hand on.",
+      "file": "trial-signup-desk/node-wrong--ce0e8061.mp3"
+    },
+    "node-wrong--http-request--v3": {
+      "text": "[calm] Careful. The right node in the wrong place breaks this just as thoroughly. One question first.",
+      "file": "trial-signup-desk/node-wrong--22e55e26.mp3"
+    },
+    "node-wrong--http-request--v4": {
+      "text": "[thoughtful] Hmm. Follow one signup through in your head, and see where you've got to.",
+      "file": "trial-signup-desk/node-wrong--d5e6eb1a.mp3"
+    },
+    "node-wrong--http-request--v5": {
+      "text": "[calm] Not there. Ask what a signup is carrying by the time it reaches this step.",
+      "file": "trial-signup-desk/node-wrong--6a99d4e8.mp3"
+    },
+    "node-wrong--http-request--v6": {
+      "text": "[thoughtful] Hold on. Every step here depends on the one before it. Let me ask you something.",
+      "file": "trial-signup-desk/node-wrong--ce0e0dee.mp3"
+    },
+    "node-wrong--http-request--v7": {
+      "text": "[calm] Nearly. Check the order as well as the node, then answer me this.",
+      "file": "trial-signup-desk/node-wrong--9af8ad4c.mp3"
+    },
+    "node-wrong--http-request--v8": {
+      "text": "[thoughtful] Hmm. Read the board left to right, and ask what's missing between here and there.",
+      "file": "trial-signup-desk/node-wrong--d0e90bb9.mp3"
+    },
+    "node-wrong--http-request--v9": {
+      "text": "[calm] Not that. A step can't use something the flow hasn't produced yet. One question first.",
+      "file": "trial-signup-desk/node-wrong--9bdab15d.mp3"
+    },
+    "node-wrong--schedule--v0": {
+      "text": "[calm] Not that one. Either it's wrong for this step, or it isn't its turn yet.",
+      "file": "trial-signup-desk/node-wrong--4c805c58.mp3"
+    },
+    "node-wrong--schedule--v1": {
+      "text": "[thoughtful] Ah, hold on. A node can only use what the one before it handed over.",
+      "file": "trial-signup-desk/node-wrong--bfb9aef2.mp3"
+    },
+    "node-wrong--schedule--v2": {
+      "text": "[thoughtful] Hmm, no. Think about what this part of the flow has to hand on.",
+      "file": "trial-signup-desk/node-wrong--ce0e8061.mp3"
+    },
+    "node-wrong--schedule--v3": {
+      "text": "[calm] Careful. The right node in the wrong place breaks this just as thoroughly. One question first.",
+      "file": "trial-signup-desk/node-wrong--22e55e26.mp3"
+    },
+    "node-wrong--schedule--v4": {
+      "text": "[thoughtful] Hmm. Follow one signup through in your head, and see where you've got to.",
+      "file": "trial-signup-desk/node-wrong--d5e6eb1a.mp3"
+    },
+    "node-wrong--schedule--v5": {
+      "text": "[calm] Not there. Ask what a signup is carrying by the time it reaches this step.",
+      "file": "trial-signup-desk/node-wrong--6a99d4e8.mp3"
+    },
+    "node-wrong--schedule--v6": {
+      "text": "[thoughtful] Hold on. Every step here depends on the one before it. Let me ask you something.",
+      "file": "trial-signup-desk/node-wrong--ce0e0dee.mp3"
+    },
+    "node-wrong--schedule--v7": {
+      "text": "[calm] Nearly. Check the order as well as the node, then answer me this.",
+      "file": "trial-signup-desk/node-wrong--9af8ad4c.mp3"
+    },
+    "node-wrong--schedule--v8": {
+      "text": "[thoughtful] Hmm. Read the board left to right, and ask what's missing between here and there.",
+      "file": "trial-signup-desk/node-wrong--d0e90bb9.mp3"
+    },
+    "node-wrong--schedule--v9": {
+      "text": "[calm] Not that. A step can't use something the flow hasn't produced yet. One question first.",
+      "file": "trial-signup-desk/node-wrong--9bdab15d.mp3"
+    },
+    "node-wrong--switch--v0": {
+      "text": "[calm] Not that one. Either it's wrong for this step, or it isn't its turn yet.",
+      "file": "trial-signup-desk/node-wrong--4c805c58.mp3"
+    },
+    "node-wrong--switch--v1": {
+      "text": "[thoughtful] Ah, hold on. A node can only use what the one before it handed over.",
+      "file": "trial-signup-desk/node-wrong--bfb9aef2.mp3"
+    },
+    "node-wrong--switch--v2": {
+      "text": "[thoughtful] Hmm, no. Think about what this part of the flow has to hand on.",
+      "file": "trial-signup-desk/node-wrong--ce0e8061.mp3"
+    },
+    "node-wrong--switch--v3": {
+      "text": "[calm] Careful. The right node in the wrong place breaks this just as thoroughly. One question first.",
+      "file": "trial-signup-desk/node-wrong--22e55e26.mp3"
+    },
+    "node-wrong--switch--v4": {
+      "text": "[thoughtful] Hmm. Follow one signup through in your head, and see where you've got to.",
+      "file": "trial-signup-desk/node-wrong--d5e6eb1a.mp3"
+    },
+    "node-wrong--switch--v5": {
+      "text": "[calm] Not there. Ask what a signup is carrying by the time it reaches this step.",
+      "file": "trial-signup-desk/node-wrong--6a99d4e8.mp3"
+    },
+    "node-wrong--switch--v6": {
+      "text": "[thoughtful] Hold on. Every step here depends on the one before it. Let me ask you something.",
+      "file": "trial-signup-desk/node-wrong--ce0e0dee.mp3"
+    },
+    "node-wrong--switch--v7": {
+      "text": "[calm] Nearly. Check the order as well as the node, then answer me this.",
+      "file": "trial-signup-desk/node-wrong--9af8ad4c.mp3"
+    },
+    "node-wrong--switch--v8": {
+      "text": "[thoughtful] Hmm. Read the board left to right, and ask what's missing between here and there.",
+      "file": "trial-signup-desk/node-wrong--d0e90bb9.mp3"
+    },
+    "node-wrong--switch--v9": {
+      "text": "[calm] Not that. A step can't use something the flow hasn't produced yet. One question first.",
+      "file": "trial-signup-desk/node-wrong--9bdab15d.mp3"
+    },
+    "node-wrong--web-search--v0": {
+      "text": "[calm] Not that one. Either it's wrong for this step, or it isn't its turn yet.",
+      "file": "trial-signup-desk/node-wrong--4c805c58.mp3"
+    },
+    "node-wrong--web-search--v1": {
+      "text": "[thoughtful] Ah, hold on. A node can only use what the one before it handed over.",
+      "file": "trial-signup-desk/node-wrong--bfb9aef2.mp3"
+    },
+    "node-wrong--web-search--v2": {
+      "text": "[thoughtful] Hmm, no. Think about what this part of the flow has to hand on.",
+      "file": "trial-signup-desk/node-wrong--ce0e8061.mp3"
+    },
+    "node-wrong--web-search--v3": {
+      "text": "[calm] Careful. The right node in the wrong place breaks this just as thoroughly. One question first.",
+      "file": "trial-signup-desk/node-wrong--22e55e26.mp3"
+    },
+    "node-wrong--web-search--v4": {
+      "text": "[thoughtful] Hmm. Follow one signup through in your head, and see where you've got to.",
+      "file": "trial-signup-desk/node-wrong--d5e6eb1a.mp3"
+    },
+    "node-wrong--web-search--v5": {
+      "text": "[calm] Not there. Ask what a signup is carrying by the time it reaches this step.",
+      "file": "trial-signup-desk/node-wrong--6a99d4e8.mp3"
+    },
+    "node-wrong--web-search--v6": {
+      "text": "[thoughtful] Hold on. Every step here depends on the one before it. Let me ask you something.",
+      "file": "trial-signup-desk/node-wrong--ce0e0dee.mp3"
+    },
+    "node-wrong--web-search--v7": {
+      "text": "[calm] Nearly. Check the order as well as the node, then answer me this.",
+      "file": "trial-signup-desk/node-wrong--9af8ad4c.mp3"
+    },
+    "node-wrong--web-search--v8": {
+      "text": "[thoughtful] Hmm. Read the board left to right, and ask what's missing between here and there.",
+      "file": "trial-signup-desk/node-wrong--d0e90bb9.mp3"
+    },
+    "node-wrong--web-search--v9": {
+      "text": "[calm] Not that. A step can't use something the flow hasn't produced yet. One question first.",
+      "file": "trial-signup-desk/node-wrong--9bdab15d.mp3"
+    },
+    "node-wrong--webhook--v0": {
+      "text": "[calm] Not that one. Either it's wrong for this step, or it isn't its turn yet.",
+      "file": "trial-signup-desk/node-wrong--4c805c58.mp3"
+    },
+    "node-wrong--webhook--v1": {
+      "text": "[thoughtful] Ah, hold on. A node can only use what the one before it handed over.",
+      "file": "trial-signup-desk/node-wrong--bfb9aef2.mp3"
+    },
+    "node-wrong--webhook--v2": {
+      "text": "[thoughtful] Hmm, no. Think about what this part of the flow has to hand on.",
+      "file": "trial-signup-desk/node-wrong--ce0e8061.mp3"
+    },
+    "node-wrong--webhook--v3": {
+      "text": "[calm] Careful. The right node in the wrong place breaks this just as thoroughly. One question first.",
+      "file": "trial-signup-desk/node-wrong--22e55e26.mp3"
+    },
+    "node-wrong--webhook--v4": {
+      "text": "[thoughtful] Hmm. Follow one signup through in your head, and see where you've got to.",
+      "file": "trial-signup-desk/node-wrong--d5e6eb1a.mp3"
+    },
+    "node-wrong--webhook--v5": {
+      "text": "[calm] Not there. Ask what a signup is carrying by the time it reaches this step.",
+      "file": "trial-signup-desk/node-wrong--6a99d4e8.mp3"
+    },
+    "node-wrong--webhook--v6": {
+      "text": "[thoughtful] Hold on. Every step here depends on the one before it. Let me ask you something.",
+      "file": "trial-signup-desk/node-wrong--ce0e0dee.mp3"
+    },
+    "node-wrong--webhook--v7": {
+      "text": "[calm] Nearly. Check the order as well as the node, then answer me this.",
+      "file": "trial-signup-desk/node-wrong--9af8ad4c.mp3"
+    },
+    "node-wrong--webhook--v8": {
+      "text": "[thoughtful] Hmm. Read the board left to right, and ask what's missing between here and there.",
+      "file": "trial-signup-desk/node-wrong--d0e90bb9.mp3"
+    },
+    "node-wrong--webhook--v9": {
+      "text": "[calm] Not that. A step can't use something the flow hasn't produced yet. One question first.",
+      "file": "trial-signup-desk/node-wrong--9bdab15d.mp3"
+    },
+    "phase-complete--intake--v0": {
+      "text": "[excited] Right, that part's done. Nice work!",
+      "file": "shared/phase-complete--580e20f5.mp3"
+    },
+    "phase-complete--intake--v1": {
+      "text": "[excited] That's it. That piece works now!",
+      "file": "shared/phase-complete--90c76ac9.mp3"
+    },
+    "phase-complete--intake--v2": {
+      "text": "[excited] Good, that's one more piece in place.",
+      "file": "shared/phase-complete--3e7cb79e.mp3"
+    },
+    "phase-complete--log-and-welcome--v0": {
+      "text": "[excited] Right, that part's done. Nice work!",
+      "file": "shared/phase-complete--580e20f5.mp3"
+    },
+    "phase-complete--log-and-welcome--v1": {
+      "text": "[excited] That's it. That piece works now!",
+      "file": "shared/phase-complete--90c76ac9.mp3"
+    },
+    "phase-complete--log-and-welcome--v2": {
+      "text": "[excited] Good, that's one more piece in place.",
+      "file": "shared/phase-complete--3e7cb79e.mp3"
+    },
+    "phase-complete--rate--v0": {
+      "text": "[excited] Right, that part's done. Nice work!",
+      "file": "shared/phase-complete--580e20f5.mp3"
+    },
+    "phase-complete--rate--v1": {
+      "text": "[excited] That's it. That piece works now!",
+      "file": "shared/phase-complete--90c76ac9.mp3"
+    },
+    "phase-complete--rate--v2": {
+      "text": "[excited] Good, that's one more piece in place.",
+      "file": "shared/phase-complete--3e7cb79e.mp3"
+    },
+    "phase-complete--v0": {
+      "text": "[excited] Right, that part's done. Nice work!",
+      "file": "shared/phase-complete--580e20f5.mp3"
+    },
+    "phase-complete--v1": {
+      "text": "[excited] That's it. That piece works now!",
+      "file": "shared/phase-complete--90c76ac9.mp3"
+    },
+    "phase-complete--v2": {
+      "text": "[excited] Good, that's one more piece in place.",
+      "file": "shared/phase-complete--3e7cb79e.mp3"
+    },
+    "phase-intro--intake--v0": {
+      "text": "[calm] Somebody's just pressed submit on your form. What hears that, and what does it know about it?",
+      "file": "trial-signup-desk/phase-intro--51126acb.mp3"
+    },
+    "phase-intro--log-and-welcome--v0": {
+      "text": "[calm] Two nodes in this one, and which runs first matters. Think about what the row has to carry.",
+      "file": "trial-signup-desk/phase-intro--2da35bf4.mp3"
+    },
+    "phase-intro--rate--v0": {
+      "text": "[calm] The rate lives on somebody else's server and changes every day. So who goes and asks?",
+      "file": "trial-signup-desk/phase-intro--790851c4.mp3"
+    },
+    "phase-intro--v0": {
+      "text": "[calm] Start with what this part needs before it can do anything.",
+      "file": "shared/phase-intro--abc1c89a.mp3"
+    },
+    "phase-intro--v1": {
+      "text": "[calm] Ask yourself what this piece hands on to the next one.",
+      "file": "shared/phase-intro--d8eb63b8.mp3"
+    },
+    "phase-intro--v2": {
+      "text": "[calm] Same idea as before. What has to happen first here?",
+      "file": "shared/phase-intro--36a5831c.mp3"
+    },
+    "probe-correct--action--v0": {
+      "text": "[warm] Yes, exactly that. Now put the right one in.",
+      "file": "shared/probe-correct--d3d647bc.mp3"
+    },
+    "probe-correct--action--v1": {
+      "text": "[warm] Right. So you can see why it wouldn't work here.",
+      "file": "shared/probe-correct--ce323351.mp3"
+    },
+    "probe-correct--action--v2": {
+      "text": "[warm] That's it. Go on and pick the one that fits.",
+      "file": "shared/probe-correct--e29bbaa3.mp3"
+    },
+    "probe-correct--action--v3": {
+      "text": "[warm] Ah, you've got it. Try the placement again.",
+      "file": "shared/probe-correct--769abdd3.mp3"
+    },
+    "probe-correct--action--v4": {
+      "text": "[calm] Correct. That's the thing to watch for next time.",
+      "file": "shared/probe-correct--dd3d43bb.mp3"
+    },
+    "probe-correct--action--v5": {
+      "text": "[warm] Yes. Now you know what this step actually needs.",
+      "file": "shared/probe-correct--efae4fbb.mp3"
+    },
+    "probe-correct--action--v6": {
+      "text": "[warm] Exactly right. Let's get the proper node in there.",
+      "file": "shared/probe-correct--485de88c.mp3"
+    },
+    "probe-correct--action--v7": {
+      "text": "[calm] That's the one. Back to the board.",
+      "file": "shared/probe-correct--be7deb2c.mp3"
+    },
+    "probe-correct--code--v0": {
+      "text": "[warm] Yes, exactly that. Now put the right one in.",
+      "file": "shared/probe-correct--d3d647bc.mp3"
+    },
+    "probe-correct--code--v1": {
+      "text": "[warm] Right. So you can see why it wouldn't work here.",
+      "file": "shared/probe-correct--ce323351.mp3"
+    },
+    "probe-correct--code--v2": {
+      "text": "[warm] That's it. Go on and pick the one that fits.",
+      "file": "shared/probe-correct--e29bbaa3.mp3"
+    },
+    "probe-correct--code--v3": {
+      "text": "[warm] Ah, you've got it. Try the placement again.",
+      "file": "shared/probe-correct--769abdd3.mp3"
+    },
+    "probe-correct--code--v4": {
+      "text": "[calm] Correct. That's the thing to watch for next time.",
+      "file": "shared/probe-correct--dd3d43bb.mp3"
+    },
+    "probe-correct--code--v5": {
+      "text": "[warm] Yes. Now you know what this step actually needs.",
+      "file": "shared/probe-correct--efae4fbb.mp3"
+    },
+    "probe-correct--code--v6": {
+      "text": "[warm] Exactly right. Let's get the proper node in there.",
+      "file": "shared/probe-correct--485de88c.mp3"
+    },
+    "probe-correct--code--v7": {
+      "text": "[calm] That's the one. Back to the board.",
+      "file": "shared/probe-correct--be7deb2c.mp3"
+    },
+    "probe-correct--form-trigger--v0": {
+      "text": "[warm] Yes, exactly that. Now put the right one in.",
+      "file": "shared/probe-correct--d3d647bc.mp3"
+    },
+    "probe-correct--form-trigger--v1": {
+      "text": "[warm] Right. So you can see why it wouldn't work here.",
+      "file": "shared/probe-correct--ce323351.mp3"
+    },
+    "probe-correct--form-trigger--v2": {
+      "text": "[warm] That's it. Go on and pick the one that fits.",
+      "file": "shared/probe-correct--e29bbaa3.mp3"
+    },
+    "probe-correct--form-trigger--v3": {
+      "text": "[warm] Ah, you've got it. Try the placement again.",
+      "file": "shared/probe-correct--769abdd3.mp3"
+    },
+    "probe-correct--form-trigger--v4": {
+      "text": "[calm] Correct. That's the thing to watch for next time.",
+      "file": "shared/probe-correct--dd3d43bb.mp3"
+    },
+    "probe-correct--form-trigger--v5": {
+      "text": "[warm] Yes. Now you know what this step actually needs.",
+      "file": "shared/probe-correct--efae4fbb.mp3"
+    },
+    "probe-correct--form-trigger--v6": {
+      "text": "[warm] Exactly right. Let's get the proper node in there.",
+      "file": "shared/probe-correct--485de88c.mp3"
+    },
+    "probe-correct--form-trigger--v7": {
+      "text": "[calm] That's the one. Back to the board.",
+      "file": "shared/probe-correct--be7deb2c.mp3"
+    },
+    "probe-correct--google-docs--v0": {
+      "text": "[warm] Yes, exactly that. Now put the right one in.",
+      "file": "shared/probe-correct--d3d647bc.mp3"
+    },
+    "probe-correct--google-docs--v1": {
+      "text": "[warm] Right. So you can see why it wouldn't work here.",
+      "file": "shared/probe-correct--ce323351.mp3"
+    },
+    "probe-correct--google-docs--v2": {
+      "text": "[warm] That's it. Go on and pick the one that fits.",
+      "file": "shared/probe-correct--e29bbaa3.mp3"
+    },
+    "probe-correct--google-docs--v3": {
+      "text": "[warm] Ah, you've got it. Try the placement again.",
+      "file": "shared/probe-correct--769abdd3.mp3"
+    },
+    "probe-correct--google-docs--v4": {
+      "text": "[calm] Correct. That's the thing to watch for next time.",
+      "file": "shared/probe-correct--dd3d43bb.mp3"
+    },
+    "probe-correct--google-docs--v5": {
+      "text": "[warm] Yes. Now you know what this step actually needs.",
+      "file": "shared/probe-correct--efae4fbb.mp3"
+    },
+    "probe-correct--google-docs--v6": {
+      "text": "[warm] Exactly right. Let's get the proper node in there.",
+      "file": "shared/probe-correct--485de88c.mp3"
+    },
+    "probe-correct--google-docs--v7": {
+      "text": "[calm] That's the one. Back to the board.",
+      "file": "shared/probe-correct--be7deb2c.mp3"
+    },
+    "probe-correct--google-sheets--v0": {
+      "text": "[warm] Yes, exactly that. Now put the right one in.",
+      "file": "shared/probe-correct--d3d647bc.mp3"
+    },
+    "probe-correct--google-sheets--v1": {
+      "text": "[warm] Right. So you can see why it wouldn't work here.",
+      "file": "shared/probe-correct--ce323351.mp3"
+    },
+    "probe-correct--google-sheets--v2": {
+      "text": "[warm] That's it. Go on and pick the one that fits.",
+      "file": "shared/probe-correct--e29bbaa3.mp3"
+    },
+    "probe-correct--google-sheets--v3": {
+      "text": "[warm] Ah, you've got it. Try the placement again.",
+      "file": "shared/probe-correct--769abdd3.mp3"
+    },
+    "probe-correct--google-sheets--v4": {
+      "text": "[calm] Correct. That's the thing to watch for next time.",
+      "file": "shared/probe-correct--dd3d43bb.mp3"
+    },
+    "probe-correct--google-sheets--v5": {
+      "text": "[warm] Yes. Now you know what this step actually needs.",
+      "file": "shared/probe-correct--efae4fbb.mp3"
+    },
+    "probe-correct--google-sheets--v6": {
+      "text": "[warm] Exactly right. Let's get the proper node in there.",
+      "file": "shared/probe-correct--485de88c.mp3"
+    },
+    "probe-correct--google-sheets--v7": {
+      "text": "[calm] That's the one. Back to the board.",
+      "file": "shared/probe-correct--be7deb2c.mp3"
+    },
+    "probe-correct--http-request--v0": {
+      "text": "[warm] Yes, exactly that. Now put the right one in.",
+      "file": "shared/probe-correct--d3d647bc.mp3"
+    },
+    "probe-correct--http-request--v1": {
+      "text": "[warm] Right. So you can see why it wouldn't work here.",
+      "file": "shared/probe-correct--ce323351.mp3"
+    },
+    "probe-correct--http-request--v2": {
+      "text": "[warm] That's it. Go on and pick the one that fits.",
+      "file": "shared/probe-correct--e29bbaa3.mp3"
+    },
+    "probe-correct--http-request--v3": {
+      "text": "[warm] Ah, you've got it. Try the placement again.",
+      "file": "shared/probe-correct--769abdd3.mp3"
+    },
+    "probe-correct--http-request--v4": {
+      "text": "[calm] Correct. That's the thing to watch for next time.",
+      "file": "shared/probe-correct--dd3d43bb.mp3"
+    },
+    "probe-correct--http-request--v5": {
+      "text": "[warm] Yes. Now you know what this step actually needs.",
+      "file": "shared/probe-correct--efae4fbb.mp3"
+    },
+    "probe-correct--http-request--v6": {
+      "text": "[warm] Exactly right. Let's get the proper node in there.",
+      "file": "shared/probe-correct--485de88c.mp3"
+    },
+    "probe-correct--http-request--v7": {
+      "text": "[calm] That's the one. Back to the board.",
+      "file": "shared/probe-correct--be7deb2c.mp3"
+    },
+    "probe-correct--schedule--v0": {
+      "text": "[warm] Yes, exactly that. Now put the right one in.",
+      "file": "shared/probe-correct--d3d647bc.mp3"
+    },
+    "probe-correct--schedule--v1": {
+      "text": "[warm] Right. So you can see why it wouldn't work here.",
+      "file": "shared/probe-correct--ce323351.mp3"
+    },
+    "probe-correct--schedule--v2": {
+      "text": "[warm] That's it. Go on and pick the one that fits.",
+      "file": "shared/probe-correct--e29bbaa3.mp3"
+    },
+    "probe-correct--schedule--v3": {
+      "text": "[warm] Ah, you've got it. Try the placement again.",
+      "file": "shared/probe-correct--769abdd3.mp3"
+    },
+    "probe-correct--schedule--v4": {
+      "text": "[calm] Correct. That's the thing to watch for next time.",
+      "file": "shared/probe-correct--dd3d43bb.mp3"
+    },
+    "probe-correct--schedule--v5": {
+      "text": "[warm] Yes. Now you know what this step actually needs.",
+      "file": "shared/probe-correct--efae4fbb.mp3"
+    },
+    "probe-correct--schedule--v6": {
+      "text": "[warm] Exactly right. Let's get the proper node in there.",
+      "file": "shared/probe-correct--485de88c.mp3"
+    },
+    "probe-correct--schedule--v7": {
+      "text": "[calm] That's the one. Back to the board.",
+      "file": "shared/probe-correct--be7deb2c.mp3"
+    },
+    "probe-correct--switch--v0": {
+      "text": "[warm] Yes, exactly that. Now put the right one in.",
+      "file": "shared/probe-correct--d3d647bc.mp3"
+    },
+    "probe-correct--switch--v1": {
+      "text": "[warm] Right. So you can see why it wouldn't work here.",
+      "file": "shared/probe-correct--ce323351.mp3"
+    },
+    "probe-correct--switch--v2": {
+      "text": "[warm] That's it. Go on and pick the one that fits.",
+      "file": "shared/probe-correct--e29bbaa3.mp3"
+    },
+    "probe-correct--switch--v3": {
+      "text": "[warm] Ah, you've got it. Try the placement again.",
+      "file": "shared/probe-correct--769abdd3.mp3"
+    },
+    "probe-correct--switch--v4": {
+      "text": "[calm] Correct. That's the thing to watch for next time.",
+      "file": "shared/probe-correct--dd3d43bb.mp3"
+    },
+    "probe-correct--switch--v5": {
+      "text": "[warm] Yes. Now you know what this step actually needs.",
+      "file": "shared/probe-correct--efae4fbb.mp3"
+    },
+    "probe-correct--switch--v6": {
+      "text": "[warm] Exactly right. Let's get the proper node in there.",
+      "file": "shared/probe-correct--485de88c.mp3"
+    },
+    "probe-correct--switch--v7": {
+      "text": "[calm] That's the one. Back to the board.",
+      "file": "shared/probe-correct--be7deb2c.mp3"
+    },
+    "probe-correct--web-search--v0": {
+      "text": "[warm] Yes, exactly that. Now put the right one in.",
+      "file": "shared/probe-correct--d3d647bc.mp3"
+    },
+    "probe-correct--web-search--v1": {
+      "text": "[warm] Right. So you can see why it wouldn't work here.",
+      "file": "shared/probe-correct--ce323351.mp3"
+    },
+    "probe-correct--web-search--v2": {
+      "text": "[warm] That's it. Go on and pick the one that fits.",
+      "file": "shared/probe-correct--e29bbaa3.mp3"
+    },
+    "probe-correct--web-search--v3": {
+      "text": "[warm] Ah, you've got it. Try the placement again.",
+      "file": "shared/probe-correct--769abdd3.mp3"
+    },
+    "probe-correct--web-search--v4": {
+      "text": "[calm] Correct. That's the thing to watch for next time.",
+      "file": "shared/probe-correct--dd3d43bb.mp3"
+    },
+    "probe-correct--web-search--v5": {
+      "text": "[warm] Yes. Now you know what this step actually needs.",
+      "file": "shared/probe-correct--efae4fbb.mp3"
+    },
+    "probe-correct--web-search--v6": {
+      "text": "[warm] Exactly right. Let's get the proper node in there.",
+      "file": "shared/probe-correct--485de88c.mp3"
+    },
+    "probe-correct--web-search--v7": {
+      "text": "[calm] That's the one. Back to the board.",
+      "file": "shared/probe-correct--be7deb2c.mp3"
+    },
+    "probe-correct--webhook--v0": {
+      "text": "[warm] Yes, exactly that. Now put the right one in.",
+      "file": "shared/probe-correct--d3d647bc.mp3"
+    },
+    "probe-correct--webhook--v1": {
+      "text": "[warm] Right. So you can see why it wouldn't work here.",
+      "file": "shared/probe-correct--ce323351.mp3"
+    },
+    "probe-correct--webhook--v2": {
+      "text": "[warm] That's it. Go on and pick the one that fits.",
+      "file": "shared/probe-correct--e29bbaa3.mp3"
+    },
+    "probe-correct--webhook--v3": {
+      "text": "[warm] Ah, you've got it. Try the placement again.",
+      "file": "shared/probe-correct--769abdd3.mp3"
+    },
+    "probe-correct--webhook--v4": {
+      "text": "[calm] Correct. That's the thing to watch for next time.",
+      "file": "shared/probe-correct--dd3d43bb.mp3"
+    },
+    "probe-correct--webhook--v5": {
+      "text": "[warm] Yes. Now you know what this step actually needs.",
+      "file": "shared/probe-correct--efae4fbb.mp3"
+    },
+    "probe-correct--webhook--v6": {
+      "text": "[warm] Exactly right. Let's get the proper node in there.",
+      "file": "shared/probe-correct--485de88c.mp3"
+    },
+    "probe-correct--webhook--v7": {
+      "text": "[calm] That's the one. Back to the board.",
+      "file": "shared/probe-correct--be7deb2c.mp3"
+    },
+    "probe-wrong--action--v0": {
+      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
+      "file": "shared/probe-wrong--4e8c0a2a.mp3"
+    },
+    "probe-wrong--action--v1": {
+      "text": "[calm] Hmm, no. Think about what that node actually produces.",
+      "file": "shared/probe-wrong--d330e69d.mp3"
+    },
+    "probe-wrong--action--v2": {
+      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
+      "file": "shared/probe-wrong--d1b6fbe1.mp3"
+    },
+    "probe-wrong--action--v3": {
+      "text": "[calm] Not quite. What would this step have to work with?",
+      "file": "shared/probe-wrong--38064f84.mp3"
+    },
+    "probe-wrong--action--v4": {
+      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
+      "file": "shared/probe-wrong--b6c81816.mp3"
+    },
+    "probe-wrong--action--v5": {
+      "text": "[calm] That isn't it. Try again, and take your time.",
+      "file": "shared/probe-wrong--6b23d200.mp3"
+    },
+    "probe-wrong--action--v6": {
+      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
+      "file": "shared/probe-wrong--62db845c.mp3"
+    },
+    "probe-wrong--action--v7": {
+      "text": "[calm] No. One of the others describes it properly.",
+      "file": "shared/probe-wrong--054fb738.mp3"
+    },
+    "probe-wrong--code--v0": {
+      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
+      "file": "shared/probe-wrong--4e8c0a2a.mp3"
+    },
+    "probe-wrong--code--v1": {
+      "text": "[calm] Hmm, no. Think about what that node actually produces.",
+      "file": "shared/probe-wrong--d330e69d.mp3"
+    },
+    "probe-wrong--code--v2": {
+      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
+      "file": "shared/probe-wrong--d1b6fbe1.mp3"
+    },
+    "probe-wrong--code--v3": {
+      "text": "[calm] Not quite. What would this step have to work with?",
+      "file": "shared/probe-wrong--38064f84.mp3"
+    },
+    "probe-wrong--code--v4": {
+      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
+      "file": "shared/probe-wrong--b6c81816.mp3"
+    },
+    "probe-wrong--code--v5": {
+      "text": "[calm] That isn't it. Try again, and take your time.",
+      "file": "shared/probe-wrong--6b23d200.mp3"
+    },
+    "probe-wrong--code--v6": {
+      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
+      "file": "shared/probe-wrong--62db845c.mp3"
+    },
+    "probe-wrong--code--v7": {
+      "text": "[calm] No. One of the others describes it properly.",
+      "file": "shared/probe-wrong--054fb738.mp3"
+    },
+    "probe-wrong--form-trigger--v0": {
+      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
+      "file": "shared/probe-wrong--4e8c0a2a.mp3"
+    },
+    "probe-wrong--form-trigger--v1": {
+      "text": "[calm] Hmm, no. Think about what that node actually produces.",
+      "file": "shared/probe-wrong--d330e69d.mp3"
+    },
+    "probe-wrong--form-trigger--v2": {
+      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
+      "file": "shared/probe-wrong--d1b6fbe1.mp3"
+    },
+    "probe-wrong--form-trigger--v3": {
+      "text": "[calm] Not quite. What would this step have to work with?",
+      "file": "shared/probe-wrong--38064f84.mp3"
+    },
+    "probe-wrong--form-trigger--v4": {
+      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
+      "file": "shared/probe-wrong--b6c81816.mp3"
+    },
+    "probe-wrong--form-trigger--v5": {
+      "text": "[calm] That isn't it. Try again, and take your time.",
+      "file": "shared/probe-wrong--6b23d200.mp3"
+    },
+    "probe-wrong--form-trigger--v6": {
+      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
+      "file": "shared/probe-wrong--62db845c.mp3"
+    },
+    "probe-wrong--form-trigger--v7": {
+      "text": "[calm] No. One of the others describes it properly.",
+      "file": "shared/probe-wrong--054fb738.mp3"
+    },
+    "probe-wrong--google-docs--v0": {
+      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
+      "file": "shared/probe-wrong--4e8c0a2a.mp3"
+    },
+    "probe-wrong--google-docs--v1": {
+      "text": "[calm] Hmm, no. Think about what that node actually produces.",
+      "file": "shared/probe-wrong--d330e69d.mp3"
+    },
+    "probe-wrong--google-docs--v2": {
+      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
+      "file": "shared/probe-wrong--d1b6fbe1.mp3"
+    },
+    "probe-wrong--google-docs--v3": {
+      "text": "[calm] Not quite. What would this step have to work with?",
+      "file": "shared/probe-wrong--38064f84.mp3"
+    },
+    "probe-wrong--google-docs--v4": {
+      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
+      "file": "shared/probe-wrong--b6c81816.mp3"
+    },
+    "probe-wrong--google-docs--v5": {
+      "text": "[calm] That isn't it. Try again, and take your time.",
+      "file": "shared/probe-wrong--6b23d200.mp3"
+    },
+    "probe-wrong--google-docs--v6": {
+      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
+      "file": "shared/probe-wrong--62db845c.mp3"
+    },
+    "probe-wrong--google-docs--v7": {
+      "text": "[calm] No. One of the others describes it properly.",
+      "file": "shared/probe-wrong--054fb738.mp3"
+    },
+    "probe-wrong--google-sheets--v0": {
+      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
+      "file": "shared/probe-wrong--4e8c0a2a.mp3"
+    },
+    "probe-wrong--google-sheets--v1": {
+      "text": "[calm] Hmm, no. Think about what that node actually produces.",
+      "file": "shared/probe-wrong--d330e69d.mp3"
+    },
+    "probe-wrong--google-sheets--v2": {
+      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
+      "file": "shared/probe-wrong--d1b6fbe1.mp3"
+    },
+    "probe-wrong--google-sheets--v3": {
+      "text": "[calm] Not quite. What would this step have to work with?",
+      "file": "shared/probe-wrong--38064f84.mp3"
+    },
+    "probe-wrong--google-sheets--v4": {
+      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
+      "file": "shared/probe-wrong--b6c81816.mp3"
+    },
+    "probe-wrong--google-sheets--v5": {
+      "text": "[calm] That isn't it. Try again, and take your time.",
+      "file": "shared/probe-wrong--6b23d200.mp3"
+    },
+    "probe-wrong--google-sheets--v6": {
+      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
+      "file": "shared/probe-wrong--62db845c.mp3"
+    },
+    "probe-wrong--google-sheets--v7": {
+      "text": "[calm] No. One of the others describes it properly.",
+      "file": "shared/probe-wrong--054fb738.mp3"
+    },
+    "probe-wrong--http-request--v0": {
+      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
+      "file": "shared/probe-wrong--4e8c0a2a.mp3"
+    },
+    "probe-wrong--http-request--v1": {
+      "text": "[calm] Hmm, no. Think about what that node actually produces.",
+      "file": "shared/probe-wrong--d330e69d.mp3"
+    },
+    "probe-wrong--http-request--v2": {
+      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
+      "file": "shared/probe-wrong--d1b6fbe1.mp3"
+    },
+    "probe-wrong--http-request--v3": {
+      "text": "[calm] Not quite. What would this step have to work with?",
+      "file": "shared/probe-wrong--38064f84.mp3"
+    },
+    "probe-wrong--http-request--v4": {
+      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
+      "file": "shared/probe-wrong--b6c81816.mp3"
+    },
+    "probe-wrong--http-request--v5": {
+      "text": "[calm] That isn't it. Try again, and take your time.",
+      "file": "shared/probe-wrong--6b23d200.mp3"
+    },
+    "probe-wrong--http-request--v6": {
+      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
+      "file": "shared/probe-wrong--62db845c.mp3"
+    },
+    "probe-wrong--http-request--v7": {
+      "text": "[calm] No. One of the others describes it properly.",
+      "file": "shared/probe-wrong--054fb738.mp3"
+    },
+    "probe-wrong--schedule--v0": {
+      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
+      "file": "shared/probe-wrong--4e8c0a2a.mp3"
+    },
+    "probe-wrong--schedule--v1": {
+      "text": "[calm] Hmm, no. Think about what that node actually produces.",
+      "file": "shared/probe-wrong--d330e69d.mp3"
+    },
+    "probe-wrong--schedule--v2": {
+      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
+      "file": "shared/probe-wrong--d1b6fbe1.mp3"
+    },
+    "probe-wrong--schedule--v3": {
+      "text": "[calm] Not quite. What would this step have to work with?",
+      "file": "shared/probe-wrong--38064f84.mp3"
+    },
+    "probe-wrong--schedule--v4": {
+      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
+      "file": "shared/probe-wrong--b6c81816.mp3"
+    },
+    "probe-wrong--schedule--v5": {
+      "text": "[calm] That isn't it. Try again, and take your time.",
+      "file": "shared/probe-wrong--6b23d200.mp3"
+    },
+    "probe-wrong--schedule--v6": {
+      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
+      "file": "shared/probe-wrong--62db845c.mp3"
+    },
+    "probe-wrong--schedule--v7": {
+      "text": "[calm] No. One of the others describes it properly.",
+      "file": "shared/probe-wrong--054fb738.mp3"
+    },
+    "probe-wrong--switch--v0": {
+      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
+      "file": "shared/probe-wrong--4e8c0a2a.mp3"
+    },
+    "probe-wrong--switch--v1": {
+      "text": "[calm] Hmm, no. Think about what that node actually produces.",
+      "file": "shared/probe-wrong--d330e69d.mp3"
+    },
+    "probe-wrong--switch--v2": {
+      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
+      "file": "shared/probe-wrong--d1b6fbe1.mp3"
+    },
+    "probe-wrong--switch--v3": {
+      "text": "[calm] Not quite. What would this step have to work with?",
+      "file": "shared/probe-wrong--38064f84.mp3"
+    },
+    "probe-wrong--switch--v4": {
+      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
+      "file": "shared/probe-wrong--b6c81816.mp3"
+    },
+    "probe-wrong--switch--v5": {
+      "text": "[calm] That isn't it. Try again, and take your time.",
+      "file": "shared/probe-wrong--6b23d200.mp3"
+    },
+    "probe-wrong--switch--v6": {
+      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
+      "file": "shared/probe-wrong--62db845c.mp3"
+    },
+    "probe-wrong--switch--v7": {
+      "text": "[calm] No. One of the others describes it properly.",
+      "file": "shared/probe-wrong--054fb738.mp3"
+    },
+    "probe-wrong--web-search--v0": {
+      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
+      "file": "shared/probe-wrong--4e8c0a2a.mp3"
+    },
+    "probe-wrong--web-search--v1": {
+      "text": "[calm] Hmm, no. Think about what that node actually produces.",
+      "file": "shared/probe-wrong--d330e69d.mp3"
+    },
+    "probe-wrong--web-search--v2": {
+      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
+      "file": "shared/probe-wrong--d1b6fbe1.mp3"
+    },
+    "probe-wrong--web-search--v3": {
+      "text": "[calm] Not quite. What would this step have to work with?",
+      "file": "shared/probe-wrong--38064f84.mp3"
+    },
+    "probe-wrong--web-search--v4": {
+      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
+      "file": "shared/probe-wrong--b6c81816.mp3"
+    },
+    "probe-wrong--web-search--v5": {
+      "text": "[calm] That isn't it. Try again, and take your time.",
+      "file": "shared/probe-wrong--6b23d200.mp3"
+    },
+    "probe-wrong--web-search--v6": {
+      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
+      "file": "shared/probe-wrong--62db845c.mp3"
+    },
+    "probe-wrong--web-search--v7": {
+      "text": "[calm] No. One of the others describes it properly.",
+      "file": "shared/probe-wrong--054fb738.mp3"
+    },
+    "probe-wrong--webhook--v0": {
+      "text": "[thoughtful] Not that. Read the other answers again and think about what this step gets handed.",
+      "file": "shared/probe-wrong--4e8c0a2a.mp3"
+    },
+    "probe-wrong--webhook--v1": {
+      "text": "[calm] Hmm, no. Think about what that node actually produces.",
+      "file": "shared/probe-wrong--d330e69d.mp3"
+    },
+    "probe-wrong--webhook--v2": {
+      "text": "[thoughtful] That's the common guess, but no. Look at the others.",
+      "file": "shared/probe-wrong--d1b6fbe1.mp3"
+    },
+    "probe-wrong--webhook--v3": {
+      "text": "[calm] Not quite. What would this step have to work with?",
+      "file": "shared/probe-wrong--38064f84.mp3"
+    },
+    "probe-wrong--webhook--v4": {
+      "text": "[thoughtful] Ah, no. Have another look at what the node does.",
+      "file": "shared/probe-wrong--b6c81816.mp3"
+    },
+    "probe-wrong--webhook--v5": {
+      "text": "[calm] That isn't it. Try again, and take your time.",
+      "file": "shared/probe-wrong--6b23d200.mp3"
+    },
+    "probe-wrong--webhook--v6": {
+      "text": "[thoughtful] Hmm. Close, but that's not what happens here.",
+      "file": "shared/probe-wrong--62db845c.mp3"
+    },
+    "probe-wrong--webhook--v7": {
+      "text": "[calm] No. One of the others describes it properly.",
+      "file": "shared/probe-wrong--054fb738.mp3"
+    },
+    "problem-intro--v0": {
+      "text": "[calm] Okay, let's get started. Somebody signs up for a free trial, and three things have to happen on their own. Read it through.",
+      "file": "trial-signup-desk/problem-intro--521b05e0.mp3"
+    },
+    "report-ready--v0": {
+      "text": "[excited] Alright, here it is! [pause] Four nodes, no AI, and that mapping. Let's see how you did.",
+      "file": "trial-signup-desk/report-ready--891c6941.mp3"
+    },
+    "run-case--aarav--v0": {
+      "text": "[calm] Okay, here's the first. Somebody fills in the form, Pro plan, found you through a Google search.",
+      "file": "trial-signup-desk/run-case--dbf67725.mp3"
+    },
+    "run-case--bella--v0": {
+      "text": "[calm] Right, next. Somebody submits the form on Plus, and their referral answer has a comma and quotes in it.",
+      "file": "trial-signup-desk/run-case--3305a8b4.mp3"
+    },
+    "run-case--chen--v0": {
+      "text": "[calm] Now a form comes in on Basic, with the referral box left empty.",
+      "file": "trial-signup-desk/run-case--05e5e0c1.mp3"
+    },
+    "run-case--hiro--v0": {
+      "text": "[calm] Another form arrives on Plus, and the referral answer's written in Japanese.",
+      "file": "trial-signup-desk/run-case--93f33ac9.mp3"
+    },
+    "run-case--ivy--v0": {
+      "text": "[calm] Then this one submits on Pro, with an apostrophe sitting in the referral answer.",
+      "file": "trial-signup-desk/run-case--1e9261ee.mp3"
+    },
+    "run-case--noname--v0": {
+      "text": "[calm] And the last form arrives with the name box empty. Keep an eye on this one.",
+      "file": "trial-signup-desk/run-case--329d0547.mp3"
+    },
+    "run-case--v0": {
+      "text": "[calm] Okay, here's the next one arriving. Watch where it goes.",
+      "file": "shared/run-case--c4c5095e.mp3"
+    },
+    "run-fail--v0": {
+      "text": "[calm] Hmm. Some of those didn't come out right. Let's follow one and see where it stopped.",
+      "file": "trial-signup-desk/run-fail--ee4c4b2e.mp3"
+    },
+    "run-fail--v1": {
+      "text": "[calm] Ah. Something didn't land the way it should. Have another look at the order.",
+      "file": "trial-signup-desk/run-fail--93bce1b4.mp3"
+    },
+    "run-pass--v0": {
+      "text": "[excited] All six signups came through your flow! [pause] That's four nodes doing their jobs in order.",
+      "file": "trial-signup-desk/run-pass--3cc54260.mp3"
+    },
+    "run-pass--v1": {
+      "text": "[excited] Six signups, and every one held up! [pause] The order you built pays off there.",
+      "file": "trial-signup-desk/run-pass--ece6f673.mp3"
+    },
+    "run-start--v0": {
+      "text": "[calm] Right, let's see if what you built holds up. Six real signups, one at a time.",
+      "file": "trial-signup-desk/run-start--46e29e51.mp3"
+    },
+    "stress-correct--blank-name--v0": {
+      "text": "[warm] Yes, exactly. You'd thought about the awkward one before it arrived.",
+      "file": "trial-signup-desk/stress-correct--da5abf36.mp3"
+    },
+    "stress-correct--execute-once--v0": {
+      "text": "[warm] Right. That name catches a lot of people, and it didn't catch you.",
+      "file": "trial-signup-desk/stress-correct--f911f6fa.mp3"
+    },
+    "stress-correct--row-before-rate--v0": {
+      "text": "[warm] Yes. That's why the order you built it in mattered.",
+      "file": "trial-signup-desk/stress-correct--21644ebf.mp3"
+    },
+    "stress-start--v0": {
+      "text": "[excited] Lovely! [pause] Now let's stress test it. What does yours do when an answer arrives blank?",
+      "file": "trial-signup-desk/stress-start--6d6ea0c7.mp3"
+    },
+    "stress-wrong--blank-name--v0": {
+      "text": "[thoughtful] Hmm, not that. Read what really happens, because this one is the heart of it.",
+      "file": "trial-signup-desk/stress-wrong--908e109a.mp3"
+    },
+    "stress-wrong--execute-once--v0": {
+      "text": "[thoughtful] Ah, that's the trap. That name promises something it doesn't do. Read on.",
+      "file": "trial-signup-desk/stress-wrong--c2e91d87.mp3"
+    },
+    "stress-wrong--row-before-rate--v0": {
+      "text": "[calm] No, and it's worth knowing why. Have a read of the reason underneath.",
+      "file": "trial-signup-desk/stress-wrong--9cf4f800.mp3"
+    },
+    "understand-done--v0": {
+      "text": "[excited] Four jobs, four nodes, and you've got the shape of it now! [pause] Let's go and build the thing.",
+      "file": "trial-signup-desk/understand-done--2ff0b985.mp3"
+    },
+    "understand-start--v0": {
+      "text": "[calm] No AI in this one, so every decision is yours. Let's see how you're reading it.",
+      "file": "trial-signup-desk/understand-start--8c362486.mp3"
+    },
+    "verify-fail--action--v0": {
+      "text": "[calm] Ah, not yet. Ask where this mail is addressed, and whether that's really an address.",
+      "file": "trial-signup-desk/verify-fail--77419543.mp3"
+    },
+    "verify-fail--action--v1": {
+      "text": "[thoughtful] Hmm. Have another look at the first line, and what it does with no name.",
+      "file": "trial-signup-desk/verify-fail--bc918604.mp3"
+    },
+    "verify-fail--action--v2": {
+      "text": "[calm] Not right yet. One signup arrives with the name box empty. Does your greeting survive it?",
+      "file": "trial-signup-desk/verify-fail--b50868df.mp3"
+    },
+    "verify-fail--action--v3": {
+      "text": "[thoughtful] Close. Check who's actually meant to be reading this mail.",
+      "file": "trial-signup-desk/verify-fail--e4811326.mp3"
+    },
+    "verify-fail--action--v4": {
+      "text": "[calm] Not quite. Read the marked field again, as the person receiving it would.",
+      "file": "trial-signup-desk/verify-fail--e19223d9.mp3"
+    },
+    "verify-fail--form-trigger--v0": {
+      "text": "[calm] Ah, not yet. Look at which answers you're insisting on before the form can be sent.",
+      "file": "trial-signup-desk/verify-fail--e19d82ae.mp3"
+    },
+    "verify-fail--form-trigger--v1": {
+      "text": "[thoughtful] Hmm. Some blanks this flow can live with, and some it can't. Have another look.",
+      "file": "trial-signup-desk/verify-fail--2a9dbace.mp3"
+    },
+    "verify-fail--form-trigger--v2": {
+      "text": "[calm] Not quite. Read the brief again on what a blank name still has to produce.",
+      "file": "trial-signup-desk/verify-fail--15525cfd.mp3"
+    },
+    "verify-fail--form-trigger--v3": {
+      "text": "[thoughtful] Close. Ask what the rest of the flow genuinely can't work without.",
+      "file": "trial-signup-desk/verify-fail--dfa4e392.mp3"
+    },
+    "verify-fail--google-sheets--v0": {
+      "text": "[calm] Ah, not yet. Count your entries against the headings the Signups sheet actually has.",
+      "file": "trial-signup-desk/verify-fail--835645c6.mp3"
+    },
+    "verify-fail--google-sheets--v1": {
+      "text": "[thoughtful] Hmm. One of those rows has the wrong answer under its heading. Which one looks off?",
+      "file": "trial-signup-desk/verify-fail--f19c4338.mp3"
+    },
+    "verify-fail--google-sheets--v2": {
+      "text": "[calm] Not right yet. Check each heading you typed against the column list on the panel.",
+      "file": "trial-signup-desk/verify-fail--9de99821.mp3"
+    },
+    "verify-fail--google-sheets--v3": {
+      "text": "[thoughtful] Close. Read the response shape in the note again, and count the levels.",
+      "file": "trial-signup-desk/verify-fail--a1d6bcec.mp3"
+    },
+    "verify-fail--google-sheets--v4": {
+      "text": "[calm] Not quite. Take the two decisions on this node one at a time, starting at the top.",
+      "file": "trial-signup-desk/verify-fail--125f49e9.mp3"
+    },
+    "verify-fail--google-sheets--v5": {
+      "text": "[thoughtful] Hmm. Take one row at a time. Does that value belong under that heading?",
+      "file": "trial-signup-desk/verify-fail--827a962e.mp3"
+    },
+    "verify-fail--google-sheets--v6": {
+      "text": "[calm] Not yet. A heading that isn't on the sheet writes nothing, and nothing warns you.",
+      "file": "trial-signup-desk/verify-fail--66a840ba.mp3"
+    },
+    "verify-fail--google-sheets--v7": {
+      "text": "[thoughtful] Close. Read your list back as one row landing on the sheet. Where does it break?",
+      "file": "trial-signup-desk/verify-fail--32800f64.mp3"
+    },
+    "verify-fail--http-request--v0": {
+      "text": "[calm] Ah, not yet. Read the URL again, and mind which way round the two currencies go.",
+      "file": "trial-signup-desk/verify-fail--a45de2a2.mp3"
+    },
+    "verify-fail--http-request--v1": {
+      "text": "[thoughtful] Hmm. The column's named for one direction. Does what you asked for match it?",
+      "file": "trial-signup-desk/verify-fail--788f4261.mp3"
+    },
+    "verify-fail--http-request--v2": {
+      "text": "[calm] Not right yet. Have another look at the marked field and what it's really asking.",
+      "file": "trial-signup-desk/verify-fail--7769c6b7.mp3"
+    },
+    "verify-fail--http-request--v3": {
+      "text": "[thoughtful] Close. Read that setting again, thinking about how many signups arrive at once.",
+      "file": "trial-signup-desk/verify-fail--bf25a929.mp3"
+    },
+    "verify-fail--http-request--v4": {
+      "text": "[calm] Not quite. Check what you've asked the rate service for before anything else.",
+      "file": "trial-signup-desk/verify-fail--30eec99b.mp3"
+    },
+    "verify-params--action--v0": {
+      "text": "[calm] That's the parameters right. You've got one tab left.",
+      "file": "shared/verify-params--b5910941.mp3"
+    },
+    "verify-params--action--v1": {
+      "text": "[calm] Good, those are right. One more tab and this one's done.",
+      "file": "shared/verify-params--87b5af0c.mp3"
+    },
+    "verify-params--form-trigger--v0": {
+      "text": "[calm] That's the parameters right. You've got one tab left.",
+      "file": "shared/verify-params--b5910941.mp3"
+    },
+    "verify-params--form-trigger--v1": {
+      "text": "[calm] Good, those are right. One more tab and this one's done.",
+      "file": "shared/verify-params--87b5af0c.mp3"
+    },
+    "verify-params--google-sheets--v0": {
+      "text": "[calm] That's the parameters right. You've got one tab left.",
+      "file": "shared/verify-params--b5910941.mp3"
+    },
+    "verify-params--google-sheets--v1": {
+      "text": "[calm] Good, those are right. One more tab and this one's done.",
+      "file": "shared/verify-params--87b5af0c.mp3"
+    },
+    "verify-params--http-request--v0": {
+      "text": "[calm] That's the parameters right. You've got one tab left.",
+      "file": "shared/verify-params--b5910941.mp3"
+    },
+    "verify-params--http-request--v1": {
+      "text": "[calm] Good, those are right. One more tab and this one's done.",
+      "file": "shared/verify-params--87b5af0c.mp3"
+    },
+    "verify-pass--action--v0": {
+      "text": "[warm] And that's the last piece. Whoever signs up hears back from you straight away now.",
+      "file": "trial-signup-desk/verify-pass--df797365.mp3"
+    },
+    "verify-pass--form-trigger--v0": {
+      "text": "[warm] That's your first node working. Every submitted form starts a run now, with all four answers on it.",
+      "file": "trial-signup-desk/verify-pass--a44c6eb1.mp3"
+    },
+    "verify-pass--google-sheets--v0": {
+      "text": "[warm] Look at that. Every answer under its own heading, so a sentence full of commas stays in one cell.",
+      "file": "trial-signup-desk/verify-pass--9e74e793.mp3"
+    },
+    "verify-pass--http-request--v0": {
+      "text": "[warm] Ah, good. Today's dollar to rupee rate is in the flow now, ready for the row.",
+      "file": "trial-signup-desk/verify-pass--7dc26e59.mp3"
+    },
+    "welcome--v0": {
+      "text": "[cheerfully] Hey there! I'm Iris, your mentor. [pause] I'll be guiding you through this whole n8n simulation. Ready when you are?",
+      "file": "shared/welcome--ba0dd002.mp3"
+    },
+    "welcome--v1": {
+      "text": "[cheerfully] Hey there! I'm Iris, and I'm your mentor here. [pause] I'll guide you through the whole simulation. Shall we?",
+      "file": "shared/welcome--e0a77c43.mp3"
+    }
+  }
+}
