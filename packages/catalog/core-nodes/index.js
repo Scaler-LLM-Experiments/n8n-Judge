@@ -51,6 +51,9 @@ import rssFeedTrigger from './rss-feed-trigger.js';
 import rssRead from './rss-read.js';
 import schedule from './schedule.js';
 import sendEmail from './send-email.js';
+import editFields from './edit-fields.js';
+import sort from './sort.js';
+import loopOverItems from './loop-over-items.js';
 
 export const SOURCE_COMMIT = '3d68c29b9281f14097aa9f15e01ac0777e538b11';
 
@@ -103,9 +106,9 @@ export const CORE_NODE_INVENTORY = [
   { type: 'rss-read', docsSlug: 'n8n-nodes-base.rssfeedread', label: 'RSS Read', status: 'complete' },
   { type: 'schedule', docsSlug: 'n8n-nodes-base.scheduletrigger', label: 'Schedule Trigger', status: 'complete' },
   { type: 'send-email', docsSlug: 'n8n-nodes-base.sendemail', label: 'Send Email', status: 'complete' },
-  { type: 'edit-fields', docsSlug: 'n8n-nodes-base.set', label: 'Edit Fields (Set)', status: 'pending' },
-  { type: 'sort', docsSlug: 'n8n-nodes-base.sort', label: 'Sort', status: 'pending' },
-  { type: 'loop-over-items', docsSlug: 'n8n-nodes-base.splitinbatches', label: 'Loop Over Items (Split in Batches)', status: 'pending' },
+  { type: 'edit-fields', docsSlug: 'n8n-nodes-base.set', label: 'Edit Fields (Set)', status: 'complete' },
+  { type: 'sort', docsSlug: 'n8n-nodes-base.sort', label: 'Sort', status: 'complete' },
+  { type: 'loop-over-items', docsSlug: 'n8n-nodes-base.splitinbatches', label: 'Loop Over Items (Split in Batches)', status: 'complete' },
   { type: 'split-out', docsSlug: 'n8n-nodes-base.splitout', label: 'Split Out', status: 'complete' },
   { type: 'sse-trigger', docsSlug: 'n8n-nodes-base.ssetrigger', label: 'SSE Trigger', status: 'pending' },
   { type: 'ssh', docsSlug: 'n8n-nodes-base.ssh', label: 'SSH', status: 'pending' },
@@ -144,6 +147,7 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
     noop, readWriteFile, removeDuplicates,
     renameKeys, respondToWebhook, rssFeedTrigger,
     rssRead, schedule, sendEmail,
+    editFields, sort, loopOverItems,
   ].map((node) => [node.type, node])
 );
 
