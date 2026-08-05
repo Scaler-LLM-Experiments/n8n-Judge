@@ -190,4 +190,10 @@ describe('conditional collection fields', () => {
     expect(fieldIsVisible({ hideWhen: { mode: ['hidden'] } }, { mode: 'shown' })).toBe(true);
     expect(fieldIsVisible({ hideWhen: { mode: ['hidden'] } }, { mode: 'hidden' })).toBe(false);
   });
+
+  it('supports n8n exists conditions inside collections', () => {
+    const field = { showWhen: { queryParameters: { exists: true } } };
+    expect(fieldIsVisible(field, {})).toBe(false);
+    expect(fieldIsVisible(field, { queryParameters: '' })).toBe(true);
+  });
 });

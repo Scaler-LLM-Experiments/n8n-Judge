@@ -131,6 +131,7 @@ const matchesVisibility = (values, conditions = {}) => Object.entries(conditions
   ([key, accepted]) => {
     const actual = resourceValue(values?.[key]);
     if (Array.isArray(accepted)) return accepted.includes(actual);
+    if (accepted?.exists !== undefined) return Object.hasOwn(values ?? {}, key) === accepted.exists;
     if (accepted?.includes !== undefined) return String(actual ?? '').includes(accepted.includes);
     return actual === accepted;
   }

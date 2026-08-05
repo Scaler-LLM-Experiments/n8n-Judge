@@ -168,6 +168,36 @@ describe('essential app-node batch 4 carries the real operation surface', () => 
   });
 });
 
+describe('essential app-node batch 5 carries the real operation surface', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((param) => [param.key, param]));
+
+  it('models all four PayPal v1 payout operations', () => {
+    const node = NODE_CATALOG.paypal;
+    const p = params('paypal');
+    expect(node).toMatchObject({ n8nType: 'n8n-nodes-base.payPal', n8nVersion: 1, usableAsTool: false });
+    expect(p.payoutOperation.options.map(({ value }) => value)).toEqual(['create', 'get']);
+    expect(p.payoutItemOperation.options.map(({ value }) => value)).toEqual(['cancel', 'get']);
+  });
+
+  it('models all six Postgres v2.7 operations', () => {
+    const node = NODE_CATALOG.postgres;
+    const p = params('postgres');
+    expect(node).toMatchObject({ n8nVersion: 2.7, usableAsTool: true });
+    expect(p.operation.options.map(({ value }) => value)).toEqual([
+      'deleteTable', 'executeQuery', 'insert', 'upsert', 'select', 'update',
+    ]);
+  });
+
+  it('models Twilio v1 Call Make and SMS Send', () => {
+    const node = NODE_CATALOG.twilio;
+    const p = params('twilio');
+    expect(node).toMatchObject({ n8nVersion: 1, usableAsTool: true });
+    expect(p.resource.options.map(({ value }) => value)).toEqual(['call', 'sms']);
+    expect(p.callOperation.options.map(({ value }) => value)).toEqual(['make']);
+    expect(p.smsOperation.options.map(({ value }) => value)).toEqual(['send']);
+  });
+});
+
 describe('core-node completion inventory', () => {
   it('tracks the complete official docs scope without duplicates', () => {
     expect(CORE_NODE_INVENTORY).toHaveLength(67);
