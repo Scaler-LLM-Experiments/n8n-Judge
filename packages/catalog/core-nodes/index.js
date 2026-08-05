@@ -115,6 +115,7 @@ import rssRead from './rss-read.js';
 import schedule from './schedule.js';
 import sendEmail from './send-email.js';
 import searXngTool from './searxng-tool.js';
+import serpApiTool from './serpapi-tool.js';
 import sentimentAnalysis from './sentiment-analysis.js';
 import simpleMemory from './simple-memory.js';
 import simpleVectorStore from './simple-vector-store.js';
@@ -130,10 +131,12 @@ import summarizationChain from './summarization-chain.js';
 import summarizeItems from './summarize-items.js';
 import switchNode from './switch.js';
 import textClassifier from './text-classifier.js';
+import thinkTool from './think-tool.js';
 import tokenSplitter from './token-splitter.js';
 import totp from './totp.js';
 import vercelAiGatewayChatModel from './vercel-ai-gateway-chat-model.js';
 import vectorStoreRetriever from './vector-store-retriever.js';
+import vectorStoreQuestionAnswerTool from './vector-store-question-answer-tool.js';
 import wait from './wait.js';
 import webhook from './webhook.js';
 import weaviateVectorStore from './weaviate-vector-store.js';
@@ -308,9 +311,9 @@ export const CLUSTER_NODE_INVENTORY = [
   { type: 'custom-code-tool', docsSlug: 'n8n-nodes-langchain.toolcode', label: 'Custom Code Tool', clusterRole: 'sub', status: 'complete' },
   { type: 'mcp-client-tool', docsSlug: 'n8n-nodes-langchain.toolmcp', label: 'MCP Client Tool', clusterRole: 'sub', status: 'complete' },
   { type: 'searxng-tool', docsSlug: 'n8n-nodes-langchain.toolsearxng', label: 'SearXNG Tool', clusterRole: 'sub', status: 'complete' },
-  { type: 'serpapi-tool', docsSlug: 'n8n-nodes-langchain.toolserpapi', label: 'SerpApi (Google Search)', clusterRole: 'sub', status: 'pending' },
-  { type: 'think-tool', docsSlug: 'n8n-nodes-langchain.toolthink', label: 'Think Tool', clusterRole: 'sub', status: 'pending' },
-  { type: 'vector-store-question-answer-tool', docsSlug: 'n8n-nodes-langchain.toolvectorstore', label: 'Vector Store Question Answer Tool', clusterRole: 'sub', status: 'pending' },
+  { type: 'serpapi-tool', docsSlug: 'n8n-nodes-langchain.toolserpapi', label: 'SerpApi (Google Search)', clusterRole: 'sub', status: 'complete' },
+  { type: 'think-tool', docsSlug: 'n8n-nodes-langchain.toolthink', label: 'Think Tool', clusterRole: 'sub', status: 'complete' },
+  { type: 'vector-store-question-answer-tool', docsSlug: 'n8n-nodes-langchain.toolvectorstore', label: 'Vector Store Question Answer Tool', clusterRole: 'sub', status: 'complete' },
   { type: 'wikipedia-tool', docsSlug: 'n8n-nodes-langchain.toolwikipedia', label: 'Wikipedia', clusterRole: 'sub', status: 'pending' },
   { type: 'wolfram-alpha-tool', docsSlug: 'n8n-nodes-langchain.toolwolframalpha', label: 'Wolfram|Alpha tool', clusterRole: 'sub', status: 'pending' },
   { type: 'call-n8n-workflow-tool', docsSlug: 'n8n-nodes-langchain.toolworkflow', label: 'Call n8n Workflow Tool', clusterRole: 'sub', status: 'pending' },
@@ -350,6 +353,7 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
     workflowRetriever, characterTextSplitter, recursiveCharacterTextSplitter,
     tokenSplitter, aiAgentTool, calculator,
     customCodeTool, mcpClientTool, searXngTool,
+    serpApiTool, thinkTool, vectorStoreQuestionAnswerTool,
     aiTransform, code, compareDatasets,
     compression, convertToFile, crypto,
     dataTable, dateTime, debugHelper,

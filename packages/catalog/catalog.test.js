@@ -1369,6 +1369,49 @@ describe('cluster-node batch 27 carries current code, MCP, and SearXNG tool surf
   });
 });
 
+describe('cluster-node batch 28 carries SerpApi, Think, and vector-store QA tool surfaces', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((param) => [param.key, param]));
+  const fields = (param) => Object.fromEntries(param.fields.map((field) => [field.key, field]));
+
+  it('models hidden SerpApi v1 with exact deprecated controls and credential metadata', () => {
+    const node = NODE_CATALOG['serpapi-tool'];
+    const p = params('serpapi-tool');
+    const options = fields(p.options);
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.toolSerpApi', hidden: true, deprecated: true });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 9, credentialEditorFieldCount: 2, dynamicFieldCount: 1, totalAuthoringFieldCount: 11 });
+    expect(node.credentialUiMetadata[0].fields.map(({ key }) => key)).toEqual(['oldVersionNotice', 'apiKey']);
+    expect(node.credentialUiMetadata[0].credentialTest).toMatchObject({ url: '/account.json ', sourceUrlHasTrailingSpace: true, inert: true });
+    expect(options.gl.value).toBe('us');
+    expect(options.device.options.map(({ value }) => value)).toEqual(['desktop', 'mobile', 'tablet']);
+    expect(options.no_cache).toMatchObject({ label: 'Explicit Array', value: false });
+    expect(options.google_domain.value).toBe('google.com');
+    expect(options.hl.value).toBe('en');
+  });
+
+  it('models Think Tool current v1.1 exact description and runtime-name history', () => {
+    const node = NODE_CATALOG['think-tool'];
+    const p = params('think-tool');
+    expect(node).toMatchObject({ n8nVersion: 1.1, defaultVersion: 1.1, defaultName: 'Think', n8nType: '@n8n/n8n-nodes-langchain.toolThink' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 2, helperGeneratedFieldCount: 1, dynamicFieldCount: 0, totalAuthoringFieldCount: 2 });
+    expect(p.description).toMatchObject({ kind: 'textarea', rows: 3, required: true });
+    expect(p.description.value).toContain('append the thought to the log');
+    expect(node.historicalRuntimeBehavior.map(({ version, toolName }) => [version, toolName])).toEqual([[1, 'thinking_tool'], [1.1, 'derived from node name']]);
+    expect(node.simulation).toMatchObject({ thinking: false, thoughtLogging: false, toolInvocation: false });
+  });
+
+  it('models Vector Store Question Answer Tool current v1.1 ports and fields', () => {
+    const node = NODE_CATALOG['vector-store-question-answer-tool'];
+    const p = params('vector-store-question-answer-tool');
+    expect(node).toMatchObject({ n8nVersion: 1.1, defaultVersion: 1.1, n8nType: '@n8n/n8n-nodes-langchain.toolVectorStore' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 3, helperGeneratedFieldCount: 1, dynamicFieldCount: 0, totalAuthoringFieldCount: 3 });
+    expect(p.description).toMatchObject({ kind: 'textarea', rows: 3 });
+    expect(p.topK.value).toBe(4);
+    expect(node.inputs.map(({ type, maxConnections }) => [type, maxConnections])).toEqual([['ai_vectorStore', 1], ['ai_languageModel', 1]]);
+    expect(node.excludedHistoricalAuthoring[0]).toMatchObject({ n8nKey: 'name', sourceVersionCondition: '@version = 1', label: 'Data Name' });
+    expect(node.simulation).toMatchObject({ vectorStoreAccess: false, modelAccess: false, retrieval: false, toolInvocation: false });
+  });
+});
+
 // Judge does not implement typeVersion — one shipped schema per node type is the
 // right simplification — but every node must SAY which real node and version it
 // models, or the catalogue drifts from the n8n a learner meets next and nobody

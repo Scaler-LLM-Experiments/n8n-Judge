@@ -1,6 +1,6 @@
 # n8n node library catalog
 
-Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **182 canonical nodes** (27 triggers, 24 app actions, 131 core/data/AI nodes) plus 10 compatibility aliases.
+Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **185 canonical nodes** (27 triggers, 24 app actions, 134 core/data/AI nodes) plus 10 compatibility aliases.
 
 ## How to choose
 
@@ -80,7 +80,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | YouTube | `youtube` | Consume YouTube API |
 | Zoom | `zoom` | Consume Zoom API |
 
-## Core, data, and AI building blocks (131)
+## Core, data, and AI building blocks (134)
 
 | Node | Catalog type | Function |
 |---|---|---|
@@ -190,6 +190,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | RSS Read | `rss-read` | Reads data from an RSS Feed |
 | Send Email | `send-email` | Sends an email using SMTP protocol |
 | SearXNG Tool | `searxng-tool` | Configure a SearXNG search tool and locked API URL credential |
+| SerpApi (Google Search) | `serpapi-tool` | Retain the hidden deprecated SerpApi tool configuration and credential metadata |
 | Sentiment Analysis | `sentiment-analysis` | Configure sentiment categories with one authored output branch per label |
 | Simple Memory | `simple-memory` | Configure a local window of recent chat interactions for one session |
 | Simple Vector Store | `simple-vector-store` | Configure an experimental in-memory vector store without external setup |
@@ -203,10 +204,12 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Summarize | `summarize-items` | Sum, count, max, etc. across items |
 | Switch | `switch` | Route items depending on defined expression or rules |
 | Text Classifier | `text-classifier` | Classify text into authored category output branches |
+| Think Tool | `think-tool` | Configure a description that invites an AI Agent to externalize a thought |
 | Token Splitter | `token-splitter` | Configure token-based document chunk size and overlap |
 | TOTP | `totp` | Generate a time-based one-time password |
 | Vercel AI Gateway Chat Model | `vercel-ai-gateway-chat-model` | Configure a Vercel AI Gateway chat model and completion controls |
 | Vector Store Retriever | `vector-store-retriever` | Configure a vector store as a retriever with a result limit |
+| Vector Store Question Answer Tool | `vector-store-question-answer-tool` | Configure vector-store question answering with a data description and result limit |
 | Wait | `wait` | Wait before continue with execution |
 | Weaviate Vector Store | `weaviate-vector-store` | Configure Weaviate insertion, search, retrieval, and tool modes |
 | Workflow Retriever | `workflow-retriever` | Configure an n8n workflow and typed values as a retriever source |
