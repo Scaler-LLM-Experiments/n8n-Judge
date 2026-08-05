@@ -30,6 +30,9 @@ import formTrigger from './form-trigger.js';
 import form from './form.js';
 import ftp from './ftp.js';
 import git from './git.js';
+import graphql from './graphql.js';
+import html from './html.js';
+import httpRequest from './http-request.js';
 
 export const SOURCE_COMMIT = '3d68c29b9281f14097aa9f15e01ac0777e538b11';
 
@@ -60,9 +63,9 @@ export const CORE_NODE_INVENTORY = [
   { type: 'form', docsSlug: 'n8n-nodes-base.form', label: 'n8n Form', status: 'complete' },
   { type: 'ftp', docsSlug: 'n8n-nodes-base.ftp', label: 'FTP', status: 'complete' },
   { type: 'git', docsSlug: 'n8n-nodes-base.git', label: 'Git', status: 'complete' },
-  { type: 'graphql', docsSlug: 'n8n-nodes-base.graphql', label: 'GraphQL', status: 'pending' },
-  { type: 'html', docsSlug: 'n8n-nodes-base.html', label: 'HTML', status: 'pending' },
-  { type: 'http-request', docsSlug: 'n8n-nodes-base.httprequest', label: 'HTTP Request', status: 'pending' },
+  { type: 'graphql', docsSlug: 'n8n-nodes-base.graphql', label: 'GraphQL', status: 'complete' },
+  { type: 'html', docsSlug: 'n8n-nodes-base.html', label: 'HTML', status: 'complete' },
+  { type: 'http-request', docsSlug: 'n8n-nodes-base.httprequest', label: 'HTTP Request', status: 'complete' },
   { type: 'if', docsSlug: 'n8n-nodes-base.if', label: 'If', status: 'pending' },
   { type: 'jwt', docsSlug: 'n8n-nodes-base.jwt', label: 'JWT', status: 'pending' },
   { type: 'ldap', docsSlug: 'n8n-nodes-base.ldap', label: 'LDAP', status: 'pending' },
@@ -116,6 +119,7 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
     executeSubworkflowTrigger, executeSubworkflow, executionData,
     extractFromFile, filter, formTrigger,
     form, ftp, git,
+    graphql, html, httpRequest,
   ].map((node) => [node.type, node])
 );
 
