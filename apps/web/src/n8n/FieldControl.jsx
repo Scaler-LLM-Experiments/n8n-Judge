@@ -127,8 +127,13 @@ export const initialFixedCollectionRow = (field) => Object.fromEntries((field.fi
   .filter((child) => !field.hideOptionalFields || child.required || child.showEvenWhenOptional)
   .map((child) => [child.key, copy(child.value)]));
 
-const isVisible = (field, values) => Object.entries(field.showWhen ?? {}).every(
-  ([key, accepted]) => accepted.includes(values?.[key])
+export const fieldIsVisible = (field, values) => Object.entries(field.showWhen ?? {}).every(
+  ([key, accepted]) => {
+    const actual = resourceValue(values?.[key]);
+    if (Array.isArray(accepted)) return accepted.includes(actual);
+    if (accepted?.includes !== undefined) return String(actual ?? '').includes(accepted.includes);
+    return actual === accepted;
+  }
 );
 
 const nestedLabel = (field) => (
@@ -157,7 +162,7 @@ function NestedControl({ field, value, border, onChange, inputKeys, rootValues }
 /** n8n's Options → Add Field control. Members stay absent until explicitly added. */
 export function CollectionControl({ field, value, border, bg, onChange, inputKeys = [], rootValues = {} }) {
   const current = value && typeof value === 'object' && !Array.isArray(value) ? value : {};
-  const members = (field.fields ?? []).filter((child) => child.kind !== 'hidden' && isVisible(child, { ...rootValues, ...current }));
+  const members = (field.fields ?? []).filter((child) => child.kind !== 'hidden' && fieldIsVisible(child, { ...rootValues, ...current }));
   const active = members.filter((child) => Object.hasOwn(current, child.key));
   const available = members.filter((child) => !Object.hasOwn(current, child.key));
   const update = (key, next) => onChange(field.key, { ...current, [key]: next });
@@ -217,7 +222,7 @@ export function FixedCollectionControl({ field, value, border, bg, onChange, inp
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
       {rows.map((row, index) => {
-        const visible = (field.fields ?? []).filter((child) => child.kind !== 'hidden' && isVisible(child, row));
+        const visible = (field.fields ?? []).filter((child) => child.kind !== 'hidden' && fieldIsVisible(child, row));
         const active = visible.filter((child) => !field.hideOptionalFields || child.required || child.showEvenWhenOptional || Object.hasOwn(row, child.key));
         const available = visible.filter((child) => !active.includes(child));
         return (

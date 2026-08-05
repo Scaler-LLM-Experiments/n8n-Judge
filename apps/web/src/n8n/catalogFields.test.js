@@ -90,4 +90,15 @@ describe('catalog-backed node setup', () => {
       guardrails: { keywordList: 'blocked' },
     }).inputs).toEqual(['main']);
   });
+
+  it('adds Google Gemini tools only for Text Message', () => {
+    expect(resolveNodePorts(NODE_CATALOG['google-gemini'], {
+      resource: 'text',
+      textOperation: 'message',
+    }).inputs.map((port) => port.type ?? port)).toEqual(['main', 'ai_tool']);
+    expect(resolveNodePorts(NODE_CATALOG['google-gemini'], {
+      resource: 'image',
+      imageOperation: 'generate',
+    }).inputs).toEqual(['main']);
+  });
 });

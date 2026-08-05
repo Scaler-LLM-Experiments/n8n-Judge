@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isCorrectValue, expressionFor, whyForField, resourceValue, emptyResource, initialFixedCollectionRow } from './FieldControl.jsx';
+import { isCorrectValue, expressionFor, whyForField, resourceValue, emptyResource, fieldIsVisible, initialFixedCollectionRow } from './FieldControl.jsx';
 import { toPublicProblem } from '@judge/problem-schema';
 import { problems } from '@judge/problems';
 
@@ -176,5 +176,13 @@ describe('optional fixed-collection attributes', () => {
         { key: 'placeholder', value: '' },
       ],
     })).toEqual({ type: 'text', label: '' });
+  });
+});
+
+describe('conditional collection fields', () => {
+  it('supports n8n substring conditions against resource locators', () => {
+    const field = { showWhen: { model: { includes: 'imagen' } } };
+    expect(fieldIsVisible(field, { model: { __rl: true, mode: 'list', value: 'models/imagen-4' } })).toBe(true);
+    expect(fieldIsVisible(field, { model: { __rl: true, mode: 'list', value: 'models/gemini-flash' } })).toBe(false);
   });
 });

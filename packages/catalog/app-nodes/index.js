@@ -7,6 +7,9 @@
 import discord from './discord.js';
 import dropbox from './dropbox.js';
 import googleDrive from './google-drive.js';
+import github from './github.js';
+import googleDocs from './google-docs.js';
+import googleGemini from './google-gemini.js';
 
 export const APP_SOURCE_COMMIT = '3d68c29b9281f14097aa9f15e01ac0777e538b11';
 
@@ -14,9 +17,9 @@ export const APP_NODE_INVENTORY = [
   { type: 'discord', docsSlug: 'n8n-nodes-base.discord', label: 'Discord', status: 'complete' },
   { type: 'dropbox', docsSlug: 'n8n-nodes-base.dropbox', label: 'Dropbox', status: 'complete' },
   { type: 'google-drive', docsSlug: 'n8n-nodes-base.googledrive', label: 'Google Drive', status: 'complete' },
-  { type: 'github', docsSlug: 'n8n-nodes-base.github', label: 'GitHub', status: 'pending' },
-  { type: 'google-docs', docsSlug: 'n8n-nodes-base.googledocs', label: 'Google Docs', status: 'pending' },
-  { type: 'google-gemini', docsSlug: 'n8n-nodes-langchain.googlegemini', label: 'Google Gemini', status: 'pending' },
+  { type: 'github', docsSlug: 'n8n-nodes-base.github', label: 'GitHub', status: 'complete' },
+  { type: 'google-docs', docsSlug: 'n8n-nodes-base.googledocs', label: 'Google Docs', status: 'complete' },
+  { type: 'google-gemini', docsSlug: 'n8n-nodes-langchain.googlegemini', label: 'Google Gemini', status: 'complete' },
   { type: 'google-sheets', docsSlug: 'n8n-nodes-base.googlesheets', label: 'Google Sheets', status: 'pending' },
   { type: 'google-translate', docsSlug: 'n8n-nodes-base.googletranslate', label: 'Google Translate', status: 'pending' },
   { type: 'microsoft-onedrive', docsSlug: 'n8n-nodes-base.microsoftonedrive', label: 'Microsoft OneDrive', status: 'pending' },
@@ -39,7 +42,7 @@ export const APP_NODE_INVENTORY = [
 
 // Descriptors are added here only after each three-node batch is reviewed.
 export const APP_NODE_CATALOG = Object.fromEntries(
-  [discord, dropbox, googleDrive].map((node) => [node.type, node])
+  [discord, dropbox, googleDrive, github, googleDocs, googleGemini].map((node) => [node.type, node])
 );
 
 export const COMPLETE_APP_NODE_TYPES = APP_NODE_INVENTORY

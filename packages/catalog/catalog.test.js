@@ -82,6 +82,34 @@ describe('essential app-node batch 1 carries the real operation surface', () => 
   });
 });
 
+describe('essential app-node batch 2 carries the real operation surface', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((param) => [param.key, param]));
+
+  it('models all 48 current GitHub v1.1 operations', () => {
+    const node = NODE_CATALOG.github;
+    const operationParams = node.params.filter(({ n8nKey }) => n8nKey === 'operation');
+    expect(node).toMatchObject({ n8nVersion: 1.1, usableAsTool: true });
+    expect(params('github').resource.options).toHaveLength(9);
+    expect(operationParams.reduce((total, param) => total + param.options.length, 0)).toBe(48);
+  });
+
+  it('models Google Docs v2 create, get, and update', () => {
+    const node = NODE_CATALOG['google-docs'];
+    const p = params('google-docs');
+    expect(node).toMatchObject({ n8nVersion: 2, usableAsTool: true });
+    expect(p.resource.options.map(({ value }) => value)).toEqual(['document']);
+    expect(p.operation.options.map(({ value }) => value)).toEqual(['create', 'get', 'update']);
+  });
+
+  it('models all 15 standalone Google Gemini v1.2 operations', () => {
+    const node = NODE_CATALOG['google-gemini'];
+    const operationParams = node.params.filter(({ n8nKey }) => n8nKey === 'operation');
+    expect(node).toMatchObject({ n8nVersion: 1.2, usableAsTool: true });
+    expect(params('google-gemini').resource.options).toHaveLength(7);
+    expect(operationParams.reduce((total, param) => total + param.options.length, 0)).toBe(15);
+  });
+});
+
 describe('core-node completion inventory', () => {
   it('tracks the complete official docs scope without duplicates', () => {
     expect(CORE_NODE_INVENTORY).toHaveLength(67);
