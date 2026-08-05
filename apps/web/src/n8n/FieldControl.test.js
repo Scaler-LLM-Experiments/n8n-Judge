@@ -197,6 +197,12 @@ describe('conditional collection fields', () => {
     expect(fieldIsVisible(field, { queryParameters: '' })).toBe(true);
   });
 
+  it('matches multi-option selections and negative conditions', () => {
+    expect(fieldIsVisible({ showWhen: { trigger: ['message'] } }, { trigger: ['reaction_added', 'message'] })).toBe(true);
+    expect(fieldIsVisible({ showWhen: { watchAll: { not: true } } }, {})).toBe(true);
+    expect(fieldIsVisible({ showWhen: { watchAll: { not: true } } }, { watchAll: true })).toBe(false);
+  });
+
   it('resolves conditions through a sibling collection value', () => {
     const field = { showWhen: { 'columns.mappingMode': ['autoMapInputData'] } };
     expect(fieldIsVisible(field, { columns: { mappingMode: 'autoMapInputData' } })).toBe(true);

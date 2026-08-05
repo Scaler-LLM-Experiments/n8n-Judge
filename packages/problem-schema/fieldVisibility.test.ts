@@ -27,6 +27,19 @@ describe('isFieldVisible', () => {
     expect(isFieldVisible(f, { mode: 'c' })).toBe(false);
   });
 
+  it('matches any selected multi-option value', () => {
+    const f = { key: 'x', showWhen: { events: ['message', 'file_share'] } };
+    expect(isFieldVisible(f, { events: ['reaction_added', 'message'] })).toBe(true);
+    expect(isFieldVisible(f, { events: ['reaction_added'] })).toBe(false);
+  });
+
+  it('supports n8n negative conditions for hidden or undefined toggles', () => {
+    const f = { key: 'channel', showWhen: { watchAll: { not: true } } };
+    expect(isFieldVisible(f, {})).toBe(true);
+    expect(isFieldVisible(f, { watchAll: false })).toBe(true);
+    expect(isFieldVisible(f, { watchAll: true })).toBe(false);
+  });
+
   it('supports n8n hide conditions', () => {
     const f = { key: 'tools', hideWhen: { hideTools: ['hide'] } };
     expect(isFieldVisible(f, { hideTools: 'show' })).toBe(true);

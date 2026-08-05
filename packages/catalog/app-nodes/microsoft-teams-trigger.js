@@ -110,7 +110,7 @@ const microsoftTeamsTrigger = {
       key: 'channelId', n8nKey: 'channelId', label: 'Channel', kind: 'resourceLocator', sourceKind: 'resourceLocator',
       value: { __rl: true, mode: 'list', value: '' }, sourceDefault: { mode: 'list', value: '' }, required: true,
       locked: true, dynamic: true, modes: ['list', 'id', 'url'], modeOptions: channelModes, options: [],
-      showWhen: { event: ['newChannelMessage'], watchAllTeams: [false], watchAllChannels: [false] },
+      showWhen: { event: ['newChannelMessage'], watchAllTeams: { not: true }, watchAllChannels: { not: true } },
       n8nShowWhen: { event: ['newChannelMessage'], watchAllTeams: [{ _cnd: { not: true } }], watchAllChannels: [{ _cnd: { not: true } }] },
       description: 'Select a channel from the list, enter an ID or a URL', simulationNote: 'Channel list search is locked and empty. ID and URL modes remain authorable.',
     },

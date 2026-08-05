@@ -20,16 +20,28 @@
 // See docs/n8n-reference/00-how-n8n-actually-works.md §4–§5.
 
 type Values = Record<string, unknown>;
+type ConditionalValue = string | number | boolean;
+type Condition = ConditionalValue[] | { not?: unknown; notIn?: unknown[] };
 
 export interface ConditionalField {
   key: string;
-  showWhen?: Record<string, Array<string | number | boolean>>;
-  hideWhen?: Record<string, Array<string | number | boolean>>;
+  showWhen?: Record<string, Condition>;
+  hideWhen?: Record<string, Condition>;
 }
 
 /** Loose equality, so authored `true` matches a checkbox's `true` and `3` matches `'3'`. */
-function matches(actual: unknown, accepted: Array<string | number | boolean>): boolean {
-  return accepted.some((a) => a === actual || String(a) === String(actual ?? ''));
+function same(actual: unknown, accepted: unknown): boolean {
+  return accepted === actual || String(accepted) === String(actual ?? '');
+}
+
+function matches(actual: unknown, accepted: Condition): boolean {
+  if (!Array.isArray(accepted)) {
+    if ('not' in accepted) return !same(actual, accepted.not);
+    if (accepted.notIn) return !accepted.notIn.some((value) => same(actual, value));
+    return false;
+  }
+  const actualValues = Array.isArray(actual) ? actual : [actual];
+  return actualValues.some((value) => accepted.some((candidate) => same(value, candidate)));
 }
 
 /** Is this field displayed, given the values chosen so far? */

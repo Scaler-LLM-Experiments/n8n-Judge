@@ -324,7 +324,7 @@ const googleSheetsTrigger = {
             },
             { key: 'headerRow', n8nKey: 'headerRow', label: 'Header Row', kind: 'number', value: 1, required: false, min: 1, showWhen: { rangeDefinition: ['specifyRange'] }, hint: 'First row is row 1', description: 'Index of the row which contains the keys. Starts at 1. The incoming node data is matched to the keys for assignment. The matching is case sensitive.' },
             { key: 'firstDataRow', n8nKey: 'firstDataRow', label: 'First Data Row', kind: 'number', value: 2, required: false, min: 1, showWhen: { rangeDefinition: ['specifyRange'] }, hint: 'First row is row 1', description: 'Index of the first row which contains the actual data and not the keys. Starts with 1.' },
-            { key: 'range', n8nKey: 'range', label: 'Range', kind: 'text', value: '', required: false, placeholder: 'A:Z', showWhen: { rangeDefinition: ['specifyRangeA1'] }, hint: 'You can specify both the rows and the columns, e.g. C4:E7', description: 'The table range to read from or to append data to.' },
+            { key: 'range', n8nKey: 'range', label: 'Range', kind: 'text', value: '', required: false, placeholder: 'A:Z', showWhen: { rangeDefinition: ['specifyRangeA1'] }, hint: 'You can specify both the rows and the columns, e.g. C4:E7', description: 'The table range to read from or to append data to. See the Google <a href="https://developers.google.com/sheets/api/guides/values#writing">documentation</a> for the details.' },
           ],
         },
         {
@@ -341,7 +341,7 @@ const googleSheetsTrigger = {
             { label: 'Formatted', value: 'FORMATTED_VALUE', description: "Values will be formatted and calculated according to the cell's formatting (based on the spreadsheet's locale)" },
             { label: 'Formula', value: 'FORMULA', description: 'Values will not be calculated. The reply will include the formulas.' },
           ],
-          description: 'Determines how values will be rendered in the output.',
+          description: 'Determines how values will be rendered in the output. <a href="https://developers.google.com/sheets/api/reference/rest/v4/ValueRenderOption" target="_blank">More info</a>.',
         },
         {
           key: 'dateTimeRenderOption',
@@ -356,7 +356,7 @@ const googleSheetsTrigger = {
             { label: 'Serial Number', value: 'SERIAL_NUMBER', description: 'Fields will be returned as doubles in "serial number" format (as popularized by Lotus 1-2-3)' },
             { label: 'Formatted String', value: 'FORMATTED_STRING', description: 'Fields will be rendered as strings in their given number format (which depends on the spreadsheet locale)' },
           ],
-          description: 'Determines how dates should be rendered in the output.',
+          description: 'Determines how dates should be rendered in the output.  <a href="https://developers.google.com/sheets/api/reference/rest/v4/DateTimeRenderOption" target="_blank">More info</a>.',
         },
       ],
     },

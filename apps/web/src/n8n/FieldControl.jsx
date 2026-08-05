@@ -134,7 +134,12 @@ const atPath = (value, path) => String(path ?? '').split('.').filter(Boolean)
 const matchesVisibility = (values, conditions = {}) => Object.entries(conditions).every(
   ([key, accepted]) => {
     const actual = resourceValue(atPath(values, key));
-    if (Array.isArray(accepted)) return accepted.includes(actual);
+    if (Array.isArray(accepted)) {
+      const actualValues = Array.isArray(actual) ? actual : [actual];
+      return actualValues.some((value) => accepted.includes(value));
+    }
+    if (accepted?.not !== undefined) return actual !== accepted.not;
+    if (accepted?.notIn) return !accepted.notIn.includes(actual);
     if (accepted?.exists !== undefined) return Object.hasOwn(values ?? {}, key) === accepted.exists;
     if (accepted?.includes !== undefined) return String(actual ?? '').includes(accepted.includes);
     return actual === accepted;

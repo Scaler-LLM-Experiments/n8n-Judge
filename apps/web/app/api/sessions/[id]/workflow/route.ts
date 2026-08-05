@@ -35,7 +35,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /** Percent of 100 a learner must reach before the flow is offered. */
-export const WORKFLOW_UNLOCK_SCORE = 80;
+const WORKFLOW_UNLOCK_SCORE = 80;
 
 export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const authed = await auth();

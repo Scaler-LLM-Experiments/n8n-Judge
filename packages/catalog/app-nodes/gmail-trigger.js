@@ -168,7 +168,6 @@ const gmailTrigger = {
   icon: '/node-icons/gmail.svg',
   n8nIcon: 'file:gmail.svg',
   iconMode: 'image',
-  aliases: ['email'],
   docs: 'https://docs.n8n.io/integrations/builtin/trigger-nodes/n8n-nodes-base.gmailtrigger/',
   credentialDocs: 'https://docs.n8n.io/integrations/builtin/credentials/google/oauth-single-service/',
   source: {

@@ -32,7 +32,10 @@ export function resolveNodePorts(entry = {}, values = {}) {
   const effectiveValues = { ...defaultsForParams(entry.params), ...values };
   const matches = (actual, allowed) => {
     const comparable = actual && typeof actual === 'object' && '__rl' in actual ? actual.value : actual;
-    if (Array.isArray(allowed)) return allowed.includes(comparable);
+    if (Array.isArray(allowed)) {
+      const values = Array.isArray(comparable) ? comparable : [comparable];
+      return values.some((value) => allowed.includes(value));
+    }
     if (allowed?.not !== undefined) return comparable !== allowed.not;
     if (allowed?.notIn) return !allowed.notIn.includes(comparable);
     if (allowed?.includes !== undefined) return String(comparable ?? '').includes(allowed.includes);
