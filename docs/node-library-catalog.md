@@ -1,6 +1,6 @@
 # n8n node library catalog
 
-Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **176 canonical nodes** (27 triggers, 24 app actions, 125 core/data/AI nodes) plus 10 compatibility aliases.
+Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **179 canonical nodes** (27 triggers, 24 app actions, 128 core/data/AI nodes) plus 10 compatibility aliases.
 
 ## How to choose
 
@@ -80,12 +80,13 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | YouTube | `youtube` | Consume YouTube API |
 | Zoom | `zoom` | Consume Zoom API |
 
-## Core, data, and AI building blocks (125)
+## Core, data, and AI building blocks (128)
 
 | Node | Catalog type | Function |
 |---|---|---|
 | Aggregate | `aggregate` | Combine a field from many items into a list in a single item |
 | AI Agent | `ai-agent` | Configure a tool-using AI agent with model, memory, tools, and optional structured output |
+| AI Agent Tool | `ai-agent-tool` | Configure an AI agent exposed through an AI Tool connector |
 | AI Transform | `ai-transform` | Modify data based on instructions written in plain english |
 | Anthropic Chat Model | `anthropic-chat-model` | Configure an Anthropic Claude chat model and current thinking controls |
 | Auto-fixing Output Parser | `auto-fixing-output-parser` | Configure the deprecated parser wrapper and retry prompt without invoking a model |
@@ -93,6 +94,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Azure AI Search Vector Store | `azure-ai-search-vector-store` | Configure Azure AI Search insertion, search, retrieval, tool, and update modes |
 | Azure OpenAI Chat Model | `azure-openai-chat-model` | Configure an Azure OpenAI chat deployment and completion controls |
 | Basic LLM Chain | `basic-llm-chain` | Prompt a language model with optional messages, fallback model, and output parser |
+| Calculator | `calculator` | Connect an inert arithmetic tool descriptor to an AI Agent |
 | Character Text Splitter | `character-text-splitter` | Configure character-based document chunks, separator, size, and overlap |
 | Chat | `chat` | Send a message into the chat |
 | Chat Memory Manager | `chat-memory-manager` | Retrieve, insert, replace, or delete messages in connected chat memory |
@@ -198,6 +200,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Summarize | `summarize-items` | Sum, count, max, etc. across items |
 | Switch | `switch` | Route items depending on defined expression or rules |
 | Text Classifier | `text-classifier` | Classify text into authored category output branches |
+| Token Splitter | `token-splitter` | Configure token-based document chunk size and overlap |
 | TOTP | `totp` | Generate a time-based one-time password |
 | Vercel AI Gateway Chat Model | `vercel-ai-gateway-chat-model` | Configure a Vercel AI Gateway chat model and completion controls |
 | Vector Store Retriever | `vector-store-retriever` | Configure a vector store as a retriever with a result limit |

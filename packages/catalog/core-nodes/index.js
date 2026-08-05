@@ -8,12 +8,14 @@
 
 import aiTransform from './ai-transform.js';
 import aiAgent from './ai-agent.js';
+import aiAgentTool from './ai-agent-tool.js';
 import autoFixingOutputParser from './auto-fixing-output-parser.js';
 import anthropicChatModel from './anthropic-chat-model.js';
 import awsBedrockChatModel from './aws-bedrock-chat-model.js';
 import azureAiSearchVectorStore from './azure-ai-search-vector-store.js';
 import azureOpenAiChatModel from './azure-openai-chat-model.js';
 import basicLlmChain from './basic-llm-chain.js';
+import calculator from './calculator.js';
 import code from './code.js';
 import chatMemoryManager from './chat-memory-manager.js';
 import characterTextSplitter from './character-text-splitter.js';
@@ -126,6 +128,7 @@ import summarizationChain from './summarization-chain.js';
 import summarizeItems from './summarize-items.js';
 import switchNode from './switch.js';
 import textClassifier from './text-classifier.js';
+import tokenSplitter from './token-splitter.js';
 import totp from './totp.js';
 import vercelAiGatewayChatModel from './vercel-ai-gateway-chat-model.js';
 import vectorStoreRetriever from './vector-store-retriever.js';
@@ -296,9 +299,9 @@ export const CLUSTER_NODE_INVENTORY = [
   { type: 'workflow-retriever', docsSlug: 'n8n-nodes-langchain.retrieverworkflow', label: 'Workflow Retriever', clusterRole: 'sub', status: 'complete' },
   { type: 'character-text-splitter', docsSlug: 'n8n-nodes-langchain.textsplittercharactertextsplitter', label: 'Character Text Splitter', clusterRole: 'sub', status: 'complete' },
   { type: 'recursive-character-text-splitter', docsSlug: 'n8n-nodes-langchain.textsplitterrecursivecharactertextsplitter', label: 'Recursive Character Text Splitter', clusterRole: 'sub', status: 'complete' },
-  { type: 'token-splitter', docsSlug: 'n8n-nodes-langchain.textsplittertokensplitter', label: 'Token Splitter', clusterRole: 'sub', status: 'pending' },
-  { type: 'ai-agent-tool', docsSlug: 'n8n-nodes-langchain.toolaiagent', label: 'AI Agent Tool', clusterRole: 'sub', status: 'pending' },
-  { type: 'calculator', docsSlug: 'n8n-nodes-langchain.toolcalculator', label: 'Calculator', clusterRole: 'sub', status: 'pending' },
+  { type: 'token-splitter', docsSlug: 'n8n-nodes-langchain.textsplittertokensplitter', label: 'Token Splitter', clusterRole: 'sub', status: 'complete' },
+  { type: 'ai-agent-tool', docsSlug: 'n8n-nodes-langchain.toolaiagent', label: 'AI Agent Tool', clusterRole: 'sub', status: 'complete' },
+  { type: 'calculator', docsSlug: 'n8n-nodes-langchain.toolcalculator', label: 'Calculator', clusterRole: 'sub', status: 'complete' },
   { type: 'custom-code-tool', docsSlug: 'n8n-nodes-langchain.toolcode', label: 'Custom Code Tool', clusterRole: 'sub', status: 'pending' },
   { type: 'mcp-client-tool', docsSlug: 'n8n-nodes-langchain.toolmcp', label: 'MCP Client Tool', clusterRole: 'sub', status: 'pending' },
   { type: 'searxng-tool', docsSlug: 'n8n-nodes-langchain.toolsearxng', label: 'SearXNG Tool', clusterRole: 'sub', status: 'pending' },
@@ -342,6 +345,7 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
     autoFixingOutputParser, itemListOutputParser, structuredOutputParser,
     contextualCompressionRetriever, multiQueryRetriever, vectorStoreRetriever,
     workflowRetriever, characterTextSplitter, recursiveCharacterTextSplitter,
+    tokenSplitter, aiAgentTool, calculator,
     aiTransform, code, compareDatasets,
     compression, convertToFile, crypto,
     dataTable, dateTime, debugHelper,

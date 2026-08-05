@@ -1277,6 +1277,49 @@ describe('cluster-node batch 25 carries Workflow Retriever and character-splitte
   });
 });
 
+describe('cluster-node batch 26 carries Token Splitter, AI Agent Tool, and Calculator surfaces', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((param) => [param.key, param]));
+  const fields = (param) => Object.fromEntries(param.fields.map((field) => [field.key, field]));
+
+  it('models Token Splitter v1 defaults without tokenization', () => {
+    const node = NODE_CATALOG['token-splitter'];
+    const p = params('token-splitter');
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.textSplitterTokenSplitter' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 3, helperGeneratedFieldCount: 1, dynamicFieldCount: 0, totalAuthoringFieldCount: 3 });
+    expect(p.chunkSize.value).toBe(1000);
+    expect(p.chunkOverlap.value).toBe(0);
+    expect(node.source.runtimeConstantsExcluded).toMatchObject({ encodingName: 'cl100k_base', keepSeparator: false });
+    expect(node.simulation).toMatchObject({ tokenizerAccess: false, tokenIteration: false, textSplitting: false });
+  });
+
+  it('models AI Agent Tool current v3 imported options and dynamic connectors', () => {
+    const node = NODE_CATALOG['ai-agent-tool'];
+    const p = params('ai-agent-tool');
+    const options = fields(p.options);
+    expect(node).toMatchObject({ n8nVersion: 3, defaultVersion: 3, n8nType: '@n8n/n8n-nodes-langchain.agentTool', dynamicPorts: true });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 26, sourceVisibleFieldCount: 25, hiddenSourceFieldCount: 1, optionFieldCount: 10, totalAuthoringFieldCount: 26 });
+    expect(p.hasOutputParser.value).toBe(false);
+    expect(p.needsFallback.value).toBe(false);
+    expect(options.systemMessage).toMatchObject({ kind: 'textarea', rows: 6, value: 'You are a helpful assistant' });
+    expect(options.tracingMetadata).toMatchObject({ kind: 'fixedCollection', multiple: true, collectionKey: 'values' });
+    expect(fields(options.tracingMetadata).tracingObjectValue).toMatchObject({ kind: 'textarea', sourceKind: 'json', editor: 'json' });
+    expect(options.batching.fields.map(({ key, value }) => [key, value])).toEqual([['batchSize', 1], ['delayBetweenBatches', 0]]);
+    expect(options.maxTokensFromMemory.kind).toBe('hidden');
+    expect(node.portParity).toMatchObject({ inputCountDefault: 3, inputCountWithOutputParserAndFallback: 5, mainInputPresent: false });
+    expect(node.excludedHistoricalAuthoring[0].version).toBe(2.2);
+  });
+
+  it('models Calculator v1 as one notice and one inert tool output', () => {
+    const node = NODE_CATALOG.calculator;
+    const p = params('calculator');
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.toolCalculator' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 1, helperGeneratedFieldCount: 1, dynamicFieldCount: 0, totalAuthoringFieldCount: 1 });
+    expect(p.agentConnectionNotice.label).toContain('connected to an AI agent');
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_tool', label: 'Tool' })]);
+    expect(node.simulation).toMatchObject({ calculation: false, toolInvocation: false, execute: false });
+  });
+});
+
 // Judge does not implement typeVersion — one shipped schema per node type is the
 // right simplification — but every node must SAY which real node and version it
 // models, or the catalogue drifts from the n8n a learner meets next and nobody
