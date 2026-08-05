@@ -1,0 +1,252 @@
+// Editor-only descriptor for n8n's Rename Keys v1 node. It preserves the full
+// mapping and regex authoring surface without changing item data.
+
+const renameKeys = {
+  type: 'rename-keys',
+  n8nType: 'n8n-nodes-base.renameKeys',
+  n8nVersion: 1,
+  defaultVersion: 1,
+  versionHistory: [1],
+  label: 'Rename Keys',
+  subtitle: '',
+  description: 'Update item field names',
+  details: 'Use the Rename Keys node to rename the keys of a key-value pair in n8n.',
+  category: 'core',
+  categories: ['Core Nodes'],
+  subcategory: 'Data Transformation',
+  subcategories: ['Data Transformation'],
+  group: ['transform'],
+  inputs: ['main'],
+  outputs: ['main'],
+  icon: '/node-icons/rename-keys.svg',
+  n8nIcon: 'node:rename-keys',
+  iconColor: 'crimson',
+  iconHex: '#772244',
+  iconColorLight: '#772244',
+  iconColorDark: '#F188A2',
+  iconMode: 'currentColor',
+  aliases: [],
+  docs: 'https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.renamekeys/',
+  source: {
+    commit: '3d68c29b9281f14097aa9f15e01ac0777e538b11',
+    path: 'packages/nodes-base/nodes/RenameKeys/RenameKeys.node.ts',
+    descriptionPath: 'packages/nodes-base/nodes/RenameKeys/RenameKeys.node.ts',
+    directDescriptionImports: [],
+    metadataPath: 'packages/nodes-base/nodes/RenameKeys/RenameKeys.node.json',
+    testPath: 'packages/nodes-base/nodes/RenameKeys/test/RenameKeys.test.ts',
+    iconPath:
+      'packages/frontend/@n8n/design-system/src/components/N8nIcon/nodes/rename-keys.svg',
+    directImports: [
+      { module: 'lodash/get', defaultImport: 'get', typeOnly: false },
+      { module: 'lodash/set', defaultImport: 'set', typeOnly: false },
+      { module: 'lodash/unset', defaultImport: 'unset', typeOnly: false },
+      {
+        module: 'n8n-workflow',
+        names: ['NodeConnectionTypes', 'deepCopy', 'safeRegex'],
+        typeOnly: false,
+      },
+      {
+        module: 'n8n-workflow',
+        names: [
+          'IExecuteFunctions',
+          'IDataObject',
+          'INodeExecutionData',
+          'INodeType',
+          'INodeTypeDescription',
+        ],
+        typeOnly: true,
+      },
+    ],
+  },
+  defaults: { name: 'Rename Keys' },
+  params: [
+    {
+      key: 'keys',
+      n8nKey: 'keys',
+      label: 'Keys',
+      kind: 'fixedCollection',
+      value: {},
+      sourceDefault: {},
+      required: false,
+      multiple: true,
+      sortable: true,
+      collectionKey: 'key',
+      collectionLabel: 'Key',
+      addLabel: 'Add new key',
+      description: 'Adds a key which should be renamed',
+      fields: [
+        {
+          key: 'currentKey',
+          n8nKey: 'keys.key.currentKey',
+          sourceN8nKey: 'currentKey',
+          label: 'Current Key Name',
+          kind: 'text',
+          value: '',
+          required: false,
+          placeholder: 'currentKey',
+          requiresDataPath: 'single',
+          supportsDotNotation: true,
+          description:
+            'The current name of the key. It is also possible to define deep keys by using dot-notation like for example: "level1.level2.currentKey".',
+        },
+        {
+          key: 'newKey',
+          n8nKey: 'keys.key.newKey',
+          sourceN8nKey: 'newKey',
+          label: 'New Key Name',
+          kind: 'text',
+          value: '',
+          required: false,
+          placeholder: 'newKey',
+          supportsDotNotation: true,
+          description:
+            'The name the key should be renamed to. It is also possible to define deep keys by using dot-notation like for example: "level1.level2.newKey".',
+        },
+      ],
+    },
+    {
+      key: 'additionalOptions',
+      n8nKey: 'additionalOptions',
+      label: 'Additional Options',
+      kind: 'collection',
+      value: {},
+      sourceDefault: {},
+      required: false,
+      addLabel: 'Add option',
+      fields: [
+        {
+          key: 'regexReplacement',
+          n8nKey: 'additionalOptions.regexReplacement',
+          sourceN8nKey: 'regexReplacement',
+          label: 'Regex',
+          kind: 'fixedCollection',
+          value: {},
+          sourceDefault: {},
+          required: false,
+          multiple: true,
+          sortable: true,
+          collectionKey: 'replacements',
+          collectionLabel: 'Replacement',
+          addLabel: 'Add new regular expression',
+          description: 'Adds a regular expression',
+          fields: [
+            {
+              key: 'regExNotice',
+              n8nKey:
+                'additionalOptions.regexReplacement.replacements.regExNotice',
+              sourceN8nKey: 'regExNotice',
+              label:
+                'Be aware that by using regular expression previously renamed keys can be affected',
+              kind: 'notice',
+              value: '',
+              required: false,
+            },
+            {
+              key: 'searchRegex',
+              n8nKey:
+                'additionalOptions.regexReplacement.replacements.searchRegex',
+              sourceN8nKey: 'searchRegex',
+              label: 'Regular Expression',
+              kind: 'text',
+              value: '',
+              required: false,
+              placeholder: 'e.g. [N-n]ame',
+              description: 'Regex to match the key name',
+              hint: 'Learn more and test RegEx <a href="https://regex101.com/">here</a>',
+              simulationNote: 'The expression is stored as text and is never compiled or tested.',
+            },
+            {
+              key: 'replaceRegex',
+              n8nKey:
+                'additionalOptions.regexReplacement.replacements.replaceRegex',
+              sourceN8nKey: 'replaceRegex',
+              label: 'Replace With',
+              kind: 'text',
+              value: '',
+              required: false,
+              placeholder: 'replacedName',
+              description:
+                "The name the key/s should be renamed to. It's possible to use regex captures e.g. $1, $2, ...",
+            },
+            {
+              key: 'regexOptions',
+              n8nKey:
+                'additionalOptions.regexReplacement.replacements.options',
+              sourceN8nKey: 'options',
+              label: 'Options',
+              kind: 'collection',
+              value: {},
+              sourceDefault: {},
+              required: false,
+              addLabel: 'Add Regex Option',
+              fields: [
+                {
+                  key: 'caseInsensitive',
+                  n8nKey:
+                    'additionalOptions.regexReplacement.replacements.options.caseInsensitive',
+                  sourceN8nKey: 'caseInsensitive',
+                  label: 'Case Insensitive',
+                  kind: 'boolean',
+                  value: false,
+                  required: false,
+                  description: 'Whether to use case insensitive match',
+                },
+                {
+                  key: 'depth',
+                  n8nKey:
+                    'additionalOptions.regexReplacement.replacements.options.depth',
+                  sourceN8nKey: 'depth',
+                  label: 'Max Depth',
+                  kind: 'number',
+                  value: -1,
+                  required: false,
+                  description: 'Maximum depth to replace keys',
+                  hint:
+                    'Specify number for depth level (-1 for unlimited, 0 for top level only)',
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ],
+  hints: [
+    {
+      type: 'warning',
+      message:
+        'Complex regex patterns like nested quantifiers .*+, ()*+, or multiple wildcards may cause performance issues. Consider using simpler patterns like [a-z]+ or \\w+ for better performance.',
+      displayCondition:
+        '={{ $parameter.additionalOptions.regexReplacement.replacements && $parameter.additionalOptions.regexReplacement.replacements.some(r => r.searchRegex && /(\\.\\*\\+|\\)\\*\\+|\\+\\*|\\*.*\\*|\\+.*\\+|\\?.*\\?|\\{[0-9]+,\\}|\\*{2,}|\\+{2,}|\\?{2,}|[a-zA-Z0-9]{4,}[\\*\\+]|\\([^)]*\\|[^)]*\\)[\\*\\+])/.test(r.searchRegex)) }}',
+      whenToDisplay: 'always',
+      location: 'outputPane',
+      simulationNote: 'The source display condition is retained as inert metadata.',
+    },
+  ],
+  renameModes: {
+    selectorExposed: false,
+    explicitMappings: {
+      sourceN8nKey: 'keys.key',
+      alwaysAvailable: true,
+      repeatable: true,
+    },
+    regexReplacements: {
+      sourceN8nKey: 'additionalOptions.regexReplacement.replacements',
+      optional: true,
+      repeatable: true,
+    },
+  },
+  dotNotation: {
+    toggleExposed: false,
+    alwaysSupportedFor: ['currentKey', 'newKey'],
+  },
+  unsupportedVisibleTypes: [],
+  simulation: {
+    configurationOnly: true,
+    mutatesData: false,
+    evaluatesRegex: false,
+  },
+  output: {},
+};
+
+export default renameKeys;

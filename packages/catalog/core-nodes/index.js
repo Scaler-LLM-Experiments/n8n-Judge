@@ -45,6 +45,9 @@ import n8n from './n8n.js';
 import noop from './noop.js';
 import readWriteFile from './read-write-file.js';
 import removeDuplicates from './remove-duplicates.js';
+import renameKeys from './rename-keys.js';
+import respondToWebhook from './respond-to-webhook.js';
+import rssFeedTrigger from './rss-feed-trigger.js';
 
 export const SOURCE_COMMIT = '3d68c29b9281f14097aa9f15e01ac0777e538b11';
 
@@ -91,9 +94,9 @@ export const CORE_NODE_INVENTORY = [
   { type: 'noop', docsSlug: 'n8n-nodes-base.noop', label: 'No Operation, do nothing', status: 'complete' },
   { type: 'read-write-file', docsSlug: 'n8n-nodes-base.readwritefile', label: 'Read/Write Files from Disk', status: 'complete' },
   { type: 'remove-duplicates', docsSlug: 'n8n-nodes-base.removeduplicates', label: 'Remove Duplicates', status: 'complete' },
-  { type: 'rename-keys', docsSlug: 'n8n-nodes-base.renamekeys', label: 'Rename Keys', status: 'pending' },
-  { type: 'respond-to-webhook', docsSlug: 'n8n-nodes-base.respondtowebhook', label: 'Respond to Webhook', status: 'pending' },
-  { type: 'rss-feed-trigger', docsSlug: 'n8n-nodes-base.rssfeedreadtrigger', label: 'RSS Feed Trigger', status: 'pending' },
+  { type: 'rename-keys', docsSlug: 'n8n-nodes-base.renamekeys', label: 'Rename Keys', status: 'complete' },
+  { type: 'respond-to-webhook', docsSlug: 'n8n-nodes-base.respondtowebhook', label: 'Respond to Webhook', status: 'complete' },
+  { type: 'rss-feed-trigger', docsSlug: 'n8n-nodes-base.rssfeedreadtrigger', label: 'RSS Feed Trigger', status: 'complete' },
   { type: 'rss-read', docsSlug: 'n8n-nodes-base.rssfeedread', label: 'RSS Read', status: 'pending' },
   { type: 'schedule', docsSlug: 'n8n-nodes-base.scheduletrigger', label: 'Schedule Trigger', status: 'pending' },
   { type: 'send-email', docsSlug: 'n8n-nodes-base.sendemail', label: 'Send Email', status: 'pending' },
@@ -136,6 +139,7 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
     localFileTrigger, manual, markdown,
     merge, n8nTrigger, n8n,
     noop, readWriteFile, removeDuplicates,
+    renameKeys, respondToWebhook, rssFeedTrigger,
   ].map((node) => [node.type, node])
 );
 
