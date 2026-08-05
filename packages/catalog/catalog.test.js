@@ -974,6 +974,43 @@ describe('cluster-node batch 17 carries current NVIDIA, Ollama, and OpenAI chat 
   });
 });
 
+describe('cluster-node batch 18 carries current OpenRouter, Vercel, and xAI chat models', () => {
+  const optionKeys = (node) => node.params.find(({ key }) => key === 'options').fields.map(({ key }) => key);
+
+  it('models OpenRouter v1 model routing and all eight completion options', () => {
+    const node = NODE_CATALOG['openrouter-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmChatOpenRouter' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 13, credentialEditorFieldCount: 2, dynamicFieldCount: 2 });
+    expect(params.model).toMatchObject({ value: 'openai/gpt-4.1-mini', locked: true, options: [] });
+    expect(params.jsonResponseNotice.showWhen).toEqual({ 'options.responseFormat': ['json_object'] });
+    expect(optionKeys(node)).toEqual(['frequencyPenalty', 'maxTokens', 'responseFormat', 'presencePenalty', 'temperature', 'timeout', 'maxRetries', 'topP']);
+  });
+
+  it('models Vercel AI Gateway v1 credentials, model routing, and eight options', () => {
+    const node = NODE_CATALOG['vercel-ai-gateway-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmChatVercelAiGateway' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 13, credentialEditorFieldCount: 2, dynamicFieldCount: 2 });
+    expect(params.model).toMatchObject({ value: 'openai/gpt-4o', locked: true, options: [] });
+    expect(node.credentialUiMetadata[0].test.request).toMatchObject({ method: 'POST', url: '/chat/completions' });
+    expect(optionKeys(node)).toEqual(['frequencyPenalty', 'maxTokens', 'responseFormat', 'presencePenalty', 'temperature', 'timeout', 'maxRetries', 'topP']);
+  });
+
+  it('models xAI Grok v1 priority, reasoning, and eight shared options', () => {
+    const node = NODE_CATALOG['xai-grok-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    const options = Object.fromEntries(params.options.fields.map((field) => [field.key, field]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmChatXAiGrok' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 15, credentialEditorFieldCount: 2, dynamicFieldCount: 2, currentDirectOptionFieldCount: 10 });
+    expect(params.model).toMatchObject({ value: 'grok-2-vision-1212', locked: true, options: [] });
+    expect(optionKeys(node)).toEqual(['frequencyPenalty', 'maxTokens', 'responseFormat', 'presencePenalty', 'temperature', 'timeout', 'maxRetries', 'topP', 'priority', 'reasoning']);
+    expect(options.priority.value).toBe(false);
+    expect(options.reasoning.options.map(({ value }) => value)).toEqual(['none', 'low', 'medium', 'high']);
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_languageModel', label: 'Model' })]);
+  });
+});
+
 // Judge does not implement typeVersion — one shipped schema per node type is the
 // right simplification — but every node must SAY which real node and version it
 // models, or the catalogue drifts from the n8n a learner meets next and nobody

@@ -1,6 +1,6 @@
 # n8n node library catalog
 
-Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **152 canonical nodes** (27 triggers, 24 app actions, 101 core/data/AI nodes) plus 10 compatibility aliases.
+Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **155 canonical nodes** (27 triggers, 24 app actions, 104 core/data/AI nodes) plus 10 compatibility aliases.
 
 ## How to choose
 
@@ -156,6 +156,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | NVIDIA Nemotron Chat Model | `nvidia-nemotron-chat-model` | Configure an NVIDIA Nemotron chat model and completion controls |
 | Ollama Chat Model | `ollama-chat-model` | Configure a local Ollama chat model and runtime options |
 | OpenAI Chat Model | `openai-chat-model` | Configure OpenAI chat completions, Responses API, and built-in tools |
+| OpenRouter Chat Model | `openrouter-chat-model` | Configure an OpenRouter chat model and completion controls |
 | Oracle Database Vector Store | `oracle-database-vector-store` | Configure Oracle Database vector insertion, search, retrieval, and tool modes |
 | Pinecone Vector Store | `pinecone-vector-store` | Configure Pinecone insertion, search, retrieval, tool, and update modes |
 | Postgres PGVector Store | `pgvector-vector-store` | Configure PostgreSQL PGVector insertion, search, retrieval, and tool modes |
@@ -181,9 +182,11 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Switch | `switch` | Route items depending on defined expression or rules |
 | Text Classifier | `text-classifier` | Classify text into authored category output branches |
 | TOTP | `totp` | Generate a time-based one-time password |
+| Vercel AI Gateway Chat Model | `vercel-ai-gateway-chat-model` | Configure a Vercel AI Gateway chat model and completion controls |
 | Wait | `wait` | Wait before continue with execution |
 | Weaviate Vector Store | `weaviate-vector-store` | Configure Weaviate insertion, search, retrieval, and tool modes |
 | XML | `xml` | Convert data from and to XML |
+| xAI Grok Chat Model | `xai-grok-chat-model` | Configure an xAI Grok chat model, priority, and reasoning controls |
 | Zep Vector Store | `zep-vector-store` | Configure the hidden deprecated Zep insertion, search, retrieval, and tool modes |
 
 ## Compatibility-only aliases (10)
