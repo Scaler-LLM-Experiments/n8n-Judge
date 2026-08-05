@@ -78,6 +78,8 @@ import minimaxChatModel from './minimax-chat-model.js';
 import mistralCloudChatModel from './mistral-cloud-chat-model.js';
 import mongodbAtlasVectorStore from './mongodb-atlas-vector-store.js';
 import moonshotChatModel from './moonshot-chat-model.js';
+import mongodbChatMemory from './mongodb-chat-memory.js';
+import motorhead from './motorhead.js';
 import n8nTrigger from './n8n-trigger.js';
 import n8n from './n8n.js';
 import noop from './noop.js';
@@ -92,6 +94,7 @@ import pineconeVectorStore from './pinecone-vector-store.js';
 import qdrantVectorStore from './qdrant-vector-store.js';
 import qwenCloudChatModel from './qwen-cloud-chat-model.js';
 import redisVectorStore from './redis-vector-store.js';
+import redisChatMemory from './redis-chat-memory.js';
 import readWriteFile from './read-write-file.js';
 import questionAnswerChain from './question-answer-chain.js';
 import removeDuplicates from './remove-duplicates.js';
@@ -266,9 +269,9 @@ export const CLUSTER_NODE_INVENTORY = [
   { type: 'huggingface-inference-model', docsSlug: 'n8n-nodes-langchain.lmopenhuggingfaceinference', label: 'Hugging Face Inference Model', clusterRole: 'sub', status: 'complete' },
   { type: 'chat-memory-manager', docsSlug: 'n8n-nodes-langchain.memorymanager', label: 'Chat Memory Manager', clusterRole: 'sub', status: 'complete' },
   { type: 'simple-memory', docsSlug: 'n8n-nodes-langchain.memorybufferwindow', label: 'Simple Memory', clusterRole: 'sub', status: 'complete' },
-  { type: 'motorhead', docsSlug: 'n8n-nodes-langchain.memorymotorhead', label: 'Motorhead', clusterRole: 'sub', status: 'pending' },
-  { type: 'mongodb-chat-memory', docsSlug: 'n8n-nodes-langchain.memorymongochat', label: 'MongoDB Chat Memory', clusterRole: 'sub', status: 'pending' },
-  { type: 'redis-chat-memory', docsSlug: 'n8n-nodes-langchain.memoryredischat', label: 'Redis Chat Memory', clusterRole: 'sub', status: 'pending' },
+  { type: 'motorhead', docsSlug: 'n8n-nodes-langchain.memorymotorhead', label: 'Motorhead', clusterRole: 'sub', status: 'complete' },
+  { type: 'mongodb-chat-memory', docsSlug: 'n8n-nodes-langchain.memorymongochat', label: 'MongoDB Chat Memory', clusterRole: 'sub', status: 'complete' },
+  { type: 'redis-chat-memory', docsSlug: 'n8n-nodes-langchain.memoryredischat', label: 'Redis Chat Memory', clusterRole: 'sub', status: 'complete' },
   { type: 'postgres-chat-memory', docsSlug: 'n8n-nodes-langchain.memorypostgreschat', label: 'Postgres Chat Memory', clusterRole: 'sub', status: 'pending' },
   { type: 'xata-memory', docsSlug: 'n8n-nodes-langchain.memoryxata', label: 'Xata', clusterRole: 'sub', status: 'pending' },
   { type: 'zep-memory', docsSlug: 'n8n-nodes-langchain.memoryzep', label: 'Zep', clusterRole: 'sub', status: 'pending' },
@@ -322,6 +325,7 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
     openRouterChatModel, vercelAiGatewayChatModel, xAiGrokChatModel,
     cohereModel, lemonadeModel, ollamaModel,
     huggingFaceInferenceModel, chatMemoryManager, simpleMemory,
+    motorhead, mongodbChatMemory, redisChatMemory,
     aiTransform, code, compareDatasets,
     compression, convertToFile, crypto,
     dataTable, dateTime, debugHelper,

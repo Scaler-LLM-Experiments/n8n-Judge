@@ -1089,6 +1089,43 @@ describe('cluster-node batch 20 carries Hugging Face completion and current memo
   });
 });
 
+describe('cluster-node batch 21 carries current Motorhead, MongoDB, and Redis memory surfaces', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((param) => [param.key, param]));
+
+  it('models hidden deprecated Motorhead current v1.4 and its session variants', () => {
+    const node = NODE_CATALOG.motorhead;
+    const p = params('motorhead');
+    expect(node).toMatchObject({ n8nVersion: 1.4, n8nType: '@n8n/n8n-nodes-langchain.memoryMotorhead', hidden: true, deprecated: true });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 7, credentialEditorFieldCount: 3, dynamicFieldCount: 1 });
+    expect(p.sessionIdType.options.map(({ value }) => value)).toEqual(['fromInput', 'customKey']);
+    expect(p.deprecationNotice.label).toContain('no longer maintained');
+    expect(node.excludedHistoricalAuthoring.map(({ sourceVersionCondition }) => sourceVersionCondition)).toEqual(['@version = 1', '@version = 1.1']);
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_memory', label: 'Memory' })]);
+  });
+
+  it('models MongoDB Chat Memory v1.1 and all 12 credential fields', () => {
+    const node = NODE_CATALOG['mongodb-chat-memory'];
+    const p = params('mongodb-chat-memory');
+    expect(node).toMatchObject({ n8nVersion: 1.1, n8nType: '@n8n/n8n-nodes-langchain.memoryMongoDbChat' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 9, credentialEditorFieldCount: 12, dynamicFieldCount: 1, totalAuthoringFieldCount: 21 });
+    expect(node.credentialUiMetadata[0].fields.map(({ key }) => key)).toEqual(['configurationType', 'connectionString', 'host', 'database', 'user', 'password', 'port', 'tls', 'ca', 'cert', 'key', 'passphrase']);
+    expect(p.collectionName.value).toBe('n8n_chat_histories');
+    expect(p.sessionKeyFromPreviousNode).toMatchObject({ readOnly: true, showWhen: { sessionIdType: ['fromInput'] } });
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_memory', label: 'Memory' })]);
+  });
+
+  it('models Redis Chat Memory current v1.6 credentials, TTL, and context window', () => {
+    const node = NODE_CATALOG['redis-chat-memory'];
+    const p = params('redis-chat-memory');
+    expect(node).toMatchObject({ n8nVersion: 1.6, n8nType: '@n8n/n8n-nodes-langchain.memoryRedisChat' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 8, credentialEditorFieldCount: 7, dynamicFieldCount: 1, totalAuthoringFieldCount: 15 });
+    expect(node.credentialUiMetadata[0].fields.map(({ key }) => key)).toEqual(['password', 'user', 'host', 'port', 'database', 'ssl', 'disableTlsVerification']);
+    expect(p.sessionTTL.value).toBe(0);
+    expect(p.contextWindowLength).toMatchObject({ value: 5, sourceVersionCondition: '@version >= 1.3' });
+    expect(node.excludedHistoricalAuthoring.map(({ sourceVersionCondition }) => sourceVersionCondition)).toEqual(['@version = 1', '@version = 1.1']);
+  });
+});
+
 // Judge does not implement typeVersion — one shipped schema per node type is the
 // right simplification — but every node must SAY which real node and version it
 // models, or the catalogue drifts from the n8n a learner meets next and nobody

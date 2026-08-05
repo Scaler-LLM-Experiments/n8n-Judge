@@ -1,6 +1,6 @@
 # n8n node library catalog
 
-Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **161 canonical nodes** (27 triggers, 24 app actions, 110 core/data/AI nodes) plus 10 compatibility aliases.
+Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **164 canonical nodes** (27 triggers, 24 app actions, 113 core/data/AI nodes) plus 10 compatibility aliases.
 
 ## How to choose
 
@@ -153,7 +153,9 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | MiniMax Chat Model | `minimax-chat-model` | Configure a MiniMax M2 chat model and reasoning controls |
 | Mistral Cloud Chat Model | `mistral-cloud-chat-model` | Configure a Mistral Cloud chat model and completion controls |
 | MongoDB Atlas Vector Store | `mongodb-atlas-vector-store` | Configure MongoDB Atlas vector insertion, search, retrieval, tool, and update modes |
+| MongoDB Chat Memory | `mongodb-chat-memory` | Configure MongoDB-backed chat history and session controls |
 | Moonshot Kimi Chat Model | `moonshot-chat-model` | Configure a Moonshot Kimi chat model and completion controls |
+| Motorhead | `motorhead` | Configure the hidden deprecated Motorhead chat memory surface |
 | n8n | `n8n` | Handle events and perform actions on your n8n instance |
 | n8n Form | `form` | Generate webforms in n8n and pass their responses to the workflow |
 | No Operation, do nothing | `noop` | No Operation |
@@ -169,6 +171,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Question and Answer Chain | `question-answer-chain` | Answer questions using a connected retriever and language model |
 | Qwen Cloud Chat Model | `qwen-cloud-chat-model` | Configure a Qwen Cloud language model and completion controls |
 | Read/Write Files from Disk | `read-write-file` | Read or write files from the computer that runs n8n |
+| Redis Chat Memory | `redis-chat-memory` | Configure Redis-backed chat history, sessions, and expiry |
 | Redis Vector Store | `redis-vector-store` | Configure Redis vector-index insertion, search, retrieval, tool, and update modes |
 | Remove Duplicates | `remove-duplicates` | Delete items with matching field values |
 | Rename Keys | `rename-keys` | Update item field names |
