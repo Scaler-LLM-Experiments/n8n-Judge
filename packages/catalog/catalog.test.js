@@ -1126,6 +1126,43 @@ describe('cluster-node batch 21 carries current Motorhead, MongoDB, and Redis me
   });
 });
 
+describe('cluster-node batch 22 carries current Postgres, Xata, and Zep memory surfaces', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((param) => [param.key, param]));
+
+  it('models Postgres Chat Memory v1.4 with all 16 credential fields', () => {
+    const node = NODE_CATALOG['postgres-chat-memory'];
+    const p = params('postgres-chat-memory');
+    expect(node).toMatchObject({ n8nVersion: 1.4, n8nType: '@n8n/n8n-nodes-langchain.memoryPostgresChat' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 8, credentialEditorFieldCount: 16, importedCredentialFieldCount: 8, dynamicFieldCount: 1, totalAuthoringFieldCount: 24 });
+    expect(node.credentialUiMetadata[0].fields.map(({ key }) => key)).toEqual(['host', 'database', 'user', 'password', 'maxConnections', 'allowUnauthorizedCerts', 'ssl', 'port', 'sshTunnel', 'sshAuthenticateWith', 'sshHost', 'sshPort', 'sshUser', 'sshPassword', 'privateKey', 'passphrase']);
+    expect(p.tableName.value).toBe('n8n_chat_histories');
+    expect(p.contextWindowLength).toMatchObject({ value: 5, sourceVersionCondition: '@version >= 1.1' });
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_memory', label: 'Memory' })]);
+  });
+
+  it('models Xata current v1.5 session variants and three credentials', () => {
+    const node = NODE_CATALOG['xata-memory'];
+    const p = params('xata-memory');
+    expect(node).toMatchObject({ n8nVersion: 1.5, n8nType: '@n8n/n8n-nodes-langchain.memoryXata', hidden: false, deprecated: false });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 7, credentialEditorFieldCount: 3, dynamicFieldCount: 1, totalAuthoringFieldCount: 10 });
+    expect(node.credentialUiMetadata[0].fields.map(({ key }) => key)).toEqual(['databaseEndpoint', 'branch', 'apiKey']);
+    expect(p.sessionKeyFromPreviousNode).toMatchObject({ readOnly: true, sourceVersionCondition: '@version >= 1.4' });
+    expect(p.contextWindowLength.value).toBe(5);
+    expect(node.excludedHistoricalAuthoring.map(({ sourceVersionCondition }) => sourceVersionCondition)).toEqual(['@version = 1', '@version = 1.1']);
+  });
+
+  it('models hidden deprecated Zep current v1.4 and exact credential branches', () => {
+    const node = NODE_CATALOG['zep-memory'];
+    const p = params('zep-memory');
+    expect(node).toMatchObject({ n8nVersion: 1.4, n8nType: '@n8n/n8n-nodes-langchain.memoryZep', hidden: true, deprecated: true, iconAssetType: 'png' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 8, credentialEditorFieldCount: 4, dynamicFieldCount: 1, totalAuthoringFieldCount: 12 });
+    expect(node.credentialUiMetadata[0].fields.map(({ key }) => key)).toEqual(['deprecationNotice', 'apiKey', 'cloud', 'apiUrl']);
+    expect(p.supportedVersions.label).toContain('Community edition <= v0.27.2');
+    expect(p.sessionKeyFromPreviousNode).toMatchObject({ readOnly: true, sourceVersionCondition: '@version >= 1.3' });
+    expect(node.excludedHistoricalAuthoring.map(({ sourceVersionCondition }) => sourceVersionCondition)).toEqual(['@version = 1', '@version = 1.1']);
+  });
+});
+
 // Judge does not implement typeVersion — one shipped schema per node type is the
 // right simplification — but every node must SAY which real node and version it
 // models, or the catalogue drifts from the n8n a learner meets next and nobody

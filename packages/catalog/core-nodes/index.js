@@ -91,6 +91,7 @@ import openRouterChatModel from './openrouter-chat-model.js';
 import oracleDatabaseVectorStore from './oracle-database-vector-store.js';
 import pgvectorVectorStore from './pgvector-vector-store.js';
 import pineconeVectorStore from './pinecone-vector-store.js';
+import postgresChatMemory from './postgres-chat-memory.js';
 import qdrantVectorStore from './qdrant-vector-store.js';
 import qwenCloudChatModel from './qwen-cloud-chat-model.js';
 import redisVectorStore from './redis-vector-store.js';
@@ -125,6 +126,8 @@ import webhook from './webhook.js';
 import weaviateVectorStore from './weaviate-vector-store.js';
 import xml from './xml.js';
 import xAiGrokChatModel from './xai-grok-chat-model.js';
+import xataMemory from './xata-memory.js';
+import zepMemory from './zep-memory.js';
 import zepVectorStore from './zep-vector-store.js';
 import chatTrigger from './chat-trigger.js';
 import chat from './chat.js';
@@ -272,9 +275,9 @@ export const CLUSTER_NODE_INVENTORY = [
   { type: 'motorhead', docsSlug: 'n8n-nodes-langchain.memorymotorhead', label: 'Motorhead', clusterRole: 'sub', status: 'complete' },
   { type: 'mongodb-chat-memory', docsSlug: 'n8n-nodes-langchain.memorymongochat', label: 'MongoDB Chat Memory', clusterRole: 'sub', status: 'complete' },
   { type: 'redis-chat-memory', docsSlug: 'n8n-nodes-langchain.memoryredischat', label: 'Redis Chat Memory', clusterRole: 'sub', status: 'complete' },
-  { type: 'postgres-chat-memory', docsSlug: 'n8n-nodes-langchain.memorypostgreschat', label: 'Postgres Chat Memory', clusterRole: 'sub', status: 'pending' },
-  { type: 'xata-memory', docsSlug: 'n8n-nodes-langchain.memoryxata', label: 'Xata', clusterRole: 'sub', status: 'pending' },
-  { type: 'zep-memory', docsSlug: 'n8n-nodes-langchain.memoryzep', label: 'Zep', clusterRole: 'sub', status: 'pending' },
+  { type: 'postgres-chat-memory', docsSlug: 'n8n-nodes-langchain.memorypostgreschat', label: 'Postgres Chat Memory', clusterRole: 'sub', status: 'complete' },
+  { type: 'xata-memory', docsSlug: 'n8n-nodes-langchain.memoryxata', label: 'Xata', clusterRole: 'sub', status: 'complete' },
+  { type: 'zep-memory', docsSlug: 'n8n-nodes-langchain.memoryzep', label: 'Zep', clusterRole: 'sub', status: 'complete' },
   { type: 'auto-fixing-output-parser', docsSlug: 'n8n-nodes-langchain.outputparserautofixing', label: 'Auto-fixing Output Parser', clusterRole: 'sub', status: 'pending' },
   { type: 'item-list-output-parser', docsSlug: 'n8n-nodes-langchain.outputparseritemlist', label: 'Item List Output Parser', clusterRole: 'sub', status: 'pending' },
   { type: 'structured-output-parser', docsSlug: 'n8n-nodes-langchain.outputparserstructured', label: 'Structured Output Parser', clusterRole: 'sub', status: 'pending' },
@@ -326,6 +329,7 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
     cohereModel, lemonadeModel, ollamaModel,
     huggingFaceInferenceModel, chatMemoryManager, simpleMemory,
     motorhead, mongodbChatMemory, redisChatMemory,
+    postgresChatMemory, xataMemory, zepMemory,
     aiTransform, code, compareDatasets,
     compression, convertToFile, crypto,
     dataTable, dateTime, debugHelper,
