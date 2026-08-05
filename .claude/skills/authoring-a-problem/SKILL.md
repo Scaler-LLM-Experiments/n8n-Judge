@@ -353,6 +353,43 @@ Know these before designing a flow around them:
   no node-reference syntax at all. Putting an HTTP Request mid-chain makes the divergence visible.
   Stay consistent with the platform; do not invent `$('Node').item.json` in one case.
 
+## 6c. Every case owes a real n8n workflow file
+
+A learner who scores **80 or more** is offered the case's flow as a file they import into their
+own n8n and run. So a case is not finished until it exports one.
+
+```bash
+npm run workflows:generate -- <slug>     # writes packages/problems/<slug>/workflow.n8n.json
+npm run workflows:generate -- --check    # CI: fails if any file is stale or invalid
+npm run case:verify -- workflow <slug>
+```
+
+The file is **generated, never authored** — from `referenceGraph` plus the correct answers in
+`nodeSetup`, by `packages/engine/exportWorkflow.js`. It is committed anyway, for three reasons:
+it is the case's answer key expressed as something that *runs*, so a diff on it is the clearest
+signal that an authoring change altered the flow's behaviour; it is the CI gate; and it is what
+you drag into n8n to test, with no dev server or session needed.
+
+**What this asks of you as an author:**
+
+- **Use node types that have an export spec.** `problem:check` and `case:verify workflow` both
+  fail on a type with no entry in `packages/engine/n8nNodeSpecs.js`. That is deliberate: a partial
+  export is a file that imports into n8n and then does not work, which is worse than no file. If a
+  case needs a new type, the spec is part of adding it — see §6b, "adding a catalog type is three
+  files", now four.
+- **A `valueOptions` label should be a real n8n expression.** The exporter resolves each
+  `expect.assignments` token back through `valueOptions` to that option's **label**, because the
+  token (`form.name`) is a Judge id and the label (`{{ $json["Full Name"] }}`) is the thing the
+  learner actually picked. A label that is prose instead of an expression exports as a literal
+  string and silently writes that prose into the spreadsheet cell.
+- **Do not hand-write expressions for real n8n lineage.** Author them in Judge's accumulating
+  model, as every case already does. The exporter rewrites them: it walks the chain, and any field
+  the immediate predecessor does not produce becomes `$('That Node').item.json['field']`. This is
+  the fix for the accumulate-vs-replace divergence that both case reviews raised — real n8n's HTTP
+  Request *replaces* the item, so `$json["Full Name"]` after it is undefined and the cell lands
+  empty. The catalog's `output` samples are the source of truth for which node produces what, which
+  is one more reason a stale sample (§6b) is a real bug.
+
 ## 7. Definition of done
 
 A problem is finished when all four are true:

@@ -119,8 +119,14 @@ against `problem:check`. It writes neither `voice.js` nor the registration.
 
 ```bash
 npm run case:verify -- check <slug>         # problem:check, run by us
+npm run workflows:generate -- <slug>        # every case owes an importable n8n file
+npm run case:verify -- workflow <slug>
 npm test && npm run typecheck
 ```
+
+`workflows:generate` **fails** when the case uses a node type with no entry in
+`packages/engine/n8nNodeSpecs.js`. Treat that as the same class of block as a missing catalog
+type: report it and stop, rather than shipping a case whose reward is a file that does not work.
 
 > **Do not register the case here, and do not run `case:verify files` or
 > `case:verify registered` yet.** Registration is deferred to `case_audio`, after narration

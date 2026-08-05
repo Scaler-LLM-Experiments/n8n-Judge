@@ -152,6 +152,21 @@ system: |
   list, narration coverage and cover art. **Exit 0 with warnings read is your bar** — a
   warning is a judgement call, so read it and decide, do not clear it mechanically.
 
+  Then check the case exports a real n8n workflow — a learner scoring 80+ is offered it as a
+  file to import, so it is part of done:
+
+  ```bash
+  npm run workflows:generate -- <slug>
+  ```
+
+  It is generated from `referenceGraph` + your `nodeSetup` answers, never authored. It **fails**
+  if the case uses a node type with no entry in `packages/engine/n8nNodeSpecs.js` — that is
+  deliberate, because a partial export imports into n8n and then does not work. Two things it
+  asks of you: a `valueOptions` **label** must be a real n8n expression (the exporter reads the
+  label, not the token — a prose label writes prose into a spreadsheet cell), and you author
+  expressions in Judge's accumulating model as usual, because the exporter rewrites them for real
+  n8n lineage.
+
   Then, and only then:
 
   ```bash
@@ -172,6 +187,7 @@ system: |
     "blocked": false,
     "blockedReason": null,
     "filesWritten": ["packages/problems/<slug>/meta.js", "…"],
+    "n8nWorkflowExports": true,
     "registrationLines": ["import { yourSlug } from './your-slug/index.js';", "  [yourSlug.id]: yourSlug,"],
     "problemCheckClean": true,
     "testsPass": true,

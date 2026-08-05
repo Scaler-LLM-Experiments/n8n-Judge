@@ -280,6 +280,39 @@ async function checkSeeded(slug) {
 }
 
 /**
+ * The case exports a workflow that imports into real n8n, and the committed file
+ * is current.
+ *
+ * This is the reward a learner unlocks by scoring well, so it is part of done. It
+ * fails when a case uses a node type with no entry in
+ * `packages/engine/n8nNodeSpecs.js` — deliberately, because a partial export is a
+ * file that imports and then does not work, which is worse than no file.
+ */
+async function checkWorkflow(slug) {
+  const problem = await loadFromDisk(slug);
+  if (!problem) return [fail('workflow', 'problem does not load from disk')];
+  const { exportN8nWorkflow, validateN8nWorkflow, serializeWorkflow } = await import('@judge/engine');
+
+  const { workflow, unsupported, warnings } = exportN8nWorkflow(problem);
+  if (unsupported.length) {
+    return [fail('workflow', `no n8n export spec for ${unsupported.join(', ')} — add one in packages/engine/n8nNodeSpecs.js`)];
+  }
+  if (!workflow) return [fail('workflow', warnings.join('; ') || 'nothing exported')];
+
+  const issues = validateN8nWorkflow(workflow);
+  if (issues.length) return [fail('workflow', `${issues.length} validation issue(s): ${issues[0]}`)];
+
+  // The committed copy is the reviewable artefact and the CI gate; a stale one
+  // means an authoring change altered the flow and nobody looked at the diff.
+  const file = path.join('packages/problems', slug, 'workflow.n8n.json');
+  if (!fs.existsSync(file)) return [fail('workflow', `${file} is not committed — run npm run workflows:generate`)];
+  if (fs.readFileSync(file, 'utf8') !== serializeWorkflow(workflow)) {
+    return [fail('workflow', `${file} is stale — run npm run workflows:generate`)];
+  }
+  return [pass('workflow', `${workflow.nodes.length} nodes, valid, committed file current`)];
+}
+
+/**
  * Would the app, right now, serve every problem the database says it has?
  *
  * ---------------------------------------------------------------------------
@@ -402,6 +435,7 @@ const USAGE = [
   '  registered <slug>       in packages/problems/index.js',
   '  check <slug>            problem:check, run by us',
   '  cover <slug>            prompt + src + a real PNG (non-blocking)',
+  '  workflow <slug>         exports importable n8n JSON, and the committed file is current',
   '  voice-rendered <slug>   every clip the table names is on disk',
   '  voice-uploaded <slug>   every clip is in the bucket (one list request)',
   '  seeded <slug>           Postgres serves THIS content, not an older version',
@@ -448,6 +482,9 @@ switch (cmd) {
   case 'servable':
     results = await checkServable();
     break;
+  case 'workflow':
+    results = await checkWorkflow(target);
+    break;
   case 'all': {
     const slug = target;
     console.log(bold(`\nverifying ${slug}\n`));
@@ -457,6 +494,7 @@ switch (cmd) {
       ...checkProblemCheck(slug),
       ...(await checkCover(slug)),
       ...checkVoiceRendered(slug),
+      ...(await checkWorkflow(slug)),
     ];
     // Fake mode never uploaded, seeded or pushed, so asserting it did would fail every
     // rehearsal run for the one reason that is not a defect.
