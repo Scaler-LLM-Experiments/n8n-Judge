@@ -69,6 +69,16 @@ export function resolveNodePorts(entry = {}, values = {}) {
       }
     }
   }
+  const selectedOutputs = entry.dynamicOutputMetadata;
+  if (selectedOutputs?.settingParameter && selectedOutputs?.methodParameter) {
+    const multiple = Boolean(effectiveValues[selectedOutputs.settingParameter]);
+    const parameter = multiple
+      ? selectedOutputs.multipleMethodParameter ?? selectedOutputs.methodParameter
+      : selectedOutputs.singleMethodParameter ?? selectedOutputs.methodParameter;
+    const selected = effectiveValues[parameter];
+    const names = multiple ? (Array.isArray(selected) ? selected : []) : [selected];
+    outputs = names.filter(Boolean).map((name, index) => ({ type: 'main', label: name, name, index }));
+  }
 
   return {
     inputs,

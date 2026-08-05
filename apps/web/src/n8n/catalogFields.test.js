@@ -65,4 +65,12 @@ describe('catalog-backed node setup', () => {
       options: { fallbackOutput: 'extra', renameFallbackOutput: 'Other' },
     }).outputs.map((port) => port.label)).toEqual(['Paid', '1', 'Other']);
   });
+
+  it('renders one Webhook output per selected HTTP method', () => {
+    expect(resolveNodePorts(NODE_CATALOG.webhook, {}).outputs.map((port) => port.label)).toEqual(['GET']);
+    expect(resolveNodePorts(NODE_CATALOG.webhook, {
+      multipleMethods: true,
+      multipleHttpMethods: ['DELETE', 'POST', 'PUT'],
+    }).outputs.map((port) => port.label)).toEqual(['DELETE', 'POST', 'PUT']);
+  });
 });

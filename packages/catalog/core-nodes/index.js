@@ -60,6 +60,9 @@ import stopAndError from './stop-and-error.js';
 import summarizeItems from './summarize-items.js';
 import switchNode from './switch.js';
 import totp from './totp.js';
+import wait from './wait.js';
+import webhook from './webhook.js';
+import xml from './xml.js';
 
 export const SOURCE_COMMIT = '3d68c29b9281f14097aa9f15e01ac0777e538b11';
 
@@ -122,10 +125,10 @@ export const CORE_NODE_INVENTORY = [
   { type: 'summarize-items', docsSlug: 'n8n-nodes-base.summarize', label: 'Summarize', status: 'complete' },
   { type: 'switch', docsSlug: 'n8n-nodes-base.switch', label: 'Switch', status: 'complete' },
   { type: 'totp', docsSlug: 'n8n-nodes-base.totp', label: 'TOTP', status: 'complete' },
-  { type: 'wait', docsSlug: 'n8n-nodes-base.wait', label: 'Wait', status: 'pending' },
-  { type: 'webhook', docsSlug: 'n8n-nodes-base.webhook', label: 'Webhook', status: 'pending' },
+  { type: 'wait', docsSlug: 'n8n-nodes-base.wait', label: 'Wait', status: 'complete' },
+  { type: 'webhook', docsSlug: 'n8n-nodes-base.webhook', label: 'Webhook', status: 'complete' },
   { type: 'workflow-trigger', docsSlug: 'n8n-nodes-base.workflowtrigger', label: 'Workflow Trigger', status: 'excluded-deprecated' },
-  { type: 'xml', docsSlug: 'n8n-nodes-base.xml', label: 'XML', status: 'pending' },
+  { type: 'xml', docsSlug: 'n8n-nodes-base.xml', label: 'XML', status: 'complete' },
   { type: 'chat-trigger', docsSlug: 'n8n-nodes-langchain.chattrigger', label: 'Chat Trigger', status: 'pending' },
   { type: 'chat', docsSlug: 'n8n-nodes-langchain.chat', label: 'Chat', status: 'pending' },
   { type: 'guardrails', docsSlug: 'n8n-nodes-langchain.guardrails', label: 'Guardrails', status: 'pending' },
@@ -156,6 +159,7 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
     editFields, sort, loopOverItems,
     sseTrigger, ssh, stopAndError,
     summarizeItems, switchNode, totp,
+    wait, webhook, xml,
   ].map((node) => [node.type, node])
 );
 
