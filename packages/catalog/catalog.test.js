@@ -228,6 +228,37 @@ describe('essential app-node batch 6 carries the real operation surface', () => 
   });
 });
 
+describe('essential app-node batch 7 carries the real operation surface', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((param) => [param.key, param]));
+
+  it('models all 48 current Slack v2.6 operations', () => {
+    const node = NODE_CATALOG.slack;
+    const operationParams = node.params.filter(({ n8nKey }) => n8nKey === 'operation');
+    expect(node).toMatchObject({ n8nVersion: 2.6, usableAsTool: true, operationCount: 48 });
+    expect(params('slack').resource.options).toHaveLength(7);
+    expect(operationParams.reduce((total, param) => total + param.options.length, 0)).toBe(48);
+    expect(params('slack').messageOperation.options.map(({ value }) => value)).toContain('sendAndWait');
+  });
+
+  it('models all six Google Calendar v1.3 operations', () => {
+    const node = NODE_CATALOG['google-calendar'];
+    const p = params('google-calendar');
+    expect(node).toMatchObject({ n8nVersion: 1.3, usableAsTool: true, operationCount: 6 });
+    expect(p.resource.options.map(({ value }) => value)).toEqual(['calendar', 'event']);
+    expect(p.calendarOperation.options.map(({ value }) => value)).toEqual(['availability']);
+    expect(p.eventOperation.options.map(({ value }) => value)).toEqual(['create', 'delete', 'get', 'getAll', 'update']);
+  });
+
+  it('models all 38 Microsoft Outlook v2 operations', () => {
+    const node = NODE_CATALOG['microsoft-outlook'];
+    const operationParams = node.params.filter(({ n8nKey }) => n8nKey === 'operation');
+    expect(node).toMatchObject({ n8nType: 'n8n-nodes-base.microsoftOutlook', n8nVersion: 2, usableAsTool: true, operationCount: 38 });
+    expect(params('microsoft-outlook').resource.options).toHaveLength(8);
+    expect(operationParams.reduce((total, param) => total + param.options.length, 0)).toBe(38);
+    expect(params('microsoft-outlook').messageOperation.options.map(({ value }) => value)).toContain('sendAndWait');
+  });
+});
+
 describe('core-node completion inventory', () => {
   it('tracks the complete official docs scope without duplicates', () => {
     expect(CORE_NODE_INVENTORY).toHaveLength(67);

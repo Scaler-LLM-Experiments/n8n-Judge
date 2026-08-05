@@ -22,6 +22,9 @@ import twilio from './twilio.js';
 import zoom from './zoom.js';
 import youtube from './youtube.js';
 import gmail from './gmail.js';
+import slack from './slack.js';
+import googleCalendar from './google-calendar.js';
+import microsoftOutlook from './microsoft-outlook.js';
 
 export const APP_SOURCE_COMMIT = '3d68c29b9281f14097aa9f15e01ac0777e538b11';
 
@@ -44,9 +47,9 @@ export const APP_NODE_INVENTORY = [
   { type: 'zoom', docsSlug: 'n8n-nodes-base.zoom', label: 'Zoom', status: 'complete' },
   { type: 'youtube', docsSlug: 'n8n-nodes-base.youtube', label: 'YouTube', status: 'complete' },
   { type: 'gmail', docsSlug: 'n8n-nodes-base.gmail', label: 'Gmail', status: 'complete' },
-  { type: 'slack', docsSlug: 'n8n-nodes-base.slack', label: 'Slack', status: 'pending' },
-  { type: 'google-calendar', docsSlug: 'n8n-nodes-base.googlecalendar', label: 'Google Calendar', status: 'pending' },
-  { type: 'microsoft-outlook', docsSlug: 'n8n-nodes-base.microsoftoutlook', label: 'Microsoft Outlook', status: 'pending' },
+  { type: 'slack', docsSlug: 'n8n-nodes-base.slack', label: 'Slack', status: 'complete' },
+  { type: 'google-calendar', docsSlug: 'n8n-nodes-base.googlecalendar', label: 'Google Calendar', status: 'complete' },
+  { type: 'microsoft-outlook', docsSlug: 'n8n-nodes-base.microsoftoutlook', label: 'Microsoft Outlook', status: 'complete' },
   { type: 'notion', docsSlug: 'n8n-nodes-base.notion', label: 'Notion', status: 'pending' },
   { type: 'telegram', docsSlug: 'n8n-nodes-base.telegram', label: 'Telegram', status: 'pending' },
   { type: 'stripe', docsSlug: 'n8n-nodes-base.stripe', label: 'Stripe', status: 'pending' },
@@ -61,6 +64,7 @@ export const APP_NODE_CATALOG = Object.fromEntries(
     microsoftExcel, microsoftTeams, openAi,
     paypal, postgres, twilio,
     zoom, youtube, gmail,
+    slack, googleCalendar, microsoftOutlook,
   ].map((node) => [node.type, node])
 );
 
