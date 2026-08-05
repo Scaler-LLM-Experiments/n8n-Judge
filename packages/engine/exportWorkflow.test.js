@@ -141,6 +141,14 @@ describe('the traps that still import', () => {
     // …and must NOT rewrite one it does produce: the rate IS the current item.
     expect(cols.USD_INR_Rate).toBe('={{ $json.rates.INR }}');
   });
+
+  it('exports the case-authored form fields after the catalog schema upgrade', () => {
+    const { workflow } = exportN8nWorkflow(problems['trial-signup-desk']);
+    const form = workflow.nodes.find((node) => node.type === 'n8n-nodes-base.formTrigger');
+    expect(form.parameters.formFields.values.map(({ fieldLabel }) => fieldLabel)).toEqual([
+      'Full Name', 'Email', 'Plan', 'Referral Source',
+    ]);
+  });
 });
 
 describe('the export spec table', () => {

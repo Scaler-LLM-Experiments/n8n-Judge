@@ -66,6 +66,7 @@ const switchNode = {
   details:
     'Use the Switch node to route items to different branches. Build a matching rule for each output, or use an expression that returns a zero-based output index.',
   category: 'core',
+  router: true,
   categories: ['Core Nodes'],
   subcategory: 'Flow',
   subcategories: ['Flow'],

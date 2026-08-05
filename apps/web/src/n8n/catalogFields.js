@@ -16,6 +16,18 @@ export function defaultsForParams(params = []) {
   );
 }
 
+/**
+ * Older cases sometimes use teaching keys that intentionally differ from the
+ * native catalog keys. Mixing those two schemas creates duplicate controls, so
+ * keep the legacy authored screen intact unless every graded key has a native
+ * catalog counterpart. New cases that use catalog keys retain the full surface.
+ */
+export function compatibleCatalogParams(params = [], authoredFields = []) {
+  if (!authoredFields.length) return params;
+  const keys = new Set(params.map(({ key }) => key));
+  return authoredFields.every(({ key }) => keys.has(key)) ? params : [];
+}
+
 export function resolveNodePorts(entry = {}, values = {}) {
   const effectiveValues = { ...defaultsForParams(entry.params), ...values };
   const matches = (actual, allowed) => {

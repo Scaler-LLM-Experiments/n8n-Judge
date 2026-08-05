@@ -165,21 +165,21 @@ export const N8N_NODE_SPECS = {
   },
 
   'form-trigger': {
-    parameters: ({ problem }) => ({
-      formTitle: problem.title ?? 'Form',
-      formDescription: problem.brief ?? '',
-      // The four fields a case collects are the vocabulary the rest of the flow
-      // maps from, so they have to be real form fields rather than a free-text
-      // blob. Read from the catalog entry's authored default and split.
-      formFields: {
-        values: (NODE_CATALOG['form-trigger'].params.find((p) => p.key === 'fields')?.value ?? '')
-          .split(',')
-          .map((s) => s.trim())
-          .filter(Boolean)
-          .map((label) => ({ fieldLabel: label, fieldType: 'text', requiredField: false })),
-      },
-      options: {},
-    }),
+    parameters: ({ problem, setup }) => {
+      const locked = Object.fromEntries((setup?.locked ?? []).map(({ label, value }) => [label, value]));
+      const fields = String(locked['Form Fields'] ?? '')
+        .split(/[,·]/)
+        .map((label) => label.trim())
+        .filter(Boolean);
+      return {
+        formTitle: locked['Form Title'] ?? problem.title ?? 'Form',
+        formDescription: locked['Form Description'] ?? problem.brief ?? '',
+        formFields: {
+          values: fields.map((label) => ({ fieldLabel: label, fieldType: 'text', requiredField: false })),
+        },
+        options: {},
+      };
+    },
   },
 
   webhook: {

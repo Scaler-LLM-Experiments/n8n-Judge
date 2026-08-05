@@ -523,6 +523,10 @@ describe('core node batch 2 carries the real configurable surface', () => {
     expect(p.preferWhenMix.showWhen).toEqual({ resolve: ['mix'] });
     expect(p.options.fields.map((field) => field.key)).toEqual(['skipFields', 'disableDotNotation', 'multipleMatches']);
   });
+
+  it('marks Switch as a router independently of case-specific branch names', () => {
+    expect(NODE_CATALOG.switch.router).toBe(true);
+  });
 });
 
 describe('reviewed descriptors preserve existing case sample data', () => {

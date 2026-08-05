@@ -11,7 +11,7 @@ import { RuleListControl } from './RuleListControl.jsx';
 import { defaultSettings, gradeSettings } from './nodeSettings.js';
 import { checkAnswer } from '../lib/grader.js';
 import { useVoiceActions } from '../lib/VoiceContext.jsx';
-import { defaultsForParams, mergeCatalogFields } from './catalogFields.js';
+import { compatibleCatalogParams, defaultsForParams, mergeCatalogFields } from './catalogFields.js';
 
 // Shown once per session: the first time a node verifies, Iris spotlights the
 // close button so the learner learns that closing a green NDV finishes the node.
@@ -46,9 +46,13 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
   // nothing truthful to show — it was claiming "this node starts the flow".
   const isSubNode = typeCategory[node.nodeType] === 'model';
 
-  const allFields = useMemo(
-    () => mergeCatalogFields(node.catalogParams, setup?.fields),
+  const catalogParams = useMemo(
+    () => compatibleCatalogParams(node.catalogParams, setup?.fields),
     [node.catalogParams, setup?.fields]
+  );
+  const allFields = useMemo(
+    () => mergeCatalogFields(catalogParams, setup?.fields),
+    [catalogParams, setup?.fields]
   );
   const resolvedSetup = useMemo(() => ({ ...setup, fields: allFields }), [setup, allFields]);
   // Settings the problem actually grades. The tab always renders the full n8n
@@ -65,7 +69,7 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
   // the lowest attempt that was correct.
   const [settings, setSettings] = useState(() => ({ ...defaultSettings(), ...(node.settings ?? {}) }));
   const [settingsResults, setSettingsResults] = useState(null);
-  const [values, setValues] = useState(() => ({ ...defaultsForParams(node.catalogParams), ...(node.values ?? {}) }));
+  const [values, setValues] = useState(() => ({ ...defaultsForParams(catalogParams), ...(node.values ?? {}) }));
   const [results, setResults] = useState(null); // { [key]: 'correct' | 'wrong' }
   // Per-ROW verdicts for a list field: { '<fieldKey>#<aspect>': { items[], missing } }.
   // Server-only, so a dev route with no session keeps the list-level messages.

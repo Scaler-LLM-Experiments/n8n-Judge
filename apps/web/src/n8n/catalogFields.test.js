@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { defaultsForParams, mergeCatalogFields, resolveNodePorts } from './catalogFields.js';
+import { compatibleCatalogParams, defaultsForParams, mergeCatalogFields, resolveNodePorts } from './catalogFields.js';
 import { NODE_CATALOG } from '@judge/catalog/catalog.js';
 
 describe('catalog-backed node setup', () => {
@@ -26,6 +26,12 @@ describe('catalog-backed node setup', () => {
     expect(mergeCatalogFields([], [{ key: 'decision', label: 'Decision' }])).toEqual([
       { key: 'decision', label: 'Decision', graded: true },
     ]);
+  });
+
+  it('does not mix legacy teaching keys with a contradictory native schema', () => {
+    const params = [{ key: 'sheetOperation' }, { key: 'appendColumns' }];
+    expect(compatibleCatalogParams(params, [{ key: 'operation' }, { key: 'columns' }])).toEqual([]);
+    expect(compatibleCatalogParams(params, [{ key: 'sheetOperation' }])).toBe(params);
   });
 
   it('resolves dynamic ports from authored values and catalog defaults', () => {

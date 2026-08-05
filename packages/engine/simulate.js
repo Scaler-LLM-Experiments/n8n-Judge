@@ -57,7 +57,7 @@ export function roleOf(type) {
   if (m.category === 'trigger') return 'trigger';
   if (m.category === 'action') return 'action';
   if (m.category === 'ai') return 'ai';
-  if (Array.isArray(m.branches) && m.branches.length > 0) return 'router';
+  if (m.router || (Array.isArray(m.branches) && m.branches.length > 0)) return 'router';
   return 'passthrough'; // core (parse, code, …); 'model' sub-nodes never enter the main walk
 }
 
