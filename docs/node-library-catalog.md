@@ -1,6 +1,6 @@
 # n8n node library catalog
 
-Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **146 canonical nodes** (27 triggers, 24 app actions, 95 core/data/AI nodes) plus 10 compatibility aliases.
+Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **149 canonical nodes** (27 triggers, 24 app actions, 98 core/data/AI nodes) plus 10 compatibility aliases.
 
 ## How to choose
 
@@ -80,7 +80,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | YouTube | `youtube` | Consume YouTube API |
 | Zoom | `zoom` | Consume Zoom API |
 
-## Core, data, and AI building blocks (95)
+## Core, data, and AI building blocks (98)
 
 | Node | Catalog type | Function |
 |---|---|---|
@@ -146,7 +146,10 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | MCP Client | `mcp-client` | Standalone MCP Client |
 | Merge | `merge` | Merges data of multiple streams once data from both is available |
 | Milvus Vector Store | `milvus-vector-store` | Configure Milvus insertion, search, retrieval, and tool modes |
+| MiniMax Chat Model | `minimax-chat-model` | Configure a MiniMax M2 chat model and reasoning controls |
+| Mistral Cloud Chat Model | `mistral-cloud-chat-model` | Configure a Mistral Cloud chat model and completion controls |
 | MongoDB Atlas Vector Store | `mongodb-atlas-vector-store` | Configure MongoDB Atlas vector insertion, search, retrieval, tool, and update modes |
+| Moonshot Kimi Chat Model | `moonshot-chat-model` | Configure a Moonshot Kimi chat model and completion controls |
 | n8n | `n8n` | Handle events and perform actions on your n8n instance |
 | n8n Form | `form` | Generate webforms in n8n and pass their responses to the workflow |
 | No Operation, do nothing | `noop` | No Operation |

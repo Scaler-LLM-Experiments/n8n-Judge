@@ -70,7 +70,10 @@ import markdown from './markdown.js';
 import merge from './merge.js';
 import microsoftAgent365Trigger from './microsoft-agent-365-trigger.js';
 import milvusVectorStore from './milvus-vector-store.js';
+import minimaxChatModel from './minimax-chat-model.js';
+import mistralCloudChatModel from './mistral-cloud-chat-model.js';
 import mongodbAtlasVectorStore from './mongodb-atlas-vector-store.js';
+import moonshotChatModel from './moonshot-chat-model.js';
 import n8nTrigger from './n8n-trigger.js';
 import n8n from './n8n.js';
 import noop from './noop.js';
@@ -236,9 +239,9 @@ export const CLUSTER_NODE_INVENTORY = [
   { type: 'google-vertex-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatgooglevertex', label: 'Google Vertex Chat Model', clusterRole: 'sub', status: 'complete' },
   { type: 'groq-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatgroq', label: 'Groq Chat Model', clusterRole: 'sub', status: 'complete' },
   { type: 'lemonade-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatlemonade', label: 'Lemonade Chat Model', clusterRole: 'sub', status: 'complete' },
-  { type: 'minimax-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatminimax', label: 'MiniMax Chat Model', clusterRole: 'sub', status: 'pending' },
-  { type: 'mistral-cloud-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatmistralcloud', label: 'Mistral Cloud Chat Model', clusterRole: 'sub', status: 'pending' },
-  { type: 'moonshot-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatmoonshot', label: 'Moonshot Kimi Chat Model', clusterRole: 'sub', status: 'pending' },
+  { type: 'minimax-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatminimax', label: 'MiniMax Chat Model', clusterRole: 'sub', status: 'complete' },
+  { type: 'mistral-cloud-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatmistralcloud', label: 'Mistral Cloud Chat Model', clusterRole: 'sub', status: 'complete' },
+  { type: 'moonshot-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatmoonshot', label: 'Moonshot Kimi Chat Model', clusterRole: 'sub', status: 'complete' },
   { type: 'nvidia-nemotron-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatnvidia', label: 'NVIDIA Nemotron Chat Model', clusterRole: 'sub', status: 'pending' },
   { type: 'ollama-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatollama', label: 'Ollama Chat Model', clusterRole: 'sub', status: 'pending' },
   { type: 'openai-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatopenai', label: 'OpenAI Chat Model', clusterRole: 'sub', status: 'pending' },
@@ -302,6 +305,7 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
     anthropicChatModel, awsBedrockChatModel, azureOpenAiChatModel,
     cohereChatModel, deepSeekChatModel, googleGeminiChatModel,
     googleVertexChatModel, groqChatModel, lemonadeChatModel,
+    minimaxChatModel, mistralCloudChatModel, moonshotChatModel,
     aiTransform, code, compareDatasets,
     compression, convertToFile, crypto,
     dataTable, dateTime, debugHelper,

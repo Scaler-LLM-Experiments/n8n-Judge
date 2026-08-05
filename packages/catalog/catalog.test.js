@@ -903,6 +903,39 @@ describe('cluster-node batch 15 carries current Vertex, Groq, and Lemonade chat 
   });
 });
 
+describe('cluster-node batch 16 carries current MiniMax, Mistral, and Moonshot chat models', () => {
+  it('models MiniMax v1 static models, region credentials, and reasoning visibility', () => {
+    const node = NODE_CATALOG['minimax-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmChatMinimax' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 10, credentialEditorFieldCount: 3, dynamicFieldCount: 1, modelOptionCount: 7 });
+    expect(params.model).toMatchObject({ value: 'MiniMax-M2.7' });
+    expect(params.model.options.map(({ value }) => value)).toContain('MiniMax-M2.7-highspeed');
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['hideThinking', 'maxTokens', 'temperature', 'timeout', 'maxRetries', 'topP']);
+  });
+
+  it('models Mistral Cloud v1 filtered models and six request options', () => {
+    const node = NODE_CATALOG['mistral-cloud-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmChatMistralCloud' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 10, credentialEditorFieldCount: 1, dynamicFieldCount: 2 });
+    expect(params.model).toMatchObject({ value: 'mistral-small', locked: true, options: [] });
+    expect(params.model.dynamicOptions.filterExpression).toContain("!$responseItem.id.includes('embed')");
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['maxTokens', 'temperature', 'maxRetries', 'topP', 'safeMode', 'randomSeed']);
+  });
+
+  it('models Moonshot Kimi current v1.1 model and eight completion options', () => {
+    const node = NODE_CATALOG['moonshot-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.1, n8nType: '@n8n/n8n-nodes-langchain.lmChatMoonshot', label: 'Moonshot Kimi Chat Model' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 13, credentialEditorFieldCount: 3, dynamicFieldCount: 2 });
+    expect(params.model).toMatchObject({ value: 'kimi-k2.6', locked: true, options: [] });
+    expect(params.jsonResponseNotice.showWhen).toEqual({ 'options.responseFormat': ['json_object'] });
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['frequencyPenalty', 'maxTokens', 'responseFormat', 'presencePenalty', 'temperature', 'timeout', 'maxRetries', 'topP']);
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_languageModel', label: 'Model' })]);
+  });
+});
+
 // Judge does not implement typeVersion — one shipped schema per node type is the
 // right simplification — but every node must SAY which real node and version it
 // models, or the catalogue drifts from the n8n a learner meets next and nobody
