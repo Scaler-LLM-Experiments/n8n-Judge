@@ -1,6 +1,6 @@
 # n8n node library catalog
 
-Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **170 canonical nodes** (27 triggers, 24 app actions, 119 core/data/AI nodes) plus 10 compatibility aliases.
+Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **173 canonical nodes** (27 triggers, 24 app actions, 122 core/data/AI nodes) plus 10 compatibility aliases.
 
 ## How to choose
 
@@ -80,7 +80,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | YouTube | `youtube` | Consume YouTube API |
 | Zoom | `zoom` | Consume Zoom API |
 
-## Core, data, and AI building blocks (119)
+## Core, data, and AI building blocks (122)
 
 | Node | Catalog type | Function |
 |---|---|---|
@@ -102,6 +102,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Compare Datasets | `compare-datasets` | Compare two inputs for changes |
 | Compression | `compression` | Compress and decompress files |
 | Convert to File | `convert-to-file` | Convert JSON data to binary data |
+| Contextual Compression Retriever | `contextual-compression-retriever` | Connect a model and retriever for contextual-compression retrieval configuration |
 | Crypto | `crypto` | Provide cryptographic utilities |
 | Data table | `data-table` | Permanently save data across workflow executions in a table |
 | Date & Time | `date-time` | Manipulate date and time values |
@@ -158,6 +159,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | MongoDB Chat Memory | `mongodb-chat-memory` | Configure MongoDB-backed chat history and session controls |
 | Moonshot Kimi Chat Model | `moonshot-chat-model` | Configure a Moonshot Kimi chat model and completion controls |
 | Motorhead | `motorhead` | Configure the hidden deprecated Motorhead chat memory surface |
+| MultiQuery Retriever | `multi-query-retriever` | Configure how many query variants a connected model would generate |
 | n8n | `n8n` | Handle events and perform actions on your n8n instance |
 | n8n Form | `form` | Generate webforms in n8n and pass their responses to the workflow |
 | No Operation, do nothing | `noop` | No Operation |
@@ -196,6 +198,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Text Classifier | `text-classifier` | Classify text into authored category output branches |
 | TOTP | `totp` | Generate a time-based one-time password |
 | Vercel AI Gateway Chat Model | `vercel-ai-gateway-chat-model` | Configure a Vercel AI Gateway chat model and completion controls |
+| Vector Store Retriever | `vector-store-retriever` | Configure a vector store as a retriever with a result limit |
 | Wait | `wait` | Wait before continue with execution |
 | Weaviate Vector Store | `weaviate-vector-store` | Configure Weaviate insertion, search, retrieval, and tool modes |
 | Xata | `xata-memory` | Configure Xata-backed chat history and session controls |

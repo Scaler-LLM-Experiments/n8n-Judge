@@ -1202,6 +1202,40 @@ describe('cluster-node batch 23 carries current output-parser authoring surfaces
   });
 });
 
+describe('cluster-node batch 24 carries current retriever authoring surfaces', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((param) => [param.key, param]));
+
+  it('models Contextual Compression Retriever v1 as ports-only inert metadata', () => {
+    const node = NODE_CATALOG['contextual-compression-retriever'];
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.retrieverContextualCompression', params: [] });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 0, credentialEditorFieldCount: 0, dynamicFieldCount: 0, totalAuthoringFieldCount: 0 });
+    expect(node.inputs.map(({ type, maxConnections, required }) => [type, maxConnections, required])).toEqual([['ai_languageModel', 1, true], ['ai_retriever', 1, true]]);
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_retriever', maxConnections: 1 })]);
+    expect(node.simulation).toMatchObject({ modelInvocation: false, contextualCompression: false, documentRetrieval: false });
+  });
+
+  it('models MultiQuery Retriever v1 Query Count and capped ports', () => {
+    const node = NODE_CATALOG['multi-query-retriever'];
+    const p = params('multi-query-retriever');
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.retrieverMultiQuery' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 2, credentialEditorFieldCount: 0, dynamicFieldCount: 0, totalAuthoringFieldCount: 2 });
+    expect(p.options.fields[0]).toMatchObject({ key: 'queryCount', value: 3, min: 1 });
+    expect(node.inputs.map(({ type, maxConnections }) => [type, maxConnections])).toEqual([['ai_languageModel', 1], ['ai_retriever', 1]]);
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_retriever', maxConnections: 1 })]);
+  });
+
+  it('models Vector Store Retriever v1 Limit and related-node hint', () => {
+    const node = NODE_CATALOG['vector-store-retriever'];
+    const p = params('vector-store-retriever');
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.retrieverVectorStore' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 1, credentialEditorFieldCount: 0, dynamicFieldCount: 0, totalAuthoringFieldCount: 1 });
+    expect(p.topK).toMatchObject({ kind: 'number', value: 4 });
+    expect(node.inputs).toEqual([expect.objectContaining({ type: 'ai_vectorStore', maxConnections: 1, required: true })]);
+    expect(node.builderHint.relatedNodes[0].nodeType).toBe('@n8n/n8n-nodes-langchain.vectorStoreInMemory');
+    expect(node.simulation).toMatchObject({ vectorStoreAccess: false, vectorRetrieval: false, retrieverCreation: false });
+  });
+});
+
 // Judge does not implement typeVersion — one shipped schema per node type is the
 // right simplification — but every node must SAY which real node and version it
 // models, or the catalogue drifts from the n8n a learner meets next and nobody

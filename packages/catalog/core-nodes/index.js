@@ -22,6 +22,7 @@ import cohereModel from './cohere-model.js';
 import compareDatasets from './compare-datasets.js';
 import compression from './compression.js';
 import convertToFile from './convert-to-file.js';
+import contextualCompressionRetriever from './contextual-compression-retriever.js';
 import crypto from './crypto.js';
 import dataTable from './data-table.js';
 import defaultDataLoader from './default-data-loader.js';
@@ -79,6 +80,7 @@ import milvusVectorStore from './milvus-vector-store.js';
 import minimaxChatModel from './minimax-chat-model.js';
 import mistralCloudChatModel from './mistral-cloud-chat-model.js';
 import mongodbAtlasVectorStore from './mongodb-atlas-vector-store.js';
+import multiQueryRetriever from './multi-query-retriever.js';
 import moonshotChatModel from './moonshot-chat-model.js';
 import mongodbChatMemory from './mongodb-chat-memory.js';
 import motorhead from './motorhead.js';
@@ -124,6 +126,7 @@ import switchNode from './switch.js';
 import textClassifier from './text-classifier.js';
 import totp from './totp.js';
 import vercelAiGatewayChatModel from './vercel-ai-gateway-chat-model.js';
+import vectorStoreRetriever from './vector-store-retriever.js';
 import wait from './wait.js';
 import webhook from './webhook.js';
 import weaviateVectorStore from './weaviate-vector-store.js';
@@ -284,9 +287,9 @@ export const CLUSTER_NODE_INVENTORY = [
   { type: 'auto-fixing-output-parser', docsSlug: 'n8n-nodes-langchain.outputparserautofixing', label: 'Auto-fixing Output Parser', clusterRole: 'sub', status: 'complete' },
   { type: 'item-list-output-parser', docsSlug: 'n8n-nodes-langchain.outputparseritemlist', label: 'Item List Output Parser', clusterRole: 'sub', status: 'complete' },
   { type: 'structured-output-parser', docsSlug: 'n8n-nodes-langchain.outputparserstructured', label: 'Structured Output Parser', clusterRole: 'sub', status: 'complete' },
-  { type: 'contextual-compression-retriever', docsSlug: 'n8n-nodes-langchain.retrievercontextualcompression', label: 'Contextual Compression Retriever', clusterRole: 'sub', status: 'pending' },
-  { type: 'multi-query-retriever', docsSlug: 'n8n-nodes-langchain.retrievermultiquery', label: 'MultiQuery Retriever', clusterRole: 'sub', status: 'pending' },
-  { type: 'vector-store-retriever', docsSlug: 'n8n-nodes-langchain.retrievervectorstore', label: 'Vector Store Retriever', clusterRole: 'sub', status: 'pending' },
+  { type: 'contextual-compression-retriever', docsSlug: 'n8n-nodes-langchain.retrievercontextualcompression', label: 'Contextual Compression Retriever', clusterRole: 'sub', status: 'complete' },
+  { type: 'multi-query-retriever', docsSlug: 'n8n-nodes-langchain.retrievermultiquery', label: 'MultiQuery Retriever', clusterRole: 'sub', status: 'complete' },
+  { type: 'vector-store-retriever', docsSlug: 'n8n-nodes-langchain.retrievervectorstore', label: 'Vector Store Retriever', clusterRole: 'sub', status: 'complete' },
   { type: 'workflow-retriever', docsSlug: 'n8n-nodes-langchain.retrieverworkflow', label: 'Workflow Retriever', clusterRole: 'sub', status: 'pending' },
   { type: 'character-text-splitter', docsSlug: 'n8n-nodes-langchain.textsplittercharactertextsplitter', label: 'Character Text Splitter', clusterRole: 'sub', status: 'pending' },
   { type: 'recursive-character-text-splitter', docsSlug: 'n8n-nodes-langchain.textsplitterrecursivecharactertextsplitter', label: 'Recursive Character Text Splitter', clusterRole: 'sub', status: 'pending' },
@@ -334,6 +337,7 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
     motorhead, mongodbChatMemory, redisChatMemory,
     postgresChatMemory, xataMemory, zepMemory,
     autoFixingOutputParser, itemListOutputParser, structuredOutputParser,
+    contextualCompressionRetriever, multiQueryRetriever, vectorStoreRetriever,
     aiTransform, code, compareDatasets,
     compression, convertToFile, crypto,
     dataTable, dateTime, debugHelper,

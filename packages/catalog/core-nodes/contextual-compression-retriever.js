@@ -1,0 +1,193 @@
+// Editor-only descriptor for Contextual Compression Retriever v1.
+// Retrieval, compression, model calls, logging, APIs, and execution stay inert.
+
+const languageModelInput = {
+  type: 'ai_languageModel',
+  connector: 'ai_languageModel',
+  label: 'Model',
+  displayName: 'Model',
+  required: true,
+  maxConnections: 1,
+};
+
+const retrieverInput = {
+  type: 'ai_retriever',
+  connector: 'ai_retriever',
+  label: 'Retriever',
+  displayName: 'Retriever',
+  required: true,
+  maxConnections: 1,
+};
+
+const retrieverOutput = {
+  type: 'ai_retriever',
+  connector: 'ai_retriever',
+  label: 'Retriever',
+  displayName: 'Retriever',
+  required: false,
+  maxConnections: 1,
+};
+
+const contextualCompressionRetriever = {
+  type: 'contextual-compression-retriever',
+  n8nType: '@n8n/n8n-nodes-langchain.retrieverContextualCompression',
+  packageName: '@n8n/n8n-nodes-langchain',
+  n8nVersion: 1,
+  defaultVersion: 1,
+  versionHistory: [1],
+  sourceVersionDeclaration: 1,
+  versionConditions: [],
+  label: 'Contextual Compression Retriever',
+  defaultName: 'Contextual Compression Retriever',
+  subtitle: '',
+  description: 'Enhances document similarity search by contextual compression.',
+  details:
+    'Connect a language model and base retriever to describe a contextual-compression retriever. This catalog entry never retrieves documents, invokes a model, or compresses content.',
+  clusterRole: 'sub',
+  category: 'core',
+  libraryCategory: 'ai',
+  categories: ['AI'],
+  subcategory: 'Retrievers',
+  subcategories: ['Retrievers'],
+  subcategoryMap: { AI: ['Retrievers'] },
+  group: ['transform'],
+  inputs: [languageModelInput, retrieverInput],
+  outputs: [retrieverOutput],
+  outputNames: ['Retriever'],
+  aiConnectorPorts: [languageModelInput, retrieverInput, retrieverOutput],
+  builderHint: {
+    inputs: {
+      ai_languageModel: { required: true },
+      ai_retriever: { required: true },
+    },
+  },
+  usableAsTool: false,
+  icon: '/node-icons/contextual-compression-retriever.svg',
+  n8nIcon: 'node:contextual-compression-retriever',
+  iconColor: 'black',
+  iconHex: '#000000',
+  iconMode: 'currentColor',
+  iconAssetType: 'svg',
+  iconAssetSize: { width: 24, height: 24, viewBox: '0 0 24 24' },
+  iconAssetSha256: 'fcaf02ad7ff75f301a04dbf736aab9985b5b9ba487be5f8d09e49bba8a28fab5',
+  aliases: [],
+  docs:
+    'https://docs.n8n.io/integrations/builtin/cluster-nodes/sub-nodes/n8n-nodes-langchain.retrievercontextualcompression/',
+  source: {
+    commit: '3d68c29b9281f14097aa9f15e01ac0777e538b11',
+    path:
+      'packages/@n8n/nodes-langchain/nodes/retrievers/RetrieverContextualCompression/RetrieverContextualCompression.node.ts',
+    iconRegistryPath:
+      'packages/frontend/@n8n/design-system/src/components/N8nIcon/node-icons.ts',
+    iconNameRegistryPath:
+      'packages/frontend/@n8n/design-system/src/components/N8nIcon/node-icon-names.ts',
+    iconPath:
+      'packages/frontend/@n8n/design-system/src/components/N8nIcon/nodes/contextual-compression-retriever.svg',
+    directDescriptionImports: [],
+    versionWrappers: [],
+    credentialDefinitions: [],
+    dynamicOptionDefinitions: [],
+    runtimeImportsExcluded: [
+      {
+        module: '@langchain/core/language_models/base',
+        names: ['BaseLanguageModel'],
+        typeOnly: true,
+      },
+      {
+        module: '@langchain/core/retrievers',
+        names: ['BaseRetriever'],
+        typeOnly: true,
+      },
+      {
+        module: '@langchain/classic/retrievers/contextual_compression',
+        names: ['ContextualCompressionRetriever'],
+      },
+      {
+        module: '@langchain/classic/retrievers/document_compressors/chain_extract',
+        names: ['LLMChainExtractor'],
+      },
+      { module: '@n8n/ai-utilities', names: ['logWrapper'] },
+    ],
+    runtimeFunctionsExcluded: ['supplyData'],
+  },
+  defaults: { name: 'Contextual Compression Retriever' },
+  credentials: [],
+  credentialRequirements: [],
+  credentialUiMetadata: [],
+  methods: {},
+  params: [],
+  authoringParity: {
+    sourcePath:
+      'packages/@n8n/nodes-langchain/nodes/retrievers/RetrieverContextualCompression/RetrieverContextualCompression.node.ts',
+    currentVersion: 1,
+    defaultVersion: 1,
+    sourceVersionDeclarationKind: 'number',
+    resourceCount: 0,
+    operationCount: 0,
+    topLevelFieldCount: 0,
+    recursiveFieldCount: 0,
+    sourceVisibleFieldCount: 0,
+    credentialSelectorCount: 0,
+    credentialEditorFieldCount: 0,
+    totalAuthoringFieldCount: 0,
+    dynamicFieldCount: 0,
+    currentSourceFieldKeys: [],
+  },
+  portParity: {
+    inputCount: 2,
+    outputCount: 1,
+    inputs: ['Model', 'Retriever'],
+    inputConnectionTypes: ['ai_languageModel', 'ai_retriever'],
+    inputCaps: [
+      { type: 'ai_languageModel', maxConnections: 1, required: true },
+      { type: 'ai_retriever', maxConnections: 1, required: true },
+    ],
+    outputs: ['Retriever'],
+    outputConnectionTypes: ['ai_retriever'],
+    outputCaps: [{ type: 'ai_retriever', maxConnections: 1, required: false }],
+  },
+  dynamicAuthoringMetadata: {
+    loadOptionsMethods: [],
+    listSearchMethods: [],
+    credentialSelectors: [],
+    lockedFields: [],
+    remoteDynamicFields: [],
+  },
+  excludedHistoricalAuthoring: [],
+  excludedDormantAuthoring: [],
+  rendererNormalizations: [],
+  platformGaps: [
+    'The required capped Language Model and Retriever inputs and capped Retriever output are declarative ports only.',
+    'No connected input is read, no LLM chain extractor or contextual-compression retriever is constructed, and no document is retrieved or compressed.',
+    'Debug logging, log wrapping, expressions, APIs, webhooks, polling, workflow execution, and voice behavior remain inert.',
+  ],
+  unsupportedVisibleTypes: [],
+  simulation: {
+    configurationOnly: true,
+    credentialCreation: false,
+    credentialAccess: false,
+    credentialTesting: false,
+    authentication: false,
+    dynamicLookups: false,
+    expressionResolution: false,
+    inputConnectionAccess: false,
+    retrieverAccess: false,
+    modelInvocation: false,
+    chainExtractorCreation: false,
+    contextualCompression: false,
+    documentRetrieval: false,
+    logWrapping: false,
+    debugLogging: false,
+    retrieverSupply: false,
+    workflowExecution: false,
+    supplyData: false,
+    networkAccess: false,
+    apiCalls: false,
+    webhooks: false,
+    polling: false,
+    voice: false,
+  },
+  output: {},
+};
+
+export default contextualCompressionRetriever;
