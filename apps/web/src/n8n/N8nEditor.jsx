@@ -13,6 +13,7 @@ import 'reactflow/dist/style.css';
 import { Plus } from '@phosphor-icons/react';
 import { EditorContext } from './EditorContext.js';
 import { N8nFlowNode } from './N8nFlowNode.jsx';
+import { AiModelEdge, AiModelEdgeStyles } from './AiModelEdge.jsx';
 import { NodePickerDrawer } from './NodePickerDrawer.jsx';
 import { Ndv } from './Ndv.jsx';
 import { variantOf } from './N8nNodeView.jsx';
@@ -21,12 +22,31 @@ import { useTraceContext } from '../lib/TraceContext.jsx';
 import { asRules } from '@judge/problem-schema';
 
 const nodeTypes = Object.fromEntries(Object.keys(NODE_CATALOG).map((t) => [t, N8nFlowNode]));
+// Custom type: seamless flowing dash (see AiModelEdge.jsx). Do not use RF's
+// `animated: true` on these — that animation stutters on short stems.
+const edgeTypes = { aiModel: AiModelEdge };
 
 const defaultEdgeOptions = {
   type: 'smoothstep',
   markerEnd: { type: MarkerType.ArrowClosed, width: 16, height: 16, color: '#94A3B8' },
   style: { stroke: '#94A3B8', strokeWidth: 1.75 },
 };
+
+/** Chat Model → AI root. Shared by seed + place so both paths look the same. */
+function aiModelEdge(id, source, target) {
+  return {
+    id,
+    source,
+    sourceHandle: 'ai_out',
+    target,
+    targetHandle: 'ai_model',
+    type: 'aiModel',
+    // Explicitly off: our edge paints its own seamless dash animation.
+    animated: false,
+    // No closed arrow — this is a sub-node stem, not a main-flow wire.
+    markerEnd: undefined,
+  };
+}
 
 let idc = 0;
 const nextId = () => `n${(idc += 1)}`;
@@ -72,7 +92,7 @@ function seedEdges(ig) {
   if (!ig) return [];
   return ig.edges.map((e, i) => {
     const base = { id: `seed-e${i}`, source: e.source, target: e.target };
-    if (e.targetHandle === 'ai_model') return { ...base, sourceHandle: 'ai_out', targetHandle: 'ai_model', type: 'smoothstep', animated: true, style: { stroke: '#0E9488', strokeWidth: 1.75, strokeDasharray: '6 4' } };
+    if (e.targetHandle === 'ai_model') return aiModelEdge(`seed-e${i}`, e.source, e.target);
     if (e.branch) return { ...base, sourceHandle: e.branch };
     return base;
   });
@@ -191,7 +211,8 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
     if (source) {
       let edge;
       if (ctx.modelSlot) {
-        edge = { id: `e${id}`, source: id, sourceHandle: 'ai_out', target: source.id, targetHandle: 'ai_model', type: 'smoothstep', animated: true, style: { stroke: '#0E9488', strokeWidth: 1.75, strokeDasharray: '6 4' } };
+        // Model is the source (ai_out on top), AI root is the target (ai_model diamond).
+        edge = aiModelEdge(`e${id}`, id, source.id);
       } else if (ctx.branch) {
         edge = { id: `e${id}`, source: source.id, sourceHandle: ctx.branch, target: id };
       } else {
@@ -293,6 +314,7 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
           defaultEdgeOptions={defaultEdgeOptions}
           proOptions={{ hideAttribution: true }}
           fitView
@@ -302,6 +324,7 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
               there and travels from there; the zoom buttons drew on top of her. */}
           <Controls showInteractive={false} position="bottom-right" />
         </ReactFlow>
+        <AiModelEdgeStyles />
 
         {nodes.length === 0 ? (
           <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
