@@ -1,6 +1,6 @@
 # n8n node library catalog
 
-Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **101 canonical nodes** (26 triggers, 24 app actions, 51 core/data/AI nodes) plus 10 compatibility aliases.
+Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **104 canonical nodes** (26 triggers, 24 app actions, 54 core/data/AI nodes) plus 10 compatibility aliases.
 
 ## How to choose
 
@@ -79,12 +79,14 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | YouTube | `youtube` | Consume YouTube API |
 | Zoom | `zoom` | Consume Zoom API |
 
-## Core, data, and AI building blocks (51)
+## Core, data, and AI building blocks (54)
 
 | Node | Catalog type | Function |
 |---|---|---|
 | Aggregate | `aggregate` | Combine a field from many items into a list in a single item |
+| AI Agent | `ai-agent` | Configure a tool-using AI agent with model, memory, tools, and optional structured output |
 | AI Transform | `ai-transform` | Modify data based on instructions written in plain english |
+| Basic LLM Chain | `basic-llm-chain` | Prompt a language model with optional messages, fallback model, and output parser |
 | Chat | `chat` | Send a message into the chat |
 | Code | `code` | Run custom JavaScript or Python code |
 | Compare Datasets | `compare-datasets` | Compare two inputs for changes |
@@ -119,6 +121,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | n8n | `n8n` | Handle events and perform actions on your n8n instance |
 | n8n Form | `form` | Generate webforms in n8n and pass their responses to the workflow |
 | No Operation, do nothing | `noop` | No Operation |
+| Question and Answer Chain | `question-answer-chain` | Answer questions using a connected retriever and language model |
 | Read/Write Files from Disk | `read-write-file` | Read or write files from the computer that runs n8n |
 | Remove Duplicates | `remove-duplicates` | Delete items with matching field values |
 | Rename Keys | `rename-keys` | Update item field names |

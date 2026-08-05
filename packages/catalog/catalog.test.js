@@ -1,7 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
 import { NODE_CATALOG, AI_SUB_NODE_PORTS, TRIGGER_OPTIONS, NODE_OPTIONS } from './catalog.js';
-import { CORE_NODE_INVENTORY, COMPLETE_CORE_NODE_TYPES, SOURCE_COMMIT } from './core-nodes/index.js';
+import {
+  CLUSTER_NODE_INVENTORY,
+  COMPLETE_CLUSTER_NODE_TYPES,
+  CORE_NODE_INVENTORY,
+  COMPLETE_CORE_NODE_TYPES,
+  SOURCE_COMMIT,
+} from './core-nodes/index.js';
 import {
   APP_NODE_INVENTORY,
   APP_SOURCE_COMMIT,
@@ -30,6 +36,13 @@ const inspectFields = (type, fields, path = '', requireInertLocks = false) => {
     }
     if (field.fields) inspectFields(type, field.fields, `${path}${field.key}.`, requireInertLocks);
   }
+};
+
+const containsFunction = (value, seen = new Set()) => {
+  if (typeof value === 'function') return true;
+  if (!value || typeof value !== 'object' || seen.has(value)) return false;
+  seen.add(value);
+  return Object.values(value).some((child) => containsFunction(child, seen));
 };
 
 describe('essential app-node completion inventory', () => {
@@ -390,6 +403,70 @@ describe('core-node completion inventory', () => {
   });
 });
 
+describe('cluster-node completion inventory', () => {
+  it('tracks the linked root/sub-node scope without duplicates', () => {
+    expect(CLUSTER_NODE_INVENTORY).toHaveLength(90);
+    expect(CLUSTER_NODE_INVENTORY.filter((node) => node.clusterRole === 'root')).toHaveLength(22);
+    expect(CLUSTER_NODE_INVENTORY.filter((node) => node.clusterRole === 'sub')).toHaveLength(68);
+    expect(new Set(CLUSTER_NODE_INVENTORY.map((node) => node.type)).size).toBe(90);
+    expect(new Set(CLUSTER_NODE_INVENTORY.map((node) => node.docsSlug)).size).toBe(90);
+    expect(CLUSTER_NODE_INVENTORY.filter((node) => node.status === 'excluded-deprecated').map((node) => node.type)).toEqual([
+      'embeddings-google-palm',
+    ]);
+  });
+
+  it('publishes only reviewed complete cluster nodes as inert data', () => {
+    expect(COMPLETE_CLUSTER_NODE_TYPES).toEqual(
+      CLUSTER_NODE_INVENTORY.filter((node) => node.status === 'complete').map((node) => node.type)
+    );
+    for (const type of COMPLETE_CLUSTER_NODE_TYPES) {
+      const node = NODE_CATALOG[type];
+      expect(node, `${type} is marked complete but missing from the catalog`).toBeTruthy();
+      expect(node.source?.commit, `${type} has no reviewed source commit`).toBe(SOURCE_COMMIT);
+      expect(node.icon, `${type} has no active editor icon`).toMatch(/^\/node-icons\//);
+      expect(existsSync(new URL(`../../apps/web/public${node.icon}`, import.meta.url)), `${type} icon file is missing`).toBe(true);
+      expect(containsFunction(node), `${type} exports executable code`).toBe(false);
+      expect(node.execute, `${type} must remain an authoring-only simulation`).toBeUndefined();
+      expect(node.trigger, `${type} must not implement a trigger runtime`).toBeUndefined();
+      expect(node.webhook, `${type} must not implement a webhook runtime`).toBeUndefined();
+      expect(node.simulation?.voice, `${type} must not generate voice`).toBe(false);
+      inspectFields(type, node.params ?? [], '', true);
+    }
+  });
+});
+
+describe('cluster-node batch 1 carries the current root-node authoring surface', () => {
+  it('models AI Agent v3.1 ports, prompts, options, and dormant exclusions', () => {
+    const node = NODE_CATALOG['ai-agent'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 3.1, n8nType: '@n8n/n8n-nodes-langchain.agent' });
+    expect(node.fieldParity.recursiveVisibleFieldCount).toBe(27);
+    expect(params.promptType.options.map(({ value }) => value)).toEqual(['auto', 'define']);
+    expect(params.autoPrompt).toMatchObject({ readOnly: true, showWhen: { promptType: ['auto'] } });
+    expect(node.connectorParity.withOutputParserAndFallback).toHaveLength(6);
+  });
+
+  it('models Basic LLM Chain v1.9 dynamic inputs and current fields', () => {
+    const node = NODE_CATALOG['basic-llm-chain'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.9, n8nType: '@n8n/n8n-nodes-langchain.chainLlm' });
+    expect(node.parameterParity).toMatchObject({ recursiveFieldCount: 18, dynamicInputShapeCount: 4 });
+    expect(params.promptType.options.map(({ value }) => value)).toEqual(['auto', 'define']);
+    expect(params.messages.fields).toHaveLength(6);
+    expect(params.batching.fields.map(({ key }) => key)).toEqual(['batchSize', 'delayBetweenBatches']);
+  });
+
+  it('models Question and Answer Chain v1.7 prompt, retriever, and batching fields', () => {
+    const node = NODE_CATALOG['question-answer-chain'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.7, n8nType: '@n8n/n8n-nodes-langchain.chainRetrievalQa' });
+    expect(node.authoringParity.recursiveFieldCount).toBe(9);
+    expect(node.portMetadata.requiredInputs).toEqual(['ai_languageModel', 'ai_retriever']);
+    expect(params.promptType.options.map(({ value }) => value)).toEqual(['auto', 'define']);
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['systemPromptTemplate', 'batching']);
+  });
+});
+
 // Judge does not implement typeVersion — one shipped schema per node type is the
 // right simplification — but every node must SAY which real node and version it
 // models, or the catalogue drifts from the n8n a learner meets next and nobody
@@ -637,6 +714,7 @@ describe('every catalog type is renderable by the web app', () => {
   it('uses a canvas category with visual metadata', () => {
     const categories = new Set(['trigger', 'ai', 'model', 'core', 'action']);
     for (const type of COMPLETE_CORE_NODE_TYPES) expect(categories.has(NODE_CATALOG[type].category), type).toBe(true);
+    for (const type of COMPLETE_CLUSTER_NODE_TYPES) expect(categories.has(NODE_CATALOG[type].category), type).toBe(true);
     for (const type of COMPLETE_APP_NODE_TYPES) expect(categories.has(NODE_CATALOG[type].category), type).toBe(true);
   });
 });

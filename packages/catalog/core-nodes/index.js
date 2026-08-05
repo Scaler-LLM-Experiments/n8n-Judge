@@ -7,6 +7,8 @@
 // out of scope: these definitions reproduce the authoring experience only.
 
 import aiTransform from './ai-transform.js';
+import aiAgent from './ai-agent.js';
+import basicLlmChain from './basic-llm-chain.js';
 import code from './code.js';
 import compareDatasets from './compare-datasets.js';
 import compression from './compression.js';
@@ -44,6 +46,7 @@ import n8nTrigger from './n8n-trigger.js';
 import n8n from './n8n.js';
 import noop from './noop.js';
 import readWriteFile from './read-write-file.js';
+import questionAnswerChain from './question-answer-chain.js';
 import removeDuplicates from './remove-duplicates.js';
 import renameKeys from './rename-keys.js';
 import respondToWebhook from './respond-to-webhook.js';
@@ -141,11 +144,108 @@ export const CORE_NODE_INVENTORY = [
   { type: 'mcp-server-trigger', docsSlug: 'n8n-nodes-langchain.mcptrigger', label: 'MCP Server Trigger', status: 'complete' },
 ];
 
+// Canonical scope from the official cluster root/sub-node indexes, filtered
+// against SOURCE_COMMIT. Rows become complete only after their descriptor and
+// exact icon are reviewed; docs-only retired nodes remain explicit exclusions.
+export const CLUSTER_NODE_INVENTORY = [
+  { type: 'ai-agent', docsSlug: 'n8n-nodes-langchain.agent', label: 'AI Agent', clusterRole: 'root', status: 'complete' },
+  { type: 'basic-llm-chain', docsSlug: 'n8n-nodes-langchain.chainllm', label: 'Basic LLM Chain', clusterRole: 'root', status: 'complete' },
+  { type: 'question-answer-chain', docsSlug: 'n8n-nodes-langchain.chainretrievalqa', label: 'Question and Answer Chain', clusterRole: 'root', status: 'complete' },
+  { type: 'summarization-chain', docsSlug: 'n8n-nodes-langchain.chainsummarization', label: 'Summarization Chain', clusterRole: 'root', status: 'pending' },
+  { type: 'information-extractor', docsSlug: 'n8n-nodes-langchain.information-extractor', label: 'Information Extractor', clusterRole: 'root', status: 'pending' },
+  { type: 'text-classifier', docsSlug: 'n8n-nodes-langchain.text-classifier', label: 'Text Classifier', clusterRole: 'root', status: 'pending' },
+  { type: 'sentiment-analysis', docsSlug: 'n8n-nodes-langchain.sentimentanalysis', label: 'Sentiment Analysis', clusterRole: 'root', status: 'pending' },
+  { type: 'langchain-code', docsSlug: 'n8n-nodes-langchain.code', label: 'LangChain Code', clusterRole: 'root', status: 'pending' },
+  { type: 'microsoft-agent-365-trigger', docsSlug: 'n8n-nodes-langchain.microsoftagent365trigger', label: 'Microsoft Agent 365 Trigger', clusterRole: 'root', status: 'pending' },
+  { type: 'azure-ai-search-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoreazureaisearch', label: 'Azure AI Search Vector Store', clusterRole: 'root', status: 'pending' },
+  { type: 'simple-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoreinmemory', label: 'Simple Vector Store', clusterRole: 'root', status: 'pending' },
+  { type: 'milvus-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoremilvus', label: 'Milvus Vector Store', clusterRole: 'root', status: 'pending' },
+  { type: 'mongodb-atlas-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoremongodbatlas', label: 'MongoDB Atlas Vector Store', clusterRole: 'root', status: 'pending' },
+  { type: 'pgvector-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstorepgvector', label: 'PGVector Vector Store', clusterRole: 'root', status: 'pending' },
+  { type: 'oracle-database-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoreoracledb', label: 'Oracle Database Vector Store', clusterRole: 'root', status: 'pending' },
+  { type: 'chroma-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstorechroma', label: 'Chroma Vector Store', clusterRole: 'root', status: 'pending' },
+  { type: 'pinecone-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstorepinecone', label: 'Pinecone Vector Store', clusterRole: 'root', status: 'pending' },
+  { type: 'qdrant-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoreqdrant', label: 'Qdrant Vector Store', clusterRole: 'root', status: 'pending' },
+  { type: 'redis-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoreredis', label: 'Redis Vector Store', clusterRole: 'root', status: 'pending' },
+  { type: 'supabase-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoresupabase', label: 'Supabase Vector Store', clusterRole: 'root', status: 'pending' },
+  { type: 'weaviate-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoreweaviate', label: 'Weaviate Vector Store', clusterRole: 'root', status: 'pending' },
+  { type: 'zep-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstorezep', label: 'Zep Vector Store', clusterRole: 'root', status: 'pending' },
+  { type: 'default-data-loader', docsSlug: 'n8n-nodes-langchain.documentdefaultdataloader', label: 'Default Data Loader', clusterRole: 'sub', status: 'pending' },
+  { type: 'github-document-loader', docsSlug: 'n8n-nodes-langchain.documentgithubloader', label: 'GitHub Document Loader', clusterRole: 'sub', status: 'pending' },
+  { type: 'embeddings-aws-bedrock', docsSlug: 'n8n-nodes-langchain.embeddingsawsbedrock', label: 'Embeddings AWS Bedrock', clusterRole: 'sub', status: 'pending' },
+  { type: 'embeddings-azure-openai', docsSlug: 'n8n-nodes-langchain.embeddingsazureopenai', label: 'Embeddings Azure OpenAI', clusterRole: 'sub', status: 'pending' },
+  { type: 'embeddings-cohere', docsSlug: 'n8n-nodes-langchain.embeddingscohere', label: 'Embeddings Cohere', clusterRole: 'sub', status: 'pending' },
+  { type: 'embeddings-google-gemini', docsSlug: 'n8n-nodes-langchain.embeddingsgooglegemini', label: 'Embeddings Google Gemini', clusterRole: 'sub', status: 'pending' },
+  { type: 'embeddings-google-palm', docsSlug: 'n8n-nodes-langchain.embeddingsgooglepalm', label: 'Embeddings Google PaLM', clusterRole: 'sub', status: 'excluded-deprecated' },
+  { type: 'embeddings-google-vertex', docsSlug: 'n8n-nodes-langchain.embeddingsgooglevertex', label: 'Embeddings Google Vertex', clusterRole: 'sub', status: 'pending' },
+  { type: 'embeddings-huggingface-inference', docsSlug: 'n8n-nodes-langchain.embeddingshuggingfaceinference', label: 'Embeddings HuggingFace Inference', clusterRole: 'sub', status: 'pending' },
+  { type: 'embeddings-lemonade', docsSlug: 'n8n-nodes-langchain.embeddingslemonade', label: 'Embeddings Lemonade', clusterRole: 'sub', status: 'pending' },
+  { type: 'embeddings-mistral-cloud', docsSlug: 'n8n-nodes-langchain.embeddingsmistralcloud', label: 'Embeddings Mistral Cloud', clusterRole: 'sub', status: 'pending' },
+  { type: 'embeddings-ollama', docsSlug: 'n8n-nodes-langchain.embeddingsollama', label: 'Embeddings Ollama', clusterRole: 'sub', status: 'pending' },
+  { type: 'embeddings-openai', docsSlug: 'n8n-nodes-langchain.embeddingsopenai', label: 'Embeddings OpenAI', clusterRole: 'sub', status: 'pending' },
+  { type: 'embeddings-oracle-database', docsSlug: 'n8n-nodes-langchain.embeddingsoracledb', label: 'Embeddings Oracle Database', clusterRole: 'sub', status: 'pending' },
+  { type: 'qwen-cloud-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatalibabacloud', label: 'Qwen Cloud Chat Model', clusterRole: 'sub', status: 'pending' },
+  { type: 'anthropic-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatanthropic', label: 'Anthropic Chat Model', clusterRole: 'sub', status: 'pending' },
+  { type: 'aws-bedrock-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatawsbedrock', label: 'AWS Bedrock Chat Model', clusterRole: 'sub', status: 'pending' },
+  { type: 'azure-openai-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatazureopenai', label: 'Azure OpenAI Chat Model', clusterRole: 'sub', status: 'pending' },
+  { type: 'cohere-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatcohere', label: 'Cohere Chat Model', clusterRole: 'sub', status: 'pending' },
+  { type: 'deepseek-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatdeepseek', label: 'DeepSeek Chat Model', clusterRole: 'sub', status: 'pending' },
+  { type: 'google-gemini-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatgooglegemini', label: 'Google Gemini Chat Model', clusterRole: 'sub', status: 'pending' },
+  { type: 'google-vertex-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatgooglevertex', label: 'Google Vertex Chat Model', clusterRole: 'sub', status: 'pending' },
+  { type: 'groq-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatgroq', label: 'Groq Chat Model', clusterRole: 'sub', status: 'pending' },
+  { type: 'lemonade-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatlemonade', label: 'Lemonade Chat Model', clusterRole: 'sub', status: 'pending' },
+  { type: 'minimax-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatminimax', label: 'MiniMax Chat Model', clusterRole: 'sub', status: 'pending' },
+  { type: 'mistral-cloud-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatmistralcloud', label: 'Mistral Cloud Chat Model', clusterRole: 'sub', status: 'pending' },
+  { type: 'moonshot-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatmoonshot', label: 'Moonshot Kimi Chat Model', clusterRole: 'sub', status: 'pending' },
+  { type: 'nvidia-nemotron-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatnvidia', label: 'NVIDIA Nemotron Chat Model', clusterRole: 'sub', status: 'pending' },
+  { type: 'ollama-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatollama', label: 'Ollama Chat Model', clusterRole: 'sub', status: 'pending' },
+  { type: 'openai-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatopenai', label: 'OpenAI Chat Model', clusterRole: 'sub', status: 'pending' },
+  { type: 'openrouter-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatopenrouter', label: 'OpenRouter Chat Model', clusterRole: 'sub', status: 'pending' },
+  { type: 'vercel-ai-gateway-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatvercel', label: 'Vercel AI Gateway Chat Model', clusterRole: 'sub', status: 'pending' },
+  { type: 'xai-grok-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatxaigrok', label: 'xAI Grok Chat Model', clusterRole: 'sub', status: 'pending' },
+  { type: 'cohere-model', docsSlug: 'n8n-nodes-langchain.lmcohere', label: 'Cohere Model', clusterRole: 'sub', status: 'pending' },
+  { type: 'lemonade-model', docsSlug: 'n8n-nodes-langchain.lmlemonade', label: 'Lemonade Model', clusterRole: 'sub', status: 'pending' },
+  { type: 'ollama-model', docsSlug: 'n8n-nodes-langchain.lmollama', label: 'Ollama Model', clusterRole: 'sub', status: 'pending' },
+  { type: 'huggingface-inference-model', docsSlug: 'n8n-nodes-langchain.lmopenhuggingfaceinference', label: 'Hugging Face Inference Model', clusterRole: 'sub', status: 'pending' },
+  { type: 'chat-memory-manager', docsSlug: 'n8n-nodes-langchain.memorymanager', label: 'Chat Memory Manager', clusterRole: 'sub', status: 'pending' },
+  { type: 'simple-memory', docsSlug: 'n8n-nodes-langchain.memorybufferwindow', label: 'Simple Memory', clusterRole: 'sub', status: 'pending' },
+  { type: 'motorhead', docsSlug: 'n8n-nodes-langchain.memorymotorhead', label: 'Motorhead', clusterRole: 'sub', status: 'pending' },
+  { type: 'mongodb-chat-memory', docsSlug: 'n8n-nodes-langchain.memorymongochat', label: 'MongoDB Chat Memory', clusterRole: 'sub', status: 'pending' },
+  { type: 'redis-chat-memory', docsSlug: 'n8n-nodes-langchain.memoryredischat', label: 'Redis Chat Memory', clusterRole: 'sub', status: 'pending' },
+  { type: 'postgres-chat-memory', docsSlug: 'n8n-nodes-langchain.memorypostgreschat', label: 'Postgres Chat Memory', clusterRole: 'sub', status: 'pending' },
+  { type: 'xata-memory', docsSlug: 'n8n-nodes-langchain.memoryxata', label: 'Xata', clusterRole: 'sub', status: 'pending' },
+  { type: 'zep-memory', docsSlug: 'n8n-nodes-langchain.memoryzep', label: 'Zep', clusterRole: 'sub', status: 'pending' },
+  { type: 'auto-fixing-output-parser', docsSlug: 'n8n-nodes-langchain.outputparserautofixing', label: 'Auto-fixing Output Parser', clusterRole: 'sub', status: 'pending' },
+  { type: 'item-list-output-parser', docsSlug: 'n8n-nodes-langchain.outputparseritemlist', label: 'Item List Output Parser', clusterRole: 'sub', status: 'pending' },
+  { type: 'structured-output-parser', docsSlug: 'n8n-nodes-langchain.outputparserstructured', label: 'Structured Output Parser', clusterRole: 'sub', status: 'pending' },
+  { type: 'contextual-compression-retriever', docsSlug: 'n8n-nodes-langchain.retrievercontextualcompression', label: 'Contextual Compression Retriever', clusterRole: 'sub', status: 'pending' },
+  { type: 'multi-query-retriever', docsSlug: 'n8n-nodes-langchain.retrievermultiquery', label: 'MultiQuery Retriever', clusterRole: 'sub', status: 'pending' },
+  { type: 'vector-store-retriever', docsSlug: 'n8n-nodes-langchain.retrievervectorstore', label: 'Vector Store Retriever', clusterRole: 'sub', status: 'pending' },
+  { type: 'workflow-retriever', docsSlug: 'n8n-nodes-langchain.retrieverworkflow', label: 'Workflow Retriever', clusterRole: 'sub', status: 'pending' },
+  { type: 'character-text-splitter', docsSlug: 'n8n-nodes-langchain.textsplittercharactertextsplitter', label: 'Character Text Splitter', clusterRole: 'sub', status: 'pending' },
+  { type: 'recursive-character-text-splitter', docsSlug: 'n8n-nodes-langchain.textsplitterrecursivecharactertextsplitter', label: 'Recursive Character Text Splitter', clusterRole: 'sub', status: 'pending' },
+  { type: 'token-splitter', docsSlug: 'n8n-nodes-langchain.textsplittertokensplitter', label: 'Token Splitter', clusterRole: 'sub', status: 'pending' },
+  { type: 'ai-agent-tool', docsSlug: 'n8n-nodes-langchain.toolaiagent', label: 'AI Agent Tool', clusterRole: 'sub', status: 'pending' },
+  { type: 'calculator', docsSlug: 'n8n-nodes-langchain.toolcalculator', label: 'Calculator', clusterRole: 'sub', status: 'pending' },
+  { type: 'custom-code-tool', docsSlug: 'n8n-nodes-langchain.toolcode', label: 'Custom Code Tool', clusterRole: 'sub', status: 'pending' },
+  { type: 'mcp-client-tool', docsSlug: 'n8n-nodes-langchain.toolmcp', label: 'MCP Client Tool', clusterRole: 'sub', status: 'pending' },
+  { type: 'searxng-tool', docsSlug: 'n8n-nodes-langchain.toolsearxng', label: 'SearXNG Tool', clusterRole: 'sub', status: 'pending' },
+  { type: 'serpapi-tool', docsSlug: 'n8n-nodes-langchain.toolserpapi', label: 'SerpApi (Google Search)', clusterRole: 'sub', status: 'pending' },
+  { type: 'think-tool', docsSlug: 'n8n-nodes-langchain.toolthink', label: 'Think Tool', clusterRole: 'sub', status: 'pending' },
+  { type: 'vector-store-question-answer-tool', docsSlug: 'n8n-nodes-langchain.toolvectorstore', label: 'Vector Store Question Answer Tool', clusterRole: 'sub', status: 'pending' },
+  { type: 'wikipedia-tool', docsSlug: 'n8n-nodes-langchain.toolwikipedia', label: 'Wikipedia', clusterRole: 'sub', status: 'pending' },
+  { type: 'wolfram-alpha-tool', docsSlug: 'n8n-nodes-langchain.toolwolframalpha', label: 'Wolfram|Alpha tool', clusterRole: 'sub', status: 'pending' },
+  { type: 'call-n8n-workflow-tool', docsSlug: 'n8n-nodes-langchain.toolworkflow', label: 'Call n8n Workflow Tool', clusterRole: 'sub', status: 'pending' },
+  { type: 'reranker-cohere', docsSlug: 'n8n-nodes-langchain.rerankercohere', label: 'Reranker Cohere', clusterRole: 'sub', status: 'pending' },
+  { type: 'model-selector', docsSlug: 'n8n-nodes-langchain.modelselector', label: 'Model Selector', clusterRole: 'sub', status: 'pending' },
+];
+
 // Descriptors are imported here after each three-node batch is reviewed. Keeping
 // each node in its own file lets research agents work in parallel without sharing
 // or rewriting the catalog monolith.
 export const CORE_NODE_CATALOG = Object.fromEntries(
   [
+    aiAgent, basicLlmChain, questionAnswerChain,
     aiTransform, code, compareDatasets,
     compression, convertToFile, crypto,
     dataTable, dateTime, debugHelper,
@@ -171,5 +271,9 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
 );
 
 export const COMPLETE_CORE_NODE_TYPES = CORE_NODE_INVENTORY
+  .filter((node) => node.status === 'complete')
+  .map((node) => node.type);
+
+export const COMPLETE_CLUSTER_NODE_TYPES = CLUSTER_NODE_INVENTORY
   .filter((node) => node.status === 'complete')
   .map((node) => node.type);

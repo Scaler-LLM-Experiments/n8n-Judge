@@ -1,4 +1,8 @@
-import { COMPLETE_CORE_NODE_TYPES, CORE_NODE_CATALOG } from './core-nodes/index.js';
+import {
+  COMPLETE_CLUSTER_NODE_TYPES,
+  COMPLETE_CORE_NODE_TYPES,
+  CORE_NODE_CATALOG,
+} from './core-nodes/index.js';
 import { APP_NODE_CATALOG, COMPLETE_APP_NODE_TYPES, COMPLETE_APP_TRIGGER_NODE_TYPES } from './app-nodes/index.js';
 
 // The n8n node catalog for the editor kit: what each node is, its parameters
@@ -489,16 +493,20 @@ export const AI_SUB_NODE_PORTS = [
 // matching list.
 const completeCoreTriggers = COMPLETE_CORE_NODE_TYPES.filter((type) => NODE_CATALOG[type]?.category === 'trigger');
 const completeCoreActions = COMPLETE_CORE_NODE_TYPES.filter((type) => NODE_CATALOG[type]?.category !== 'trigger');
+const completeClusterTriggers = COMPLETE_CLUSTER_NODE_TYPES.filter((type) => NODE_CATALOG[type]?.category === 'trigger');
+const completeClusterActions = COMPLETE_CLUSTER_NODE_TYPES.filter((type) => NODE_CATALOG[type]?.category !== 'trigger');
 
 export const TRIGGER_OPTIONS = [...new Set([
   'trigger', 'chat-trigger', 'schedule', 'webhook', 'form-trigger',
   ...completeCoreTriggers,
+  ...completeClusterTriggers,
   ...COMPLETE_APP_TRIGGER_NODE_TYPES,
 ])];
 export const NODE_OPTIONS = [...new Set([
   'classify', 'summarize', 'parse', 'switch', 'action', 'code', 'if',
   'slack-message', 'google-docs', 'google-sheets', 'http-request',
   ...completeCoreActions,
+  ...completeClusterActions,
   ...COMPLETE_APP_NODE_TYPES,
 ])];
 
