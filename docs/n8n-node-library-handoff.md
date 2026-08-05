@@ -8,6 +8,7 @@ Scope: reproduce n8n's **authoring UI**, not its execution runtime. Nodes must l
 - Branch: `codex/n8n-core-nodes-batch-1`
 - Official read-only clone: `/Users/kshnvagale/Documents/TempTemp/n8n`
 - Pinned source commit: `3d68c29b9281f14097aa9f15e01ac0777e538b11`
+- Available node/function list: `docs/node-library-catalog.md`
 - n8n action nodes usually live under `packages/nodes-base/nodes/`; AI nodes live under `packages/@n8n/nodes-langchain/nodes/`.
 
 ```bash
@@ -21,10 +22,10 @@ Use the pinned source as truth. Official docs help explain behavior, but may lag
 
 ## Where files go
 
-- App descriptor: `packages/catalog/app-nodes/<slug>.js`
+- App action or trigger descriptor: `packages/catalog/app-nodes/<slug>.js`
 - Core descriptor: `packages/catalog/core-nodes/<slug>.js`
 - Exact upstream icon: `apps/web/public/node-icons/<slug>.<ext>`
-- App progress/registration: `packages/catalog/app-nodes/index.js`
+- App progress/registration: `packages/catalog/app-nodes/index.js` (`APP_NODE_INVENTORY` or `APP_TRIGGER_NODE_INVENTORY`)
 - Core progress/registration: `packages/catalog/core-nodes/index.js`
 - Shared catalog tests: `packages/catalog/catalog.test.js`
 
@@ -42,7 +43,7 @@ Dynamic credentials/lookups/schemas stay empty and `locked: true`. Preserve thei
 
 1. Assign one node per agent. Agent owns only its descriptor and icon; it must not edit indexes, tests, or commit.
 2. Agent inspects the pinned source plus credentials/helpers/descriptions, builds the inert descriptor, then reports version, resource/operation counts, field count, exclusions, and limitations.
-3. Orchestrator reviews all three, fixes shared renderer issues once, registers the batch, marks inventory rows complete, adds parity tests, validates, and commits one batch.
+3. Orchestrator reviews all three, fixes shared renderer issues once, registers the batch, marks inventory rows complete, updates `docs/node-library-catalog.md`, adds parity tests, validates, and commits one batch.
 
 Every agent prompt must say: other agents share the worktree; do not revert their edits; this is a simulation, not a working n8n integration.
 

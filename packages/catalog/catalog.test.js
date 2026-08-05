@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { NODE_CATALOG, AI_SUB_NODE_PORTS, TRIGGER_OPTIONS, NODE_OPTIONS } from './catalog.js';
 import { CORE_NODE_INVENTORY, COMPLETE_CORE_NODE_TYPES, SOURCE_COMMIT } from './core-nodes/index.js';
 import {
@@ -638,5 +638,14 @@ describe('every catalog type is renderable by the web app', () => {
     const categories = new Set(['trigger', 'ai', 'model', 'core', 'action']);
     for (const type of COMPLETE_CORE_NODE_TYPES) expect(categories.has(NODE_CATALOG[type].category), type).toBe(true);
     for (const type of COMPLETE_APP_NODE_TYPES) expect(categories.has(NODE_CATALOG[type].category), type).toBe(true);
+  });
+});
+
+describe('agent-facing node library catalog', () => {
+  it('lists every available catalog type and its function', () => {
+    const guide = readFileSync(new URL('../../docs/node-library-catalog.md', import.meta.url), 'utf8');
+    for (const type of Object.keys(NODE_CATALOG)) {
+      expect(guide, `${type} is missing from docs/node-library-catalog.md`).toContain(`| \`${type}\` |`);
+    }
   });
 });
