@@ -587,6 +587,35 @@ describe('cluster-node batch 5 carries the current database vector-store surface
   });
 });
 
+describe('cluster-node batch 6 carries the current hosted vector-store surfaces', () => {
+  it('models Chroma v1.3 authentication branches and collection lookup', () => {
+    const node = NODE_CATALOG['chroma-vector-store'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.3, n8nType: '@n8n/n8n-nodes-langchain.vectorStoreChromaDB' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 23, credentialEditorFieldCount: 8, dynamicFieldCount: 3 });
+    expect(params.authentication.options.map(({ value }) => value)).toEqual(['chromaSelfHostedApi', 'chromaCloudApi']);
+    expect(params.chromaCollection).toMatchObject({ kind: 'resourceLocator', locked: true });
+  });
+
+  it('models Pinecone v1.3 namespace, metadata, update, and index lookup', () => {
+    const node = NODE_CATALOG['pinecone-vector-store'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.3, n8nType: '@n8n/n8n-nodes-langchain.vectorStorePinecone' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldOccurrenceCount: 25, credentialEditorFieldCount: 1, operationCount: 5 });
+    expect(params.pineconeIndex).toMatchObject({ kind: 'resourceLocator', locked: true });
+    expect(params.insertOptions.fields.map(({ key }) => key)).toEqual(['clearNamespace', 'pineconeNamespace']);
+  });
+
+  it('models Qdrant v1.3 JSON options and collection lookup', () => {
+    const node = NODE_CATALOG['qdrant-vector-store'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.3, n8nType: '@n8n/n8n-nodes-langchain.vectorStoreQdrant' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 23, credentialEditorFieldCount: 2, operationCount: 4 });
+    expect(params.qdrantCollection).toMatchObject({ kind: 'resourceLocator', locked: true });
+    expect(params.insertOptions.fields.map(({ key }) => key)).toEqual(['collectionConfig', 'contentPayloadKey', 'metadataPayloadKey']);
+  });
+});
+
 // Judge does not implement typeVersion — one shipped schema per node type is the
 // right simplification — but every node must SAY which real node and version it
 // models, or the catalogue drifts from the n8n a learner meets next and nobody

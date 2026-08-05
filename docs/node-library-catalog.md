@@ -1,6 +1,6 @@
 # n8n node library catalog
 
-Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **116 canonical nodes** (27 triggers, 24 app actions, 65 core/data/AI nodes) plus 10 compatibility aliases.
+Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **119 canonical nodes** (27 triggers, 24 app actions, 68 core/data/AI nodes) plus 10 compatibility aliases.
 
 ## How to choose
 
@@ -80,7 +80,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | YouTube | `youtube` | Consume YouTube API |
 | Zoom | `zoom` | Consume Zoom API |
 
-## Core, data, and AI building blocks (65)
+## Core, data, and AI building blocks (68)
 
 | Node | Catalog type | Function |
 |---|---|---|
@@ -90,6 +90,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Azure AI Search Vector Store | `azure-ai-search-vector-store` | Configure Azure AI Search insertion, search, retrieval, tool, and update modes |
 | Basic LLM Chain | `basic-llm-chain` | Prompt a language model with optional messages, fallback model, and output parser |
 | Chat | `chat` | Send a message into the chat |
+| Chroma Vector Store | `chroma-vector-store` | Configure Chroma insertion, search, retrieval, and tool modes |
 | Code | `code` | Run custom JavaScript or Python code |
 | Compare Datasets | `compare-datasets` | Compare two inputs for changes |
 | Compression | `compression` | Compress and decompress files |
@@ -128,7 +129,9 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | n8n Form | `form` | Generate webforms in n8n and pass their responses to the workflow |
 | No Operation, do nothing | `noop` | No Operation |
 | Oracle Database Vector Store | `oracle-database-vector-store` | Configure Oracle Database vector insertion, search, retrieval, and tool modes |
+| Pinecone Vector Store | `pinecone-vector-store` | Configure Pinecone insertion, search, retrieval, tool, and update modes |
 | Postgres PGVector Store | `pgvector-vector-store` | Configure PostgreSQL PGVector insertion, search, retrieval, and tool modes |
+| Qdrant Vector Store | `qdrant-vector-store` | Configure Qdrant insertion, search, retrieval, and tool modes |
 | Question and Answer Chain | `question-answer-chain` | Answer questions using a connected retriever and language model |
 | Read/Write Files from Disk | `read-write-file` | Read or write files from the computer that runs n8n |
 | Remove Duplicates | `remove-duplicates` | Delete items with matching field values |
