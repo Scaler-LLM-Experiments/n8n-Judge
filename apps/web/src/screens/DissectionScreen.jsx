@@ -258,7 +258,7 @@ export function DissectionScreen({ problem, sessionId, onComplete, onDecision, r
       {/* Iris stays parked bottom-left. She reacts to the verdict, then talks
           through the line she is actually saying — see IrisMascot. */}
       <div style={{ position: 'fixed', left: 28, bottom: 24, zIndex: 50, pointerEvents: 'none' }}>
-        <IrisMascot resting={mascotClip} size={84} />
+        <IrisMascot resting={mascotClip} size={118} />
       </div>
 
       {showNote ? (
@@ -423,7 +423,7 @@ function Greet({ problem, onContinue }) {
       <TopBar activeStage="statement" problem={problem} />
       <div ref={root} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32, textAlign: 'center' }}>
         <div data-a="m" style={{ position: 'relative', marginBottom: 14 }}>
-          <IrisMascot resting="hello" size={108} />
+          <IrisMascot resting="hello" size={151} />
         </div>
         {/* Generic on purpose. This screen is Iris introducing herself, and it reads
             the same whichever challenge you picked. What is specific to the problem
@@ -485,7 +485,7 @@ function ProblemBeat({ problem, onContinue }) {
 
       {/* mascot resting bottom-left */}
       <div data-a="mascot" style={{ position: 'fixed', left: 28, bottom: 24, zIndex: 50 }}>
-        <IrisMascot resting="presenting" size={84} />
+        <IrisMascot resting="presenting" size={118} />
       </div>
     </div>
   );
@@ -497,7 +497,7 @@ function Done({ problem, unlockedTypes, onFinish }) {
       <TopBar activeStage="statement" problem={problem} />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32, textAlign: 'center' }}>
         <div style={{ position: 'relative', marginBottom: 8 }}>
-          <IrisMascot resting="celebrate" size={96} />
+          <IrisMascot resting="celebrate" size={134} />
         </div>
         {/* No em dashes: the house rule bans them in anything Iris says, and this
             screen is the written half of a line she speaks. The title names what the
