@@ -1,6 +1,6 @@
 # n8n node library catalog
 
-Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **113 canonical nodes** (27 triggers, 24 app actions, 62 core/data/AI nodes) plus 10 compatibility aliases.
+Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **116 canonical nodes** (27 triggers, 24 app actions, 65 core/data/AI nodes) plus 10 compatibility aliases.
 
 ## How to choose
 
@@ -80,7 +80,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | YouTube | `youtube` | Consume YouTube API |
 | Zoom | `zoom` | Consume Zoom API |
 
-## Core, data, and AI building blocks (62)
+## Core, data, and AI building blocks (65)
 
 | Node | Catalog type | Function |
 |---|---|---|
@@ -123,9 +123,12 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | MCP Client | `mcp-client` | Standalone MCP Client |
 | Merge | `merge` | Merges data of multiple streams once data from both is available |
 | Milvus Vector Store | `milvus-vector-store` | Configure Milvus insertion, search, retrieval, and tool modes |
+| MongoDB Atlas Vector Store | `mongodb-atlas-vector-store` | Configure MongoDB Atlas vector insertion, search, retrieval, tool, and update modes |
 | n8n | `n8n` | Handle events and perform actions on your n8n instance |
 | n8n Form | `form` | Generate webforms in n8n and pass their responses to the workflow |
 | No Operation, do nothing | `noop` | No Operation |
+| Oracle Database Vector Store | `oracle-database-vector-store` | Configure Oracle Database vector insertion, search, retrieval, and tool modes |
+| Postgres PGVector Store | `pgvector-vector-store` | Configure PostgreSQL PGVector insertion, search, retrieval, and tool modes |
 | Question and Answer Chain | `question-answer-chain` | Answer questions using a connected retriever and language model |
 | Read/Write Files from Disk | `read-write-file` | Read or write files from the computer that runs n8n |
 | Remove Duplicates | `remove-duplicates` | Delete items with matching field values |

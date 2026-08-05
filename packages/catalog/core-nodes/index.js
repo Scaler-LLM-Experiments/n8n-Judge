@@ -47,9 +47,12 @@ import markdown from './markdown.js';
 import merge from './merge.js';
 import microsoftAgent365Trigger from './microsoft-agent-365-trigger.js';
 import milvusVectorStore from './milvus-vector-store.js';
+import mongodbAtlasVectorStore from './mongodb-atlas-vector-store.js';
 import n8nTrigger from './n8n-trigger.js';
 import n8n from './n8n.js';
 import noop from './noop.js';
+import oracleDatabaseVectorStore from './oracle-database-vector-store.js';
+import pgvectorVectorStore from './pgvector-vector-store.js';
 import readWriteFile from './read-write-file.js';
 import questionAnswerChain from './question-answer-chain.js';
 import removeDuplicates from './remove-duplicates.js';
@@ -169,9 +172,9 @@ export const CLUSTER_NODE_INVENTORY = [
   { type: 'azure-ai-search-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoreazureaisearch', label: 'Azure AI Search Vector Store', clusterRole: 'root', status: 'complete' },
   { type: 'simple-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoreinmemory', label: 'Simple Vector Store', clusterRole: 'root', status: 'complete' },
   { type: 'milvus-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoremilvus', label: 'Milvus Vector Store', clusterRole: 'root', status: 'complete' },
-  { type: 'mongodb-atlas-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoremongodbatlas', label: 'MongoDB Atlas Vector Store', clusterRole: 'root', status: 'pending' },
-  { type: 'pgvector-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstorepgvector', label: 'PGVector Vector Store', clusterRole: 'root', status: 'pending' },
-  { type: 'oracle-database-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoreoracledb', label: 'Oracle Database Vector Store', clusterRole: 'root', status: 'pending' },
+  { type: 'mongodb-atlas-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoremongodbatlas', label: 'MongoDB Atlas Vector Store', clusterRole: 'root', status: 'complete' },
+  { type: 'pgvector-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstorepgvector', label: 'Postgres PGVector Store', clusterRole: 'root', status: 'complete' },
+  { type: 'oracle-database-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoreoracledb', label: 'Oracle Database Vector Store', clusterRole: 'root', status: 'complete' },
   { type: 'chroma-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstorechroma', label: 'Chroma Vector Store', clusterRole: 'root', status: 'pending' },
   { type: 'pinecone-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstorepinecone', label: 'Pinecone Vector Store', clusterRole: 'root', status: 'pending' },
   { type: 'qdrant-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoreqdrant', label: 'Qdrant Vector Store', clusterRole: 'root', status: 'pending' },
@@ -258,6 +261,7 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
     summarizationChain, informationExtractor, textClassifier,
     sentimentAnalysis, langchainCode, microsoftAgent365Trigger,
     azureAiSearchVectorStore, simpleVectorStore, milvusVectorStore,
+    mongodbAtlasVectorStore, pgvectorVectorStore, oracleDatabaseVectorStore,
     aiTransform, code, compareDatasets,
     compression, convertToFile, crypto,
     dataTable, dateTime, debugHelper,

@@ -558,6 +558,35 @@ describe('cluster-node batch 4 carries the current vector-store authoring surfac
   });
 });
 
+describe('cluster-node batch 5 carries the current database vector-store surfaces', () => {
+  it('models MongoDB Atlas v1.3 collection, index, namespace, and filters', () => {
+    const node = NODE_CATALOG['mongodb-atlas-vector-store'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.3, n8nType: '@n8n/n8n-nodes-langchain.vectorStoreMongoDBAtlas' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 32, credentialEditorFieldCount: 12, dynamicPortShapeCount: 8 });
+    expect(params.mongoCollection).toMatchObject({ kind: 'resourceLocator', locked: true });
+    expect(params.insertOptions.fields.map(({ key }) => key)).toEqual(['clearNamespace', 'namespace']);
+  });
+
+  it('models the live Postgres PGVector v1.3 label and nested collection settings', () => {
+    const node = NODE_CATALOG['pgvector-vector-store'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ label: 'Postgres PGVector Store', n8nVersion: 1.3, n8nType: '@n8n/n8n-nodes-langchain.vectorStorePGVector' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 49, credentialEditorFieldCount: 16 });
+    expect(params.insertOptions.fields.map(({ key }) => key)).toEqual(['collection', 'columnNames']);
+    expect(params.loadToolOptions.fields.map(({ key }) => key)).toEqual(['distanceStrategy', 'collection', 'columnNames', 'metadata']);
+  });
+
+  it('models Oracle Database Vector Store v1.3 distances and credential schema', () => {
+    const node = NODE_CATALOG['oracle-database-vector-store'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.3, n8nType: '@n8n/n8n-nodes-langchain.vectorStoreOracleDBVector' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 22, credentialEditorFieldCount: 20, distanceStrategyCount: 6 });
+    expect(params.loadAndToolOptions.fields[0].options.map(({ value }) => value)).toEqual(['COSINE', 'DOT', 'EUCLIDEAN', 'MANHATTAN', 'EUCLIDEAN_SQUARED', 'HAMMING']);
+    expect(node.portParity.variantCount).toBe(7);
+  });
+});
+
 // Judge does not implement typeVersion — one shipped schema per node type is the
 // right simplification — but every node must SAY which real node and version it
 // models, or the catalogue drifts from the n8n a learner meets next and nobody
