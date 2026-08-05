@@ -345,6 +345,7 @@ const googleTranslate = {
       value: '',
       required: true,
       dynamic: true,
+      locked: true,
       expressionAllowed: true,
       allowCustomValue: true,
       sourceOptions: [],

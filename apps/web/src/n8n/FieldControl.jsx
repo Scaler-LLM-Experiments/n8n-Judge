@@ -127,9 +127,12 @@ export const initialFixedCollectionRow = (field) => Object.fromEntries((field.fi
   .filter((child) => !field.hideOptionalFields || child.required || child.showEvenWhenOptional)
   .map((child) => [child.key, copy(child.value)]));
 
+const atPath = (value, path) => String(path ?? '').split('.').filter(Boolean)
+  .reduce((current, key) => current?.[key], value);
+
 const matchesVisibility = (values, conditions = {}) => Object.entries(conditions).every(
   ([key, accepted]) => {
-    const actual = resourceValue(values?.[key]);
+    const actual = resourceValue(atPath(values, key));
     if (Array.isArray(accepted)) return accepted.includes(actual);
     if (accepted?.exists !== undefined) return Object.hasOwn(values ?? {}, key) === accepted.exists;
     if (accepted?.includes !== undefined) return String(actual ?? '').includes(accepted.includes);
@@ -139,6 +142,28 @@ const matchesVisibility = (values, conditions = {}) => Object.entries(conditions
 
 export const fieldIsVisible = (field, values) =>
   matchesVisibility(values, field.showWhen) && (!field.hideWhen || !matchesVisibility(values, field.hideWhen));
+
+// n8n reuses native names inside conditional fixed collections. The catalog
+// keeps unique UI keys, so expose the currently visible sibling under its native
+// name while evaluating dependent fields.
+export const visibilityValuesForFields = (fields = [], values = {}) => {
+  const counts = fields.reduce((result, field) => ({
+    ...result,
+    [field.n8nKey]: (result[field.n8nKey] ?? 0) + 1,
+  }), {});
+  const duplicateNativeKeys = new Set(Object.entries(counts)
+    .filter(([key, count]) => key && count > 1)
+    .map(([key]) => key));
+  if (!duplicateNativeKeys.size) return values;
+
+  const scoped = { ...values };
+  for (const key of duplicateNativeKeys) delete scoped[key];
+  for (const field of fields) {
+    if (!duplicateNativeKeys.has(field.n8nKey) || !Object.hasOwn(values, field.key)) continue;
+    if (fieldIsVisible(field, values)) scoped[field.n8nKey] = values[field.key];
+  }
+  return scoped;
+};
 
 const nestedLabel = (field) => (
   <div style={{ fontSize: 11.5, fontWeight: 650, color: 'var(--fg-1)', marginBottom: 5 }}>
@@ -166,7 +191,8 @@ function NestedControl({ field, value, border, onChange, inputKeys, rootValues }
 /** n8n's Options → Add Field control. Members stay absent until explicitly added. */
 export function CollectionControl({ field, value, border, bg, onChange, inputKeys = [], rootValues = {} }) {
   const current = value && typeof value === 'object' && !Array.isArray(value) ? value : {};
-  const members = (field.fields ?? []).filter((child) => child.kind !== 'hidden' && fieldIsVisible(child, { ...rootValues, ...current }));
+  const scopedValues = visibilityValuesForFields(field.fields, { ...rootValues, ...current });
+  const members = (field.fields ?? []).filter((child) => child.kind !== 'hidden' && fieldIsVisible(child, scopedValues));
   const active = members.filter((child) => Object.hasOwn(current, child.key));
   const available = members.filter((child) => !Object.hasOwn(current, child.key));
   const update = (key, next) => onChange(field.key, { ...current, [key]: next });
@@ -179,7 +205,7 @@ export function CollectionControl({ field, value, border, bg, onChange, inputKey
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               {nestedLabel(child)}
-              <NestedControl field={child} value={current[child.key]} border={border} onChange={update} inputKeys={inputKeys} rootValues={{ ...rootValues, ...current }} />
+              <NestedControl field={child} value={current[child.key]} border={border} onChange={update} inputKeys={inputKeys} rootValues={scopedValues} />
               {nestedHelp(child)}
             </div>
             <button type="button" aria-label={`Remove ${child.label}`} onClick={() => remove(child.key)} style={{ border: 'none', background: 'none', color: 'var(--fg-3)', cursor: 'pointer', padding: 4 }}><Trash size={14} /></button>
@@ -226,7 +252,8 @@ export function FixedCollectionControl({ field, value, border, bg, onChange, inp
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
       {rows.map((row, index) => {
-        const visible = (field.fields ?? []).filter((child) => child.kind !== 'hidden' && fieldIsVisible(child, { ...rootValues, ...row }));
+        const scopedValues = visibilityValuesForFields(field.fields, { ...rootValues, ...row });
+        const visible = (field.fields ?? []).filter((child) => child.kind !== 'hidden' && fieldIsVisible(child, scopedValues));
         const active = visible.filter((child) => !field.hideOptionalFields || child.required || child.showEvenWhenOptional || Object.hasOwn(row, child.key));
         const available = visible.filter((child) => !active.includes(child));
         return (
@@ -245,7 +272,7 @@ export function FixedCollectionControl({ field, value, border, bg, onChange, inp
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     {nestedLabel(child)}
-                    <NestedControl field={child} value={row[child.key]} border={border} onChange={(_, next) => setCell(index, child.key, next)} inputKeys={inputKeys} rootValues={row} />
+                    <NestedControl field={child} value={row[child.key]} border={border} onChange={(_, next) => setCell(index, child.key, next)} inputKeys={inputKeys} rootValues={scopedValues} />
                   </div>
                   {field.hideOptionalFields && !child.required && !child.showEvenWhenOptional ? (
                     <button type="button" aria-label={`Remove ${child.label}`} onClick={() => setRows(rows.map((item, rowIndex) => rowIndex === index ? Object.fromEntries(Object.entries(item).filter(([key]) => key !== child.key)) : item))} style={{ border: 'none', background: 'none', color: 'var(--fg-3)', cursor: 'pointer', padding: 4 }}><Trash size={14} /></button>

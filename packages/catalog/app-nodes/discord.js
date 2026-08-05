@@ -268,6 +268,7 @@ const makeGuildLocator = (key, showWhen) => ({
     { label: 'By ID', value: 'id', kind: 'text', placeholder: 'e.g. 896347036838936576', validation: { regex: '[0-9]+', errorMessage: 'Not a valid Discord Server ID' } },
   ],
   options: [],
+  locked: true,
   dynamicOptions: { source: 'guildSearch', inert: true },
   simulationNote: lookupNote,
 });
@@ -297,6 +298,7 @@ const makeChannelLocator = (key, showWhen, { textOnly = false } = {}) => ({
     { label: 'By ID', value: 'id', kind: 'text', placeholder: 'e.g. 896347036838936576', validation: { regex: '[0-9]+', errorMessage: 'Not a valid Discord Channel ID' } },
   ],
   options: [],
+  locked: true,
   dynamicOptions: { source: textOnly ? 'textChannelSearch' : 'channelSearch', dependsOn: ['guildId.value'], inert: true },
   simulationNote: lookupNote,
 });
@@ -319,6 +321,7 @@ const makeCategoryLocator = (key, showWhen) => ({
     { label: 'By ID', value: 'id', kind: 'text', placeholder: 'e.g. 896347036838936576', validation: { regex: '[0-9]+', errorMessage: 'Not a valid Discord Category ID' } },
   ],
   options: [],
+  locked: true,
   dynamicOptions: { source: 'categorySearch', dependsOn: ['guildId.value'], inert: true },
   simulationNote: lookupNote,
 });
@@ -340,6 +343,7 @@ const makeUserLocator = (key, showWhen) => ({
     { label: 'By ID', value: 'id', kind: 'text', placeholder: 'e.g. 786953432728469534', validation: { regex: '[0-9]+', errorMessage: 'Not a valid User ID' } },
   ],
   options: [],
+  locked: true,
   dynamicOptions: { source: 'userSearch', dependsOn: ['guildId.value'], paginated: true, inert: true },
   simulationNote: lookupNote,
 });
@@ -1138,6 +1142,7 @@ const discord = {
       required: true,
       showWhen: { authentication: activeAuthentications, resource: ['member'], memberOperation: ['roleAdd'] },
       options: [],
+      locked: true,
       dynamicOptions: { source: 'getRoles', dependsOn: ['userId.value', 'guildId.value', 'operation'], inert: true },
       description: 'Select the roles you want to add to the user',
       simulationNote: lookupNote,
@@ -1152,6 +1157,7 @@ const discord = {
       required: true,
       showWhen: { authentication: activeAuthentications, resource: ['member'], memberOperation: ['roleRemove'] },
       options: [],
+      locked: true,
       dynamicOptions: { source: 'getRoles', dependsOn: ['userId.value', 'guildId.value', 'operation'], filtersToUserRoles: true, inert: true },
       description: 'Select the roles you want to add to the user',
       simulationNote: lookupNote,

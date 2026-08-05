@@ -207,11 +207,12 @@ const columnsMapper = (key, operation, mode) => {
     label: 'Columns',
     kind: 'collection',
     sourceKind: 'resourceMapper',
-    value: { mappingMode: 'defineBelow', value: null },
+    value: { [`${key}MappingMode`]: 'defineBelow' },
     sourceDefault: { mappingMode: 'defineBelow', value: null },
     required: true,
     noDataExpression: true,
     dynamicSchema: true,
+    locked: true,
     loadOptionsDependsOn: ['sheetName.value'],
     resourceMapperConfig: {
       method: 'getMappingColumns', mode, fieldWords: { singular: 'column', plural: 'columns' },
@@ -235,7 +236,7 @@ const columnsMapper = (key, operation, mode) => {
         : []),
       {
         key: `${key}Values`, n8nKey: 'value', label: mode === 'update' ? 'Values to Update' : 'Values to Send',
-        kind: 'fixedCollection', value: { fields: [] }, required: false, multiple: true, dynamicSchema: true,
+        kind: 'fixedCollection', value: { fields: [] }, required: false, multiple: true, dynamicSchema: true, locked: true,
         collectionKey: 'fields', collectionLabel: 'Column', addLabel: 'Add Column',
         showWhen: { [`${key}MappingMode`]: ['defineBelow'] }, n8nShowWhen: { mappingMode: ['defineBelow'] },
         fields: [
@@ -246,7 +247,7 @@ const columnsMapper = (key, operation, mode) => {
       },
       {
         key: `${key}Schema`, n8nKey: 'schema', label: 'Column Schema', kind: 'fixedCollection', value: { fields: [] }, required: false,
-        multiple: true, dynamicSchema: true, collectionKey: 'fields', collectionLabel: 'Column', addLabel: 'Add Schema Column',
+        multiple: true, dynamicSchema: true, locked: true, collectionKey: 'fields', collectionLabel: 'Column', addLabel: 'Add Schema Column',
         fields: [
           { key: `${key}SchemaId`, n8nKey: 'id', label: 'ID', kind: 'text', value: '', required: true },
           { key: `${key}SchemaDisplayName`, n8nKey: 'displayName', label: 'Display Name', kind: 'text', value: '', required: true },
@@ -281,7 +282,7 @@ const appendLikeOptions = (key, operation, includeUseAppend) => ({
     {
       key: `${key}HandlingExtraData`, n8nKey: 'handlingExtraData', label: 'Handling extra fields in input', kind: 'select',
       value: 'insertInNewColumn', required: false, options: handlingExtraDataOptions,
-      showWhen: { [`${operation}ColumnsMappingMode`]: ['autoMapInputData'] }, n8nShowWhen: { '/columns.mappingMode': ['autoMapInputData'] },
+      showWhen: { [`${operation}Columns.${operation}ColumnsMappingMode`]: ['autoMapInputData'] }, n8nShowWhen: { '/columns.mappingMode': ['autoMapInputData'] },
       description: "What do to with fields that don't match any columns in the Google Sheet",
     },
     ...(includeUseAppend

@@ -635,10 +635,10 @@ const notion = {
     blockMutation: false,
     userMutation: false,
     aiToolExecution: false,
+    voice: false,
     voiceOutput: false,
     sideEffects: false,
   },
 };
 
 export default notion;
-

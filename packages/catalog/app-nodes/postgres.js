@@ -67,6 +67,7 @@ const makeLocator = ({ key, n8nKey, label, value, source, dependsOn = [], showWh
     { label: 'By Name', value: 'name', kind: 'text' },
   ],
   options: [],
+  locked: true,
   dynamicOptions: { source, dependsOn, inert: true },
   description: label === 'Schema' ? 'The schema that contains the table you want to work on' : 'The table you want to work on',
   placeholder: label === 'Schema' ? 'e.g. public' : undefined,
@@ -146,6 +147,7 @@ const makeColumnsMapper = (prefix, operation, mode) => {
     required: true,
     noDataExpression: true,
     dynamicSchema: true,
+    locked: true,
     loadOptionsDependsOn: ['table.value', 'operation'],
     resourceMapperConfig: {
       method: 'getMappingColumns', mode, fieldWords: { singular: 'column', plural: 'columns' },
@@ -174,7 +176,7 @@ const makeColumnsMapper = (prefix, operation, mode) => {
       {
         key: `${prefix}Values`, n8nKey: 'value', label: mode === 'update' ? 'Values to Update' : 'Values to Send',
         kind: 'fixedCollection', value: { fields: [] }, required: false, multiple: true,
-        dynamicSchema: true, collectionKey: 'fields', collectionLabel: 'Column', addLabel: 'Add Column',
+        dynamicSchema: true, locked: true, collectionKey: 'fields', collectionLabel: 'Column', addLabel: 'Add Column',
         showWhen: { [`${prefix}MappingMode`]: ['defineBelow'] }, n8nShowWhen: { mappingMode: ['defineBelow'] },
         fields: [
           { key: `${prefix}ValueColumn`, n8nKey: 'column', label: 'Column', kind: 'text', value: '', required: true, placeholder: 'Loaded from the selected table' },
@@ -184,7 +186,7 @@ const makeColumnsMapper = (prefix, operation, mode) => {
       },
       {
         key: `${prefix}Schema`, n8nKey: 'schema', label: 'Column Schema', kind: 'fixedCollection',
-        value: { fields: [] }, required: false, multiple: true, dynamicSchema: true,
+        value: { fields: [] }, required: false, multiple: true, dynamicSchema: true, locked: true,
         collectionKey: 'fields', collectionLabel: 'Column', addLabel: 'Add Schema Column',
         fields: [
           { key: `${prefix}SchemaId`, n8nKey: 'id', label: 'ID', kind: 'text', value: '', required: true },

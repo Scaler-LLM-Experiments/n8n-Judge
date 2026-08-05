@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isCorrectValue, expressionFor, whyForField, resourceValue, emptyResource, fieldIsVisible, initialFixedCollectionRow } from './FieldControl.jsx';
+import { isCorrectValue, expressionFor, whyForField, resourceValue, emptyResource, fieldIsVisible, initialFixedCollectionRow, visibilityValuesForFields } from './FieldControl.jsx';
 import { toPublicProblem } from '@judge/problem-schema';
 import { problems } from '@judge/problems';
 
@@ -195,5 +195,23 @@ describe('conditional collection fields', () => {
     const field = { showWhen: { queryParameters: { exists: true } } };
     expect(fieldIsVisible(field, {})).toBe(false);
     expect(fieldIsVisible(field, { queryParameters: '' })).toBe(true);
+  });
+
+  it('resolves conditions through a sibling collection value', () => {
+    const field = { showWhen: { 'columns.mappingMode': ['autoMapInputData'] } };
+    expect(fieldIsVisible(field, { columns: { mappingMode: 'autoMapInputData' } })).toBe(true);
+    expect(fieldIsVisible(field, { columns: { mappingMode: 'defineBelow' } })).toBe(false);
+  });
+
+  it('aliases the visible duplicate source field for dependent conditions', () => {
+    const fields = [
+      { key: 'condition', n8nKey: 'condition', showWhen: { type: ['checkbox'] } },
+      { key: 'condition2', n8nKey: 'condition', showWhen: { type: ['text'] } },
+    ];
+    const scoped = visibilityValuesForFields(fields, {
+      type: 'text', condition: 'equals', condition2: 'is_empty',
+    });
+    expect(scoped.condition).toBe('is_empty');
+    expect(fieldIsVisible({ hideWhen: { condition: ['is_empty'] } }, scoped)).toBe(false);
   });
 });

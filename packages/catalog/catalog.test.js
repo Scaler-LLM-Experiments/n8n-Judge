@@ -10,13 +10,19 @@ const supportedFieldKinds = new Set([
   'ruleList', 'multiSelect', 'select', 'text', 'textarea',
 ]);
 
-const inspectFields = (type, fields, path = '') => {
+const inspectFields = (type, fields, path = '', requireInertLocks = false) => {
   const keys = fields.map((field) => field.key);
   expect(new Set(keys).size, `${type}:${path} has duplicate UI keys`).toBe(keys.length);
   for (const field of fields) {
     expect(field.label, `${type}:${path}${field.key} has no label`).toBeTruthy();
     expect(supportedFieldKinds.has(field.kind), `${type}:${path}${field.key} uses unsupported kind ${field.kind}`).toBe(true);
-    if (field.fields) inspectFields(type, field.fields, `${path}${field.key}.`);
+    if (requireInertLocks && field.kind === 'select') {
+      expect(Array.isArray(field.value), `${type}:${path}${field.key} is a scalar select with an array default`).toBe(false);
+    }
+    if (requireInertLocks && (field.dynamicOptions?.inert || field.dynamicSchema || field.dynamic)) {
+      expect(field.locked, `${type}:${path}${field.key} exposes a lookup/schema that cannot load in the simulation`).toBe(true);
+    }
+    if (field.fields) inspectFields(type, field.fields, `${path}${field.key}.`, requireInertLocks);
   }
 };
 
@@ -42,7 +48,8 @@ describe('essential app-node completion inventory', () => {
       expect(node.execute, `${type} must remain an authoring-only simulation`).toBeUndefined();
       expect(node.trigger, `${type} must not implement a trigger runtime`).toBeUndefined();
       expect(node.webhook, `${type} must not implement a webhook runtime`).toBeUndefined();
-      inspectFields(type, node.params ?? []);
+      expect(node.simulation?.voice, `${type} must not generate voice during node authoring`).toBe(false);
+      inspectFields(type, node.params ?? [], '', true);
     }
   });
 });

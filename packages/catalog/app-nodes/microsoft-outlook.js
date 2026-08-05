@@ -269,6 +269,7 @@ const sourceKindToCatalogKind = (property) => {
 
 const fallbackValue = (property) => {
   if (property.sourceRuntimeDefault) return '';
+  if (property.type === 'options' && Array.isArray(property.default)) return property.default[0] ?? '';
   if (property.default !== undefined) return property.default;
   if (property.type === 'collection' || property.type === 'fixedCollection') return {};
   if (property.type === 'resourceLocator') return { __rl: true, mode: 'list', value: '' };
@@ -783,4 +784,3 @@ const microsoftOutlook = {
 };
 
 export default microsoftOutlook;
-

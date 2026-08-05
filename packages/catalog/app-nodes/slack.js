@@ -124,6 +124,7 @@ const sourceKindToCatalogKind = (property) => {
 };
 
 const fallbackValue = (property) => {
+  if (property.type === 'options' && Array.isArray(property.default)) return property.default[0] ?? '';
   if (property.default !== undefined) return property.default;
   if (property.type === 'collection' || property.type === 'fixedCollection') return {};
   if (property.type === 'multiOptions') return [];
@@ -634,6 +635,7 @@ const slack = {
     executionResume: false,
     timeoutScheduling: false,
     aiToolExecution: false,
+    voice: false,
     voiceOutput: false,
     sideEffects: false,
   },

@@ -232,6 +232,7 @@ const makeLocator = ({ key, n8nKey, label, source, showWhen, required = true, mo
     modes,
     modeOptions,
     options: [],
+    locked: true,
     dynamicOptions: { source, dependsOn, inert: true },
     description,
     simulationNote: lookupNote,
