@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { MascotPlayer } from './MascotPlayer.jsx';
 import { useVoice } from '../lib/VoiceContext.jsx';
+import { ASK_CLICK_CLIP, useAskIris } from '../lib/AskIrisContext.jsx';
 
 // Iris, animated by what she is actually saying.
 //
@@ -25,6 +26,8 @@ import { useVoice } from '../lib/VoiceContext.jsx';
 //      two lines in a row never animate identically.
 //   3. Back to `idle` when the audio ends.
 //
+// Click: the `surprised` one-shot (caught-off-guard jump) then Ask Iris opens.
+//
 // It works with the sound off, deliberately. `speaking` is true on the caption-only
 // path too, so a learner who has muted narration still sees Iris talk — which is
 // rule 2 in voice.js: the visual beat carries the moment, the audio is a bonus.
@@ -46,10 +49,14 @@ function speakingFor(seed) {
  * @param resting  what to play when she is silent. `idle` everywhere except the
  *                 greeting, which opens on the `hello` entrance.
  */
-export function IrisMascot({ resting = 'idle', size = 84 }) {
+export function IrisMascot({ resting = 'idle', size = 118 }) {
   const { speaking, clip: moment } = useVoice();
+  const { openAskIris } = useAskIris();
   const [clip, setClip] = useState(resting);
   const [once, setOnce] = useState(resting !== 'idle');
+  // True while the click reaction is playing so a voice `speaking: false` tick
+  // cannot wipe the surprise mid-pop.
+  const pokingRef = useRef(false);
 
   // Read inside callbacks that fire later, where the closed-over value is stale.
   const speakingRef = useRef(speaking);
@@ -62,6 +69,7 @@ export function IrisMascot({ resting = 'idle', size = 84 }) {
   // treated as "no reaction, go straight to talking".
   useEffect(() => {
     if (!moment) return;
+    if (pokingRef.current) return;
     if (moment === 'idle') {
       setClip(speakingRef.current ? speakingFor('idle') : resting);
       setOnce(false);
@@ -73,6 +81,7 @@ export function IrisMascot({ resting = 'idle', size = 84 }) {
 
   // The reaction has played out. Keep talking if there is still audio to talk over.
   const onReactionDone = useCallback(() => {
+    pokingRef.current = false;
     if (speakingRef.current) {
       setClip(speakingFor(momentRef.current ?? 'x'));
       setOnce(false);
@@ -82,17 +91,42 @@ export function IrisMascot({ resting = 'idle', size = 84 }) {
     }
   }, []);
 
-  // She stopped. Settle back, whatever was playing.
+  // She stopped. Settle back, whatever was playing — unless a click reaction is mid-flight.
   useEffect(() => {
     if (speaking) return;
+    if (pokingRef.current) return;
     setClip('idle');
     setOnce(false);
   }, [speaking]);
 
+  const onClick = useCallback(
+    (e) => {
+      e.stopPropagation();
+      pokingRef.current = true;
+      setClip(ASK_CLICK_CLIP);
+      setOnce(true);
+      openAskIris();
+    },
+    [openAskIris],
+  );
+
   return (
     // overflow visible so the voice-reactive scale can grow past the box —
     // clipping here made the pulse look like it was doing nothing.
-    <div style={{ width: size, height: size, overflow: 'visible' }}>
+    // Click: surprised one-shot, then the Ask Iris panel.
+    <div
+      role="button"
+      tabIndex={0}
+      title="Ask Iris"
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick(e);
+        }
+      }}
+      style={{ width: size, height: size, overflow: 'visible', cursor: 'pointer', pointerEvents: 'auto' }}
+    >
       <MascotPlayer clip={clip} once={once} onceDone={onReactionDone} />
     </div>
   );

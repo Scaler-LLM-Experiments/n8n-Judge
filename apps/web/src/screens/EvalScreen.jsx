@@ -8,6 +8,7 @@ import { NodeFlowRow } from '../components/NodeFlowRow.jsx';
 import { shuffledEvalOptions } from '../lib/shuffle.js';
 import { useVoiceActions } from '../lib/VoiceContext.jsx';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
+import { useMascotAskClick } from '../lib/AskIrisContext.jsx';
 import { scoreEval } from '@judge/engine/evalScore.js';
 import { checkAnswer } from '../lib/grader.js';
 import { resolveServerVerdict, UNVERIFIED_MESSAGE } from '../lib/verdict.js';
@@ -77,7 +78,14 @@ export function EvalScreen({ problem, sessionId, onDecision, onSubmit, resume })
   const [checking, setChecking] = useState(false); // request for `picked` in flight
   const [verdict, setVerdict] = useState(null); // settled { correct, why } for `picked`
   const [answers, setAnswers] = useState({});
-  const [mascotClip, setMascotClip] = useState('idle');
+  const [mascotBaseClip, setMascotBaseClip] = useState('idle');
+  const {
+    clip: mascotClip,
+    once: mascotOnce,
+    onMascotClick,
+    onMascotKeyDown,
+    onReactDone: onMascotReactDone,
+  } = useMascotAskClick(mascotBaseClip);
   const [showStatement, setShowStatement] = useState(false);
   const quizRef = useRef(null);
 
@@ -125,7 +133,7 @@ export function EvalScreen({ problem, sessionId, onDecision, onSubmit, resume })
     const resolved = resolveVerdict(q, chosen, result);
     setChecking(false);
     setVerdict(resolved);
-    setMascotClip(resolved.correct === true ? 'correct' : resolved.correct === false ? 'shake-no' : 'idle');
+    setMascotBaseClip(resolved.correct === true ? 'correct' : resolved.correct === false ? 'shake-no' : 'idle');
     // Stress Testing used to go silent after `stress_start`, so the one section that
     // is entirely about judgement gave no spoken reaction to any answer. Keyed by
     // question, so re-answering rotates the wording rather than repeating it. Nothing
@@ -150,7 +158,7 @@ export function EvalScreen({ problem, sessionId, onDecision, onSubmit, resume })
       setIndex(index + 1);
       setPicked(null);
       setVerdict(null);
-      setMascotClip('idle');
+      setMascotBaseClip('idle');
     } else {
       onSubmit(scoreEval(answers, questions));
     }
@@ -247,8 +255,15 @@ export function EvalScreen({ problem, sessionId, onDecision, onSubmit, resume })
         </div>
       ) : null}
 
-      <div style={{ position: 'fixed', left: 28, bottom: answered ? 96 : 24, width: 84, height: 84, zIndex: 50, pointerEvents: 'none', transition: 'bottom 0.2s ease' }}>
-        <MascotPlayer clip={mascotClip} once={mascotClip !== 'idle'} onceDone={() => {}} />
+      <div
+        role="button"
+        tabIndex={0}
+        title="Ask Iris"
+        onClick={onMascotClick}
+        onKeyDown={onMascotKeyDown}
+        style={{ position: 'fixed', left: 28, bottom: answered ? 96 : 24, width: 118, height: 118, zIndex: 50, pointerEvents: 'auto', cursor: 'pointer', transition: 'bottom 0.2s ease' }}
+      >
+        <MascotPlayer clip={mascotClip} once={mascotOnce || mascotBaseClip !== 'idle'} onceDone={onMascotReactDone} />
       </div>
 
       {showStatement && problem ? <ProblemStatementPanel problem={problem} onClose={() => setShowStatement(false)} /> : null}

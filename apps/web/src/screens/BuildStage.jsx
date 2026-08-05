@@ -14,6 +14,7 @@ import { checkAnswer } from '../lib/grader.js';
 import { traceableGraph } from '../lib/traceGraph.js';
 import { useTraceContext } from '../lib/TraceContext.jsx';
 import { useVoiceActions } from '../lib/VoiceContext.jsx';
+import { useMascotAskClick } from '../lib/AskIrisContext.jsx';
 
 /** What a learner calls this node, for a spoken line. */
 function nodeLabel(type) {
@@ -170,8 +171,13 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
   // overlay. Showing it to a learner whose nodes have just been restored points at
   // nothing and swallows their first click on the canvas — so it goes if they are
   // resuming past phase one OR arriving with a graph.
+  //
+  // Resume / reload also has to put Iris on screen: she only became visible via
+  // `parkCorner()` after dismissing the spotlight, so a mid-build return left her
+  // at opacity 0 for the whole session.
+  const resumeLike = Boolean(resumePhaseId || initialGraph?.nodes?.length);
   const [showSpotlight, setShowSpotlight] = useState(
-    !devAutoRun && !resumePhaseId && !initialGraph?.nodes?.length
+    !devAutoRun && !resumeLike
   );
   const [nodesState, setNodesState] = useState([]); // { id, type, configured, wrong }
   const [probe, setProbe] = useState(null); // { type, nodeId, data, anchor }
@@ -208,9 +214,22 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
   const phase = phases[phaseIndex];
 
   // ---- traveling mascot ---------------------------------------------------
+  // ~1.4× the original 68px (2× felt huge; this is 70% of that).
+  const MASCOT_SIZE = 95;
+  const MASCOT_LEFT = 20;
+  const MASCOT_BOTTOM = 28;
   const mascotRef = useRef(null);
-  const [mascotClip, setMascotClip] = useState('idle');
-  const [mascotVisible, setMascotVisible] = useState(false);
+  // Base clip the screen owns (idle / confused / …). Click plays `surprised` on top.
+  const [mascotBaseClip, setMascotBaseClip] = useState('idle');
+  const {
+    clip: mascotClip,
+    once: mascotOnce,
+    onMascotClick,
+    onMascotKeyDown,
+    onReactDone: onMascotReactDone,
+  } = useMascotAskClick(mascotBaseClip);
+  // Visible immediately on resume (no spotlight). Fresh starts wait for dismiss.
+  const [mascotVisible, setMascotVisible] = useState(() => resumeLike && !devAutoRun);
   // How many generated sequence probes this learner has already been shown, so the
   // next one asks a different question. A ref, not state: nothing re-renders on it.
   const sequenceProbeSeen = useRef(0);
@@ -219,13 +238,24 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
   const moveTo = useCallback((x, y, size, duration = 0.7) => {
     if (mascotRef.current) gsap.to(mascotRef.current, { left: x, top: y, width: size, height: size, duration, ease: 'power3.inOut' });
   }, []);
-  const parkCorner = useCallback(() => {
+  const parkCorner = useCallback((duration = 0.7) => {
     const b = box();
-    setMascotClip('idle'); setMascotVisible(true);
+    setMascotBaseClip('idle'); setMascotVisible(true);
     // Hard into the left corner. She was pushed to x=96 to clear React Flow's zoom
     // buttons; those now live bottom-right (see N8nEditor), so the corner is hers.
-    moveTo(20, b.height - 96, 68);
+    moveTo(MASCOT_LEFT, Math.max(8, b.height - MASCOT_SIZE - MASCOT_BOTTOM), MASCOT_SIZE, duration);
   }, [moveTo]);
+
+  // Resume / reload: park her once the canvas has a box to measure. Without this,
+  // opacity may be 1 but she sits at the initial off-corner top:400 until something
+  // else calls parkCorner.
+  useLayoutEffect(() => {
+    if (!mascotVisible) return undefined;
+    const id = requestAnimationFrame(() => parkCorner(0));
+    return () => cancelAnimationFrame(id);
+    // Only the first paint of a visible Iris — not every parkCorner identity change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const rectOf = (nodeId) => {
     const c = canvasRef.current;
     const el = c?.querySelector(`.react-flow__node[data-id="${nodeId}"]`);
@@ -409,9 +439,9 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
     if (!probe || probe.anchor) return;
     const t = setTimeout(() => {
       const r = rectOf(probe.nodeId);
-      setMascotClip('confused'); setMascotVisible(true);
+      setMascotBaseClip('confused'); setMascotVisible(true);
       if (r) {
-        moveTo(Math.max(8, r.left - 76), Math.max(8, r.top - 4), 68);
+        moveTo(Math.max(8, r.left - (MASCOT_SIZE + 8)), Math.max(8, r.top - 4), MASCOT_SIZE);
         const ax = Math.min(Math.max(8, r.left + r.width + 20), r.cw - 392);
         const ay = Math.min(Math.max(16, r.top - 12), r.ch - 360);
         setProbe((p) => (p ? { ...p, anchor: { x: ax, y: ay } } : p));
@@ -662,18 +692,39 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
         />
 
         {/* traveling Iris */}
-        <div ref={mascotRef} style={{ position: 'absolute', left: 24, top: 400, width: 68, height: 68, zIndex: 30, pointerEvents: 'none', opacity: mascotVisible ? 1 : 0, transition: 'opacity 0.3s ease' }}>
+        <div
+          ref={mascotRef}
+          role={mascotVisible ? 'button' : undefined}
+          tabIndex={mascotVisible ? 0 : -1}
+          title={mascotVisible ? 'Ask Iris' : undefined}
+          onClick={mascotVisible ? onMascotClick : undefined}
+          onKeyDown={mascotVisible ? onMascotKeyDown : undefined}
+          style={{
+            position: 'absolute',
+            left: MASCOT_LEFT,
+            top: 400,
+            width: MASCOT_SIZE,
+            height: MASCOT_SIZE,
+            zIndex: 30,
+            // Parent can stay non-blocking for empty canvas hits; the mascot
+            // itself receives clicks when visible (pointerEvents auto on this box).
+            pointerEvents: mascotVisible ? 'auto' : 'none',
+            cursor: mascotVisible ? 'pointer' : 'default',
+            opacity: mascotVisible ? 1 : 0,
+            transition: 'opacity 0.3s ease',
+          }}
+        >
           {/* No glow here. "Iris is speaking" is one screen-level indicator now
               (VoiceoverIndicator, mounted once in App), blooming from this corner.
-              A second glow inside the mascot's own 68px box read as a border. */}
+              A second glow inside the mascot's own box read as a border. */}
           <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-            <MascotPlayer clip={mascotClip} once={false} onceDone={() => {}} />
+            <MascotPlayer clip={mascotClip} once={mascotOnce} onceDone={onMascotReactDone} />
           </div>
         </div>
 
         {/* Iris "talking" — chat bubble to the right of the parked mascot */}
         {irisSay && mascotVisible && !probe ? (
-          <div className="fade-in" style={{ position: 'absolute', left: 100, bottom: 40, maxWidth: 260, zIndex: 31, background: 'var(--surface-0)', border: '1px solid var(--border-strong)', borderLeft: '3px solid var(--brand-primary)', boxShadow: '0 10px 26px rgba(1,24,69,0.16)', padding: '10px 13px' }}>
+          <div className="fade-in" style={{ position: 'absolute', left: MASCOT_LEFT + MASCOT_SIZE + 12, bottom: MASCOT_BOTTOM + 12, maxWidth: 260, zIndex: 31, background: 'var(--surface-0)', border: '1px solid var(--border-strong)', borderLeft: '3px solid var(--brand-primary)', boxShadow: '0 10px 26px rgba(1,24,69,0.16)', padding: '10px 13px' }}>
             <span style={{ position: 'absolute', left: -8, bottom: 16, width: 0, height: 0, borderTop: '7px solid transparent', borderBottom: '7px solid transparent', borderRight: '8px solid var(--surface-0)' }} />
             <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--fg-1)', lineHeight: 1.5 }}>{irisSay}</div>
           </div>
@@ -770,7 +821,7 @@ function SpotlightIntro() {
   return (
     <div ref={ref} style={{ position: 'absolute', inset: 0, zIndex: 38, pointerEvents: 'none', background: 'radial-gradient(circle at 50% 50%, rgba(20,30,55,0) 120px, rgba(20,30,55,0.10) 260px, rgba(20,30,55,0.26) 100%)' }}>
       <div ref={stack} style={{ position: 'absolute', left: '50%', top: '13%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, textAlign: 'center', maxWidth: 440 }}>
-        <div style={{ width: 84, height: 84 }}>
+        <div style={{ width: 118, height: 118 }}>
           <MascotPlayer clip="presenting" once={false} onceDone={() => {}} />
         </div>
         <div style={{ fontFamily: 'var(--font-headline)', fontSize: 26, fontWeight: 600, color: 'var(--fg-1)', textShadow: '0 1px 10px rgba(255,255,255,0.7)' }}>Let’s build your agent</div>
@@ -792,7 +843,7 @@ function StageClearOverlay({ info, onContinue }) {
     <div ref={ref} style={{ position: 'absolute', inset: 0, zIndex: 58, background: 'rgba(233,236,242,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 32, overflow: 'hidden' }}>
       <Confetti />
       <div ref={stack} style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, maxWidth: 400, background: 'var(--surface-0)', border: '1px solid var(--border-strong)', boxShadow: '0 24px 70px rgba(1,24,69,0.22)', padding: '30px 34px' }}>
-        <div style={{ position: 'relative', width: 104, height: 104 }}>
+        <div style={{ position: 'relative', width: 118, height: 118 }}>
           <div style={{ position: 'absolute', inset: -14, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,85,255,0.22), rgba(0,85,255,0) 70%)', animation: 'irispulse 1.8s ease-in-out infinite' }} />
           <div style={{ position: 'relative', width: '100%', height: '100%' }}>
             <MascotPlayer clip="celebrate" once={false} onceDone={() => {}} />
@@ -929,7 +980,7 @@ function RunCelebration({ onContinue }) {
     <div ref={ref} style={{ position: 'absolute', inset: 0, zIndex: 58, background: 'rgba(233,236,242,0.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 32, overflow: 'hidden' }}>
       <Confetti count={120} />
       <div ref={stack} style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, maxWidth: 440, background: 'var(--surface-0)', border: '1px solid var(--border-strong)', boxShadow: '0 24px 70px rgba(1,24,69,0.22)', padding: '30px 36px' }}>
-        <div style={{ position: 'relative', width: 108, height: 108 }}>
+        <div style={{ position: 'relative', width: 118, height: 118 }}>
           <div style={{ position: 'absolute', inset: -14, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,85,255,0.22), rgba(0,85,255,0) 70%)', animation: 'irispulse 1.8s ease-in-out infinite' }} />
           <div style={{ position: 'relative', width: '100%', height: '100%' }}><MascotPlayer clip="celebrate" once={false} onceDone={() => {}} /></div>
         </div>

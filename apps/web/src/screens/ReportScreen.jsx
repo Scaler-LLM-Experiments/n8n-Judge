@@ -6,6 +6,7 @@ import { Button } from '../design-system/Button.jsx';
 import { TopBar } from '../components/TopBar.jsx';
 import { ProblemStatementPanel } from '../components/ProblemStatementPanel.jsx';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
+import { useMascotAskClick } from '../lib/AskIrisContext.jsx';
 import { understandingScore, countsByKind } from '@judge/engine/grading.js';
 
 // This screen reads as a REPORT, not as another screen in the journey: one
@@ -105,6 +106,14 @@ export function ReportScreen({
   const localScore = grading ? understandingScore(grading) : null;
   const score = serverReport ? serverReport.total : localScore;
   const band = serverReport?.band || bandFromScore(score);
+  const bandBase = bandClip(band);
+  const {
+    clip: mascotClip,
+    once: mascotOnce,
+    onMascotClick,
+    onMascotKeyDown,
+    onReactDone: onMascotReactDone,
+  } = useMascotAskClick(bandBase);
   const counts = grading ? countsByKind(grading) : {};
 
   const written = serverReport?.report || null;
@@ -150,8 +159,15 @@ export function ReportScreen({
               right, on the darkest brand blue so the sheet opens on a header
               rather than on body text. */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 28, padding: '30px 34px', background: 'var(--surface-deep)', color: 'var(--fg-inverse)' }}>
-            <div style={{ width: 86, height: 86, flex: 'none' }}>
-              <MascotPlayer clip={bandClip(band)} once={false} onceDone={() => {}} />
+            <div
+              role="button"
+              tabIndex={0}
+              title="Ask Iris"
+              onClick={onMascotClick}
+              onKeyDown={onMascotKeyDown}
+              style={{ width: 120, height: 120, flex: 'none', cursor: 'pointer' }}
+            >
+              <MascotPlayer clip={mascotClip} once={mascotOnce} onceDone={onMascotReactDone} />
             </div>
             {/* Every text node in here sets its own colour. The container's
                 `color` is NOT enough: the global stylesheet gives h2 and p their

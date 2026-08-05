@@ -1,8 +1,9 @@
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 import { ArrowRight, EnvelopeSimpleOpen, UsersThree, NotePencil, Package, Robot } from '@phosphor-icons/react';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
 import { Button } from '../design-system/Button.jsx';
 import { TopBar } from '../components/TopBar.jsx';
+import { useMascotAskClick } from '../lib/AskIrisContext.jsx';
 
 // A Phosphor icon per problem (falls back to a generic agent icon).
 const ICONS = {
@@ -128,8 +129,14 @@ function ContinueCard({ resume, onResume, onRestart }) {
 export function HomeScreen({ problems, onSelect, resume, onResume, onRestart }) {
   // Wave three times, then rest on idle — a permanent hello loop on the catalogue
   // reads as a broken GIF rather than a greeting.
-  const [heroClip, setHeroClip] = useState('hello');
-  const onHeroDone = useCallback(() => setHeroClip('idle'), []);
+  const [heroBase, setHeroBase] = useState('hello');
+  const {
+    clip: heroClip,
+    once: heroOnce,
+    onMascotClick,
+    onMascotKeyDown,
+    onReactDone: onHeroReactDone,
+  } = useMascotAskClick(heroBase);
 
   return (
     <div style={{ height: '100%', overflowY: 'auto', background: 'var(--surface-0)' }}>
@@ -144,12 +151,19 @@ export function HomeScreen({ problems, onSelect, resume, onResume, onRestart }) 
       <div style={{ maxWidth: 1360, margin: '0 auto', padding: '12px 56px 64px' }}>
         {/* hero */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 12, marginBottom: 40 }}>
-          <div style={{ width: 96, height: 96 }}>
+          <div
+            role="button"
+            tabIndex={0}
+            title="Ask Iris"
+            onClick={onMascotClick}
+            onKeyDown={onMascotKeyDown}
+            style={{ width: 134, height: 134, cursor: 'pointer' }}
+          >
             <MascotPlayer
               clip={heroClip}
-              once={false}
-              times={heroClip === 'hello' ? 3 : undefined}
-              onceDone={onHeroDone}
+              once={heroOnce}
+              times={!heroOnce && heroBase === 'hello' ? 3 : undefined}
+              onceDone={heroOnce ? onHeroReactDone : () => setHeroBase('idle')}
               pulse={false}
             />
           </div>
