@@ -15,6 +15,12 @@ import crypto from './crypto.js';
 import dataTable from './data-table.js';
 import dateTime from './date-time.js';
 import debugHelper from './debug-helper.js';
+import editImage from './edit-image.js';
+import emailTriggerImap from './email-trigger-imap.js';
+import errorTrigger from './error-trigger.js';
+import evaluationTrigger from './evaluation-trigger.js';
+import evaluation from './evaluation.js';
+import executeCommand from './execute-command.js';
 
 export const SOURCE_COMMIT = '3d68c29b9281f14097aa9f15e01ac0777e538b11';
 
@@ -30,12 +36,12 @@ export const CORE_NODE_INVENTORY = [
   { type: 'data-table', docsSlug: 'n8n-nodes-base.datatable', label: 'Data Table', status: 'complete' },
   { type: 'date-time', docsSlug: 'n8n-nodes-base.datetime', label: 'Date & Time', status: 'complete' },
   { type: 'debug-helper', docsSlug: 'n8n-nodes-base.debughelper', label: 'Debug Helper', status: 'complete' },
-  { type: 'edit-image', docsSlug: 'n8n-nodes-base.editimage', label: 'Edit Image', status: 'pending' },
-  { type: 'email-trigger-imap', docsSlug: 'n8n-nodes-base.emailimap', label: 'Email Trigger (IMAP)', status: 'pending' },
-  { type: 'error-trigger', docsSlug: 'n8n-nodes-base.errortrigger', label: 'Error Trigger', status: 'pending' },
-  { type: 'evaluation-trigger', docsSlug: 'n8n-nodes-base.evaluationtrigger', label: 'Evaluation Trigger', status: 'pending' },
-  { type: 'evaluation', docsSlug: 'n8n-nodes-base.evaluation', label: 'Evaluation', status: 'pending' },
-  { type: 'execute-command', docsSlug: 'n8n-nodes-base.executecommand', label: 'Execute Command', status: 'pending' },
+  { type: 'edit-image', docsSlug: 'n8n-nodes-base.editimage', label: 'Edit Image', status: 'complete' },
+  { type: 'email-trigger-imap', docsSlug: 'n8n-nodes-base.emailimap', label: 'Email Trigger (IMAP)', status: 'complete' },
+  { type: 'error-trigger', docsSlug: 'n8n-nodes-base.errortrigger', label: 'Error Trigger', status: 'complete' },
+  { type: 'evaluation-trigger', docsSlug: 'n8n-nodes-base.evaluationtrigger', label: 'Evaluation Trigger', status: 'complete' },
+  { type: 'evaluation', docsSlug: 'n8n-nodes-base.evaluation', label: 'Evaluation', status: 'complete' },
+  { type: 'execute-command', docsSlug: 'n8n-nodes-base.executecommand', label: 'Execute Command', status: 'complete' },
   { type: 'execute-subworkflow-trigger', docsSlug: 'n8n-nodes-base.executeworkflowtrigger', label: 'Execute Sub-workflow Trigger', status: 'pending' },
   { type: 'execute-subworkflow', docsSlug: 'n8n-nodes-base.executeworkflow', label: 'Execute Sub-workflow', status: 'pending' },
   { type: 'execution-data', docsSlug: 'n8n-nodes-base.executiondata', label: 'Execution Data', status: 'pending' },
@@ -96,6 +102,8 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
     aiTransform, code, compareDatasets,
     compression, convertToFile, crypto,
     dataTable, dateTime, debugHelper,
+    editImage, emailTriggerImap, errorTrigger,
+    evaluationTrigger, evaluation, executeCommand,
   ].map((node) => [node.type, node])
 );
 

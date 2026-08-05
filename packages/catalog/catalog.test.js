@@ -17,7 +17,7 @@ describe('core-node completion inventory', () => {
 
   it('publishes only reviewed complete nodes', () => {
     const supportedKinds = new Set([
-      'assignmentList', 'boolean', 'button', 'code', 'collection', 'expression',
+      'assignmentList', 'boolean', 'button', 'code', 'collection', 'color', 'expression',
       'fixedCollection', 'hidden', 'notice', 'number', 'resourceLocator',
       'ruleList', 'multiSelect', 'select', 'text', 'textarea',
     ]);

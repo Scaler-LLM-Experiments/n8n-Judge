@@ -1,5 +1,5 @@
 import React from 'react';
-import { CaretDown, Lightning, Plus, Trash } from '@phosphor-icons/react';
+import { CaretDown, CaretUp, Lightning, Plus, Trash } from '@phosphor-icons/react';
 
 // Parameter controls, one per n8n field type.
 //
@@ -196,6 +196,13 @@ export function FixedCollectionControl({ field, value, border, bg, onChange, inp
   const emptyRow = () => Object.fromEntries((field.fields ?? []).map((child) => [child.key, copy(child.value)]));
   const setRows = (next) => onChange(field.key, { ...current, [itemKey]: next });
   const setCell = (index, key, next) => setRows(rows.map((row, rowIndex) => rowIndex === index ? { ...row, [key]: next } : row));
+  const move = (index, offset) => {
+    const target = index + offset;
+    if (target < 0 || target >= rows.length) return;
+    const next = [...rows];
+    [next[index], next[target]] = [next[target], next[index]];
+    setRows(next);
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
@@ -203,7 +210,11 @@ export function FixedCollectionControl({ field, value, border, bg, onChange, inp
         <div key={index} style={{ border: `1px solid ${border}`, background: bg, padding: 10 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 9 }}>
             <span style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--fg-3)' }}>{field.collectionLabel || 'Item'} {index + 1}</span>
-            <button type="button" aria-label={`Remove ${field.label} ${index + 1}`} onClick={() => setRows(rows.filter((_, rowIndex) => rowIndex !== index))} style={{ border: 'none', background: 'none', color: 'var(--fg-3)', cursor: 'pointer', padding: 2 }}><Trash size={14} /></button>
+            <div style={{ display: 'flex', gap: 3 }}>
+              {field.sortable ? <button type="button" aria-label={`Move ${field.label} ${index + 1} up`} disabled={index === 0} onClick={() => move(index, -1)} style={{ border: 'none', background: 'none', color: 'var(--fg-3)', cursor: index === 0 ? 'not-allowed' : 'pointer', padding: 2 }}><CaretUp size={14} /></button> : null}
+              {field.sortable ? <button type="button" aria-label={`Move ${field.label} ${index + 1} down`} disabled={index === rows.length - 1} onClick={() => move(index, 1)} style={{ border: 'none', background: 'none', color: 'var(--fg-3)', cursor: index === rows.length - 1 ? 'not-allowed' : 'pointer', padding: 2 }}><CaretDown size={14} /></button> : null}
+              <button type="button" aria-label={`Remove ${field.label} ${index + 1}`} onClick={() => setRows(rows.filter((_, rowIndex) => rowIndex !== index))} style={{ border: 'none', background: 'none', color: 'var(--fg-3)', cursor: 'pointer', padding: 2 }}><Trash size={14} /></button>
+            </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {(field.fields ?? []).filter((child) => isVisible(child, row)).map((child) => (
@@ -273,6 +284,17 @@ export function FieldControl({ field, value, border, bg, onChange, shuffledOptio
         }}
         style={baseInput(border, bg)}
       />
+    );
+  }
+
+  if (kind === 'color') {
+    const raw = String(value ?? '#000000');
+    const swatch = /^#[0-9a-f]{6}/i.test(raw) ? raw.slice(0, 7) : '#000000';
+    return (
+      <div style={{ display: 'flex', gap: 8 }}>
+        <input type="color" aria-label={`${field.label} picker`} value={swatch} onChange={(event) => onChange(field.key, `${event.target.value}${raw.length === 9 ? raw.slice(7) : ''}`)} style={{ width: 44, minHeight: 38, border: `1.5px solid ${border}`, background: bg, padding: 3 }} />
+        <input aria-label={field.label} value={raw} onChange={(event) => onChange(field.key, event.target.value)} style={baseInput(border, bg)} />
+      </div>
     );
   }
 
@@ -420,7 +442,7 @@ export function FieldControl({ field, value, border, bg, onChange, shuffledOptio
 
   // A few n8n option fields also accept an expression/custom identifier. A
   // native datalist preserves both parts without inventing another control.
-  if (field.allowCustomValue) {
+  if (field.allowCustomValue || field.expressionAllowed) {
     const listId = `${field.key}-options`;
     return (
       <>

@@ -48,6 +48,10 @@ function Pick({ label, value, options, onChange, border, flex = 1 }) {
   );
 }
 
+function TextEntry({ label, value, onChange, border, flex = 1 }) {
+  return <input aria-label={label} value={value ?? ''} placeholder={label} onChange={(event) => onChange(event.target.value)} style={{ ...cell(border), flex }} />;
+}
+
 function IconBtn({ title, onClick, disabled, children }) {
   return (
     <button
@@ -134,13 +138,11 @@ export function RuleListControl({ field, value, border, onChange, rowVerdicts, f
             <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--fg-3)', flex: 'none' }}>
               {isRules ? `Output ${i + 1}` : `Field ${i + 1}`}
             </span>
-            <Pick
-              label={isRules ? 'Branch name' : 'Field name'}
-              value={rule[spec.keyOf]}
-              options={isRules ? field.branchOptions : field.nameOptions}
-              onChange={(v) => patch(i, spec.keyOf, v)}
-              border="var(--border-strong)"
-            />
+            {isRules || field.nameOptions?.length ? (
+              <Pick label={isRules ? 'Branch name' : 'Field name'} value={rule[spec.keyOf]} options={isRules ? field.branchOptions : field.nameOptions} onChange={(v) => patch(i, spec.keyOf, v)} border="var(--border-strong)" />
+            ) : (
+              <TextEntry label="Field name" value={rule[spec.keyOf]} onChange={(v) => patch(i, spec.keyOf, v)} border="var(--border-strong)" />
+            )}
             <IconBtn title="Move up" disabled={i === 0} onClick={() => move(i, -1)}>
               <ArrowUp size={12} weight="bold" />
             </IconBtn>
@@ -162,7 +164,11 @@ export function RuleListControl({ field, value, border, onChange, rowVerdicts, f
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 11, color: 'var(--fg-3)', flex: 'none' }}>Set it to</span>
-              <Pick label="Value" value={rule.value} options={field.valueOptions} onChange={(v) => patch(i, 'value', v)} border="var(--border-strong)" flex={2} />
+              {field.valueOptions?.length ? (
+                <Pick label="Value" value={rule.value} options={field.valueOptions} onChange={(v) => patch(i, 'value', v)} border="var(--border-strong)" flex={2} />
+              ) : (
+                <TextEntry label="Value" value={rule.value} onChange={(v) => patch(i, 'value', v)} border="var(--border-strong)" flex={2} />
+              )}
             </div>
           )}
 
