@@ -1,6 +1,6 @@
 # n8n node library catalog
 
-Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **149 canonical nodes** (27 triggers, 24 app actions, 98 core/data/AI nodes) plus 10 compatibility aliases.
+Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **152 canonical nodes** (27 triggers, 24 app actions, 101 core/data/AI nodes) plus 10 compatibility aliases.
 
 ## How to choose
 
@@ -80,7 +80,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | YouTube | `youtube` | Consume YouTube API |
 | Zoom | `zoom` | Consume Zoom API |
 
-## Core, data, and AI building blocks (98)
+## Core, data, and AI building blocks (101)
 
 | Node | Catalog type | Function |
 |---|---|---|
@@ -153,6 +153,9 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | n8n | `n8n` | Handle events and perform actions on your n8n instance |
 | n8n Form | `form` | Generate webforms in n8n and pass their responses to the workflow |
 | No Operation, do nothing | `noop` | No Operation |
+| NVIDIA Nemotron Chat Model | `nvidia-nemotron-chat-model` | Configure an NVIDIA Nemotron chat model and completion controls |
+| Ollama Chat Model | `ollama-chat-model` | Configure a local Ollama chat model and runtime options |
+| OpenAI Chat Model | `openai-chat-model` | Configure OpenAI chat completions, Responses API, and built-in tools |
 | Oracle Database Vector Store | `oracle-database-vector-store` | Configure Oracle Database vector insertion, search, retrieval, and tool modes |
 | Pinecone Vector Store | `pinecone-vector-store` | Configure Pinecone insertion, search, retrieval, tool, and update modes |
 | Postgres PGVector Store | `pgvector-vector-store` | Configure PostgreSQL PGVector insertion, search, retrieval, and tool modes |

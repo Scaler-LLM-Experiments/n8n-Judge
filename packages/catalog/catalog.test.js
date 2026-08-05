@@ -936,6 +936,44 @@ describe('cluster-node batch 16 carries current MiniMax, Mistral, and Moonshot c
   });
 });
 
+describe('cluster-node batch 17 carries current NVIDIA, Ollama, and OpenAI chat models', () => {
+  it('models NVIDIA Nemotron v1 allow-listed models and eight completion options', () => {
+    const node = NODE_CATALOG['nvidia-nemotron-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmChatNvidia' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 13, credentialEditorFieldCount: 2, dynamicFieldCount: 2, modelOptionCount: 8 });
+    expect(params.model).toMatchObject({ value: 'nvidia/llama-3.3-nemotron-super-49b-v1', locked: true });
+    expect(params.model.options).toHaveLength(8);
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['frequencyPenalty', 'maxTokens', 'responseFormat', 'presencePenalty', 'temperature', 'timeout', 'maxRetries', 'topP']);
+  });
+
+  it('models Ollama v1 required model routing and all 20 shared options', () => {
+    const node = NODE_CATALOG['ollama-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmChatOllama' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 24, credentialEditorFieldCount: 2, dynamicFieldCount: 2 });
+    expect(params.model).toMatchObject({ value: 'llama3.2', required: true, locked: true, options: [] });
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['think', 'temperature', 'topK', 'topP', 'frequencyPenalty', 'keepAlive', 'lowVram', 'mainGpu', 'numBatch', 'numCtx', 'numGpu', 'numPredict', 'numThread', 'penalizeNewline', 'presencePenalty', 'repeatPenalty', 'useMLock', 'useMMap', 'vocabOnly', 'format']);
+    expect(node.dormantExportAudit.dormantExports).toEqual([]);
+  });
+
+  it('models OpenAI current v1.3 Responses API, tools, formats, and prompts', () => {
+    const node = NODE_CATALOG['openai-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    const options = Object.fromEntries(params.options.fields.map((field) => [field.key, field]));
+    expect(node).toMatchObject({ n8nVersion: 1.3, n8nType: '@n8n/n8n-nodes-langchain.lmChatOpenAi' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 48, credentialEditorFieldCount: 6, dynamicFieldCount: 2, currentDirectOptionFieldCount: 18, builtInToolFieldCount: 11 });
+    expect(params.model).toMatchObject({ kind: 'resourceLocator', required: true, locked: true, value: { __rl: true, mode: 'list', value: 'gpt-5-mini' } });
+    expect(params.responsesApiEnabled.value).toBe(true);
+    expect(params.builtInTools.fields.map(({ key }) => key)).toEqual(['webSearch', 'fileSearch', 'codeInterpreter']);
+    expect(options.textFormat).toMatchObject({ kind: 'fixedCollection', collectionKey: 'textOptions' });
+    expect(options.textFormat.fields.map(({ key }) => key)).toEqual(['type', 'verbosity', 'name', 'requiredNotice', 'schema', 'description', 'strict']);
+    expect(options.promptConfig).toMatchObject({ kind: 'fixedCollection', collectionKey: 'promptOptions' });
+    expect(options.promptConfig.fields.map(({ key }) => key)).toEqual(['promptId', 'version', 'variables']);
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_languageModel', label: 'Model' })]);
+  });
+});
+
 // Judge does not implement typeVersion — one shipped schema per node type is the
 // right simplification — but every node must SAY which real node and version it
 // models, or the catalogue drifts from the n8n a learner meets next and nobody
