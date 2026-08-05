@@ -340,6 +340,14 @@ describe('app-trigger library', () => {
     expect(params('google-sheets-trigger').event.options.map(({ value }) => value)).toEqual(['rowAdded', 'rowUpdate', 'anyUpdate']);
     expect(params('google-sheets-trigger').includeInOutput.hideWhen).toEqual({ event: ['rowAdded'] });
   });
+
+  it('models Stripe, Outlook, and Teams trigger surfaces', () => {
+    expect(params('stripe-trigger').events.options).toHaveLength(152);
+    expect(params('stripe-trigger').events.options[0].value).toBe('*');
+    expect(params('microsoft-outlook-trigger').fields.options).toHaveLength(27);
+    expect(params('microsoft-teams-trigger').event.options).toHaveLength(5);
+    expect(params('microsoft-teams-trigger').teamId.kind).toBe('resourceLocator');
+  });
 });
 
 describe('core-node completion inventory', () => {

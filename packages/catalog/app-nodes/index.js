@@ -34,6 +34,9 @@ import googleDriveTrigger from './google-drive-trigger.js';
 import gmailTrigger from './gmail-trigger.js';
 import googleSheetsTrigger from './google-sheets-trigger.js';
 import slackTrigger from './slack-trigger.js';
+import stripeTrigger from './stripe-trigger.js';
+import microsoftOutlookTrigger from './microsoft-outlook-trigger.js';
+import microsoftTeamsTrigger from './microsoft-teams-trigger.js';
 
 export const APP_SOURCE_COMMIT = '3d68c29b9281f14097aa9f15e01ac0777e538b11';
 
@@ -74,9 +77,9 @@ export const APP_TRIGGER_NODE_INVENTORY = [
   { type: 'gmail-trigger', actionType: 'gmail', docsSlug: 'n8n-nodes-base.gmailtrigger', label: 'Gmail Trigger', status: 'complete' },
   { type: 'google-sheets-trigger', actionType: 'google-sheets', docsSlug: 'n8n-nodes-base.googlesheetstrigger', label: 'Google Sheets Trigger', status: 'complete' },
   { type: 'slack-trigger', actionType: 'slack', docsSlug: 'n8n-nodes-base.slacktrigger', label: 'Slack Trigger', status: 'complete' },
-  { type: 'stripe-trigger', actionType: 'stripe', docsSlug: 'n8n-nodes-base.stripetrigger', label: 'Stripe Trigger', status: 'pending' },
-  { type: 'microsoft-outlook-trigger', actionType: 'microsoft-outlook', docsSlug: 'n8n-nodes-base.microsoftoutlooktrigger', label: 'Microsoft Outlook Trigger', status: 'pending' },
-  { type: 'microsoft-teams-trigger', actionType: 'microsoft-teams', docsSlug: 'n8n-nodes-base.microsoftteamstrigger', label: 'Microsoft Teams Trigger', status: 'pending' },
+  { type: 'stripe-trigger', actionType: 'stripe', docsSlug: 'n8n-nodes-base.stripetrigger', label: 'Stripe Trigger', status: 'complete' },
+  { type: 'microsoft-outlook-trigger', actionType: 'microsoft-outlook', docsSlug: 'n8n-nodes-base.microsoftoutlooktrigger', label: 'Microsoft Outlook Trigger', status: 'complete' },
+  { type: 'microsoft-teams-trigger', actionType: 'microsoft-teams', docsSlug: 'n8n-nodes-base.microsoftteamstrigger', label: 'Microsoft Teams Trigger', status: 'complete' },
   { type: 'telegram-trigger', actionType: 'telegram', docsSlug: 'n8n-nodes-base.telegramtrigger', label: 'Telegram Trigger', status: 'pending' },
   { type: 'notion-trigger', actionType: 'notion', docsSlug: 'n8n-nodes-base.notiontrigger', label: 'Notion Trigger', status: 'pending' },
   { type: 'postgres-trigger', actionType: 'postgres', docsSlug: 'n8n-nodes-base.postgrestrigger', label: 'Postgres Trigger', status: 'pending' },
@@ -98,6 +101,7 @@ export const APP_NODE_CATALOG = Object.fromEntries(
     notion, telegram, stripe,
     githubTrigger, googleCalendarTrigger, googleDriveTrigger,
     gmailTrigger, googleSheetsTrigger, slackTrigger,
+    stripeTrigger, microsoftOutlookTrigger, microsoftTeamsTrigger,
   ].map((node) => [node.type, node])
 );
 
