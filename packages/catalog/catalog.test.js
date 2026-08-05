@@ -348,6 +348,16 @@ describe('app-trigger library', () => {
     expect(params('microsoft-teams-trigger').event.options).toHaveLength(5);
     expect(params('microsoft-teams-trigger').teamId.kind).toBe('resourceLocator');
   });
+
+  it('models Telegram, Notion, and Postgres trigger surfaces', () => {
+    expect(params('telegram-trigger').updates.options).toHaveLength(10);
+    expect(params('telegram-trigger').updates.options[0].value).toBe('*');
+    expect(params('notion-trigger').event.options.map(({ value }) => value)).toEqual([
+      'pageAddedToDatabase', 'pagedUpdatedInDatabase',
+    ]);
+    expect(params('postgres-trigger').triggerMode.options.map(({ value }) => value)).toEqual(['createTrigger', 'listenTrigger']);
+    expect(params('postgres-trigger').firesOn.options.map(({ value }) => value)).toEqual(['INSERT', 'UPDATE', 'DELETE']);
+  });
 });
 
 describe('core-node completion inventory', () => {

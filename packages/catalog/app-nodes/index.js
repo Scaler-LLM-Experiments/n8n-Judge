@@ -37,6 +37,9 @@ import slackTrigger from './slack-trigger.js';
 import stripeTrigger from './stripe-trigger.js';
 import microsoftOutlookTrigger from './microsoft-outlook-trigger.js';
 import microsoftTeamsTrigger from './microsoft-teams-trigger.js';
+import telegramTrigger from './telegram-trigger.js';
+import notionTrigger from './notion-trigger.js';
+import postgresTrigger from './postgres-trigger.js';
 
 export const APP_SOURCE_COMMIT = '3d68c29b9281f14097aa9f15e01ac0777e538b11';
 
@@ -80,9 +83,9 @@ export const APP_TRIGGER_NODE_INVENTORY = [
   { type: 'stripe-trigger', actionType: 'stripe', docsSlug: 'n8n-nodes-base.stripetrigger', label: 'Stripe Trigger', status: 'complete' },
   { type: 'microsoft-outlook-trigger', actionType: 'microsoft-outlook', docsSlug: 'n8n-nodes-base.microsoftoutlooktrigger', label: 'Microsoft Outlook Trigger', status: 'complete' },
   { type: 'microsoft-teams-trigger', actionType: 'microsoft-teams', docsSlug: 'n8n-nodes-base.microsoftteamstrigger', label: 'Microsoft Teams Trigger', status: 'complete' },
-  { type: 'telegram-trigger', actionType: 'telegram', docsSlug: 'n8n-nodes-base.telegramtrigger', label: 'Telegram Trigger', status: 'pending' },
-  { type: 'notion-trigger', actionType: 'notion', docsSlug: 'n8n-nodes-base.notiontrigger', label: 'Notion Trigger', status: 'pending' },
-  { type: 'postgres-trigger', actionType: 'postgres', docsSlug: 'n8n-nodes-base.postgrestrigger', label: 'Postgres Trigger', status: 'pending' },
+  { type: 'telegram-trigger', actionType: 'telegram', docsSlug: 'n8n-nodes-base.telegramtrigger', label: 'Telegram Trigger', status: 'complete' },
+  { type: 'notion-trigger', actionType: 'notion', docsSlug: 'n8n-nodes-base.notiontrigger', label: 'Notion Trigger', status: 'complete' },
+  { type: 'postgres-trigger', actionType: 'postgres', docsSlug: 'n8n-nodes-base.postgrestrigger', label: 'Postgres Trigger', status: 'complete' },
   { type: 'microsoft-onedrive-trigger', actionType: 'microsoft-onedrive', docsSlug: 'n8n-nodes-base.microsoftonedrivetrigger', label: 'Microsoft OneDrive Trigger', status: 'deferred-low-priority' },
   { type: 'paypal-trigger', actionType: 'paypal', docsSlug: 'n8n-nodes-base.paypaltrigger', label: 'PayPal Trigger', status: 'deferred-low-priority' },
   { type: 'twilio-trigger', actionType: 'twilio', docsSlug: 'n8n-nodes-base.twiliotrigger', label: 'Twilio Trigger', status: 'deferred-low-priority' },
@@ -102,6 +105,7 @@ export const APP_NODE_CATALOG = Object.fromEntries(
     githubTrigger, googleCalendarTrigger, googleDriveTrigger,
     gmailTrigger, googleSheetsTrigger, slackTrigger,
     stripeTrigger, microsoftOutlookTrigger, microsoftTeamsTrigger,
+    telegramTrigger, notionTrigger, postgresTrigger,
   ].map((node) => [node.type, node])
 );
 
