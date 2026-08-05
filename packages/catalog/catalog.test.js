@@ -835,6 +835,40 @@ describe('cluster-node batch 13 carries current Anthropic, Bedrock, and Azure ch
   });
 });
 
+describe('cluster-node batch 14 carries current Cohere, DeepSeek, and Gemini chat models', () => {
+  it('models Cohere v1 credentials, routed model discovery, and two options', () => {
+    const node = NODE_CATALOG['cohere-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmChatCohere' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 6, credentialEditorFieldCount: 2, dynamicFieldCount: 2 });
+    expect(params.model).toMatchObject({ value: 'command-a-03-2025', locked: true, options: [] });
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['temperature', 'maxRetries']);
+  });
+
+  it('models DeepSeek v1 model routing, JSON notice, and eight options', () => {
+    const node = NODE_CATALOG['deepseek-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmChatDeepSeek' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 13, credentialEditorFieldCount: 2, dynamicFieldCount: 2 });
+    expect(params.jsonResponseNotice.showWhen).toEqual({ 'options.responseFormat': ['json_object'] });
+    expect(params.model).toMatchObject({ value: 'deepseek-chat', locked: true, options: [] });
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['frequencyPenalty', 'maxTokens', 'responseFormat', 'presencePenalty', 'temperature', 'timeout', 'maxRetries', 'topP']);
+  });
+
+  it('models Google Gemini v1.1 generation controls and native safety rows', () => {
+    const node = NODE_CATALOG['google-gemini-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    const safety = params.options.fields.find(({ key }) => key === 'safetySettings');
+    expect(node).toMatchObject({ n8nVersion: 1.1, n8nType: '@n8n/n8n-nodes-langchain.lmChatGoogleGemini' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 11, credentialEditorFieldCount: 2, dynamicFieldCount: 2 });
+    expect(params.modelName).toMatchObject({ value: 'models/gemini-3-flash-preview', locked: true, options: [] });
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['maxOutputTokens', 'temperature', 'topK', 'topP', 'safetySettings']);
+    expect(safety).toMatchObject({ collectionKey: 'values', multiple: true });
+    expect(safety.fields.map(({ sourceN8nKey }) => sourceN8nKey)).toEqual(['category', 'threshold']);
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_languageModel', label: 'Model' })]);
+  });
+});
+
 // Judge does not implement typeVersion — one shipped schema per node type is the
 // right simplification — but every node must SAY which real node and version it
 // models, or the catalogue drifts from the n8n a learner meets next and nobody

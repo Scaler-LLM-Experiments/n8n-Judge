@@ -15,6 +15,7 @@ import azureOpenAiChatModel from './azure-openai-chat-model.js';
 import basicLlmChain from './basic-llm-chain.js';
 import code from './code.js';
 import chromaVectorStore from './chroma-vector-store.js';
+import cohereChatModel from './cohere-chat-model.js';
 import compareDatasets from './compare-datasets.js';
 import compression from './compression.js';
 import convertToFile from './convert-to-file.js';
@@ -23,6 +24,7 @@ import dataTable from './data-table.js';
 import defaultDataLoader from './default-data-loader.js';
 import dateTime from './date-time.js';
 import debugHelper from './debug-helper.js';
+import deepSeekChatModel from './deepseek-chat-model.js';
 import editImage from './edit-image.js';
 import emailTriggerImap from './email-trigger-imap.js';
 import embeddingsAwsBedrock from './embeddings-aws-bedrock.js';
@@ -51,6 +53,7 @@ import ftp from './ftp.js';
 import git from './git.js';
 import githubDocumentLoader from './github-document-loader.js';
 import graphql from './graphql.js';
+import googleGeminiChatModel from './google-gemini-chat-model.js';
 import html from './html.js';
 import httpRequest from './http-request.js';
 import ifNode from './if.js';
@@ -224,9 +227,9 @@ export const CLUSTER_NODE_INVENTORY = [
   { type: 'anthropic-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatanthropic', label: 'Anthropic Chat Model', clusterRole: 'sub', status: 'complete' },
   { type: 'aws-bedrock-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatawsbedrock', label: 'AWS Bedrock Chat Model', clusterRole: 'sub', status: 'complete' },
   { type: 'azure-openai-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatazureopenai', label: 'Azure OpenAI Chat Model', clusterRole: 'sub', status: 'complete' },
-  { type: 'cohere-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatcohere', label: 'Cohere Chat Model', clusterRole: 'sub', status: 'pending' },
-  { type: 'deepseek-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatdeepseek', label: 'DeepSeek Chat Model', clusterRole: 'sub', status: 'pending' },
-  { type: 'google-gemini-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatgooglegemini', label: 'Google Gemini Chat Model', clusterRole: 'sub', status: 'pending' },
+  { type: 'cohere-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatcohere', label: 'Cohere Chat Model', clusterRole: 'sub', status: 'complete' },
+  { type: 'deepseek-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatdeepseek', label: 'DeepSeek Chat Model', clusterRole: 'sub', status: 'complete' },
+  { type: 'google-gemini-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatgooglegemini', label: 'Google Gemini Chat Model', clusterRole: 'sub', status: 'complete' },
   { type: 'google-vertex-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatgooglevertex', label: 'Google Vertex Chat Model', clusterRole: 'sub', status: 'pending' },
   { type: 'groq-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatgroq', label: 'Groq Chat Model', clusterRole: 'sub', status: 'pending' },
   { type: 'lemonade-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatlemonade', label: 'Lemonade Chat Model', clusterRole: 'sub', status: 'pending' },
@@ -294,6 +297,7 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
     embeddingsLemonade, embeddingsMistralCloud, embeddingsOllama,
     embeddingsOpenAi, embeddingsOracleDatabase, qwenCloudChatModel,
     anthropicChatModel, awsBedrockChatModel, azureOpenAiChatModel,
+    cohereChatModel, deepSeekChatModel, googleGeminiChatModel,
     aiTransform, code, compareDatasets,
     compression, convertToFile, crypto,
     dataTable, dateTime, debugHelper,

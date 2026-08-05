@@ -1,6 +1,6 @@
 # n8n node library catalog
 
-Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **140 canonical nodes** (27 triggers, 24 app actions, 89 core/data/AI nodes) plus 10 compatibility aliases.
+Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **143 canonical nodes** (27 triggers, 24 app actions, 92 core/data/AI nodes) plus 10 compatibility aliases.
 
 ## How to choose
 
@@ -80,7 +80,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | YouTube | `youtube` | Consume YouTube API |
 | Zoom | `zoom` | Consume Zoom API |
 
-## Core, data, and AI building blocks (89)
+## Core, data, and AI building blocks (92)
 
 | Node | Catalog type | Function |
 |---|---|---|
@@ -95,6 +95,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Chat | `chat` | Send a message into the chat |
 | Chroma Vector Store | `chroma-vector-store` | Configure Chroma insertion, search, retrieval, and tool modes |
 | Code | `code` | Run custom JavaScript or Python code |
+| Cohere Chat Model | `cohere-chat-model` | Configure a Cohere Command chat model and request controls |
 | Compare Datasets | `compare-datasets` | Compare two inputs for changes |
 | Compression | `compression` | Compress and decompress files |
 | Convert to File | `convert-to-file` | Convert JSON data to binary data |
@@ -103,6 +104,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Date & Time | `date-time` | Manipulate date and time values |
 | Default Data Loader | `default-data-loader` | Configure JSON or binary document loading with simple or custom text splitting |
 | DebugHelper | `debug-helper` | Causes problems intentionally and generates useful data for debugging |
+| DeepSeek Chat Model | `deepseek-chat-model` | Configure a DeepSeek chat model and completion controls |
 | Edit Fields (Set) | `edit-fields` | Modify, add, or remove item fields |
 | Edit Image | `edit-image` | Edits an image like blur, resize or adding border and text |
 | Embeddings AWS Bedrock | `embeddings-aws-bedrock` | Configure an AWS Bedrock embedding model and request options |
@@ -125,6 +127,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | FTP | `ftp` | Transfer files via FTP or SFTP |
 | Git | `git` | Control git. |
 | GitHub Document Loader | `github-document-loader` | Configure GitHub repository documents and text splitting for AI workflows |
+| Google Gemini Chat Model | `google-gemini-chat-model` | Configure a Google Gemini chat model and safety settings |
 | GraphQL | `graphql` | Makes a GraphQL request and returns the received data |
 | Guardrails | `guardrails` | Safeguard AI models from malicious input or prevent them from generating undesirable responses |
 | HTML | `html` | Work with HTML |
