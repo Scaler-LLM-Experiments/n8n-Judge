@@ -7,6 +7,7 @@ import { NODE_CATALOG } from '@judge/catalog';
 interface CatalogEntry {
   category?: string;
   needsModel?: boolean;
+  router?: boolean;
   branches?: unknown[];
 }
 const catalogEntryOf = (type: string): CatalogEntry | undefined =>
@@ -160,8 +161,12 @@ export function validateProblem(input: unknown): ValidateProblemResult {
   if (needsModel && !requiredCategories.has('model')) {
     err('nodePalette', 'An AI node needs a Chat Model — palette must require a "model"-category node');
   }
-  // (b) A routing node (catalog entry declares branches) needs ≥2 declared branches.
-  const hasRouter = [...requiredTypes].some((t) => (catalogEntryOf(t)?.branches?.length ?? 0) > 0);
+  // (b) A routing node needs ≥2 declared branches. Current descriptors mark the
+  // capability without baking case-specific branch names into the global catalog.
+  const hasRouter = [...requiredTypes].some((t) => {
+    const entry = catalogEntryOf(t);
+    return Boolean(entry?.router || (entry?.branches?.length ?? 0) > 0);
+  });
   if (hasRouter && p.branches.length < 2) {
     err('branches', 'A routing node needs at least 2 declared branches');
   }
