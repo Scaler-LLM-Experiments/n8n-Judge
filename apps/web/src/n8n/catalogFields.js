@@ -13,6 +13,20 @@ export function defaultsForParams(params = []) {
   );
 }
 
+export function resolveNodePorts(entry = {}, values = {}) {
+  const effectiveValues = { ...defaultsForParams(entry.params), ...values };
+  const variant = entry.portVariants?.find(({ showWhen = {} }) =>
+    Object.entries(showWhen).every(([key, allowed]) =>
+      (Array.isArray(allowed) ? allowed : [allowed]).includes(effectiveValues[key])
+    )
+  );
+
+  return {
+    inputs: variant?.inputs ?? entry.inputs,
+    outputs: variant?.outputs ?? entry.outputs,
+  };
+}
+
 /**
  * The catalog owns the real editor surface; a case owns only grading and voice.
  * Overlay authored fields by key, and leave every other real field interactive

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { defaultsForParams, mergeCatalogFields } from './catalogFields.js';
+import { defaultsForParams, mergeCatalogFields, resolveNodePorts } from './catalogFields.js';
 
 describe('catalog-backed node setup', () => {
   it('copies defaults so editing one node cannot mutate the catalog', () => {
@@ -25,5 +25,16 @@ describe('catalog-backed node setup', () => {
     expect(mergeCatalogFields([], [{ key: 'decision', label: 'Decision' }])).toEqual([
       { key: 'decision', label: 'Decision', graded: true },
     ]);
+  });
+
+  it('resolves dynamic ports from authored values and catalog defaults', () => {
+    const entry = {
+      inputs: ['main'],
+      outputs: ['main'],
+      params: [{ key: 'operation', value: 'split' }],
+      portVariants: [{ showWhen: { operation: ['split'] }, outputs: [{ type: 'main', label: 'A' }, { type: 'main', label: 'B' }] }],
+    };
+    expect(resolveNodePorts(entry, {}).outputs).toHaveLength(2);
+    expect(resolveNodePorts(entry, { operation: 'pass' }).outputs).toEqual(['main']);
   });
 });

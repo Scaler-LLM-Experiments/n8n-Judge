@@ -123,6 +123,10 @@ const copy = (value) => {
   return value;
 };
 
+export const initialFixedCollectionRow = (field) => Object.fromEntries((field.fields ?? [])
+  .filter((child) => !field.hideOptionalFields || child.required || child.showEvenWhenOptional)
+  .map((child) => [child.key, copy(child.value)]));
+
 const isVisible = (field, values) => Object.entries(field.showWhen ?? {}).every(
   ([key, accepted]) => accepted.includes(values?.[key])
 );
@@ -199,7 +203,7 @@ export function FixedCollectionControl({ field, value, border, bg, onChange, inp
   const single = field.multiple === false;
   const rows = Array.isArray(rawRows) ? rawRows : single && rawRows && typeof rawRows === 'object' ? [rawRows] : [];
   const canAdd = (!single || rows.length === 0) && (!field.maxItems || rows.length < field.maxItems);
-  const emptyRow = () => Object.fromEntries((field.fields ?? []).map((child) => [child.key, copy(child.value)]));
+  const emptyRow = () => initialFixedCollectionRow(field);
   const setRows = (next) => onChange(field.key, { ...current, [itemKey]: single ? (next[0] ?? {}) : next });
   const setCell = (index, key, next) => setRows(rows.map((row, rowIndex) => rowIndex === index ? { ...row, [key]: next } : row));
   const move = (index, offset) => {
@@ -212,7 +216,11 @@ export function FixedCollectionControl({ field, value, border, bg, onChange, inp
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-      {rows.map((row, index) => (
+      {rows.map((row, index) => {
+        const visible = (field.fields ?? []).filter((child) => child.kind !== 'hidden' && isVisible(child, row));
+        const active = visible.filter((child) => !field.hideOptionalFields || child.required || child.showEvenWhenOptional || Object.hasOwn(row, child.key));
+        const available = visible.filter((child) => !active.includes(child));
+        return (
         <div key={index} style={{ border: `1px solid ${border}`, background: bg, padding: 10 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 9 }}>
             <span style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--fg-3)' }}>{field.collectionLabel || 'Item'} {index + 1}</span>
@@ -223,16 +231,33 @@ export function FixedCollectionControl({ field, value, border, bg, onChange, inp
             </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {(field.fields ?? []).filter((child) => child.kind !== 'hidden' && isVisible(child, row)).map((child) => (
+            {active.map((child) => (
               <div key={child.key}>
-                {nestedLabel(child)}
-                <NestedControl field={child} value={row[child.key]} border={border} onChange={(_, next) => setCell(index, child.key, next)} inputKeys={inputKeys} rootValues={row} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    {nestedLabel(child)}
+                    <NestedControl field={child} value={row[child.key]} border={border} onChange={(_, next) => setCell(index, child.key, next)} inputKeys={inputKeys} rootValues={row} />
+                  </div>
+                  {field.hideOptionalFields && !child.required && !child.showEvenWhenOptional ? (
+                    <button type="button" aria-label={`Remove ${child.label}`} onClick={() => setRows(rows.map((item, rowIndex) => rowIndex === index ? Object.fromEntries(Object.entries(item).filter(([key]) => key !== child.key)) : item))} style={{ border: 'none', background: 'none', color: 'var(--fg-3)', cursor: 'pointer', padding: 4 }}><Trash size={14} /></button>
+                  ) : null}
+                </div>
                 {nestedHelp(child)}
               </div>
             ))}
+            {available.length ? (
+              <select aria-label={field.addOptionalFieldButtonText || 'Add Attributes'} value="" onChange={(event) => {
+                const child = available.find((candidate) => candidate.key === event.target.value);
+                if (child) setCell(index, child.key, copy(child.value));
+              }} style={{ ...baseInput(border, 'var(--surface-0)'), cursor: 'pointer' }}>
+                <option value="">{field.addOptionalFieldButtonText || 'Add Attributes'}</option>
+                {available.map((child) => <option key={child.key} value={child.key}>{child.label}</option>)}
+              </select>
+            ) : null}
           </div>
         </div>
-      ))}
+        );
+      })}
       <button type="button" disabled={!canAdd} onClick={() => setRows(rows.concat(emptyRow()))} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, border: `1px solid ${border}`, background: 'var(--surface-0)', color: canAdd ? 'var(--brand-primary)' : 'var(--fg-3)', padding: '8px 10px', fontSize: 11.5, fontWeight: 700, cursor: canAdd ? 'pointer' : 'not-allowed', fontFamily: 'var(--font-body)' }}>
         <Plus size={13} weight="bold" /> {field.addLabel || 'Add Item'}
       </button>

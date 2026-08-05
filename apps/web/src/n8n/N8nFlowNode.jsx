@@ -15,6 +15,10 @@ const portStyle = { width: 12, height: 12, background: 'var(--surface-0)', borde
 // instead of being silently greyed out.
 const AI_PORTS = AI_SUB_NODE_PORTS;
 
+const normalizePorts = (ports = []) => (ports ?? []).map((port) =>
+  (typeof port === 'string' ? { type: port } : port)
+);
+
 export function N8nFlowNode({ id, type, data, selected }) {
   const { openPicker, openNdv, branches, removeNode } = useEditor();
   // The node's OWN outputs when it has a rule list (derived from what the learner
@@ -28,6 +32,13 @@ export function N8nFlowNode({ id, type, data, selected }) {
   const isModel = variant === 'model';
   const isSwitch = type === 'switch';
   const needsSetup = data.needsSetup;
+  const inputs = normalizePorts(data.inputs ?? (isTrigger || isModel ? [] : ['main']));
+  const outputs = normalizePorts(data.outputs ?? (isModel ? [] : ['main']));
+  const mainInputs = inputs.filter((port) => port.type === 'main');
+  const mainOutputs = outputs.filter((port) => port.type === 'main');
+  const auxiliaryInputs = inputs.filter((port) => port.type !== 'main');
+  const auxiliaryOutputs = outputs.filter((port) => port.type !== 'main');
+  const aiInputs = auxiliaryInputs.length ? auxiliaryInputs : isAi ? AI_PORTS : [];
 
   return (
     <div style={{ position: 'relative', opacity: data.dimmed ? 0.3 : 1, transition: 'opacity 0.35s ease' }} onClick={() => openNdv(id)} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
@@ -42,10 +53,12 @@ export function N8nFlowNode({ id, type, data, selected }) {
         <Handle type="source" id="ai_out" position={Position.Top} style={{ ...portStyle, width: 10, height: 10, border: `2px solid ${categoryMeta.model.color}` }} />
       ) : (
         <>
-          {!isTrigger ? <Handle type="target" position={Position.Left} style={portStyle} /> : null}
-          {!isSwitch ? <Handle type="source" position={Position.Right} style={portStyle} /> : null}
+          <MainPorts ports={mainInputs} direction="input" />
+          {!isSwitch ? <MainPorts ports={mainOutputs} direction="output" /> : null}
         </>
       )}
+
+      {auxiliaryOutputs.length ? <AuxiliaryPorts ports={auxiliaryOutputs} direction="output" /> : null}
 
       <N8nNodeView type={type} label={data.label} selected={selected || (hover && needsSetup)} pulse={needsSetup} running={data.running} errorPulse={data.wrong} hidePorts hideAiChip />
 
@@ -136,29 +149,32 @@ export function N8nFlowNode({ id, type, data, selected }) {
 
       {/* AI cluster: Chat Model (required, active) plus greyed-out Memory / Tool
           ports — shown for fidelity, not interactive in this problem. */}
-      {isAi ? (
+      {aiInputs.length ? (
         <div style={{ position: 'absolute', top: 'calc(100% + 26px)', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 20 }}>
-          {AI_PORTS.map((p) => {
-            const active = p.id === 'chatModel';
+          {aiInputs.map((p, i) => {
+            const connector = p.connector ?? p.type;
+            const active = isAi && (p.id === 'chatModel' || connector === 'ai_languageModel');
             const needsModel = active && !data.hasModel;
-            const color = active ? categoryMeta.model.color : '#9AA2AE';
+            const color = active || connector === 'ai_languageModel' ? categoryMeta.model.color : '#9AA2AE';
+            const label = p.label ?? connector;
+            const why = p.why ?? p.description ?? 'Optional simulated sub-node connection';
             return (
-              <div key={p.id} style={{ width: 76, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, opacity: active ? 1 : 0.5 }}>
+              <div key={p.id ?? `${connector}-${i}`} style={{ width: 76, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, opacity: active || auxiliaryInputs.length ? 1 : 0.5 }}>
                 <span style={{ position: 'relative', width: 13, height: 13, transform: 'rotate(45deg)', border: `2px solid ${color}`, background: 'var(--surface-0)' }}>
                   {/* Bottom, not Top: the model sits BELOW this diamond, so the wire
                       has to enter from underneath. Anchored at the top it left and
                       re-entered from above, which is half of why the link looked
                       like spaghetti. */}
-                  {active ? <Handle type="target" id="ai_model" position={Position.Bottom} style={{ width: 15, height: 15, top: '50%', left: '50%', transform: 'translate(-50%,-50%) rotate(-45deg)', background: 'transparent', border: 'none' }} /> : null}
+                  <Handle type="target" id={active ? 'ai_model' : `aux_in_${i}`} position={Position.Bottom} style={{ width: 15, height: 15, top: '50%', left: '50%', transform: 'translate(-50%,-50%) rotate(-45deg)', background: 'transparent', border: 'none' }} />
                 </span>
                 <span style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--fg-2)', whiteSpace: 'nowrap', textAlign: 'center' }}>
-                  {p.label}{p.required ? <span style={{ color: 'var(--status-danger)' }}> *</span> : null}
+                  {label}{p.required ? <span style={{ color: 'var(--status-danger)' }}> *</span> : null}
                 </span>
                 {active && !needsModel ? null : (
                   <button
                     type="button"
                     className={needsModel ? 'pulse-plus' : undefined}
-                    title={active ? `Attach a Chat Model — ${p.why}` : `${p.label} — ${p.why}`}
+                    title={active ? `Attach a Chat Model — ${why}` : `${label} — ${why}`}
                     onClick={(e) => { e.stopPropagation(); if (active) openPicker({ sourceId: id, modelSlot: true }); }}
                     style={{ width: needsModel ? 28 : 24, height: needsModel ? 28 : 24, borderRadius: 5, border: `${needsModel ? 2 : 1.5}px solid ${active ? categoryMeta.model.color : 'var(--border-strong)'}`, background: needsModel ? categoryMeta.model.tint : 'var(--surface-0)', color: active ? categoryMeta.model.color : 'var(--fg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: active ? 'pointer' : 'default' }}
                   >
@@ -170,6 +186,41 @@ export function N8nFlowNode({ id, type, data, selected }) {
           })}
         </div>
       ) : null}
+    </div>
+  );
+}
+
+function MainPorts({ ports, direction }) {
+  if (!ports.length) return null;
+  if (ports.length === 1 && !ports[0].label) {
+    return <Handle type={direction === 'input' ? 'target' : 'source'} position={direction === 'input' ? Position.Left : Position.Right} style={portStyle} />;
+  }
+
+  const input = direction === 'input';
+  return (
+    <div style={{ position: 'absolute', [input ? 'right' : 'left']: '100%', top: 0, height: 88, padding: input ? '0 10px 0 0' : '0 0 0 10px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 8, boxSizing: 'border-box' }}>
+      {ports.map((port, i) => (
+        <div key={`${direction}-${port.label ?? i}`} style={{ display: 'flex', flexDirection: input ? 'row-reverse' : 'row', alignItems: 'center', justifyContent: input ? 'flex-end' : 'flex-start', gap: 7, position: 'relative', whiteSpace: 'nowrap' }}>
+          <Handle type={input ? 'target' : 'source'} id={`${direction}_${i}`} position={input ? Position.Left : Position.Right} style={{ ...portStyle, position: 'relative', left: 0, right: 0, top: 0, transform: 'none', flexShrink: 0 }} />
+          <span style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--fg-2)' }}>{port.label ?? `${input ? 'Input' : 'Output'} ${i + 1}`}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function AuxiliaryPorts({ ports, direction }) {
+  const output = direction === 'output';
+  return (
+    <div style={{ position: 'absolute', left: '50%', [output ? 'bottom' : 'top']: 'calc(100% + 12px)', transform: 'translateX(-50%)', display: 'flex', gap: 18, zIndex: 3 }}>
+      {ports.map((port, i) => (
+        <div key={`${port.type}-${i}`} style={{ display: 'flex', flexDirection: output ? 'column-reverse' : 'column', alignItems: 'center', gap: 5, color: 'var(--fg-2)', fontSize: 10.5, fontWeight: 600, whiteSpace: 'nowrap' }}>
+          <span>{port.label ?? port.type}</span>
+          <span style={{ position: 'relative', width: 11, height: 11, transform: 'rotate(45deg)', border: `2px solid ${categoryMeta.model.color}`, background: 'var(--surface-0)' }}>
+            <Handle type={output ? 'source' : 'target'} id={`aux_${direction}_${i}`} position={output ? Position.Top : Position.Bottom} style={{ width: 14, height: 14, top: '50%', left: '50%', transform: 'translate(-50%,-50%) rotate(-45deg)', background: 'transparent', border: 'none' }} />
+          </span>
+        </div>
+      ))}
     </div>
   );
 }

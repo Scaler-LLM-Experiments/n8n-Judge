@@ -19,6 +19,7 @@ import { variantOf } from './N8nNodeView.jsx';
 import { NODE_CATALOG } from '@judge/catalog/catalog.js';
 import { useTraceContext } from '../lib/TraceContext.jsx';
 import { asRules } from '@judge/problem-schema';
+import { resolveNodePorts } from './catalogFields.js';
 
 const nodeTypes = Object.fromEntries(Object.keys(NODE_CATALOG).map((t) => [t, N8nFlowNode]));
 
@@ -236,6 +237,7 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
   const displayNodes = useMemo(
     () => nodes.map((n) => {
       const type = n.type;
+      const ports = resolveNodePorts(NODE_CATALOG[type], n.data.values);
       const isAi = variantOf(type) === 'ai';
       const hasEditable = (nodeSetup?.[type]?.fields?.length || 0) > 0;
       const hasMainOut = edges.some((e) => e.source === n.id && !e.sourceHandle && e.targetHandle !== 'ai_model');
@@ -261,7 +263,7 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
         : undefined;
       const running = !!runActiveId && (n.id === runActiveId || n.id === activeModelId);
       const dimmed = !!runActiveId && !running;
-      return { ...n, data: { ...n.data, hasModel, needsSetup, awaitingNext, openBranches, branches: nodeBranches, running, dimmed } };
+      return { ...n, data: { ...n.data, ...ports, hasModel, needsSetup, awaitingNext, openBranches, branches: nodeBranches, running, dimmed } };
     }),
     [nodes, edges, flow, nodeSetup, runActiveId, activeModelId]
   );

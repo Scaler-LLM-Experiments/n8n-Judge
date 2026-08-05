@@ -246,4 +246,9 @@ describe('every catalog type is renderable by the web app', () => {
       'split-out': '/node-icons/split-out.svg',
     });
   });
+
+  it('uses a canvas category with visual metadata', () => {
+    const categories = new Set(['trigger', 'ai', 'model', 'core', 'action']);
+    for (const type of COMPLETE_CORE_NODE_TYPES) expect(categories.has(NODE_CATALOG[type].category), type).toBe(true);
+  });
 });

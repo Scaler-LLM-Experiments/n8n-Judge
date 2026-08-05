@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isCorrectValue, expressionFor, whyForField, resourceValue, emptyResource } from './FieldControl.jsx';
+import { isCorrectValue, expressionFor, whyForField, resourceValue, emptyResource, initialFixedCollectionRow } from './FieldControl.jsx';
 import { toPublicProblem } from '@judge/problem-schema';
 import { problems } from '@judge/problems';
 
@@ -163,5 +163,18 @@ describe('resourceLocator', () => {
   it('returns null when the answer key was stripped', () => {
     const served = { key: 'mailbox', kind: 'resourceLocator', modes: ['list'], options: [{ value: 'INBOX', label: 'Inbox' }] };
     expect(isCorrectValue(served, { __rl: true, mode: 'list', value: 'INBOX' })).toBe(null);
+  });
+});
+
+describe('optional fixed-collection attributes', () => {
+  it('starts with required fields and exposes optional attributes on demand', () => {
+    expect(initialFixedCollectionRow({
+      hideOptionalFields: true,
+      fields: [
+        { key: 'type', value: 'text', required: true },
+        { key: 'label', value: '', showEvenWhenOptional: true },
+        { key: 'placeholder', value: '' },
+      ],
+    })).toEqual({ type: 'text', label: '' });
   });
 });
