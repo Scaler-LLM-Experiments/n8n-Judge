@@ -25,6 +25,9 @@ import gmail from './gmail.js';
 import slack from './slack.js';
 import googleCalendar from './google-calendar.js';
 import microsoftOutlook from './microsoft-outlook.js';
+import notion from './notion.js';
+import telegram from './telegram.js';
+import stripe from './stripe.js';
 
 export const APP_SOURCE_COMMIT = '3d68c29b9281f14097aa9f15e01ac0777e538b11';
 
@@ -50,9 +53,9 @@ export const APP_NODE_INVENTORY = [
   { type: 'slack', docsSlug: 'n8n-nodes-base.slack', label: 'Slack', status: 'complete' },
   { type: 'google-calendar', docsSlug: 'n8n-nodes-base.googlecalendar', label: 'Google Calendar', status: 'complete' },
   { type: 'microsoft-outlook', docsSlug: 'n8n-nodes-base.microsoftoutlook', label: 'Microsoft Outlook', status: 'complete' },
-  { type: 'notion', docsSlug: 'n8n-nodes-base.notion', label: 'Notion', status: 'pending' },
-  { type: 'telegram', docsSlug: 'n8n-nodes-base.telegram', label: 'Telegram', status: 'pending' },
-  { type: 'stripe', docsSlug: 'n8n-nodes-base.stripe', label: 'Stripe', status: 'pending' },
+  { type: 'notion', docsSlug: 'n8n-nodes-base.notion', label: 'Notion', status: 'complete' },
+  { type: 'telegram', docsSlug: 'n8n-nodes-base.telegram', label: 'Telegram', status: 'complete' },
+  { type: 'stripe', docsSlug: 'n8n-nodes-base.stripe', label: 'Stripe', status: 'complete' },
 ];
 
 // Descriptors are added here only after each three-node batch is reviewed.
@@ -65,6 +68,7 @@ export const APP_NODE_CATALOG = Object.fromEntries(
     paypal, postgres, twilio,
     zoom, youtube, gmail,
     slack, googleCalendar, microsoftOutlook,
+    notion, telegram, stripe,
   ].map((node) => [node.type, node])
 );
 

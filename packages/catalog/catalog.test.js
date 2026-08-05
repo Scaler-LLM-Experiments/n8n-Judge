@@ -259,6 +259,36 @@ describe('essential app-node batch 7 carries the real operation surface', () => 
   });
 });
 
+describe('essential app-node batch 8 carries the real operation surface', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((param) => [param.key, param]));
+
+  it('models all 17 current Notion v3 operations', () => {
+    const node = NODE_CATALOG.notion;
+    const operationParams = node.params.filter(({ n8nKey }) => n8nKey === 'operation');
+    expect(node).toMatchObject({ n8nVersion: 3, usableAsTool: true, operationCount: 17 });
+    expect(params('notion').resource.options).toHaveLength(6);
+    expect(operationParams.reduce((total, param) => total + param.options.length, 0)).toBe(17);
+    expect(params('notion').pageOperation.options.map(({ value }) => value)).toContain('updateMarkdown');
+  });
+
+  it('models all 27 Telegram v1.2 operations', () => {
+    const node = NODE_CATALOG.telegram;
+    const operationParams = node.params.filter(({ n8nKey }) => n8nKey === 'operation');
+    expect(node).toMatchObject({ n8nVersion: 1.2, usableAsTool: true, operationCount: 27 });
+    expect(params('telegram').resource.options.map(({ value }) => value)).toEqual(['chat', 'callback', 'file', 'message']);
+    expect(operationParams.reduce((total, param) => total + param.options.length, 0)).toBe(27);
+    expect(params('telegram').messageOperation.options.map(({ value }) => value)).toContain('sendAndWait');
+  });
+
+  it('models all 20 Stripe v1 operations', () => {
+    const node = NODE_CATALOG.stripe;
+    const operationParams = node.params.filter(({ n8nKey }) => n8nKey === 'operation');
+    expect(node).toMatchObject({ n8nVersion: 1, usableAsTool: true, operationCount: 20 });
+    expect(params('stripe').resource.options).toHaveLength(8);
+    expect(operationParams.reduce((total, param) => total + param.options.length, 0)).toBe(20);
+  });
+});
+
 describe('core-node completion inventory', () => {
   it('tracks the complete official docs scope without duplicates', () => {
     expect(CORE_NODE_INVENTORY).toHaveLength(67);
