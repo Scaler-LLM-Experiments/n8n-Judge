@@ -54,6 +54,9 @@ import sendEmail from './send-email.js';
 import editFields from './edit-fields.js';
 import sort from './sort.js';
 import loopOverItems from './loop-over-items.js';
+import sseTrigger from './sse-trigger.js';
+import ssh from './ssh.js';
+import stopAndError from './stop-and-error.js';
 
 export const SOURCE_COMMIT = '3d68c29b9281f14097aa9f15e01ac0777e538b11';
 
@@ -110,9 +113,9 @@ export const CORE_NODE_INVENTORY = [
   { type: 'sort', docsSlug: 'n8n-nodes-base.sort', label: 'Sort', status: 'complete' },
   { type: 'loop-over-items', docsSlug: 'n8n-nodes-base.splitinbatches', label: 'Loop Over Items (Split in Batches)', status: 'complete' },
   { type: 'split-out', docsSlug: 'n8n-nodes-base.splitout', label: 'Split Out', status: 'complete' },
-  { type: 'sse-trigger', docsSlug: 'n8n-nodes-base.ssetrigger', label: 'SSE Trigger', status: 'pending' },
-  { type: 'ssh', docsSlug: 'n8n-nodes-base.ssh', label: 'SSH', status: 'pending' },
-  { type: 'stop-and-error', docsSlug: 'n8n-nodes-base.stopanderror', label: 'Stop And Error', status: 'pending' },
+  { type: 'sse-trigger', docsSlug: 'n8n-nodes-base.ssetrigger', label: 'SSE Trigger', status: 'complete' },
+  { type: 'ssh', docsSlug: 'n8n-nodes-base.ssh', label: 'SSH', status: 'complete' },
+  { type: 'stop-and-error', docsSlug: 'n8n-nodes-base.stopanderror', label: 'Stop And Error', status: 'complete' },
   { type: 'summarize-items', docsSlug: 'n8n-nodes-base.summarize', label: 'Summarize', status: 'pending' },
   { type: 'switch', docsSlug: 'n8n-nodes-base.switch', label: 'Switch', status: 'pending' },
   { type: 'totp', docsSlug: 'n8n-nodes-base.totp', label: 'TOTP', status: 'pending' },
@@ -148,6 +151,7 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
     renameKeys, respondToWebhook, rssFeedTrigger,
     rssRead, schedule, sendEmail,
     editFields, sort, loopOverItems,
+    sseTrigger, ssh, stopAndError,
   ].map((node) => [node.type, node])
 );
 
