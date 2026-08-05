@@ -158,6 +158,47 @@ export const NODE_CATALOG = {
     params: [{ key: 'url', label: 'URL', value: '', kind: 'text', mappable: true }],
     output: { order: { id: 'ORD-4471', value: 8990, trackingId: 'BLR91772', placedAt: '2026-07-19' } },
   },
+  // Added 2026-08-04 for the Class-6 "log it to a spreadsheet" shape, which the
+  // action vocabulary could not express at all.
+  //
+  // The existing terminals each create ONE thing — a doc, a page, an event, a reply.
+  // None of them has cells, so none of them can carry the decision this node exists
+  // to teach: which incoming field belongs under which column. That is a different
+  // question from "where does this go?", and it is the commonest one in real
+  // automation. `google-docs` was the nearest type and is not a substitute: a
+  // document has no columns to put a value under, so a mis-mapped field cannot even
+  // be wrong there.
+  'google-sheets': {
+    type: 'google-sheets', n8nType: 'n8n-nodes-base.googleSheets', n8nVersion: 4.7,
+    label: 'Google Sheets — Append Row',
+    subtitle: 'Google Sheets',
+    description: 'Adds one row to a sheet, with each value under the column you map it to',
+    category: 'action',
+    params: [
+      { key: 'cred', label: 'Credential', value: 'Scaler API — connected', locked: true },
+      { key: 'document', label: 'Document', value: 'Signups', kind: 'select' },
+      { key: 'sheet', label: 'Sheet', value: 'Signups', kind: 'select' },
+      { key: 'operation', label: 'Operation', value: 'Append Row', kind: 'select' },
+    ],
+    output: { ok: true, updates: { updatedRows: 1 } },
+  },
+  // The public-form entry point. Distinct from `webhook`: a webhook is an HTTP call
+  // from another system with a body you do not control, whereas a form trigger owns
+  // its own fields — so the fields a learner defines here are what the rest of the
+  // flow maps from. Judge models the fields as one parameter rather than a repeatable
+  // group, because what is being taught downstream is the mapping, not form design.
+  'form-trigger': {
+    type: 'form-trigger', n8nType: 'n8n-nodes-base.formTrigger', n8nVersion: 2.2,
+    label: 'On form submission',
+    subtitle: 'n8n Form',
+    description: 'Publishes a form and runs the flow when somebody submits it',
+    category: 'trigger',
+    params: [
+      { key: 'title', label: 'Form Title', value: 'Free Trial Signup', kind: 'text' },
+      { key: 'fields', label: 'Form Fields', value: 'Full Name, Email, Plan, Referral Source', kind: 'text' },
+    ],
+    output: { 'Full Name': 'Aarav Sharma', Email: 'aarav@example.com', Plan: 'Pro', 'Referral Source': 'Google search' },
+  },
 };
 
 /**
@@ -203,8 +244,17 @@ export const AI_SUB_NODE_PORTS = [
 ];
 
 // What the picker offers, grouped, for trigger vs. regular slots.
-export const TRIGGER_OPTIONS = ['trigger', 'chat-trigger', 'schedule', 'webhook'];
-export const NODE_OPTIONS = ['classify', 'summarize', 'parse', 'switch', 'action', 'code', 'if', 'slack-message', 'google-docs'];
+//
+// These are only the FALLBACK: `NodePickerDrawer` prefers the phase's own `pickable`
+// list and reaches for these when a phase does not declare one. That makes them easy
+// to under-maintain — a type absent from here is silently unpickable in any phase that
+// forgot `pickable` — so a new type that a case is expected to place belongs in the
+// matching list.
+export const TRIGGER_OPTIONS = ['trigger', 'chat-trigger', 'schedule', 'webhook', 'form-trigger'];
+export const NODE_OPTIONS = [
+  'classify', 'summarize', 'parse', 'switch', 'action', 'code', 'if',
+  'slack-message', 'google-docs', 'google-sheets', 'http-request',
+];
 
 export function catalogEntry(type) {
   return NODE_CATALOG[type];

@@ -17,6 +17,7 @@
 // re-seeding.
 import { emailTriage } from './email-triage/index.js';
 import { expenseApprovals } from './expense-approvals/index.js';
+import { trialSignupDesk } from './trial-signup-desk/index.js';
 
 export const problems = {
   [emailTriage.id]: emailTriage,
@@ -24,6 +25,11 @@ export const problems = {
   // decisions to its 30) and reads as easier once you have met that one, because the
   // shape is the same and only the judgement is new.
   [expenseApprovals.id]: expenseApprovals,
+  // Appended last, which is where a new case belongs — registry order is the catalogue
+  // order on Home. It is the easiest of the three (20 scored decisions, no AI step and no
+  // branching), but it lands after the ones a learner has already met rather than being
+  // pushed to the front of a list they are part-way through.
+  [trialSignupDesk.id]: trialSignupDesk,
 };
 
 export const problemList = Object.values(problems);

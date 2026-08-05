@@ -80,3 +80,30 @@ describe('picker options exist in the catalog', () => {
     }
   });
 });
+
+/**
+ * The one coupling a new node type still has outside this package.
+ *
+ * `NodePickerDrawer` groups its list with `typeCategory[n.type] === cat`, so a type
+ * absent from that map matches no category and is **dropped from the drawer entirely** —
+ * offered by the options list above and impossible to click. `nodeIcons` is the same
+ * kind of silent failure one step milder: a missing entry renders a blank chip.
+ *
+ * Three types (`remove-duplicates`, `wait`, `http-request`) were in this state until
+ * 2026-08-04 and nothing caught it, which is why this test exists rather than a comment.
+ */
+describe('every catalog type is renderable by the web app', () => {
+  it('has a category and an icon in nodeIcons.js', async () => {
+    const { typeCategory, nodeIcons, nodeImageIcons } = await import('../../apps/web/src/nodes/nodeIcons.js');
+    for (const type of Object.keys(NODE_CATALOG)) {
+      expect(typeCategory[type], `${type} has no typeCategory entry — it would be invisible in the node picker`).toBeTruthy();
+      const hasIcon = type in nodeIcons || type in nodeImageIcons;
+      // `manual` is deliberately glyph-less: it is a rare distractor, never a flow node,
+      // and NodeIcon falls back to its category glyph. Its category entry is what makes
+      // that fallback work, which the assertion above already covers.
+      if (type !== 'manual') {
+        expect(hasIcon, `${type} has no icon in nodeIcons or nodeImageIcons — it would render a blank chip`).toBe(true);
+      }
+    }
+  });
+});
