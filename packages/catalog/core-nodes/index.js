@@ -39,6 +39,9 @@ import ldap from './ldap.js';
 import localFileTrigger from './local-file-trigger.js';
 import manual from './manual.js';
 import markdown from './markdown.js';
+import merge from './merge.js';
+import n8nTrigger from './n8n-trigger.js';
+import n8n from './n8n.js';
 
 export const SOURCE_COMMIT = '3d68c29b9281f14097aa9f15e01ac0777e538b11';
 
@@ -79,9 +82,9 @@ export const CORE_NODE_INVENTORY = [
   { type: 'local-file-trigger', docsSlug: 'n8n-nodes-base.localfiletrigger', label: 'Local File Trigger', status: 'complete' },
   { type: 'manual', docsSlug: 'n8n-nodes-base.manualworkflowtrigger', label: 'Manual Trigger', status: 'complete' },
   { type: 'markdown', docsSlug: 'n8n-nodes-base.markdown', label: 'Markdown', status: 'complete' },
-  { type: 'merge', docsSlug: 'n8n-nodes-base.merge', label: 'Merge', status: 'pending' },
-  { type: 'n8n-trigger', docsSlug: 'n8n-nodes-base.n8ntrigger', label: 'n8n Trigger', status: 'pending' },
-  { type: 'n8n', docsSlug: 'n8n-nodes-base.n8n', label: 'n8n', status: 'pending' },
+  { type: 'merge', docsSlug: 'n8n-nodes-base.merge', label: 'Merge', status: 'complete' },
+  { type: 'n8n-trigger', docsSlug: 'n8n-nodes-base.n8ntrigger', label: 'n8n Trigger', status: 'complete' },
+  { type: 'n8n', docsSlug: 'n8n-nodes-base.n8n', label: 'n8n', status: 'complete' },
   { type: 'noop', docsSlug: 'n8n-nodes-base.noop', label: 'No Operation, do nothing', status: 'pending' },
   { type: 'read-write-file', docsSlug: 'n8n-nodes-base.readwritefile', label: 'Read/Write Files from Disk', status: 'pending' },
   { type: 'remove-duplicates', docsSlug: 'n8n-nodes-base.removeduplicates', label: 'Remove Duplicates', status: 'pending' },
@@ -128,6 +131,7 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
     graphql, html, httpRequest,
     ifNode, jwt, ldap,
     localFileTrigger, manual, markdown,
+    merge, n8nTrigger, n8n,
   ].map((node) => [node.type, node])
 );
 

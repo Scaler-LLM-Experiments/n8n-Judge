@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { defaultsForParams, mergeCatalogFields, resolveNodePorts } from './catalogFields.js';
+import { NODE_CATALOG } from '@judge/catalog/catalog.js';
 
 describe('catalog-backed node setup', () => {
   it('copies defaults so editing one node cannot mutate the catalog', () => {
@@ -36,5 +37,23 @@ describe('catalog-backed node setup', () => {
     };
     expect(resolveNodePorts(entry, {}).outputs).toHaveLength(2);
     expect(resolveNodePorts(entry, { operation: 'pass' }).outputs).toEqual(['main']);
+  });
+
+  it('resolves a bounded dynamic input count for nodes such as Merge', () => {
+    const entry = {
+      params: [{ key: 'mode', value: 'append' }, { key: 'appendInputs', value: 2 }],
+      inputs: [{ type: 'main', label: 'Input 1' }, { type: 'main', label: 'Input 2' }],
+      dynamicInputs: {
+        enabled: true, min: 2, max: 4, defaultCount: 2, type: 'main', modeParameter: 'mode',
+        countParameterByMode: { append: 'appendInputs' }, labels: ['Input 1', 'Input 2', 'Input 3', 'Input 4'],
+      },
+    };
+    expect(resolveNodePorts(entry, { appendInputs: 3 }).inputs.map((port) => port.label)).toEqual(['Input 1', 'Input 2', 'Input 3']);
+    expect(resolveNodePorts(entry, { appendInputs: 99 }).inputs).toHaveLength(4);
+  });
+
+  it('renders Merge input ports from the active mode branch', () => {
+    expect(resolveNodePorts(NODE_CATALOG.merge, { mode: 'combine', combineBy: 'combineByPosition', positionNumberInputs: 4 }).inputs).toHaveLength(4);
+    expect(resolveNodePorts(NODE_CATALOG.merge, { mode: 'combine', combineBy: 'combineAll', positionNumberInputs: 8 }).inputs).toHaveLength(2);
   });
 });

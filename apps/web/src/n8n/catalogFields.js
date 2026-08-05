@@ -21,8 +21,25 @@ export function resolveNodePorts(entry = {}, values = {}) {
     )
   );
 
+  let inputs = variant?.inputs ?? entry.inputs;
+  const dynamic = entry.dynamicInputs;
+  if (dynamic?.enabled) {
+    const mode = effectiveValues[dynamic.modeParameter ?? 'mode'];
+    const variant = effectiveValues[dynamic.variantParameter ?? 'combineBy'];
+    const countParameters = dynamic.countParameterByMode ?? dynamic.normalizedCountParameters;
+    const countKey = countParameters?.[mode] ?? countParameters?.[variant] ?? dynamic.countParameter;
+    const requested = dynamic.fixedTwoInputModes?.includes(mode) || dynamic.fixedTwoInputModes?.includes(variant)
+      ? 2
+      : Number(effectiveValues[countKey] ?? dynamic.defaultCount);
+    const count = Math.min(dynamic.max, Math.max(dynamic.min, requested));
+    inputs = Array.from({ length: count }, (_, index) => ({
+      type: dynamic.type ?? 'main',
+      label: dynamic.labels?.[index] ?? `Input ${index + 1}`,
+    }));
+  }
+
   return {
-    inputs: variant?.inputs ?? entry.inputs,
+    inputs,
     outputs: variant?.outputs ?? entry.outputs,
   };
 }
