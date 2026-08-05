@@ -54,6 +54,7 @@ function seedNodes(ig) {
         nodeType: n.type,
         label: entry.label,
         params: entry.params,
+        catalogParams: entry.source ? entry.params : [],
         // The learner's own answers, when the graph carries them. A resumed node
         // used to come back `configured` but empty, so opening it showed a node
         // that claimed to be set up over blank inputs — reported as a bug, and it
@@ -184,7 +185,7 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
       id,
       type: catalogType,
       position,
-      data: { nodeType: catalogType, label: entry.label, params: entry.params, values: {}, configured: false, wrong: isWrong, output: entry.output },
+      data: { nodeType: catalogType, label: entry.label, params: entry.params, catalogParams: entry.source ? entry.params : [], values: {}, configured: false, wrong: isWrong, output: entry.output },
     };
     setNodes((ns) => ns.concat(node));
 
@@ -271,7 +272,7 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
     if (!n) return null;
     // `values` and `settings` are what the learner had already entered — the NDV
     // opens on them so a reopened (or resumed) node is not blank.
-    return { id: n.id, nodeType: n.data.nodeType, label: n.data.label, params: n.data.params, values: n.data.values, settings: n.data.settings, output: n.data.output };
+    return { id: n.id, nodeType: n.data.nodeType, label: n.data.label, params: n.data.params, catalogParams: n.data.catalogParams, values: n.data.values, settings: n.data.settings, output: n.data.output };
   })();
 
   const ndvIn = (() => {

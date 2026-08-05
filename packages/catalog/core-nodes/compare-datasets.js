@@ -1,0 +1,188 @@
+// Editor-only descriptor for n8n's Compare Datasets v2.3 core node.
+// This mirrors the authoring surface; dataset comparison stays in n8n itself.
+
+const compareDatasets = {
+  type: 'compare-datasets',
+  n8nType: 'n8n-nodes-base.compareDatasets',
+  n8nVersion: 2.3,
+  versionHistory: [1, 2, 2.1, 2.2, 2.3],
+  label: 'Compare Datasets',
+  defaultName: 'Compare Datasets',
+  subtitle: '',
+  description: 'Compare two inputs for changes',
+  category: 'core',
+  subcategory: 'Flow',
+  group: ['transform'],
+  inputs: [
+    { type: 'main', label: 'Input A' },
+    { type: 'main', label: 'Input B' },
+  ],
+  requiredInputs: 1,
+  outputs: [
+    { type: 'main', label: 'In A only' },
+    { type: 'main', label: 'Same' },
+    { type: 'main', label: 'Different' },
+    { type: 'main', label: 'In B only' },
+  ],
+  icon: '/node-icons/compare-datasets.svg',
+  n8nIcon: 'node:compare-datasets',
+  iconColor: 'lime',
+  iconHex: '#62F730',
+  iconColorLight: '#62f730',
+  iconColorDark: '#7fff55',
+  aliases: ['Join', 'Concatenate', 'Compare', 'Dataset', 'Split', 'Sync', 'Syncing'],
+  docs: 'https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.comparedatasets/',
+  source: {
+    commit: '3d68c29b9281f14097aa9f15e01ac0777e538b11',
+    path: 'packages/nodes-base/nodes/CompareDatasets/CompareDatasets.node.ts',
+  },
+  params: [
+    {
+      key: 'infoBox',
+      label:
+        'Items from different branches are paired together when the fields below match. If paired, the rest of the fields are compared to determine whether the items are the same or different',
+      kind: 'notice',
+      value: '',
+      required: false,
+    },
+    {
+      key: 'mergeByFields',
+      label: 'Fields to Match',
+      kind: 'fixedCollection',
+      value: { values: [{ field1: '', field2: '' }] },
+      collectionKey: 'values',
+      collectionLabel: 'Values',
+      multiple: true,
+      addLabel: 'Add Fields to Match',
+      required: false,
+      fields: [
+        {
+          key: 'field1',
+          label: 'Input A Field',
+          kind: 'text',
+          value: '',
+          required: false,
+          placeholder: 'e.g. id',
+          hint: ' Enter the field name as text',
+          requiresDataPath: 'single',
+        },
+        {
+          key: 'field2',
+          label: 'Input B Field',
+          kind: 'text',
+          value: '',
+          required: false,
+          placeholder: 'e.g. id',
+          hint: ' Enter the field name as text',
+          requiresDataPath: 'single',
+        },
+      ],
+    },
+    {
+      key: 'resolve',
+      label: 'When There Are Differences',
+      kind: 'select',
+      value: 'includeBoth',
+      required: false,
+      options: [
+        { label: 'Use Input A Version', value: 'preferInput1' },
+        { label: 'Use Input B Version', value: 'preferInput2' },
+        {
+          label: 'Use a Mix of Versions',
+          value: 'mix',
+          description: 'Output uses different inputs for different fields',
+        },
+        {
+          label: 'Include Both Versions',
+          value: 'includeBoth',
+          description: 'Output contains all data (but structure more complex)',
+        },
+      ],
+    },
+    {
+      key: 'fuzzyCompare',
+      label: 'Fuzzy Compare',
+      kind: 'boolean',
+      value: false,
+      required: false,
+      description:
+        "Whether to tolerate small type differences when comparing fields. E.g. the number 3 and the string '3' are treated as the same.",
+    },
+    {
+      key: 'preferWhenMix',
+      label: 'Prefer',
+      kind: 'select',
+      value: 'input1',
+      required: false,
+      showWhen: { resolve: ['mix'] },
+      options: [
+        { label: 'Input A Version', value: 'input1' },
+        { label: 'Input B Version', value: 'input2' },
+      ],
+    },
+    {
+      key: 'exceptWhenMix',
+      label: 'For Everything Except',
+      kind: 'text',
+      value: '',
+      required: false,
+      placeholder: 'e.g. id, country',
+      hint: 'Enter the names of the input fields as text, separated by commas',
+      requiresDataPath: 'multiple',
+      showWhen: { resolve: ['mix'] },
+    },
+    {
+      key: 'options',
+      label: 'Options',
+      kind: 'collection',
+      value: {},
+      addLabel: 'Add option',
+      required: false,
+      fields: [
+        {
+          key: 'skipFields',
+          label: 'Fields to Skip Comparing',
+          kind: 'text',
+          value: '',
+          required: false,
+          placeholder: 'e.g. updated_at, updated_by',
+          hint: 'Enter the field names as text, separated by commas',
+          description:
+            "Fields that shouldn't be included when checking whether two items are the same",
+          requiresDataPath: 'multiple',
+        },
+        {
+          key: 'disableDotNotation',
+          label: 'Disable Dot Notation',
+          kind: 'boolean',
+          value: false,
+          required: false,
+          description:
+            'Whether to disallow referencing child fields using `parent.child` in the field name',
+        },
+        {
+          key: 'multipleMatches',
+          label: 'Multiple Matches',
+          kind: 'select',
+          value: 'first',
+          required: false,
+          options: [
+            {
+              label: 'Include First Match Only',
+              value: 'first',
+              description: 'Only ever output a single item per match',
+            },
+            {
+              label: 'Include All Matches',
+              value: 'all',
+              description: 'Output multiple items if there are multiple matches',
+            },
+          ],
+        },
+      ],
+    },
+  ],
+  output: { id: 'CUS-101', status: 'active' },
+};
+
+export default compareDatasets;

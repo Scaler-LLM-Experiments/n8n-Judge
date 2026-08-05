@@ -6,11 +6,12 @@ import { NodeIcon, metaOf, typeCategory } from '../nodes/nodeIcons.js';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
 import { SettingsForm } from './SettingsForm.jsx';
 import { IrisBubble } from './IrisBubble.jsx';
-import { FieldControl, isCorrectValue, expressionFor, whyForField, resourceValue } from './FieldControl.jsx';
+import { CollectionControl, FieldControl, FixedCollectionControl, isCorrectValue, expressionFor, whyForField, resourceValue } from './FieldControl.jsx';
 import { RuleListControl } from './RuleListControl.jsx';
 import { defaultSettings, gradeSettings } from './nodeSettings.js';
 import { checkAnswer } from '../lib/grader.js';
 import { useVoiceActions } from '../lib/VoiceContext.jsx';
+import { defaultsForParams, mergeCatalogFields } from './catalogFields.js';
 
 // Shown once per session: the first time a node verifies, Iris spotlights the
 // close button so the learner learns that closing a green NDV finishes the node.
@@ -45,7 +46,11 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
   // nothing truthful to show — it was claiming "this node starts the flow".
   const isSubNode = typeCategory[node.nodeType] === 'model';
 
-  const allFields = setup?.fields || [];
+  const allFields = useMemo(
+    () => mergeCatalogFields(node.catalogParams, setup?.fields),
+    [node.catalogParams, setup?.fields]
+  );
+  const resolvedSetup = useMemo(() => ({ ...setup, fields: allFields }), [setup, allFields]);
   // Settings the problem actually grades. The tab always renders the full n8n
   // set; this is just the subset that counts.
   const gradedSettings = setup?.settings || [];
@@ -60,7 +65,7 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
   // the lowest attempt that was correct.
   const [settings, setSettings] = useState(() => ({ ...defaultSettings(), ...(node.settings ?? {}) }));
   const [settingsResults, setSettingsResults] = useState(null);
-  const [values, setValues] = useState(() => ({ ...(node.values ?? {}) }));
+  const [values, setValues] = useState(() => ({ ...defaultsForParams(node.catalogParams), ...(node.values ?? {}) }));
   const [results, setResults] = useState(null); // { [key]: 'correct' | 'wrong' }
   // Per-ROW verdicts for a list field: { '<fieldKey>#<aspect>': { items[], missing } }.
   // Server-only, so a dev route with no session keeps the list-level messages.
@@ -121,7 +126,7 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
   // casing anywhere below.
   const paramChecks = useMemo(
     () =>
-      fields.flatMap((f) =>
+      fields.filter((f) => f.graded !== false).flatMap((f) =>
         isListKind(f.kind)
           ? aspectsFor(f.kind).map((aspect) => ({
               field: f,
@@ -135,7 +140,7 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
     [fields, node.nodeType]
   );
 
-  const noVerify = allFields.length === 0 && gradedSettings.length === 0;
+  const noVerify = paramChecks.length === 0 && gradedSettings.length === 0;
   const optionFor = (field, value) => (field.options ?? []).find((o) => o.value === value);
 
   // A node is configured in two stages, in order: Parameters, then Settings.
@@ -164,7 +169,7 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
     if (isListKind(f.kind)) return listReady(f.kind, v);
     return v !== undefined && String(v).trim() !== '';
   };
-  const allChosen = stage === 'params' ? fields.every(hasValue) : true;
+  const allChosen = stage === 'params' ? fields.filter((field) => field.graded !== false).every(hasValue) : true;
   const allCorrect = paramsOk && settingsOk;
   const running = phase === 'running';
   const isComplete = noVerify || (paramsOk && settingsOk);
@@ -200,6 +205,13 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
     // the matching option.
     if (field.kind === 'expression') {
       setValue(field.key, expressionFor(droppedKey));
+      return;
+    }
+    if (field.dataPath || field.requiresDataPath) {
+      const next = field.dataPath === 'multiple' || field.requiresDataPath === 'multiple'
+        ? [values[field.key], droppedKey].filter(Boolean).join(', ')
+        : droppedKey;
+      setValue(field.key, next);
       return;
     }
     const opt = (field.options ?? []).find((o) => o.value === droppedKey);
@@ -517,7 +529,7 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
                 /* Field names from the upstream node, so an expression
                    parameter can be filled by picking as well as dragging. */
                 inputKeys={Object.keys(inputData ?? {})}
-                setup={setup}
+                setup={resolvedSetup}
                 fields={fields}
                 values={values}
                 results={results}
@@ -664,15 +676,25 @@ function FieldForm({ nodeType, inputKeys, setup, fields, values, results, rowRes
 
       {/* the field(s) the learner must set */}
       {fields.map((f) => {
+        if (f.kind === 'notice') {
+          return (
+            <div key={f.key} role="note" style={{ borderLeft: '3px solid var(--brand-primary)', background: 'var(--brand-blue-50, rgba(0,85,255,0.05))', padding: '9px 11px', fontSize: 11.5, lineHeight: 1.5, color: 'var(--fg-2)' }}>
+              {f.label}
+            </div>
+          );
+        }
         const value = values[f.key];
         const isRules = isListKind(f.kind);
+        const isCollection = f.kind === 'collection';
+        const isFixedCollection = f.kind === 'fixedCollection';
+        const graded = f.graded !== false;
         // A rule list has three verdicts, not one. The field's border rolls them
         // up — any wrong is wrong, any unverified is unverified — and the three
         // are then listed individually underneath, because "your Switch is wrong"
         // is useless feedback next to "the branch names are right, what they test
         // is not".
         const aspectVerdicts = isRules ? aspectsFor(f.kind).map((a) => results?.[`${f.key}#${a}`]) : [];
-        const verdict = isRules
+        const verdict = !graded ? undefined : isRules
           ? aspectVerdicts.some((v) => v === undefined)
             ? undefined
             : aspectVerdicts.includes('wrong')
@@ -681,8 +703,8 @@ function FieldForm({ nodeType, inputKeys, setup, fields, values, results, rowRes
                 ? 'unverified'
                 : 'correct'
           : results?.[f.key];
-        const border = verdict === 'correct' ? 'var(--status-success)' : verdict === 'wrong' ? 'var(--status-danger)' : 'var(--brand-primary)';
-        const bg = verdict === 'correct' ? 'var(--status-success-bg)' : verdict === 'wrong' ? 'var(--status-danger-bg)' : 'var(--brand-blue-50, rgba(0,85,255,0.05))';
+        const border = !graded ? 'var(--border-strong)' : verdict === 'correct' ? 'var(--status-success)' : verdict === 'wrong' ? 'var(--status-danger)' : 'var(--brand-primary)';
+        const bg = !graded ? 'var(--surface-1)' : verdict === 'correct' ? 'var(--status-success-bg)' : verdict === 'wrong' ? 'var(--status-danger-bg)' : 'var(--brand-blue-50, rgba(0,85,255,0.05))';
         const showBubble = feedback?.key === f.key;
         // This list's per-row verdicts, by aspect. Only the server can produce
         // them, so this is null on the dev routes and every aspect falls back to
@@ -705,7 +727,7 @@ function FieldForm({ nodeType, inputKeys, setup, fields, values, results, rowRes
         return (
           <div key={f.key} onMouseEnter={() => setHoveredKey(f.key)} onMouseLeave={() => setHoveredKey((k) => (k === f.key ? null : k))}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
-              <Label style={{ margin: 0 }}>{f.label}</Label>
+              <Label style={{ margin: 0 }}>{f.label}{f.required ? ' *' : ''}</Label>
               {/* Always visible, not hover-only: this badge is the signal for
                   WHICH field still needs the learner, and a signal you have to
                   hover to discover is not a signal.
@@ -713,7 +735,7 @@ function FieldForm({ nodeType, inputKeys, setup, fields, values, results, rowRes
                   on the values the learner already chose, and telling them to set
                   a field they can see is filled in reads as a bug — what is left
                   to do there is the verify. */}
-              {!verdict ? (
+              {graded && !verdict ? (
                 <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--brand-primary)', border: '1px solid var(--brand-primary)', padding: '1px 6px' }}>
                   {isEmptyValue(values[f.key]) ? 'Set me up' : 'Verify me'}
                 </span>
@@ -721,7 +743,7 @@ function FieldForm({ nodeType, inputKeys, setup, fields, values, results, rowRes
             </div>
             {f.subtitle ? <div style={{ fontSize: 11.5, color: 'var(--fg-3)', marginBottom: 7, lineHeight: 1.45 }}>{f.subtitle}</div> : null}
             <div
-              className={!verdict && dropKey !== f.key ? 'pulse-field' : undefined}
+              className={graded && !verdict && dropKey !== f.key ? 'pulse-field' : undefined}
               onDragOver={(e) => { e.preventDefault(); if (dropKey !== f.key) setDropKey(f.key); }}
               onDragLeave={() => setDropKey((k) => (k === f.key ? null : k))}
               onDrop={(e) => { e.preventDefault(); const key = e.dataTransfer.getData('application/x-ndv-field'); setDropKey(null); if (key && onDrop) onDrop(f, key); }}
@@ -738,6 +760,10 @@ function FieldForm({ nodeType, inputKeys, setup, fields, values, results, rowRes
                   feedback={feedback}
                   onExplainAspect={onExplainAspect}
                 />
+              ) : isCollection ? (
+                <CollectionControl field={f} value={value} border={border} bg={bg} onChange={onChange} inputKeys={inputKeys} rootValues={values} />
+              ) : isFixedCollection ? (
+                <FixedCollectionControl field={f} value={value} border={border} bg={bg} onChange={onChange} inputKeys={inputKeys} />
               ) : (
                 <FieldControl
                   field={f}
@@ -751,11 +777,14 @@ function FieldForm({ nodeType, inputKeys, setup, fields, values, results, rowRes
                 />
               )}
             </div>
+            {f.hint || f.description ? (
+              <div style={{ fontSize: 10.8, color: 'var(--fg-3)', marginTop: 6, lineHeight: 1.45 }}>{f.hint || f.description}</div>
+            ) : null}
 
             {/* What is left of a rule list's three verdicts once the ones with a
                 row to blame have moved onto that row: `count`, and any aspect
                 that failed because an entry is MISSING rather than wrong. */}
-            {isRules && results ? (
+            {graded && isRules && results ? (
               <div style={{ marginTop: 9, display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {listLevelAspects.map((aspect) => {
                   const v = results[`${f.key}#${aspect}`];

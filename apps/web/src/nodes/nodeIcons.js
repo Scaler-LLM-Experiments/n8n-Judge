@@ -1,5 +1,6 @@
 import React from 'react';
 import { Sparkle, BracketsCurly, ArrowsSplit, ChatCircle, Lightning, Plug, FlowArrow, Brain, Clock, Code, GitBranch, ArrowsMerge, FunnelSimple, Prohibit, Broadcast, CopySimple, HourglassMedium, Globe, Table, ClipboardText } from '@phosphor-icons/react';
+import { NODE_CATALOG } from '@judge/catalog/catalog.js';
 
 // Real, full-color app icons (favicons / product branding), background stripped
 // with ImageMagick. Preferred over abstract glyphs for any node that maps to a
@@ -40,6 +41,11 @@ export const nodeImageIcons = {
   'notion-page': notionIcon,
   'web-search': googleIcon,
   'google-docs': docsIcon,
+  ...Object.fromEntries(
+    Object.entries(NODE_CATALOG)
+      .filter(([, node]) => node.icon)
+      .map(([type, node]) => [type, node.icon])
+  ),
 };
 
 // The glyph shown on nodes with no real-app icon — abstract Phosphor glyphs for
@@ -84,6 +90,28 @@ export const nodeIconColor = {};
 // createElement (no JSX) so this stays a plain .js module.
 export function NodeIcon({ type, size = 24, color, style }) {
   const img = nodeImageIcons[type];
+  const catalogNode = NODE_CATALOG[type];
+  if (catalogNode?.icon?.endsWith('.svg') && catalogNode.iconMode !== 'image') {
+    const semanticColors = {
+      'orange-red': '#FF6D5A',
+      emerald: '#2FB67C',
+      violet: '#9B6DD5',
+      lime: '#62F730',
+    };
+    const iconColor = color || catalogNode.iconHex || catalogNode.iconColorLight || semanticColors[catalogNode.iconColor] || metaOf(type).color;
+    return React.createElement('span', {
+      'aria-hidden': true,
+      style: {
+        width: size,
+        height: size,
+        display: 'block',
+        backgroundColor: iconColor,
+        WebkitMask: `url(${catalogNode.icon}) center / contain no-repeat`,
+        mask: `url(${catalogNode.icon}) center / contain no-repeat`,
+        ...style,
+      },
+    });
+  }
   if (img) {
     return React.createElement('img', {
       src: img,
@@ -133,6 +161,9 @@ export const typeCategory = {
   if: 'core',
   merge: 'core',
   filter: 'core',
+  aggregate: 'core',
+  limit: 'core',
+  'split-out': 'core',
   // These three were in the catalog and in the picker's option list but NOT here, and
   // that is not a cosmetic omission: NodePickerDrawer builds its groups with
   // `items.filter((n) => typeCategory[n.type] === cat)`, so a type missing from this
@@ -147,6 +178,7 @@ export const typeCategory = {
   wait: 'core',
   'http-request': 'core',
   noop: 'core',
+  ...Object.fromEntries(Object.entries(NODE_CATALOG).map(([type, node]) => [type, node.category])),
 };
 
 export function categoryOf(type) {

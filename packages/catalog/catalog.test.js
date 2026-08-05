@@ -1,5 +1,49 @@
 import { describe, it, expect } from 'vitest';
+import { existsSync } from 'node:fs';
 import { NODE_CATALOG, AI_SUB_NODE_PORTS, TRIGGER_OPTIONS, NODE_OPTIONS } from './catalog.js';
+import { CORE_NODE_INVENTORY, COMPLETE_CORE_NODE_TYPES, SOURCE_COMMIT } from './core-nodes/index.js';
+
+describe('core-node completion inventory', () => {
+  it('tracks the complete official docs scope without duplicates', () => {
+    expect(CORE_NODE_INVENTORY).toHaveLength(67);
+    expect(new Set(CORE_NODE_INVENTORY.map((node) => node.type)).size).toBe(67);
+    expect(new Set(CORE_NODE_INVENTORY.map((node) => node.docsSlug)).size).toBe(67);
+    expect(CORE_NODE_INVENTORY.filter((node) => node.status === 'excluded-deprecated').map((node) => node.type)).toEqual([
+      'activation-trigger',
+      'workflow-trigger',
+    ]);
+    expect(CORE_NODE_INVENTORY.filter((node) => node.status !== 'excluded-deprecated')).toHaveLength(65);
+  });
+
+  it('publishes only reviewed complete nodes', () => {
+    const supportedKinds = new Set([
+      'assignmentList', 'boolean', 'button', 'code', 'collection', 'expression',
+      'fixedCollection', 'hidden', 'notice', 'number', 'resourceLocator',
+      'ruleList', 'multiSelect', 'select', 'text', 'textarea',
+    ]);
+    const inspectFields = (type, fields, path = '') => {
+      const keys = fields.map((field) => field.key);
+      expect(new Set(keys).size, `${type}:${path} has duplicate UI keys`).toBe(keys.length);
+      for (const field of fields) {
+        expect(field.label, `${type}:${path}${field.key} has no label`).toBeTruthy();
+        expect(supportedKinds.has(field.kind), `${type}:${path}${field.key} uses unsupported kind ${field.kind}`).toBe(true);
+        if (field.fields) inspectFields(type, field.fields, `${path}${field.key}.`);
+      }
+    };
+    expect(COMPLETE_CORE_NODE_TYPES).toEqual(
+      CORE_NODE_INVENTORY.filter((node) => node.status === 'complete').map((node) => node.type)
+    );
+    for (const type of COMPLETE_CORE_NODE_TYPES) {
+      const node = NODE_CATALOG[type];
+      expect(node, `${type} is marked complete but missing from the catalog`).toBeTruthy();
+      expect(node.source?.commit, `${type} has no reviewed source commit`).toBe(SOURCE_COMMIT);
+      expect(node.icon, `${type} has no active editor icon`).toMatch(/^\/node-icons\//);
+      expect(existsSync(new URL(`../../apps/web/public${node.icon}`, import.meta.url)), `${type} icon file is missing`).toBe(true);
+      expect(node.execute, `${type} must remain an authoring-only simulation`).toBeUndefined();
+      inspectFields(type, node.params ?? []);
+    }
+  });
+});
 
 // Judge does not implement typeVersion — one shipped schema per node type is the
 // right simplification — but every node must SAY which real node and version it
@@ -81,6 +125,97 @@ describe('picker options exist in the catalog', () => {
   });
 });
 
+describe('core node batch 1 carries the real configurable surface', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((p) => [p.key, p]));
+  const fields = (param) => Object.fromEntries(param.fields.map((f) => [f.key, f]));
+
+  it('records the exact official source snapshot used for the batch', () => {
+    for (const type of ['aggregate', 'limit', 'split-out']) {
+      expect(NODE_CATALOG[type].source.commit).toBe('3d68c29b9281f14097aa9f15e01ac0777e538b11');
+      expect(NODE_CATALOG[type].source.path).toMatch(/^packages\/nodes-base\/nodes\/Transform\//);
+      expect(NODE_CATALOG[type]).toMatchObject({ group: ['transform'], inputs: ['main'], outputs: ['main'] });
+    }
+  });
+
+  it('models Aggregate v1, including its repeatable fields and Options collection', () => {
+    const node = NODE_CATALOG.aggregate;
+    const p = params('aggregate');
+    const aggregateFields = fields(p.fieldsToAggregate);
+    const options = fields(p.options);
+    expect(node.n8nType).toBe('n8n-nodes-base.aggregate');
+    expect(node.n8nVersion).toBe(1);
+    expect(p.aggregate.options.map((o) => o.value)).toEqual(['aggregateIndividualFields', 'aggregateAllItemData']);
+    expect(p.fieldsToAggregate).toMatchObject({ kind: 'fixedCollection', multiple: true, addLabel: 'Add Field To Aggregate' });
+    expect(p.fieldsToAggregate.value.fieldToAggregate).toEqual([{ fieldToAggregate: '', renameField: false }]);
+    expect(aggregateFields.outputFieldName.showWhen).toEqual({ renameField: [true] });
+    expect(p.fieldsToInclude.showWhen.include).toEqual(['specifiedFields']);
+    expect(p.fieldsToExclude.showWhen.include).toEqual(['allFieldsExcept']);
+    expect(p.options).toMatchObject({ kind: 'collection', addLabel: 'Add Field', value: {} });
+    expect(options.keepOnlyUnique.showWhen).toEqual({ includeBinaries: [true] });
+    expect(options.disableDotNotation.showWhen).toEqual({ aggregate: ['aggregateIndividualFields'] });
+  });
+
+  it('models Limit v1 defaults and bounds', () => {
+    const node = NODE_CATALOG.limit;
+    const p = params('limit');
+    expect(node.n8nType).toBe('n8n-nodes-base.limit');
+    expect(node.n8nVersion).toBe(1);
+    expect(p.maxItems).toMatchObject({ kind: 'number', value: 1, min: 1 });
+    expect(p.keep.options.map((o) => o.value)).toEqual(['firstItems', 'lastItems']);
+  });
+
+  it('models Split Out v1, including field retention and binary options', () => {
+    const node = NODE_CATALOG['split-out'];
+    const p = params('split-out');
+    const options = fields(p.options);
+    expect(node.n8nType).toBe('n8n-nodes-base.splitOut');
+    expect(node.n8nVersion).toBe(1);
+    expect(p.fieldToSplitOut).toMatchObject({ required: true, dataPath: 'multiple' });
+    expect(p.include.options.map((o) => o.value)).toEqual(['noOtherFields', 'allOtherFields', 'selectedOtherFields']);
+    expect(p.fieldsToInclude.showWhen).toEqual({ include: ['selectedOtherFields'] });
+    expect(p.options).toMatchObject({ kind: 'collection', addLabel: 'Add Field', value: {} });
+    expect(options.disableDotNotation.value).toBe(false);
+    expect(options.destinationFieldName).toMatchObject({ value: '', dataPath: 'multiple' });
+    expect(options.includeBinary.value).toBe(false);
+  });
+});
+
+describe('core node batch 2 carries the real configurable surface', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((p) => [p.key, p]));
+
+  it('models AI Transform as the cloud-only wide editor surface', () => {
+    const node = NODE_CATALOG['ai-transform'];
+    const p = params('ai-transform');
+    expect(node).toMatchObject({ n8nType: 'n8n-nodes-base.aiTransform', n8nVersion: 1, cloudOnly: true, parameterPane: 'wide' });
+    expect(p.instructions).toMatchObject({ kind: 'button', buttonConfig: { label: 'Generate code', hasInputField: true } });
+    expect(p.codeGeneratedForPrompt.kind).toBe('hidden');
+    expect(p.jsCode).toMatchObject({ editor: 'jsEditor', readOnly: true });
+  });
+
+  it('models Code v2 language and execution-mode branches without a runtime', () => {
+    const node = NODE_CATALOG.code;
+    const p = params('code');
+    expect(node).toMatchObject({ n8nType: 'n8n-nodes-base.code', n8nVersion: 2, parameterPane: 'wide' });
+    expect(p.mode.options.map((o) => o.value)).toEqual(['runOnceForAllItems', 'runOnceForEachItem']);
+    expect(p.language.options.map((o) => o.value)).toEqual(['javaScript', 'pythonNative']);
+    expect(p.jsCode).toMatchObject({ kind: 'textarea', editor: 'codeNodeEditor', showWhen: { language: ['javaScript'] } });
+    expect(p.pythonCode.showWhen.language).toEqual(['python', 'pythonNative']);
+    expect(node.execute).toBeUndefined();
+  });
+
+  it('models Compare Datasets v2.3 inputs, outputs, matching, resolution, and options', () => {
+    const node = NODE_CATALOG['compare-datasets'];
+    const p = params('compare-datasets');
+    expect(node.n8nVersion).toBe(2.3);
+    expect(node.inputs.map((input) => input.label)).toEqual(['Input A', 'Input B']);
+    expect(node.outputs.map((output) => output.label)).toEqual(['In A only', 'Same', 'Different', 'In B only']);
+    expect(p.mergeByFields).toMatchObject({ kind: 'fixedCollection', multiple: true, addLabel: 'Add Fields to Match' });
+    expect(p.resolve.value).toBe('includeBoth');
+    expect(p.preferWhenMix.showWhen).toEqual({ resolve: ['mix'] });
+    expect(p.options.fields.map((field) => field.key)).toEqual(['skipFields', 'disableDotNotation', 'multipleMatches']);
+  });
+});
+
 /**
  * The one coupling a new node type still has outside this package.
  *
@@ -105,5 +240,10 @@ describe('every catalog type is renderable by the web app', () => {
         expect(hasIcon, `${type} has no icon in nodeIcons or nodeImageIcons — it would render a blank chip`).toBe(true);
       }
     }
+    expect(nodeImageIcons).toMatchObject({
+      aggregate: '/node-icons/aggregate.svg',
+      limit: '/node-icons/limit.svg',
+      'split-out': '/node-icons/split-out.svg',
+    });
   });
 });

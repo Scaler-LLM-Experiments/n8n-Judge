@@ -1,3 +1,5 @@
+import { COMPLETE_CORE_NODE_TYPES, CORE_NODE_CATALOG } from './core-nodes/index.js';
+
 // The n8n node catalog for the editor kit: what each node is, its parameters
 // (Scaler API credentials shown locked), and the sample Input/Output JSON that
 // flows through it. Built from scratch — original data, not n8n's.
@@ -127,6 +129,207 @@ export const NODE_CATALOG = {
   if: { type: 'if', n8nType: 'n8n-nodes-base.if', n8nVersion: 2.3, label: 'If', subtitle: 'True / false', category: 'core', params: [{ key: 'cond', label: 'Condition', value: '', kind: 'text' }], output: {} },
   merge: { type: 'merge', n8nType: 'n8n-nodes-base.merge', n8nVersion: 3.2, label: 'Merge', subtitle: 'Combine two inputs', category: 'core', params: [{ key: 'mode', label: 'Mode', value: 'Append', kind: 'select' }], output: {} },
   filter: { type: 'filter', n8nType: 'n8n-nodes-base.filter', n8nVersion: 2.3, label: 'Filter', subtitle: 'Drop non-matching items', category: 'core', params: [{ key: 'cond', label: 'Condition', value: '', kind: 'text' }], output: {} },
+  aggregate: {
+    type: 'aggregate', n8nType: 'n8n-nodes-base.aggregate', n8nVersion: 1,
+    label: 'Aggregate',
+    subtitle: '',
+    description: 'Combine a field from many items into a list in a single item',
+    category: 'core',
+    subcategory: 'Data Transformation',
+    group: ['transform'],
+    inputs: ['main'], outputs: ['main'],
+    icon: '/node-icons/aggregate.svg', iconColor: 'orange-red', iconHex: '#FF6D5A',
+    aliases: ['Aggregate', 'Combine', 'Flatten', 'Transform', 'Array', 'List', 'Item'],
+    docs: 'https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.aggregate/',
+    source: {
+      commit: '3d68c29b9281f14097aa9f15e01ac0777e538b11',
+      path: 'packages/nodes-base/nodes/Transform/Aggregate/Aggregate.node.ts',
+    },
+    builderHint: {
+      searchHint: 'Need to combine items from multiple branches? Use merge node. This nodes combines all items from one branch into one item.',
+      relatedNodes: [
+        { nodeType: 'n8n-nodes-base.merge', relationHint: 'For multiple branches' },
+        { nodeType: 'n8n-nodes-base.splitOut', relationHint: 'Reverse operation' },
+      ],
+    },
+    params: [
+      {
+        key: 'aggregate', label: 'Aggregate', kind: 'select', value: 'aggregateIndividualFields',
+        options: [
+          { label: 'Individual Fields', value: 'aggregateIndividualFields' },
+          { label: 'All Item Data (Into a Single List)', value: 'aggregateAllItemData' },
+        ],
+      },
+      {
+        key: 'fieldsToAggregate', label: 'Fields To Aggregate', kind: 'fixedCollection',
+        multiple: true, addLabel: 'Add Field To Aggregate',
+        value: { fieldToAggregate: [{ fieldToAggregate: '', renameField: false }] },
+        showWhen: { aggregate: ['aggregateIndividualFields'] },
+        fields: [
+          {
+            key: 'fieldToAggregate', label: 'Input Field Name', kind: 'text', value: '',
+            placeholder: 'e.g. id', hint: 'Enter the field name as text', dataPath: 'single',
+            description: 'The name of a field in the input items to aggregate together',
+          },
+          {
+            key: 'renameField', label: 'Rename Field', kind: 'boolean', value: false,
+            description: 'Whether to give the field a different name in the output',
+          },
+          {
+            key: 'outputFieldName', label: 'Output Field Name', kind: 'text', value: '',
+            showWhen: { renameField: [true] }, dataPath: 'single',
+            description: 'The name of the field to put the aggregated data in. Leave blank to use the input field name.',
+          },
+        ],
+      },
+      {
+        key: 'destinationFieldName', label: 'Put Output in Field', kind: 'text', value: 'data',
+        showWhen: { aggregate: ['aggregateAllItemData'] },
+        description: 'The name of the output field to put the data in',
+      },
+      {
+        key: 'include', label: 'Include', kind: 'select', value: 'allFields', showWhen: { aggregate: ['aggregateAllItemData'] },
+        options: [
+          { label: 'All Fields', value: 'allFields' },
+          { label: 'Specified Fields', value: 'specifiedFields' },
+          { label: 'All Fields Except', value: 'allFieldsExcept' },
+        ],
+      },
+      {
+        key: 'fieldsToExclude', label: 'Fields To Exclude', kind: 'text', value: '',
+        placeholder: 'e.g. email, name', dataPath: 'multiple',
+        showWhen: { aggregate: ['aggregateAllItemData'], include: ['allFieldsExcept'] },
+      },
+      {
+        key: 'fieldsToInclude', label: 'Fields To Include', kind: 'text', value: '',
+        placeholder: 'e.g. email, name', dataPath: 'multiple',
+        showWhen: { aggregate: ['aggregateAllItemData'], include: ['specifiedFields'] },
+      },
+      {
+        key: 'options', label: 'Options', kind: 'collection', addLabel: 'Add Field', value: {},
+        fields: [
+          {
+            key: 'disableDotNotation', label: 'Disable Dot Notation', kind: 'boolean', value: false,
+            showWhen: { aggregate: ['aggregateIndividualFields'] },
+            description: 'Whether to disallow referencing child fields using `parent.child` in the field name',
+          },
+          {
+            key: 'mergeLists', label: 'Merge Lists', kind: 'boolean', value: false,
+            showWhen: { aggregate: ['aggregateIndividualFields'] },
+            description: 'Whether to merge the output into a single flat list (rather than a list of lists), if the field to aggregate is a list',
+          },
+          {
+            key: 'includeBinaries', label: 'Include Binaries', kind: 'boolean', value: false,
+            description: 'Whether to include the binary data in the new item',
+          },
+          {
+            key: 'keepOnlyUnique', label: 'Keep Only Unique Binaries', kind: 'boolean', value: false,
+            showWhen: { includeBinaries: [true] },
+            description: 'Whether to keep only unique binaries by comparing mime types, file types, file sizes and file extensions',
+          },
+          {
+            key: 'keepMissing', label: 'Keep Missing And Null Values', kind: 'boolean', value: false,
+            showWhen: { aggregate: ['aggregateIndividualFields'] },
+            description: 'Whether to add a null entry to the aggregated list when there is a missing or null value',
+          },
+        ],
+      },
+    ],
+    output: { customerIds: ['CUS-101', 'CUS-102', 'CUS-103'] },
+  },
+  limit: {
+    type: 'limit', n8nType: 'n8n-nodes-base.limit', n8nVersion: 1,
+    label: 'Limit',
+    subtitle: '',
+    description: 'Restrict the number of items',
+    category: 'core',
+    subcategory: 'Data Transformation',
+    group: ['transform'],
+    inputs: ['main'], outputs: ['main'],
+    icon: '/node-icons/limit.svg', iconColor: 'emerald', iconHex: '#2FB67C',
+    aliases: ['Limit', 'Remove', 'Slice', 'Transform', 'Array', 'List', 'Item'],
+    docs: 'https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.limit/',
+    source: {
+      commit: '3d68c29b9281f14097aa9f15e01ac0777e538b11',
+      path: 'packages/nodes-base/nodes/Transform/Limit/Limit.node.ts',
+    },
+    params: [
+      {
+        key: 'maxItems', label: 'Max Items', kind: 'number', value: 1, min: 1,
+        description: 'If there are more items than this number, some are removed',
+      },
+      {
+        key: 'keep', label: 'Keep', kind: 'select', value: 'firstItems',
+        options: [
+          { label: 'First Items', value: 'firstItems' },
+          { label: 'Last Items', value: 'lastItems' },
+        ],
+        description: 'When removing items, whether to keep the ones at the start or the ending',
+      },
+    ],
+    output: { id: 'ITEM-001' },
+  },
+  'split-out': {
+    type: 'split-out', n8nType: 'n8n-nodes-base.splitOut', n8nVersion: 1,
+    label: 'Split Out',
+    subtitle: '',
+    description: 'Turn a list inside item(s) into separate items',
+    category: 'core',
+    subcategory: 'Data Transformation',
+    group: ['transform'],
+    inputs: ['main'], outputs: ['main'],
+    icon: '/node-icons/split-out.svg', iconColor: 'violet', iconHex: '#9B6DD5',
+    aliases: ['Split', 'Nested', 'Transform', 'Array', 'List', 'Item'],
+    docs: 'https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.splitout/',
+    source: {
+      commit: '3d68c29b9281f14097aa9f15e01ac0777e538b11',
+      path: 'packages/nodes-base/nodes/Transform/SplitOut/SplitOut.node.ts',
+    },
+    builderHint: {
+      relatedNodes: [{ nodeType: 'n8n-nodes-base.aggregate', relationHint: 'Reverse operation - combine items back' }],
+    },
+    params: [
+      {
+        key: 'fieldToSplitOut', label: 'Fields To Split Out', kind: 'text', value: '', required: true,
+        placeholder: 'Drag fields from the left or type their names', dataPath: 'multiple',
+        hint: 'Use $binary to split out the input item by binary data',
+        description: 'The name of the input fields to break out into separate items. Separate multiple field names by commas. For binary data, use $binary.',
+        builderHint: 'Must be a field name (or comma-separated list of field names) as it appears inside $json. Use direct keys such as issues or user.addresses, not $json or $json-prefixed expressions. Use $binary only for binary data.',
+      },
+      {
+        key: 'include', label: 'Include', kind: 'select', value: 'noOtherFields',
+        options: [
+          { label: 'No Other Fields', value: 'noOtherFields' },
+          { label: 'All Other Fields', value: 'allOtherFields' },
+          { label: 'Selected Other Fields', value: 'selectedOtherFields' },
+        ],
+        description: 'Whether to copy any other fields into the new items',
+      },
+      {
+        key: 'fieldsToInclude', label: 'Fields To Include', kind: 'text', value: '',
+        placeholder: 'e.g. email, name', dataPath: 'multiple', showWhen: { include: ['selectedOtherFields'] },
+        description: 'Fields in the input items to aggregate together',
+      },
+      {
+        key: 'options', label: 'Options', kind: 'collection', addLabel: 'Add Field', value: {},
+        fields: [
+          {
+            key: 'disableDotNotation', label: 'Disable Dot Notation', kind: 'boolean', value: false,
+            description: 'Whether to disallow referencing child fields using `parent.child` in the field name',
+          },
+          {
+            key: 'destinationFieldName', label: 'Destination Field Name', kind: 'text', value: '', dataPath: 'multiple',
+            description: 'The field in the output under which to put the split field contents',
+          },
+          {
+            key: 'includeBinary', label: 'Include Binary', kind: 'boolean', value: false,
+            description: 'Whether to include the binary data in the new items',
+          },
+        ],
+      },
+    ],
+    output: { id: 'CUS-101', name: 'Aarav Sharma' },
+  },
   // Added for `order-desk`, which needs a spine long enough to be genuinely hard.
   // Each of these is a real n8n node a learner will meet, and each carries one
   // decision the existing vocabulary could not express: what makes two items the
@@ -199,6 +402,9 @@ export const NODE_CATALOG = {
     ],
     output: { 'Full Name': 'Aarav Sharma', Email: 'aarav@example.com', Plan: 'Pro', 'Referral Source': 'Google search' },
   },
+  // Reviewed core-node descriptors override the early teaching placeholders
+  // above as batches land. Cases keep their own grading/voice overlays.
+  ...CORE_NODE_CATALOG,
 };
 
 /**
@@ -250,11 +456,18 @@ export const AI_SUB_NODE_PORTS = [
 // to under-maintain — a type absent from here is silently unpickable in any phase that
 // forgot `pickable` — so a new type that a case is expected to place belongs in the
 // matching list.
-export const TRIGGER_OPTIONS = ['trigger', 'chat-trigger', 'schedule', 'webhook', 'form-trigger'];
-export const NODE_OPTIONS = [
+const completeCoreTriggers = COMPLETE_CORE_NODE_TYPES.filter((type) => NODE_CATALOG[type]?.category === 'trigger');
+const completeCoreActions = COMPLETE_CORE_NODE_TYPES.filter((type) => NODE_CATALOG[type]?.category !== 'trigger');
+
+export const TRIGGER_OPTIONS = [...new Set([
+  'trigger', 'chat-trigger', 'schedule', 'webhook', 'form-trigger',
+  ...completeCoreTriggers,
+])];
+export const NODE_OPTIONS = [...new Set([
   'classify', 'summarize', 'parse', 'switch', 'action', 'code', 'if',
   'slack-message', 'google-docs', 'google-sheets', 'http-request',
-];
+  ...completeCoreActions,
+])];
 
 export function catalogEntry(type) {
   return NODE_CATALOG[type];

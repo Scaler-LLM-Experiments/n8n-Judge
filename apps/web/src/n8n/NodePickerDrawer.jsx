@@ -32,7 +32,7 @@ export function NodePickerDrawer({ context, options, onPick, onClose }) {
   const items = types
     .map((t) => NODE_CATALOG[t])
     .filter(Boolean)
-    .filter((n) => n.label.toLowerCase().includes(query.trim().toLowerCase()));
+    .filter((n) => [n.label, ...(n.aliases ?? [])].some((term) => term.toLowerCase().includes(query.trim().toLowerCase())));
 
   return (
     <div ref={rootRef} style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: 400, background: 'var(--surface-0)', borderLeft: '1px solid var(--border-strong)', boxShadow: '-14px 0 40px rgba(1,24,69,0.14)', zIndex: 40, display: 'flex', flexDirection: 'column' }}>
