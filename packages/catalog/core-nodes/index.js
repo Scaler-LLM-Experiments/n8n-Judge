@@ -14,6 +14,7 @@ import azureAiSearchVectorStore from './azure-ai-search-vector-store.js';
 import azureOpenAiChatModel from './azure-openai-chat-model.js';
 import basicLlmChain from './basic-llm-chain.js';
 import code from './code.js';
+import chatMemoryManager from './chat-memory-manager.js';
 import chromaVectorStore from './chroma-vector-store.js';
 import cohereChatModel from './cohere-chat-model.js';
 import cohereModel from './cohere-model.js';
@@ -58,6 +59,7 @@ import googleGeminiChatModel from './google-gemini-chat-model.js';
 import googleVertexChatModel from './google-vertex-chat-model.js';
 import groqChatModel from './groq-chat-model.js';
 import html from './html.js';
+import huggingFaceInferenceModel from './huggingface-inference-model.js';
 import httpRequest from './http-request.js';
 import ifNode from './if.js';
 import informationExtractor from './information-extractor.js';
@@ -100,6 +102,7 @@ import rssRead from './rss-read.js';
 import schedule from './schedule.js';
 import sendEmail from './send-email.js';
 import sentimentAnalysis from './sentiment-analysis.js';
+import simpleMemory from './simple-memory.js';
 import simpleVectorStore from './simple-vector-store.js';
 import supabaseVectorStore from './supabase-vector-store.js';
 import editFields from './edit-fields.js';
@@ -260,9 +263,9 @@ export const CLUSTER_NODE_INVENTORY = [
   { type: 'cohere-model', docsSlug: 'n8n-nodes-langchain.lmcohere', label: 'Cohere Model', clusterRole: 'sub', status: 'complete' },
   { type: 'lemonade-model', docsSlug: 'n8n-nodes-langchain.lmlemonade', label: 'Lemonade Model', clusterRole: 'sub', status: 'complete' },
   { type: 'ollama-model', docsSlug: 'n8n-nodes-langchain.lmollama', label: 'Ollama Model', clusterRole: 'sub', status: 'complete' },
-  { type: 'huggingface-inference-model', docsSlug: 'n8n-nodes-langchain.lmopenhuggingfaceinference', label: 'Hugging Face Inference Model', clusterRole: 'sub', status: 'pending' },
-  { type: 'chat-memory-manager', docsSlug: 'n8n-nodes-langchain.memorymanager', label: 'Chat Memory Manager', clusterRole: 'sub', status: 'pending' },
-  { type: 'simple-memory', docsSlug: 'n8n-nodes-langchain.memorybufferwindow', label: 'Simple Memory', clusterRole: 'sub', status: 'pending' },
+  { type: 'huggingface-inference-model', docsSlug: 'n8n-nodes-langchain.lmopenhuggingfaceinference', label: 'Hugging Face Inference Model', clusterRole: 'sub', status: 'complete' },
+  { type: 'chat-memory-manager', docsSlug: 'n8n-nodes-langchain.memorymanager', label: 'Chat Memory Manager', clusterRole: 'sub', status: 'complete' },
+  { type: 'simple-memory', docsSlug: 'n8n-nodes-langchain.memorybufferwindow', label: 'Simple Memory', clusterRole: 'sub', status: 'complete' },
   { type: 'motorhead', docsSlug: 'n8n-nodes-langchain.memorymotorhead', label: 'Motorhead', clusterRole: 'sub', status: 'pending' },
   { type: 'mongodb-chat-memory', docsSlug: 'n8n-nodes-langchain.memorymongochat', label: 'MongoDB Chat Memory', clusterRole: 'sub', status: 'pending' },
   { type: 'redis-chat-memory', docsSlug: 'n8n-nodes-langchain.memoryredischat', label: 'Redis Chat Memory', clusterRole: 'sub', status: 'pending' },
@@ -318,6 +321,7 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
     nvidiaNemotronChatModel, ollamaChatModel, openAiChatModel,
     openRouterChatModel, vercelAiGatewayChatModel, xAiGrokChatModel,
     cohereModel, lemonadeModel, ollamaModel,
+    huggingFaceInferenceModel, chatMemoryManager, simpleMemory,
     aiTransform, code, compareDatasets,
     compression, convertToFile, crypto,
     dataTable, dateTime, debugHelper,

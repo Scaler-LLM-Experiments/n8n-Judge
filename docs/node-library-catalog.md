@@ -1,6 +1,6 @@
 # n8n node library catalog
 
-Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **158 canonical nodes** (27 triggers, 24 app actions, 107 core/data/AI nodes) plus 10 compatibility aliases.
+Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **161 canonical nodes** (27 triggers, 24 app actions, 110 core/data/AI nodes) plus 10 compatibility aliases.
 
 ## How to choose
 
@@ -93,6 +93,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Azure OpenAI Chat Model | `azure-openai-chat-model` | Configure an Azure OpenAI chat deployment and completion controls |
 | Basic LLM Chain | `basic-llm-chain` | Prompt a language model with optional messages, fallback model, and output parser |
 | Chat | `chat` | Send a message into the chat |
+| Chat Memory Manager | `chat-memory-manager` | Retrieve, insert, replace, or delete messages in connected chat memory |
 | Chroma Vector Store | `chroma-vector-store` | Configure Chroma insertion, search, retrieval, and tool modes |
 | Code | `code` | Run custom JavaScript or Python code |
 | Cohere Chat Model | `cohere-chat-model` | Configure a Cohere Command chat model and request controls |
@@ -135,6 +136,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Guardrails | `guardrails` | Safeguard AI models from malicious input or prevent them from generating undesirable responses |
 | HTML | `html` | Work with HTML |
 | HTTP Request | `http-request` | Makes an HTTP request and returns the response data |
+| Hugging Face Inference Model | `huggingface-inference-model` | Configure a Hugging Face text-generation model and inference controls |
 | If | `if` | Route items to different branches (true/false) |
 | Information Extractor | `information-extractor` | Extract structured information from text using a connected language model |
 | JWT | `jwt` | JWT |
@@ -174,6 +176,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | RSS Read | `rss-read` | Reads data from an RSS Feed |
 | Send Email | `send-email` | Sends an email using SMTP protocol |
 | Sentiment Analysis | `sentiment-analysis` | Configure sentiment categories with one authored output branch per label |
+| Simple Memory | `simple-memory` | Configure a local window of recent chat interactions for one session |
 | Simple Vector Store | `simple-vector-store` | Configure an experimental in-memory vector store without external setup |
 | Sort | `sort` | Change items order |
 | Split Out | `split-out` | Turn a list inside item(s) into separate items |

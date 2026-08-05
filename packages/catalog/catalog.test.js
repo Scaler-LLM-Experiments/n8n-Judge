@@ -1048,6 +1048,47 @@ describe('cluster-node batch 19 carries current Cohere, Lemonade, and Ollama com
   });
 });
 
+describe('cluster-node batch 20 carries Hugging Face completion and current memory surfaces', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((param) => [param.key, param]));
+
+  it('models Hugging Face Inference v1 freeform model and seven options', () => {
+    const node = NODE_CATALOG['huggingface-inference-model'];
+    const p = params('huggingface-inference-model');
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmOpenHuggingFaceInference' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 11, credentialEditorFieldCount: 1, dynamicFieldCount: 1, optionCollectionFieldCount: 7 });
+    expect(p.model).toMatchObject({ kind: 'expression', value: 'mistralai/Mistral-Nemo-Base-2407', remoteLookup: false });
+    expect(p.options.fields.map(({ key }) => key)).toEqual(['endpointUrl', 'frequencyPenalty', 'maxTokens', 'presencePenalty', 'temperature', 'topK', 'topP']);
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_languageModel', label: 'Model' })]);
+  });
+
+  it('models Chat Memory Manager v1.1 modes, message rows, and capped memory input', () => {
+    const node = NODE_CATALOG['chat-memory-manager'];
+    const p = params('chat-memory-manager');
+    expect(node).toMatchObject({ n8nVersion: 1.1, n8nType: '@n8n/n8n-nodes-langchain.memoryManager' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 11, credentialEditorFieldCount: 0, dynamicFieldCount: 0, conditionalFieldCount: 6 });
+    expect(p.mode.options.map(({ value }) => value)).toEqual(['load', 'insert', 'delete']);
+    expect(p.messages).toMatchObject({ kind: 'fixedCollection', collectionKey: 'messageValues', multiple: true, showWhen: { mode: ['insert'] } });
+    expect(p.messages.fields.map(({ sourceN8nKey }) => sourceN8nKey)).toEqual(['type', 'message', 'hideFromUI']);
+    expect(node.inputs).toEqual([
+      expect.objectContaining({ type: 'main' }),
+      expect.objectContaining({ type: 'ai_memory', label: 'Memory', required: true, maxConnections: 1 }),
+    ]);
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'main' })]);
+  });
+
+  it('models Simple Memory current v1.4 session variants and historical exclusions', () => {
+    const node = NODE_CATALOG['simple-memory'];
+    const p = params('simple-memory');
+    expect(node).toMatchObject({ n8nVersion: 1.4, n8nType: '@n8n/n8n-nodes-langchain.memoryBufferWindow' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 7, credentialEditorFieldCount: 0, dynamicFieldCount: 0, helperGeneratedFieldCount: 5 });
+    expect(p.sessionIdType.options.map(({ value }) => value)).toEqual(['fromInput', 'customKey']);
+    expect(p.sessionKeyFromPreviousNode).toMatchObject({ n8nKey: 'sessionKey', kind: 'expression', readOnly: true, showWhen: { sessionIdType: ['fromInput'] } });
+    expect(p.definedSessionKey).toMatchObject({ n8nKey: 'sessionKey', showWhen: { sessionIdType: ['customKey'] } });
+    expect(node.excludedHistoricalAuthoring.map(({ sourceVersionCondition }) => sourceVersionCondition)).toEqual(['@version = 1', '@version = 1.1']);
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_memory', label: 'Memory' })]);
+  });
+});
+
 // Judge does not implement typeVersion — one shipped schema per node type is the
 // right simplification — but every node must SAY which real node and version it
 // models, or the catalogue drifts from the n8n a learner meets next and nobody
