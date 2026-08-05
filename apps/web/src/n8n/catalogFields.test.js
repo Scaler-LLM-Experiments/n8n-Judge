@@ -73,4 +73,21 @@ describe('catalog-backed node setup', () => {
       multipleHttpMethods: ['DELETE', 'POST', 'PUT'],
     }).outputs.map((port) => port.label)).toEqual(['DELETE', 'POST', 'PUT']);
   });
+
+  it('resolves nested AI connector conditions', () => {
+    expect(resolveNodePorts(NODE_CATALOG.chat, { options: { memoryConnection: true } }).inputs.map((port) => port.type)).toEqual(['main', 'ai_memory']);
+    expect(resolveNodePorts(NODE_CATALOG['chat-trigger'], {
+      mode: 'hostedChat',
+      options: { loadPreviousSession: 'memory' },
+    }).inputs.map((port) => port.type)).toEqual(['ai_memory']);
+  });
+
+  it('adds the Guardrails model connector only for model-backed checks', () => {
+    expect(resolveNodePorts(NODE_CATALOG.guardrails, {
+      guardrails: { jailbreakGuardrail: true },
+    }).inputs.map((port) => port.type ?? port)).toEqual(['main', 'ai_languageModel']);
+    expect(resolveNodePorts(NODE_CATALOG.guardrails, {
+      guardrails: { keywordList: 'blocked' },
+    }).inputs).toEqual(['main']);
+  });
 });

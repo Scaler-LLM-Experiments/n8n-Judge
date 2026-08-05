@@ -63,6 +63,9 @@ import totp from './totp.js';
 import wait from './wait.js';
 import webhook from './webhook.js';
 import xml from './xml.js';
+import chatTrigger from './chat-trigger.js';
+import chat from './chat.js';
+import guardrails from './guardrails.js';
 
 export const SOURCE_COMMIT = '3d68c29b9281f14097aa9f15e01ac0777e538b11';
 
@@ -129,9 +132,9 @@ export const CORE_NODE_INVENTORY = [
   { type: 'webhook', docsSlug: 'n8n-nodes-base.webhook', label: 'Webhook', status: 'complete' },
   { type: 'workflow-trigger', docsSlug: 'n8n-nodes-base.workflowtrigger', label: 'Workflow Trigger', status: 'excluded-deprecated' },
   { type: 'xml', docsSlug: 'n8n-nodes-base.xml', label: 'XML', status: 'complete' },
-  { type: 'chat-trigger', docsSlug: 'n8n-nodes-langchain.chattrigger', label: 'Chat Trigger', status: 'pending' },
-  { type: 'chat', docsSlug: 'n8n-nodes-langchain.chat', label: 'Chat', status: 'pending' },
-  { type: 'guardrails', docsSlug: 'n8n-nodes-langchain.guardrails', label: 'Guardrails', status: 'pending' },
+  { type: 'chat-trigger', docsSlug: 'n8n-nodes-langchain.chattrigger', label: 'Chat Trigger', status: 'complete' },
+  { type: 'chat', docsSlug: 'n8n-nodes-langchain.chat', label: 'Chat', status: 'complete' },
+  { type: 'guardrails', docsSlug: 'n8n-nodes-langchain.guardrails', label: 'Guardrails', status: 'complete' },
   { type: 'mcp-client', docsSlug: 'n8n-nodes-langchain.mcpclient', label: 'MCP Client', status: 'pending' },
   { type: 'mcp-server-trigger', docsSlug: 'n8n-nodes-langchain.mcptrigger', label: 'MCP Server Trigger', status: 'pending' },
 ];
@@ -160,6 +163,7 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
     sseTrigger, ssh, stopAndError,
     summarizeItems, switchNode, totp,
     wait, webhook, xml,
+    chatTrigger, chat, guardrails,
   ].map((node) => [node.type, node])
 );
 

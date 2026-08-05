@@ -20,7 +20,7 @@ export function resolveNodePorts(entry = {}, values = {}) {
   const effectiveValues = { ...defaultsForParams(entry.params), ...values };
   const variant = entry.portVariants?.find(({ showWhen = {} }) =>
     Object.entries(showWhen).every(([key, allowed]) =>
-      (Array.isArray(allowed) ? allowed : [allowed]).includes(effectiveValues[key])
+      (Array.isArray(allowed) ? allowed : [allowed]).includes(atPath(effectiveValues, key))
     )
   );
 
@@ -39,6 +39,17 @@ export function resolveNodePorts(entry = {}, values = {}) {
       type: dynamic.type ?? 'main',
       label: dynamic.labels?.[index] ?? `Input ${index + 1}`,
     }));
+  }
+  const dynamicInput = entry.dynamicInputMetadata;
+  if (dynamicInput?.enabled && dynamicInput.strategy === 'guardrail-presence') {
+    const collection = entry.params?.find(({ key }) => key === dynamicInput.guardrailCollectionParameter);
+    const selected = effectiveValues[dynamicInput.guardrailCollectionParameter] ?? {};
+    const needsModel = collection?.fields?.some(({ key, sourceN8nKey }) =>
+      dynamicInput.requiredWhenAnyGuardrailPresent?.includes(sourceN8nKey) && Object.hasOwn(selected, key)
+    );
+    inputs = needsModel
+      ? [...(dynamicInput.baseInputs ?? inputs ?? []), dynamicInput.appendInput]
+      : dynamicInput.baseInputs ?? inputs;
   }
 
   let outputs = variant?.outputs ?? entry.outputs;
