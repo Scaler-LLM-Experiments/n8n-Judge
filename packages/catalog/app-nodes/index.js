@@ -13,6 +13,9 @@ import googleGemini from './google-gemini.js';
 import googleSheets from './google-sheets.js';
 import googleTranslate from './google-translate.js';
 import microsoftOneDrive from './microsoft-onedrive.js';
+import microsoftExcel from './microsoft-excel.js';
+import microsoftTeams from './microsoft-teams.js';
+import openAi from './openai.js';
 
 export const APP_SOURCE_COMMIT = '3d68c29b9281f14097aa9f15e01ac0777e538b11';
 
@@ -26,9 +29,9 @@ export const APP_NODE_INVENTORY = [
   { type: 'google-sheets', docsSlug: 'n8n-nodes-base.googlesheets', label: 'Google Sheets', status: 'complete' },
   { type: 'google-translate', docsSlug: 'n8n-nodes-base.googletranslate', label: 'Google Translate', status: 'complete' },
   { type: 'microsoft-onedrive', docsSlug: 'n8n-nodes-base.microsoftonedrive', label: 'Microsoft OneDrive', status: 'complete' },
-  { type: 'microsoft-excel', docsSlug: 'n8n-nodes-base.microsoftexcel', label: 'Microsoft Excel 365', status: 'pending' },
-  { type: 'microsoft-teams', docsSlug: 'n8n-nodes-base.microsoftteams', label: 'Microsoft Teams', status: 'pending' },
-  { type: 'openai', docsSlug: 'n8n-nodes-langchain.openai', label: 'OpenAI', status: 'pending' },
+  { type: 'microsoft-excel', docsSlug: 'n8n-nodes-base.microsoftexcel', label: 'Microsoft Excel 365', status: 'complete' },
+  { type: 'microsoft-teams', docsSlug: 'n8n-nodes-base.microsoftteams', label: 'Microsoft Teams', status: 'complete' },
+  { type: 'openai', docsSlug: 'n8n-nodes-langchain.openai', label: 'OpenAI', status: 'complete' },
   { type: 'paypal', docsSlug: 'n8n-nodes-base.paypal', label: 'PayPal', status: 'pending' },
   { type: 'postgres', docsSlug: 'n8n-nodes-base.postgres', label: 'Postgres', status: 'pending' },
   { type: 'twilio', docsSlug: 'n8n-nodes-base.twilio', label: 'Twilio', status: 'pending' },
@@ -49,6 +52,7 @@ export const APP_NODE_CATALOG = Object.fromEntries(
     discord, dropbox, googleDrive,
     github, googleDocs, googleGemini,
     googleSheets, googleTranslate, microsoftOneDrive,
+    microsoftExcel, microsoftTeams, openAi,
   ].map((node) => [node.type, node])
 );
 

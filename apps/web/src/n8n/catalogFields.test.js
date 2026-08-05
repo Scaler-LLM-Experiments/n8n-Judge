@@ -101,4 +101,17 @@ describe('catalog-backed node setup', () => {
       imageOperation: 'generate',
     }).inputs).toEqual(['main']);
   });
+
+  it('adds OpenAI tools only for supported Text Response models', () => {
+    expect(resolveNodePorts(NODE_CATALOG.openai, {
+      resource: 'text',
+      textOperation: 'response',
+      textResponseModelId: { __rl: true, mode: 'id', value: 'gpt-4.1-mini' },
+    }).inputs.map((port) => port.type ?? port)).toEqual(['main', 'ai_tool']);
+    expect(resolveNodePorts(NODE_CATALOG.openai, {
+      resource: 'text',
+      textOperation: 'response',
+      textResponseModelId: { __rl: true, mode: 'id', value: 'dall-e-3' },
+    }).inputs).toEqual(['main']);
+  });
 });

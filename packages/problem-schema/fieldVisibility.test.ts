@@ -27,6 +27,12 @@ describe('isFieldVisible', () => {
     expect(isFieldVisible(f, { mode: 'c' })).toBe(false);
   });
 
+  it('supports n8n hide conditions', () => {
+    const f = { key: 'tools', hideWhen: { hideTools: ['hide'] } };
+    expect(isFieldVisible(f, { hideTools: 'show' })).toBe(true);
+    expect(isFieldVisible(f, { hideTools: 'hide' })).toBe(false);
+  });
+
   // A checkbox hands back a real boolean and a number input often a string, so
   // matching has to be loose or an authored `true`/`3` would never fire.
   it('matches loosely across types', () => {
@@ -60,6 +66,13 @@ describe('pruneHidden', () => {
   it('keeps the value while the field is still shown', () => {
     const values = { mode: 'separate', label: 'Unrouted' };
     expect(pruneHidden([plain, child], values)).toEqual(values);
+  });
+
+  it('drops a value hidden by hideWhen', () => {
+    expect(pruneHidden([{ key: 'tools', hideWhen: { hideTools: ['hide'] } }], {
+      hideTools: 'hide',
+      tools: 'connected',
+    })).toEqual({ hideTools: 'hide' });
   });
 
   it('never drops an unconditional field', () => {

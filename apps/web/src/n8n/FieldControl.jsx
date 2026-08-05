@@ -127,7 +127,7 @@ export const initialFixedCollectionRow = (field) => Object.fromEntries((field.fi
   .filter((child) => !field.hideOptionalFields || child.required || child.showEvenWhenOptional)
   .map((child) => [child.key, copy(child.value)]));
 
-export const fieldIsVisible = (field, values) => Object.entries(field.showWhen ?? {}).every(
+const matchesVisibility = (values, conditions = {}) => Object.entries(conditions).every(
   ([key, accepted]) => {
     const actual = resourceValue(values?.[key]);
     if (Array.isArray(accepted)) return accepted.includes(actual);
@@ -135,6 +135,9 @@ export const fieldIsVisible = (field, values) => Object.entries(field.showWhen ?
     return actual === accepted;
   }
 );
+
+export const fieldIsVisible = (field, values) =>
+  matchesVisibility(values, field.showWhen) && (!field.hideWhen || !matchesVisibility(values, field.hideWhen));
 
 const nestedLabel = (field) => (
   <div style={{ fontSize: 11.5, fontWeight: 650, color: 'var(--fg-1)', marginBottom: 5 }}>
@@ -154,7 +157,7 @@ function NestedControl({ field, value, border, onChange, inputKeys, rootValues }
     return <CollectionControl field={field} value={value} border={border} bg="var(--surface-0)" onChange={onChange} inputKeys={inputKeys} rootValues={rootValues} />;
   }
   if (field.kind === 'fixedCollection') {
-    return <FixedCollectionControl field={field} value={value} border={border} bg="var(--surface-0)" onChange={onChange} inputKeys={inputKeys} />;
+    return <FixedCollectionControl field={field} value={value} border={border} bg="var(--surface-0)" onChange={onChange} inputKeys={inputKeys} rootValues={rootValues} />;
   }
   return <FieldControl field={field} value={value} border={border} bg="var(--surface-0)" onChange={onChange} shuffledOptions={field.options ?? []} inputKeys={inputKeys} />;
 }
@@ -201,7 +204,7 @@ export function CollectionControl({ field, value, border, bg, onChange, inputKey
 }
 
 /** Repeatable fixedCollection rows, including per-row conditional fields. */
-export function FixedCollectionControl({ field, value, border, bg, onChange, inputKeys = [] }) {
+export function FixedCollectionControl({ field, value, border, bg, onChange, inputKeys = [], rootValues = {} }) {
   const itemKey = field.collectionKey || Object.keys(field.value ?? {})[0] || 'values';
   const current = value && typeof value === 'object' ? value : {};
   const rawRows = current[itemKey];
@@ -222,7 +225,7 @@ export function FixedCollectionControl({ field, value, border, bg, onChange, inp
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
       {rows.map((row, index) => {
-        const visible = (field.fields ?? []).filter((child) => child.kind !== 'hidden' && fieldIsVisible(child, row));
+        const visible = (field.fields ?? []).filter((child) => child.kind !== 'hidden' && fieldIsVisible(child, { ...rootValues, ...row }));
         const active = visible.filter((child) => !field.hideOptionalFields || child.required || child.showEvenWhenOptional || Object.hasOwn(row, child.key));
         const available = visible.filter((child) => !active.includes(child));
         return (

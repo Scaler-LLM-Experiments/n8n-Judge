@@ -140,6 +140,34 @@ describe('essential app-node batch 3 carries the real operation surface', () => 
   });
 });
 
+describe('essential app-node batch 4 carries the real operation surface', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((param) => [param.key, param]));
+
+  it('models all 17 Microsoft Excel v2.2 operations', () => {
+    const node = NODE_CATALOG['microsoft-excel'];
+    const p = params('microsoft-excel');
+    expect(node).toMatchObject({ n8nVersion: 2.2, usableAsTool: true });
+    expect(p.resource.options.map(({ value }) => value)).toEqual(['table', 'workbook', 'worksheet']);
+    expect(p.tableOperation.options.length + p.workbookOperation.options.length + p.worksheetOperation.options.length).toBe(17);
+  });
+
+  it('models all 16 Microsoft Teams v2 operations', () => {
+    const node = NODE_CATALOG['microsoft-teams'];
+    const p = params('microsoft-teams');
+    expect(node).toMatchObject({ n8nVersion: 2, usableAsTool: true });
+    expect(p.resource.options).toHaveLength(4);
+    expect(p.channelOperation.options.length + p.channelMessageOperation.options.length + p.chatMessageOperation.options.length + p.taskOperation.options.length).toBe(16);
+  });
+
+  it('models all 16 modern OpenAI v2.3 operations', () => {
+    const node = NODE_CATALOG.openai;
+    const operationParams = node.params.filter(({ n8nKey }) => n8nKey === 'operation');
+    expect(node).toMatchObject({ n8nType: '@n8n/n8n-nodes-langchain.openAi', n8nVersion: 2.3, usableAsTool: false });
+    expect(params('openai').resource.options).toHaveLength(6);
+    expect(operationParams.reduce((total, param) => total + param.options.length, 0)).toBe(16);
+  });
+});
+
 describe('core-node completion inventory', () => {
   it('tracks the complete official docs scope without duplicates', () => {
     expect(CORE_NODE_INVENTORY).toHaveLength(67);

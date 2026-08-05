@@ -18,10 +18,16 @@ export function defaultsForParams(params = []) {
 
 export function resolveNodePorts(entry = {}, values = {}) {
   const effectiveValues = { ...defaultsForParams(entry.params), ...values };
+  const matches = (actual, allowed) => {
+    const comparable = actual && typeof actual === 'object' && '__rl' in actual ? actual.value : actual;
+    if (Array.isArray(allowed)) return allowed.includes(comparable);
+    if (allowed?.not !== undefined) return comparable !== allowed.not;
+    if (allowed?.notIn) return !allowed.notIn.includes(comparable);
+    if (allowed?.includes !== undefined) return String(comparable ?? '').includes(allowed.includes);
+    return comparable === allowed;
+  };
   const variant = entry.portVariants?.find(({ showWhen = {} }) =>
-    Object.entries(showWhen).every(([key, allowed]) =>
-      (Array.isArray(allowed) ? allowed : [allowed]).includes(atPath(effectiveValues, key))
-    )
+    Object.entries(showWhen).every(([key, allowed]) => matches(atPath(effectiveValues, key), allowed))
   );
 
   let inputs = variant?.inputs ?? entry.inputs;

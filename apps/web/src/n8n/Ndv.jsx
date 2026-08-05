@@ -763,7 +763,7 @@ function FieldForm({ nodeType, inputKeys, setup, fields, values, results, rowRes
               ) : isCollection ? (
                 <CollectionControl field={f} value={value} border={border} bg={bg} onChange={onChange} inputKeys={inputKeys} rootValues={values} />
               ) : isFixedCollection ? (
-                <FixedCollectionControl field={f} value={value} border={border} bg={bg} onChange={onChange} inputKeys={inputKeys} />
+                <FixedCollectionControl field={f} value={value} border={border} bg={bg} onChange={onChange} inputKeys={inputKeys} rootValues={values} />
               ) : (
                 <FieldControl
                   field={f}

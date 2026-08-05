@@ -185,4 +185,9 @@ describe('conditional collection fields', () => {
     expect(fieldIsVisible(field, { model: { __rl: true, mode: 'list', value: 'models/imagen-4' } })).toBe(true);
     expect(fieldIsVisible(field, { model: { __rl: true, mode: 'list', value: 'models/gemini-flash' } })).toBe(false);
   });
+
+  it('supports hide conditions inside collections', () => {
+    expect(fieldIsVisible({ hideWhen: { mode: ['hidden'] } }, { mode: 'shown' })).toBe(true);
+    expect(fieldIsVisible({ hideWhen: { mode: ['hidden'] } }, { mode: 'hidden' })).toBe(false);
+  });
 });

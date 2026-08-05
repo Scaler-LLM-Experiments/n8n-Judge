@@ -24,6 +24,7 @@ type Values = Record<string, unknown>;
 export interface ConditionalField {
   key: string;
   showWhen?: Record<string, Array<string | number | boolean>>;
+  hideWhen?: Record<string, Array<string | number | boolean>>;
 }
 
 /** Loose equality, so authored `true` matches a checkbox's `true` and `3` matches `'3'`. */
@@ -33,9 +34,9 @@ function matches(actual: unknown, accepted: Array<string | number | boolean>): b
 
 /** Is this field displayed, given the values chosen so far? */
 export function isFieldVisible(field: ConditionalField, values: Values = {}): boolean {
-  const cond = field.showWhen;
-  if (!cond) return true;
-  return Object.entries(cond).every(([key, accepted]) => matches(values[key], accepted));
+  const shown = !field.showWhen || Object.entries(field.showWhen).every(([key, accepted]) => matches(values[key], accepted));
+  const hidden = field.hideWhen && Object.entries(field.hideWhen).every(([key, accepted]) => matches(values[key], accepted));
+  return shown && !hidden;
 }
 
 /** The subset of `fields` currently displayed — the only ones setup may demand. */
@@ -55,7 +56,7 @@ export function pruneHidden<V extends Values>(fields: ConditionalField[], values
   let changed = false;
   const out: Values = { ...values };
   for (const f of fields ?? []) {
-    if (f.showWhen && !isFieldVisible(f, values) && f.key in out) {
+    if ((f.showWhen || f.hideWhen) && !isFieldVisible(f, values) && f.key in out) {
       delete out[f.key];
       changed = true;
     }
