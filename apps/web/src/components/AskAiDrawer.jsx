@@ -126,7 +126,7 @@ export function AskAiDrawer({ onClose, context, learnerName }) {
           {!started ? (
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '20px 22px 16px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginTop: 40 }}>
-                <div style={{ width: 84, height: 84, marginBottom: 6 }}>
+                <div style={{ width: 118, height: 118, marginBottom: 6 }}>
                   <MascotPlayer clip="hello" once={false} onceDone={() => {}} />
                 </div>
                 <div style={{ fontFamily: 'var(--font-headline)', fontSize: 30, fontWeight: 600, color: 'var(--fg-1)' }}>{greeting}</div>

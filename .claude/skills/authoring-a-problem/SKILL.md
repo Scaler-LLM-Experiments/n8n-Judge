@@ -238,6 +238,158 @@ at the API boundary; it never reaches a browser.
 
 ---
 
+## 6b. Learned the hard way on `trial-signup-desk`
+
+The first case authored end to end by the `/author-case` pipeline (2026-08-05, PR #3). Every
+item below is a defect that shipped into a review, or a platform gap it exposed. None was
+caught by a test at the time; some are now.
+
+### Never print a graded answer where the learner can read it
+
+This is the same rule as the `flowSummary` labels in §4, but it leaks through **six** surfaces
+and the review found it in four of them at once. The case graded "which Sheets operation?" while
+the answer, `Append Row`, was printed in:
+
+| Surface | Why it leaks |
+|---|---|
+| the **catalog `label`** | it is the node's caption on the canvas |
+| the problem's **`nodePalette` label** | the picker shows it before the field is answered |
+| a **`dissection` option label** and its **`explanation`** | read before the build starts |
+| **`referenceGraph.requiredLabel`** | display-only today, but client-visible |
+| a **`testCase` description** | on screen in the Run checklist |
+| the catalog entry's default **`params` value** | inert today, one renderer away from live |
+
+**So: before authoring a graded field, grep the whole repo for its correct value.** A node's
+label must name the node, never the operation a case might grade — `Google Sheets`, not
+`Google Sheets — Append Row`.
+
+### A `why` must not be verbatim a Stress Testing answer
+
+The `executeOnce` setting's `why.true` said, in substance, "send thirteen signups through with
+this on and twelve never reach the sheet" — which was the answer to the edge-case question worth
+~6.7% of the score. Two separate defects: only a learner who got the setting **wrong** sees that
+text, so it *rewards the earlier mistake*; and the concept is then scored twice, which is exactly
+why §5 leaves probes unscored. Explain the mechanism and ask a guiding question; leave the
+consequence to be derived.
+
+### The `statement` must not answer a Stress Testing question either
+
+Same rule, one surface up. This case's statement said "a blank must still produce a logged row
+and a welcome email, never a stopped run" — the first stress question's correct option in the
+author's own words, sitting on the sticky note for the whole session and inside Ask-AI's context.
+
+State the **requirement** the learner must meet ("blanks are allowed in and must not stop the
+run"); never the **behaviour** the question grades ("the row lands with an empty cell and the
+mail still goes out"). The brief sets the job; the edge-case quiz tests whether they can predict
+what the job produces.
+
+### Check the facts in your `why` copy
+
+A wrong-option `why` claimed a reversed FX request would "fill the column with something like
+0.012". It would not — `?from=INR&to=USD` returns `rates: { USD }`, so a mapping reading
+`rates.INR` yields a **blank** cell. The teaching point (it fails silently, with no error)
+survived; the stated symptom was simply false, and a learner who tried it would have seen
+something else. **If a `why` predicts an observable outcome, verify the outcome.**
+
+### Zero at index 0 is also a pattern
+
+§5 says never *park* the correct option at index 0. Following that literally produced 0 of 15
+lists with the answer on top — the inverse tell, and just as learnable. Aim for the uniform
+expectation (`{0:4, 1:4, 2:4, 3:3}` across 15 lists here), not for absence. `problem:check`
+prints the distribution.
+
+### A linear case has no `branch: null` gap — name the degraded path
+
+`branch: null` means "matched no branch". A flow that declares no branches has nothing to miss,
+so **every** sample case carries `null` and the convention says nothing. `validateProblem()`
+warns and that warning is correct; the warning is not the gap.
+
+The gap in a linear case is the input that must still complete **without stopping the run** — a
+blank required field, a missing upstream value. Author the edge-case questions against that.
+
+### Sample I/O is a chain, not a per-node fact
+
+`catalogEntry.output` is what the **next** node's NDV Input pane displays, so it reads as a claim
+about what the previous node really returned. Two failures found here, both grading-relevant:
+
+- `http-request.output` still held a deleted problem's `{ order: … }` payload, so on the Google
+  Sheets screen the pane asserted **a different API's response** — on the exact screen teaching
+  the learner to read the FX response, contradicting the field's own subtitle.
+- `google-sheets.output` was `{ ok: true }`, so the downstream email node's Input pane contained
+  **none of the `$json` fields its graded options reference**. A learner reading the pane could
+  rationally conclude no option resolves and pick a hardcoded address — defensible from what
+  they were shown, and marked wrong.
+
+**When a case puts a node mid-chain for the first time, walk the Input pane of every node after
+it.** Judge's model is that the item accumulates fields; each `output` has to be consistent with
+that or the pane teaches the opposite of the field.
+
+### Adding a catalog type is three files, not two
+
+`packages/catalog/catalog.js` **plus** two maps in `apps/web/src/nodes/nodeIcons.js`:
+
+- **`typeCategory`** — `NodePickerDrawer` *filters* on it (`typeCategory[n.type] === cat`) rather
+  than falling back, so a missing entry makes the type **invisible in the picker**: offered by
+  the options list and impossible to click. `remove-duplicates`, `wait` and `http-request` were
+  all in that state and nothing caught it.
+- **`nodeIcons`** or **`nodeImageIcons`** — a missing entry renders a blank chip.
+
+`catalog.test.js` now asserts both for every catalog type. Also add the type to
+`TRIGGER_OPTIONS`/`NODE_OPTIONS` if a case is expected to place it, since those are the picker's
+fallback when a phase omits `pickable` — and **declare `pickable` on every phase**, because that
+fallback offers only a subset.
+
+### Two platform gaps a case cannot work around
+
+Know these before designing a flow around them:
+
+- **`simulate.js` ends the walk at the first `action`-category node.** So a linear flow with
+  **two terminals in series** — "log it *and* notify" — narrates only up to the first, and the
+  second never lights up during the Run. `google-sheets` is category `action`, so a
+  log-then-email flow hides the email. Order the chain so the more important artefact is first,
+  and know the later node's `simulation` copy is dead.
+- **Judge's expressions accumulate; real n8n's HTTP Request replaces the item.** Every shipped
+  case relies on accumulation (`$json.from` two nodes downstream of the trigger), and Judge has
+  no node-reference syntax at all. Putting an HTTP Request mid-chain makes the divergence visible.
+  Stay consistent with the platform; do not invent `$('Node').item.json` in one case.
+
+## 6c. Every case owes a real n8n workflow file
+
+A learner who scores **80 or more** is offered the case's flow as a file they import into their
+own n8n and run. So a case is not finished until it exports one.
+
+```bash
+npm run workflows:generate -- <slug>     # writes packages/problems/<slug>/workflow.n8n.json
+npm run workflows:generate -- --check    # CI: fails if any file is stale or invalid
+npm run case:verify -- workflow <slug>
+```
+
+The file is **generated, never authored** — from `referenceGraph` plus the correct answers in
+`nodeSetup`, by `packages/engine/exportWorkflow.js`. It is committed anyway, for three reasons:
+it is the case's answer key expressed as something that *runs*, so a diff on it is the clearest
+signal that an authoring change altered the flow's behaviour; it is the CI gate; and it is what
+you drag into n8n to test, with no dev server or session needed.
+
+**What this asks of you as an author:**
+
+- **Use node types that have an export spec.** `problem:check` and `case:verify workflow` both
+  fail on a type with no entry in `packages/engine/n8nNodeSpecs.js`. That is deliberate: a partial
+  export is a file that imports into n8n and then does not work, which is worse than no file. If a
+  case needs a new type, the spec is part of adding it — see §6b, "adding a catalog type is three
+  files", now four.
+- **A `valueOptions` label should be a real n8n expression.** The exporter resolves each
+  `expect.assignments` token back through `valueOptions` to that option's **label**, because the
+  token (`form.name`) is a Judge id and the label (`{{ $json["Full Name"] }}`) is the thing the
+  learner actually picked. A label that is prose instead of an expression exports as a literal
+  string and silently writes that prose into the spreadsheet cell.
+- **Do not hand-write expressions for real n8n lineage.** Author them in Judge's accumulating
+  model, as every case already does. The exporter rewrites them: it walks the chain, and any field
+  the immediate predecessor does not produce becomes `$('That Node').item.json['field']`. This is
+  the fix for the accumulate-vs-replace divergence that both case reviews raised — real n8n's HTTP
+  Request *replaces* the item, so `$json["Full Name"]` after it is undefined and the cell lands
+  empty. The catalog's `output` samples are the source of truth for which node produces what, which
+  is one more reason a stale sample (§6b) is a real bug.
+
 ## 7. Definition of done
 
 A problem is finished when all four are true:

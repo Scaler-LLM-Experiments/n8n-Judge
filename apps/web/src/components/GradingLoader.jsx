@@ -42,7 +42,7 @@ export function GradingLoader({ label }) {
         textAlign: 'center',
       }}
     >
-      <div style={{ width: 108, height: 108 }}>
+      <div style={{ width: 151, height: 151 }}>
         <MascotPlayer clip="thinking" once={false} onceDone={() => {}} />
       </div>
 

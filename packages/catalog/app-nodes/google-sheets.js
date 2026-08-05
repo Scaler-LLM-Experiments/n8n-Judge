@@ -630,7 +630,14 @@ const googleSheets = {
     toolExecution: false,
     voice: false,
   },
-  output: {},
+  output: {
+    'Full Name': 'Aarav Sharma',
+    Email: 'aarav@example.com',
+    Plan: 'Pro',
+    'Referral Source': 'Google search',
+    USD_INR_Rate: 83.21,
+    updates: { updatedRows: 1 },
+  },
 };
 
 export default googleSheets;

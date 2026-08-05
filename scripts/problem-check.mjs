@@ -211,6 +211,41 @@ async function check(slug) {
     `  ${v.authored ? green('✓') : yellow('!')} voice: ${v.authored} authored moment(s) + ${v.perNode} per-node, ${v.speakable ?? '?'} lines speakable, ${clipNote}`
   );
 
+  // --- the n8n workflow file
+  //
+  // Every case owes a file that imports into real n8n. It is generated, not
+  // authored, so the only thing to report is whether it CAN be generated — which
+  // fails when the case uses a node type with no export spec. Blocking, because a
+  // case that cannot be exported cannot offer its reward.
+  try {
+    const { exportN8nWorkflow, validateN8nWorkflow } = await import('@judge/engine');
+    const { workflow, unsupported, warnings } = exportN8nWorkflow(problem);
+    if (unsupported.length) {
+      console.log(red(`  ✗ n8n export: no spec for ${unsupported.join(', ')} — add one in packages/engine/n8nNodeSpecs.js`));
+      blocking += 1;
+    } else if (!workflow) {
+      console.log(red(`  ✗ n8n export: ${warnings.join('; ')}`));
+      blocking += 1;
+    } else {
+      const issues = validateN8nWorkflow(workflow);
+      const file = new URL(`../packages/problems/${problem.id}/workflow.n8n.json`, import.meta.url);
+      const onDisk = existsSync(file);
+      if (issues.length) {
+        console.log(red(`  ✗ n8n export: ${issues.length} validation issue(s) — ${issues[0]}`));
+        blocking += 1;
+      } else {
+        console.log(
+          `  ${onDisk ? green('✓') : yellow('!')} n8n export: ${workflow.nodes.length} nodes, valid` +
+            `${onDisk ? '' : yellow(' — workflow.n8n.json not committed yet, run npm run workflows:generate')}`
+        );
+      }
+      // Authored-graph smells the export surfaces, not export problems.
+      for (const w of warnings.filter((x) => !x.includes('exported as'))) console.log(yellow(`      ! ${w}`));
+    }
+  } catch (err) {
+    console.log(yellow(`  ! n8n export: could not be checked (${err.message.split('\n')[0]})`));
+  }
+
   // --- cover art
   const c = cover(problem);
   const coverOk = c.authoredPrompt && c.src && c.onDisk;

@@ -2,11 +2,13 @@
 // See README.md for what these tables are and when to regenerate them.
 import emailTriage from './email-triage.json' with { type: 'json' };
 import expenseApprovals from './expense-approvals.json' with { type: 'json' };
+import trialSignupDesk from './trial-signup-desk.json' with { type: 'json' };
 
 /** Every problem's clip table, by slug. */
 export const voiceScripts = {
   'email-triage': emailTriage,
   'expense-approvals': expenseApprovals,
+  'trial-signup-desk': trialSignupDesk,
 };
 
 /** One problem's table, or null. Shape: { version, problem, renderedWith, clips }. */

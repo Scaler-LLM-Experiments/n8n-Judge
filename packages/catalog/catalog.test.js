@@ -127,6 +127,7 @@ describe('essential app-node batch 3 carries the real operation surface', () => 
     expect(p.resource.options.map(({ value }) => value)).toEqual(['spreadsheet', 'sheet']);
     expect(p.sheetOperation.options).toHaveLength(8);
     expect(p.spreadsheetOperation.options).toHaveLength(2);
+    expect(node.output).toMatchObject({ Email: 'aarav@example.com', updates: { updatedRows: 1 } });
   });
 
   it('models the Google Translate v2 language operation', () => {
@@ -521,6 +522,17 @@ describe('core node batch 2 carries the real configurable surface', () => {
     expect(p.resolve.value).toBe('includeBoth');
     expect(p.preferWhenMix.showWhen).toEqual({ resolve: ['mix'] });
     expect(p.options.fields.map((field) => field.key)).toEqual(['skipFields', 'disableDotNotation', 'multipleMatches']);
+  });
+});
+
+describe('reviewed descriptors preserve existing case sample data', () => {
+  it('keeps the fields used by current case previews and workflow relinking', () => {
+    expect(NODE_CATALOG['form-trigger'].output).toHaveProperty('Full Name');
+    expect(NODE_CATALOG['http-request'].output).toHaveProperty('rates.INR');
+    expect(NODE_CATALOG['remove-duplicates'].output).toHaveProperty('threadId');
+    expect(NODE_CATALOG.switch.output).toHaveProperty('category');
+    expect(NODE_CATALOG['chat-trigger'].output).toHaveProperty('sessionId');
+    expect(NODE_CATALOG['google-docs'].output).toHaveProperty('ok', true);
   });
 });
 

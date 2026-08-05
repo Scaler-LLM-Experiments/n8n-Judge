@@ -1,5 +1,6 @@
 import React from 'react';
 import { CheckCircle, XCircle, WarningCircle, LockSimple } from '@phosphor-icons/react';
+import { Switch } from '../design-system/Switch.jsx';
 import { settingsSpecFor, isActive, isVisible } from './nodeSettings.js';
 import { IrisBubble } from './IrisBubble.jsx';
 
@@ -40,27 +41,13 @@ function Row({ spec, value, onChange, graded, verdict, why, disabled, onExplain,
 
         <div className={pulse ? 'pulse-field' : undefined} style={{ flex: 'none' }}>
           {spec.kind === 'boolean' ? (
-            <button
-              type="button"
-              role="switch"
-              aria-checked={Boolean(value)}
-              aria-label={spec.label}
+            <Switch
+              checked={Boolean(value)}
               disabled={disabled}
-              onClick={() => onChange(spec.key, !value)}
-              style={{
-                width: 38,
-                height: 21,
-                padding: 2,
-                border: `1.5px solid ${border}`,
-                background: value ? 'var(--brand-primary)' : 'var(--surface-2)',
-                cursor: disabled ? 'not-allowed' : 'pointer',
-                display: 'flex',
-                justifyContent: value ? 'flex-end' : 'flex-start',
-                alignItems: 'center',
-              }}
-            >
-              <span style={{ width: 15, height: 15, background: value ? '#fff' : 'var(--fg-3)', display: 'block' }} />
-            </button>
+              aria-label={spec.label}
+              borderColor={border}
+              onChange={(next) => onChange(spec.key, next)}
+            />
           ) : null}
 
           {spec.kind === 'select' ? (

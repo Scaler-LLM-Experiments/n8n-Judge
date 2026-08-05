@@ -24,7 +24,7 @@ Milestones have been completed out of order. What is actually true, per mileston
 | M2 persistence + tracing | ✅ complete — resume lands on the recorded point as of 2026-07-31 |
 | M3 queue + grading + ratings | ⚠️ **half done** — scoring + Claude narrative live; no worker service, no ratings |
 | M4 admin analytics | ✅ landed early — overview, cases, completion funnel, learners, admins |
-| **M5 authoring** | ⚠️ half done — the CLI pipeline ships (`problem:new/check/draft`); no admin editor |
+| **M5 authoring** | ⚠️ mostly done — the CLI pipeline (`problem:new/check/draft`) plus the **agent pipeline** (`/author-case`, see below); no admin editor |
 | M6 voice · M7 SQS | M6 largely done in practice (see Voice); M7 not started |
 
 Verified 2026-07-31: **458/458 unit tests**, both typecheck halves, smoke green on every screen
@@ -278,7 +278,7 @@ and refuses to run against a non-local database without `ALLOW_REMOTE=1`.
 
 **Not done:** rubric editor with versions and re-grade; ratings view (nothing to show yet).
 
-### M5 — Authoring pipeline ⚠️ half done — the CLI half works
+### M5 — Authoring pipeline ⚠️ mostly done — CLI + agent pipeline ship; no admin editor
 **Done (2026-07-31): the pipeline as three commands**, chosen over the admin editor first so
 problems can actually ship while the UI is still a plan.
 
@@ -303,9 +303,74 @@ used it** — it demanded the retired fixed topology and *required* the escape-h
 that `validateProblem()` now rejects. All fixed; the prompt's rules are now pinned by
 `authoringPrompt.test.ts`, since it is a second copy of the skill that no reader will check.
 
-**Not done:** the in-app editor — `/admin` draft → form/JSON editing with live validation →
-`BuildPreview` → versioned publish → assign. The CLI proves the steps; the UI is what makes
-authoring a non-engineer's job.
+**Done (2026-08-04): the agent pipeline** — `/author-case`, which drives the CLI above rather
+than replacing it. One orchestrator, five sub-agents, finishing at a **draft PR into `main`**.
+Built to the architecture in
+[docs/cma-authoring-pipeline-handoff.md](docs/cma-authoring-pipeline-handoff.md) so the port to
+hosted Claude Managed Agents is a config step, not a rewrite —
+[docs/cma-setup.md](docs/cma-setup.md) is that port.
+
+- **The chain:** `author_case → case_review → (case_art ∥ case_audio) → case_finalize → PR`,
+  with the handoff doc's three failure classes (infra retries then blocks · config/policy
+  blocks immediately · **content routes back to the generating agent**, capped at 2 cycles).
+- **Sub-agents** in `.claude/agents/`: `case-author`, `case-reviewer`, `case-voice-author`,
+  `case-voice-reviewer`, `case-art-reviewer`. The reviewers have no write tools and run as
+  fresh agents — a reviewer that shares the author's context rubber-stamps, and one that can
+  edit stops the loop working.
+- **`case-reviewer` blind-solves the real projection.** `toPublicProblem()` yields exactly what
+  a learner's browser gets (verified: 46.6KB of source → a 28.6KB projection with every
+  correctness marker stripped), so the reviewer answers cold, then grades itself against the
+  key. This is the only thing in the repo that can catch a **wrong answer key**, which is the
+  one authoring defect that marks a learner down for being right and that no test sees.
+- **Nothing advances on an agent's self-report.** `scripts/authoring/verify.mjs` re-checks every
+  claim from our side: the eight files, registration, `problem:check`, cover on disk, clips
+  rendered, clips really in S3 (**one paginated `ListObjectsV2`**, never a HEAD per clip — that
+  pattern is what got Scaler's keys flagged), Postgres serving byte-identical content, and the
+  branch really on origin (`ls-remote` exits 0 even when the ref is absent).
+- `scripts/authoring/preflight.mjs` checks everything a run needs *before* the stages that
+  spend money; `run-state.mjs` keeps one JSON file per run whose fields are already the
+  `case_pipeline` / `case_pipeline_stages` columns.
+- Input is [docs/case-spec-template.md](docs/case-spec-template.md). The **hard human gate** is
+  a spec needing a node type outside the 23 in `NODE_CATALOG` — the run blocks rather than
+  substituting a near-miss, because adding a type is a code change in two files.
+- `--fake` walks every stage and skips only the four things that spend or touch shared state.
+
+Building it fixed the last red test: `balanceOptions.test.ts` asserted the *live registry* was
+answer-biased, so any case following the balance rule failed it. It now pins a biased **fixture**,
+which is what it was always characterising. **474/474 green**, both typecheck halves clean.
+
+**Proven end to end (2026-08-05): `trial-signup-desk`, draft PR #3.** The first case authored by
+the pipeline, from a real sample brief (`docs/sample cases/q1-no-ai-signup-desk.md`) to a draft PR
+against `main`. All five stages passed; 2 revision cycles (1 case, 1 narration); 20 scored
+decisions; 86 clips rendered and 7,660 characters billed; cover shipped on the first draw; smoke
+green on all 23 checks. It is the catalogue's first case with **no AI node and no branching**.
+
+What the run proved, beyond "it works":
+
+- **The hard gate fires.** The first attempt **blocked** rather than substituting `google-docs`
+  for Google Sheets — no other action type has cells, so the case's column-shift teaching could
+  not exist in one. `google-sheets` and `form-trigger` were then added to the catalog deliberately.
+- **The blind-solve review earns its cost.** Both case reviews scored ~100% with **0 answer-key
+  disagreements**, and the first still found a blocker no test could: `http-request.output` held a
+  deleted problem's payload, so the NDV Input pane asserted a *different API's* response on the
+  screen teaching learners to read the FX response — and `google-sheets.output` was `{ ok: true }`,
+  so the email node's pane contained none of the `$json` fields its graded options reference.
+- **Reviewing narration before rendering is free money.** The voice review cut the bill from 93
+  clips to 86 while *raising* variety (282 → 365 speakable lines), because authored paraphrases of
+  shared lines cost renders **and** shrink the rotation.
+- **Sub-agents pushed back correctly twice** — once declining to substitute a node, once declining
+  an instruction to delete `node_wrong` variants — and were right both times.
+
+**Every learning is written into the skills** (`authoring-a-problem` §6b, `iris-voice` §1/§3/§5,
+`author-case`), because the next run should not rediscover them. Three bugs found in passing:
+`typeCategory` was missing three types, which made them **invisible in the node picker** (it
+filters on that map rather than falling back — now test-enforced); `simulate.js` ends its walk at
+the first `action` node, so a "log it **and** notify" flow narrates only the first; and the
+`balanceOptions` characterisation test constrained the catalogue instead of its fixture.
+
+**Not done:** the in-app editor
+(`/admin` draft → form/JSON editing with live validation → `BuildPreview` → versioned publish
+→ assign). The CLI proves the steps; the UI is what makes authoring a non-engineer's job.
 
 ### M6 — Voice / mascot (flag-gated, parallel)
 Per [docs/mascot-system-porting-guide.md](docs/mascot-system-porting-guide.md). Nothing

@@ -1187,7 +1187,7 @@ const httpRequest = {
     apiCalls: false,
     voice: false,
   },
-  output: {},
+  output: { amount: 1, base: 'USD', date: '2026-08-05', rates: { INR: 83.21 } },
 };
 
 export default httpRequest;

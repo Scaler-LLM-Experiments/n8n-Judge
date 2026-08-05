@@ -25,3 +25,11 @@ tmp-*.mjs
 # `voice:verify --isolate` parks the rendered clips in while it proves S3 is live
 .voice-cache/
 .voice-clips.parked/
+
+# One JSON file per authoring run: which stage it reached, what each agent returned,
+# how many revision cycles it burned. Local operational state, like a log — the
+# artifacts a run produces are committed to its branch instead.
+.authoring-runs/
+
+# macOS Finder metadata. Never useful, appears everywhere.
+.DS_Store

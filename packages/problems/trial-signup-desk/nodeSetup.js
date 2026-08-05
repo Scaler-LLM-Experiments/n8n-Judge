@@ -80,8 +80,13 @@ export const nodeSetup = {
         why: {
           false:
             'Right, leave it off. The node then runs once for every signup coming through, so every row gets a rate. That is one small call per signup, which for a trial form is nothing at all.',
+          // Deliberately does NOT spell out what reaches the sheet. That exact question is
+          // asked and scored in Stress Testing (`execute-once`), and only a learner who got
+          // this setting wrong would ever read this line — so handing over the answer here
+          // would reward the mistake and score one idea twice. It corrects the misreading of
+          // the name and leaves the consequence to be worked out.
           true:
-            'Read what this actually does: run this node using only the FIRST input item, and pass that one item on. It does not fetch once and share the answer around, it discards the rest. Send thirteen signups through with this on and twelve of them never reach the sheet, and nothing errors, so nothing tells you.',
+            'Execute Once has nothing to do with caching a result, and the name is exactly why people believe it does. It is n8n’s switch for making a node run a single time no matter how many items arrive at it — and on a signup form one item is one person, so "how many items" is the whole question. Ask yourself what a node emits when it has only run once. The saving you are reaching for is one small GET per signup, which for a trial form costs nothing at all.',
         },
       },
     ],
@@ -100,7 +105,13 @@ export const nodeSetup = {
             value: 'reversed',
             label: 'https://api.frankfurter.app/latest?from=INR&to=USD',
             correct: false,
-            why: 'The right service, the wrong way round. This asks what one rupee is worth in dollars, so the column fills with something like 0.012 and every local price quoted off it is out by a factor of eighty. Nothing errors, which is what makes it dangerous.',
+            // The stated symptom has to be what really happens. This asks INR→USD, so the
+            // service answers `rates: { USD: … }` — there is no INR entry at all, and the
+            // column is mapped to `rates.INR`. So the cell comes out BLANK, not wrong-by-a-
+            // factor-of-eighty. Distinguished from the `INR` value option, which is a
+            // right request read at the wrong depth: here the depth is right and the
+            // request is not, so the fix is in the URL rather than in the expression.
+            why: 'The right service, the wrong way round: this asks what one rupee is worth in dollars. What comes back is a dollar rate — the `rates` object holds a `USD` entry and no `INR` one — while the column is pointed at the rupee rate, so it finds nothing there and every cell comes out blank. Nothing errors, which is what makes it dangerous. Notice where that has to be fixed, too: the mapping was never wrong, the request was, so no amount of correcting the expression rescues it.',
           },
           {
             value: 'bare',
@@ -154,16 +165,16 @@ export const nodeSetup = {
             why: 'This one needs a column to match on so it can decide whether it has seen a record before. Nothing here is trying to avoid duplicates: every submission of the form is a new signup, even from the same person on the same day.',
           },
           {
-            value: 'append',
-            label: 'Append Row',
-            correct: true,
-            why: 'Right. One new line per signup, added to the end, leaving everything already on the sheet alone. That is what makes the sheet a growing record rather than a scratchpad.',
-          },
-          {
             value: 'get',
             label: 'Get Rows',
             correct: false,
             why: 'That reads the sheet rather than writing to it. Nothing in this flow needs to know what is already there; it needs to add what has just come in.',
+          },
+          {
+            value: 'append',
+            label: 'Append Row',
+            correct: true,
+            why: 'Right. One new line per signup, added to the end, leaving everything already on the sheet alone. That is what makes the sheet a growing record rather than a scratchpad.',
           },
         ],
       },
@@ -330,6 +341,15 @@ export const nodeSetup = {
         label: 'Send to',
         subtitle: 'Where the welcome email is addressed.',
         options: [
+          // Correct at index 0 on this one field, on purpose: the answer sits at every
+          // position somewhere across this problem, and an authored set that never uses the
+          // top slot is a pattern of its own.
+          {
+            value: 'email',
+            label: '{{ $json.Email }}',
+            correct: true,
+            why: 'The address the person typed in. Worth noticing that something like dana+trial@example.com is a perfectly ordinary address — the plus sign is part of it and nothing needs stripping out.',
+          },
           {
             value: 'name',
             label: '{{ $json["Full Name"] }}',
@@ -341,12 +361,6 @@ export const nodeSetup = {
             label: 'trials@terratrek.example',
             correct: false,
             why: 'That sends every welcome to your own team. The one person who should be reading this mail is the one who just filled in the form.',
-          },
-          {
-            value: 'email',
-            label: '{{ $json.Email }}',
-            correct: true,
-            why: 'The address the person typed in. Worth noticing that something like dana+trial@example.com is a perfectly ordinary address — the plus sign is part of it and nothing needs stripping out.',
           },
           {
             value: 'to',

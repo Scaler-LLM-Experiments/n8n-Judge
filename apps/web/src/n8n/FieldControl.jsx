@@ -1,5 +1,6 @@
 import React from 'react';
 import { CaretDown, CaretUp, Lightning, Plus, Trash } from '@phosphor-icons/react';
+import { Switch } from '../design-system/Switch.jsx';
 
 // Parameter controls, one per n8n field type.
 //
@@ -314,18 +315,13 @@ export function FieldControl({ field, value, border, bg, onChange, shuffledOptio
   }
 
   if (kind === 'boolean') {
-    const on = Boolean(value);
     return (
-      <button
-        type="button"
-        role="switch"
-        aria-checked={on}
+      <Switch
+        checked={Boolean(value)}
         aria-label={field.label}
-        onClick={() => onChange(field.key, !on)}
-        style={{ width: 40, height: 22, padding: 2, border: `1.5px solid ${border}`, background: on ? 'var(--brand-primary)' : 'var(--surface-2)', cursor: 'pointer', display: 'flex', justifyContent: on ? 'flex-end' : 'flex-start', alignItems: 'center' }}
-      >
-        <span style={{ width: 16, height: 16, background: on ? '#fff' : 'var(--fg-3)', display: 'block' }} />
-      </button>
+        borderColor={border}
+        onChange={(next) => onChange(field.key, next)}
+      />
     );
   }
 

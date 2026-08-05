@@ -1,0 +1,167 @@
+{
+  "name": "TerraTrek Gear — Free-Trial Signup Desk",
+  "nodes": [
+    {
+      "id": "form-1",
+      "name": "On form submission",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        180
+      ],
+      "parameters": {
+        "formTitle": "TerraTrek Gear — Free-Trial Signup Desk",
+        "formDescription": "Free-trial signups arrive on a form. Log every one to a sheet with today’s rate, and welcome the person.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Full Name",
+              "fieldType": "text",
+              "requiredField": false
+            },
+            {
+              "fieldLabel": "Email",
+              "fieldType": "text",
+              "requiredField": false
+            },
+            {
+              "fieldLabel": "Plan",
+              "fieldType": "text",
+              "requiredField": false
+            },
+            {
+              "fieldLabel": "Referral Source",
+              "fieldType": "text",
+              "requiredField": false
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "rate-1",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        340,
+        180
+      ],
+      "parameters": {
+        "url": "https://api.frankfurter.app/latest?from=USD&to=INR",
+        "options": {}
+      }
+    },
+    {
+      "id": "sheet-1",
+      "name": "Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        680,
+        180
+      ],
+      "parameters": {
+        "resource": "sheet",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "url",
+          "value": ""
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "matchingColumns": [],
+          "value": {
+            "Full Name": "={{ $('On form submission').item.json['Full Name'] }}",
+            "Email": "={{ $('On form submission').item.json['Email'] }}",
+            "Plan": "={{ $('On form submission').item.json['Plan'] }}",
+            "Referral Source": "={{ $('On form submission').item.json['Referral Source'] }}",
+            "USD_INR_Rate": "={{ $json.rates.INR }}"
+          }
+        },
+        "options": {}
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": null,
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "id": "welcome-1",
+      "name": "Send Reply — Welcome",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1020,
+        180
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $json.Email }}",
+        "subject": "Re: your request",
+        "message": "Thanks for reaching out — we’re on it.",
+        "emailType": "text",
+        "options": {}
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": null,
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Send Reply — Welcome",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "pinData": {}
+}

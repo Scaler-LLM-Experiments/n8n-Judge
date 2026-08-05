@@ -38,7 +38,6 @@ export function N8nFlowNode({ id, type, data, selected }) {
   const mainOutputs = outputs.filter((port) => port.type === 'main');
   const auxiliaryInputs = inputs.filter((port) => port.type !== 'main');
   const auxiliaryOutputs = outputs.filter((port) => port.type !== 'main');
-  const aiInputs = auxiliaryInputs.length ? auxiliaryInputs : isAi ? AI_PORTS : [];
 
   return (
     <div style={{ position: 'relative', opacity: data.dimmed ? 0.3 : 1, transition: 'opacity 0.35s ease' }} onClick={() => openNdv(id)} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
@@ -59,6 +58,7 @@ export function N8nFlowNode({ id, type, data, selected }) {
       )}
 
       {auxiliaryOutputs.length ? <AuxiliaryPorts ports={auxiliaryOutputs} direction="output" /> : null}
+      {!isAi && auxiliaryInputs.length ? <AuxiliaryPorts ports={auxiliaryInputs} direction="input" /> : null}
 
       <N8nNodeView type={type} label={data.label} selected={selected || (hover && needsSetup)} pulse={needsSetup} running={data.running} errorPulse={data.wrong} hidePorts hideAiChip />
 
@@ -148,38 +148,79 @@ export function N8nFlowNode({ id, type, data, selected }) {
       )}
 
       {/* AI cluster: Chat Model (required, active) plus greyed-out Memory / Tool
-          ports — shown for fidelity, not interactive in this problem. */}
-      {aiInputs.length ? (
-        <div style={{ position: 'absolute', top: 'calc(100% + 26px)', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 20 }}>
-          {aiInputs.map((p, i) => {
-            const connector = p.connector ?? p.type;
-            const active = isAi && (p.id === 'chatModel' || connector === 'ai_languageModel');
+          ports — shown for fidelity, not interactive in this problem.
+
+          Stack order is deliberate so the model wire never runs through text:
+
+            [Chat Model *]   ← chip sits ABOVE the diamond (off the wire path)
+                 ◆           ← port the model attaches to
+                 |           ← dashed edge only in this clear vertical channel
+                [+] / model
+
+          Putting the label under the diamond (or beside it in a wide pill) either
+          buried the dashes or looked like a floating badge. The chip above matches
+          the static N8nNodeView sub-port cue and leaves the stem clean. */}
+      {isAi ? (
+        <div style={{ position: 'absolute', top: 'calc(100% + 10px)', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 22 }}>
+          {AI_PORTS.map((p) => {
+            const active = p.id === 'chatModel';
             const needsModel = active && !data.hasModel;
-            const color = active || connector === 'ai_languageModel' ? categoryMeta.model.color : '#9AA2AE';
-            const label = p.label ?? connector;
-            const why = p.why ?? p.description ?? 'Optional simulated sub-node connection';
+            const color = active ? categoryMeta.model.color : '#9AA2AE';
+            const tint = active ? categoryMeta.model.tint : 'var(--surface-0)';
             return (
-              <div key={p.id ?? `${connector}-${i}`} style={{ width: 76, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, opacity: active || auxiliaryInputs.length ? 1 : 0.5 }}>
-                <span style={{ position: 'relative', width: 13, height: 13, transform: 'rotate(45deg)', border: `2px solid ${color}`, background: 'var(--surface-0)' }}>
+              <div key={p.id} style={{ width: 88, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0, opacity: active ? 1 : 0.5 }}>
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 3,
+                    padding: '2px 8px',
+                    borderRadius: 999,
+                    border: `1px solid ${color}`,
+                    background: tint,
+                    color,
+                    fontSize: 10,
+                    fontWeight: 700,
+                    whiteSpace: 'nowrap',
+                    lineHeight: 1.3,
+                    marginBottom: 6,
+                  }}
+                >
+                  {p.label}{p.required ? <span style={{ color: 'var(--status-danger)' }}>*</span> : null}
+                </span>
+                {/* Short stem into the diamond — solid, not the RF edge, so the
+                    chip above never shares paint with the dashed model wire. */}
+                <span style={{ width: 1.5, height: 10, background: color, opacity: 0.85, borderRadius: 1 }} />
+                <span style={{ position: 'relative', width: 13, height: 13, flex: 'none', transform: 'rotate(45deg)', border: `2px solid ${color}`, background: 'var(--surface-0)' }}>
                   {/* Bottom, not Top: the model sits BELOW this diamond, so the wire
                       has to enter from underneath. Anchored at the top it left and
                       re-entered from above, which is half of why the link looked
                       like spaghetti. */}
-                  <Handle type="target" id={active ? 'ai_model' : `aux_in_${i}`} position={Position.Bottom} style={{ width: 15, height: 15, top: '50%', left: '50%', transform: 'translate(-50%,-50%) rotate(-45deg)', background: 'transparent', border: 'none' }} />
-                </span>
-                <span style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--fg-2)', whiteSpace: 'nowrap', textAlign: 'center' }}>
-                  {label}{p.required ? <span style={{ color: 'var(--status-danger)' }}> *</span> : null}
+                  {active ? <Handle type="target" id="ai_model" position={Position.Bottom} style={{ width: 15, height: 15, top: '50%', left: '50%', transform: 'translate(-50%,-50%) rotate(-45deg)', background: 'transparent', border: 'none' }} /> : null}
                 </span>
                 {active && !needsModel ? null : (
-                  <button
-                    type="button"
-                    className={needsModel ? 'pulse-plus' : undefined}
-                    title={active ? `Attach a Chat Model — ${why}` : `${label} — ${why}`}
-                    onClick={(e) => { e.stopPropagation(); if (active) openPicker({ sourceId: id, modelSlot: true }); }}
-                    style={{ width: needsModel ? 28 : 24, height: needsModel ? 28 : 24, borderRadius: 5, border: `${needsModel ? 2 : 1.5}px solid ${active ? categoryMeta.model.color : 'var(--border-strong)'}`, background: needsModel ? categoryMeta.model.tint : 'var(--surface-0)', color: active ? categoryMeta.model.color : 'var(--fg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: active ? 'pointer' : 'default' }}
-                  >
-                    <Plus size={active ? 15 : 13} weight="bold" />
-                  </button>
+                  <>
+                    {/* Empty-slot stem so the + reads as “plug in under here”
+                        without borrowing the real model edge. */}
+                    <span
+                      style={{
+                        width: 0,
+                        height: 18,
+                        marginTop: 2,
+                        borderLeft: `1.5px dashed ${color}`,
+                        opacity: 0.9,
+                      }}
+                    />
+                    <button
+                      type="button"
+                      className={needsModel ? 'pulse-plus' : undefined}
+                      title={active ? `Attach a Chat Model — ${p.why}` : `${p.label} — ${p.why}`}
+                      onClick={(e) => { e.stopPropagation(); if (active) openPicker({ sourceId: id, modelSlot: true }); }}
+                      style={{ width: needsModel ? 28 : 24, height: needsModel ? 28 : 24, borderRadius: 5, border: `${needsModel ? 2 : 1.5}px solid ${active ? categoryMeta.model.color : 'var(--border-strong)'}`, background: needsModel ? categoryMeta.model.tint : 'var(--surface-0)', color: active ? categoryMeta.model.color : 'var(--fg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: active ? 'pointer' : 'default' }}
+                    >
+                      <Plus size={active ? 15 : 13} weight="bold" />
+                    </button>
+                  </>
                 )}
               </div>
             );

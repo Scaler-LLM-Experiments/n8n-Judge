@@ -1,7 +1,17 @@
 # Authoring a case (a "problem")
 
-A practical runbook for adding a new challenge, verified against the code on
-2026-08-04 (branch `sudhanva/authoring`, HEAD `5a9454b`).
+A practical runbook for adding a new challenge **by hand**, verified against the code on
+2026-08-04.
+
+> **There is now an automated path**, and it drives these same commands rather than
+> replacing them: **`/author-case`** generates the case, reviews it with an independent
+> agent that blind-solves it, draws the cover, writes and renders the narration, verifies
+> every step from outside the agent, and finishes at a draft PR. See
+> [.claude/skills/author-case/SKILL.md](../.claude/skills/author-case/SKILL.md) and fill in
+> [case-spec-template.md](case-spec-template.md).
+>
+> Read this file anyway. It is what the pipeline automates, and when a run blocks, this is
+> the ground truth for finishing the job by hand.
 
 **This doc is the process.** The field-by-field reference lives in
 [.claude/skills/authoring-a-problem/SKILL.md](../.claude/skills/authoring-a-problem/SKILL.md)
@@ -192,8 +202,8 @@ The gate cannot tell you whether a question is worth asking.
 
 ## Definition of done
 
-1. **Gate green** — `npm test`, `npm run typecheck`, `npm run smoke`, and the
-   correct option spread across positions rather than parked at index 0.
+1. **Gate green** — `npm test` (474/474), `npm run typecheck`, `npm run smoke`, and
+   the correct option spread across positions rather than parked at index 0.
 2. **The Run works end to end** — `simulateAll` passes on the reference graph.
 3. **Its own narration** — a `voice.js` naming this problem's nodes and cases,
    rendered and synced.
@@ -250,23 +260,20 @@ signal nobody thought about the distractors. Note it deliberately leaves
 
 `email-triage` itself violates this rule (20/20 at index 0). Don't copy that.
 
-### 4. Known-red test: `balanceOptions.test.ts`
+### 4. `balanceOptions.test.ts` — fixed 2026-08-04, and worth knowing why
 
-`npm test` currently fails on exactly one test:
+This test used to be **red on purpose**, and it is not any more. It asserted that the
+*live registry* parked the correct option first in every graded list — a
+characterisation written when `email-triage` was the only problem. Once
+`expense-approvals` spread its answers properly (rule 3 above), following the
+rule is what turned the suite red.
 
-> `the authored data really is biased — this is what we are fixing > puts the correct option first in every graded list`
+It now pins a biased **fixture** instead, which is what it was always
+characterising: the *input* `balanceProblemOptions` exists to fix, not a
+constraint on the catalogue. Authored balance is guarded where it belongs — by
+`problem:check` and `apps/web/scripts/verify-option-balance.mjs`.
 
-That test is **inverted** — it asserts the live registry *is* biased, as a
-characterisation of the corpus written when `email-triage` was the only problem.
-Any problem that follows rule 3 now fails it. `expense-approvals` does, so it's
-red.
-
-The intended fix is to point that one `describe` at a biased fixture, since its
-job is to document the *input* to `balanceProblemOptions`, not to constrain the
-catalogue. It was left red deliberately rather than clustering the answers to
-green it, which would make the rule dead prose.
-
-**So: one failing test is expected right now.** Anything else failing is yours.
+**So `npm test` should be fully green: 474/474.** Anything red is yours.
 
 ### 5. `flowSummary` label check is half-broken
 

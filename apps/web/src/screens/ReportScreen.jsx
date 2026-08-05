@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowRight, ArrowUUpLeft, CircleNotch, House, Info } from '@phosphor-icons/react';
+import { ArrowRight, ArrowUUpLeft, CircleNotch, DownloadSimple, House, Info } from '@phosphor-icons/react';
 import { useHideVoiceGlow, useVoiceActions } from '../lib/VoiceContext.jsx';
 import { useSignedInUser, firstNameOf } from '../lib/useSignedInUser.js';
 import { Button } from '../design-system/Button.jsx';
 import { TopBar } from '../components/TopBar.jsx';
 import { ProblemStatementPanel } from '../components/ProblemStatementPanel.jsx';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
+import { useMascotAskClick } from '../lib/AskIrisContext.jsx';
 import { understandingScore, countsByKind } from '@judge/engine/grading.js';
 
 // This screen reads as a REPORT, not as another screen in the journey: one
@@ -77,10 +78,107 @@ function cannedNextSteps(counts) {
     .filter(Boolean);
 }
 
+/**
+ * The score a learner has to reach before the real n8n flow is offered.
+ *
+ * Mirrors `WORKFLOW_UNLOCK_SCORE` in the download route, which is where the gate
+ * is actually ENFORCED — this constant only decides whether to draw the card. A
+ * button the browser hides is a suggestion, not a gate.
+ */
+const UNLOCK_SCORE = 80;
+
+/**
+ * "You've earned this — now go build it for real."
+ *
+ * Deliberately a card in the report body rather than a button in the action bar:
+ * it is the payoff for the whole journey, not a navigation choice, and the bar's
+ * three actions are all about leaving.
+ *
+ * The file is fetched rather than linked so a failure can say something. A plain
+ * `<a download>` pointed at an endpoint that 403s navigates the learner to a JSON
+ * error page, which is a worse outcome than a sentence explaining why.
+ */
+function BuildItForReal({ sessionId, problem }) {
+  const [state, setState] = useState('idle');
+
+  const download = async () => {
+    setState('working');
+    try {
+      const res = await fetch(`/api/sessions/${sessionId}/workflow`);
+      if (!res.ok) {
+        setState(res.status === 501 ? 'unavailable' : 'error');
+        return;
+      }
+      const blob = await res.blob();
+      // Read the filename the server chose rather than rebuilding it here, so the
+      // two cannot disagree about what the file is called.
+      const disposition = res.headers.get('content-disposition') ?? '';
+      const named = /filename="([^"]+)"/.exec(disposition)?.[1];
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = named ?? `${problem?.id ?? 'workflow'}.n8n.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      setState('done');
+    } catch {
+      setState('error');
+    }
+  };
+
+  return (
+    <div
+      style={{
+        border: '1px solid var(--brand-primary)',
+        background: 'var(--surface-0)',
+        padding: '18px 20px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 18,
+        flexWrap: 'wrap',
+      }}
+    >
+      <div style={{ flex: 1, minWidth: 260 }}>
+        <div style={{ fontFamily: 'var(--font-headline)', fontSize: 19, fontWeight: 600, color: 'var(--fg-1)' }}>
+          Now build it for real
+        </div>
+        <p style={{ margin: '5px 0 0', fontSize: 13.5, color: 'var(--fg-2)', lineHeight: 1.55 }}>
+          You scored well enough to take this out of the simulator. Download the flow and import it
+          into your own n8n — <strong>Workflows → ⋯ → Import from File</strong> — then connect your
+          own accounts and run it.
+        </p>
+        {state === 'done' ? (
+          <p style={{ margin: '8px 0 0', fontSize: 12.5, color: 'var(--status-success, var(--fg-2))' }}>
+            Downloaded. The nodes needing a credential will show a red warning until you attach your
+            own — that part is yours to do, and it is the same in every real workflow.
+          </p>
+        ) : null}
+        {state === 'unavailable' ? (
+          <p style={{ margin: '8px 0 0', fontSize: 12.5, color: 'var(--fg-3)' }}>
+            This challenge cannot be exported yet — one of its nodes has no n8n mapping. Nothing you
+            did wrong.
+          </p>
+        ) : null}
+        {state === 'error' ? (
+          <p style={{ margin: '8px 0 0', fontSize: 12.5, color: 'var(--status-danger, var(--fg-2))' }}>
+            That did not download. Try again in a moment.
+          </p>
+        ) : null}
+      </div>
+      <Button variant="primary" icon={<DownloadSimple size={16} />} onClick={download} disabled={state === 'working'}>
+        {state === 'working' ? 'Preparing…' : 'Download the flow'}
+      </Button>
+    </div>
+  );
+}
+
 export function ReportScreen({
   problem,
   grading,
   serverReport,
+  sessionId,
   onRedo,
   onNext,
   onHome,
@@ -105,6 +203,14 @@ export function ReportScreen({
   const localScore = grading ? understandingScore(grading) : null;
   const score = serverReport ? serverReport.total : localScore;
   const band = serverReport?.band || bandFromScore(score);
+  const bandBase = bandClip(band);
+  const {
+    clip: mascotClip,
+    once: mascotOnce,
+    onMascotClick,
+    onMascotKeyDown,
+    onReactDone: onMascotReactDone,
+  } = useMascotAskClick(bandBase);
   const counts = grading ? countsByKind(grading) : {};
 
   const written = serverReport?.report || null;
@@ -150,8 +256,15 @@ export function ReportScreen({
               right, on the darkest brand blue so the sheet opens on a header
               rather than on body text. */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 28, padding: '30px 34px', background: 'var(--surface-deep)', color: 'var(--fg-inverse)' }}>
-            <div style={{ width: 86, height: 86, flex: 'none' }}>
-              <MascotPlayer clip={bandClip(band)} once={false} onceDone={() => {}} />
+            <div
+              role="button"
+              tabIndex={0}
+              title="Ask Iris"
+              onClick={onMascotClick}
+              onKeyDown={onMascotKeyDown}
+              style={{ width: 120, height: 120, flex: 'none', cursor: 'pointer' }}
+            >
+              <MascotPlayer clip={mascotClip} once={mascotOnce} onceDone={onMascotReactDone} />
             </div>
             {/* Every text node in here sets its own colour. The container's
                 `color` is NOT enough: the global stylesheet gives h2 and p their
@@ -181,6 +294,15 @@ export function ReportScreen({
 
           {/* Body, on white */}
           <div style={{ padding: '26px 34px 30px' }}>
+            {/* First thing under the score, because it is the reward for it. Needs a
+                real session: the dev hash routes mount this screen without one, and
+                there is nothing to export against. */}
+            {sessionId && score != null && score >= UNLOCK_SCORE ? (
+              <div style={{ marginBottom: 26 }}>
+                <BuildItForReal sessionId={sessionId} problem={problem} />
+              </div>
+            ) : null}
+
             {serverReport?.phases?.length ? (
               <Section title="Where the marks came from">
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

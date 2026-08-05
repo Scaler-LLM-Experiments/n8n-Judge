@@ -3,7 +3,7 @@ import gsap from 'gsap';
 import { MascotPlayer } from './MascotPlayer.jsx';
 
 const HOLD_MS = 2600;
-const SIZE = 76;
+const SIZE = 106;
 const BUBBLE_W = 268;
 
 // Idles at the bottom-left of its (positioned) parent. When `reaction` changes,

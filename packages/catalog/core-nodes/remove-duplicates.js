@@ -411,7 +411,7 @@ const removeDuplicates = {
     workflowExecution: false,
     voice: false,
   },
-  output: {},
+  output: { threadId: 'thr_8891', from: 'priya@acme.io' },
 };
 
 export default removeDuplicates;

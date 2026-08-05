@@ -763,7 +763,12 @@ const formTrigger = {
     apiCalls: false,
     voice: false,
   },
-  output: {},
+  output: {
+    'Full Name': 'Aarav Sharma',
+    Email: 'aarav@example.com',
+    Plan: 'Pro',
+    'Referral Source': 'Google search',
+  },
 };
 
 export default formTrigger;

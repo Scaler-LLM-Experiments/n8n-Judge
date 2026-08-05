@@ -7,6 +7,7 @@ import { createSession, fetchReport, fetchResumable } from './lib/grader.js';
 import { useTrace } from './lib/useTrace.js';
 import { TraceProvider } from './lib/TraceContext.jsx';
 import { VoiceProvider, useVoiceActions } from './lib/VoiceContext.jsx';
+import { AskIrisProvider } from './lib/AskIrisContext.jsx';
 import { VoiceoverIndicator } from './components/VoiceoverIndicator.jsx';
 import { HomeScreen } from './screens/HomeScreen.jsx';
 import { DissectionScreen } from './screens/DissectionScreen.jsx';
@@ -111,22 +112,22 @@ function DevProblem({ children }) {
 export default function App() {
   const hash = typeof window === 'undefined' ? '' : window.location.hash;
 
+  // Ask Iris is opened from TopBar and from a click on the journey mascot; the
+  // provider has to wrap every screen that mounts either of those.
+  let body = <Landing />;
+
   // startsWith, not equality: `#playground?problem=lead-triage` fell through to
   // Landing, so the route silently ignored the problem you asked for.
   if (hash.startsWith('#playground')) {
-    return <div style={{ height: '100vh' }}><PlaygroundScreen /></div>;
-  }
-  if (hash.startsWith('#build')) {
-    return <DevProblem>{(problem) => <BuildPreview problem={problem} />}</DevProblem>;
-  }
-  if (hash.startsWith('#run-story')) {
-    return <DevProblem>{(problem) => <BuildPreview problem={problem} devAutoRun />}</DevProblem>;
-  }
-  if (hash.startsWith('#eval-demo')) {
-    return <DevProblem>{(problem) => <EvalScreen problem={problem} onSubmit={() => {}} onDecision={() => {}} />}</DevProblem>;
-  }
-  if (hash.startsWith('#run-demo')) {
-    return (
+    body = <div style={{ height: '100vh' }}><PlaygroundScreen /></div>;
+  } else if (hash.startsWith('#build')) {
+    body = <DevProblem>{(problem) => <BuildPreview problem={problem} />}</DevProblem>;
+  } else if (hash.startsWith('#run-story')) {
+    body = <DevProblem>{(problem) => <BuildPreview problem={problem} devAutoRun />}</DevProblem>;
+  } else if (hash.startsWith('#eval-demo')) {
+    body = <DevProblem>{(problem) => <EvalScreen problem={problem} onSubmit={() => {}} onDecision={() => {}} />}</DevProblem>;
+  } else if (hash.startsWith('#run-demo')) {
+    body = (
       <DevProblem>
         {(problem) => {
           const g = DEMO_GRAPH;
@@ -139,12 +140,11 @@ export default function App() {
         }}
       </DevProblem>
     );
-  }
-  // startsWith, not equality: `#report-demo?problem=lead-triage` silently fell
-  // through to Landing before, so smoke's three report-demo checks were all
-  // rendering email-triage.
-  if (hash.startsWith('#report-demo')) {
-    return (
+  } else if (hash.startsWith('#report-demo')) {
+    // startsWith, not equality: `#report-demo?problem=lead-triage` silently fell
+    // through to Landing before, so smoke's three report-demo checks were all
+    // rendering email-triage.
+    body = (
       <DevProblem>
         {(problem) => {
           let s = createStore();
@@ -183,7 +183,8 @@ export default function App() {
       </DevProblem>
     );
   }
-  return <Landing />;
+
+  return <AskIrisProvider>{body}</AskIrisProvider>;
 }
 
 // Home → pick a problem → run its full journey. The home cards carry only
@@ -567,6 +568,9 @@ function MainApp({ problem, nextProblem, resume, restart = false, onRedo, onNext
           problem={problem}
           grading={grading}
           serverReport={serverReport}
+          // The n8n workflow download is fetched per session and gated on the
+          // server-replayed score, so the screen needs the session to ask for it.
+          sessionId={sessionId}
           nextProblem={nextProblem}
           onRedo={onRedo}
           onNext={onNext}

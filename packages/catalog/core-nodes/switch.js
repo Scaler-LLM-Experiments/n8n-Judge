@@ -339,7 +339,7 @@ const switchNode = {
   ],
   simulationNote:
     'This node never resolves expressions, evaluates rules, validates types, or routes items.',
-  output: {},
+  output: { category: 'COMPLAINT', urgency: 'HIGH' },
 };
 
 export default switchNode;

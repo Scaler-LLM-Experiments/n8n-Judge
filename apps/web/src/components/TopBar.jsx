@@ -3,6 +3,7 @@ import { Check, Question, ArrowCounterClockwise, ArrowClockwise, Play, FileText,
 const scalerLogo = '/brand/scaler-logo.svg';
 import { GlossaryDrawer } from './GlossaryDrawer.jsx';
 import { AskAiDrawer } from './AskAiDrawer.jsx';
+import { useAskIris } from '../lib/AskIrisContext.jsx';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
 import { useVoice } from '../lib/VoiceContext.jsx';
 
@@ -344,7 +345,8 @@ function VoiceControl() {
 export function TopBar({ activeStage, problem, currentPhase, nodeContext, learnerName, onShowProblemStatement, onReset, onRun, onProblemDoc, onAskAI, onRedo }) {
   const activeIndex = STAGES.findIndex((s) => s.id === activeStage);
   const [glossaryOpen, setGlossaryOpen] = useState(false);
-  const [askOpen, setAskOpen] = useState(false);
+  // Shared with the journey mascot — click Iris on the canvas opens the same drawer.
+  const { isOpen: askOpen, openAskIris, closeAskIris } = useAskIris();
 
   // Context handed to the Ask-AI drawer so Iris's answers are scoped to the
   // current problem, screen, phase, and open node.
@@ -418,7 +420,7 @@ export function TopBar({ activeStage, problem, currentPhase, nodeContext, learne
             offer, so a blue-filled, blue-outlined button competed with the one
             action each screen actually wants next. Neutral border and surface;
             the mascot is the colour it needs. */}
-        <button type="button" onClick={() => setAskOpen(true)} title="Ask Iris" style={{ display: 'flex', alignItems: 'center', gap: 7, height: 34, padding: '0 12px 0 8px', border: '1px solid var(--border-strong)', background: 'var(--surface-0)', color: 'var(--fg-1)', fontWeight: 600, fontSize: 12.5, cursor: 'pointer', fontFamily: 'var(--font-body)', whiteSpace: 'nowrap', flex: 'none' }}>
+        <button type="button" onClick={openAskIris} title="Ask Iris" style={{ display: 'flex', alignItems: 'center', gap: 7, height: 34, padding: '0 12px 0 8px', border: '1px solid var(--border-strong)', background: 'var(--surface-0)', color: 'var(--fg-1)', fontWeight: 600, fontSize: 12.5, cursor: 'pointer', fontFamily: 'var(--font-body)', whiteSpace: 'nowrap', flex: 'none' }}>
           {/* No pulse at 22px inside a button — she is the label's icon here, not the
               speaker, and a wobbling button reads as a glitch. */}
           <span style={{ width: 22, height: 22, flex: 'none' }}><MascotPlayer clip="idle" once={false} onceDone={() => {}} pulse={false} /></span>
@@ -435,7 +437,7 @@ export function TopBar({ activeStage, problem, currentPhase, nodeContext, learne
       </div>
 
       {glossaryOpen ? <GlossaryDrawer onClose={() => setGlossaryOpen(false)} /> : null}
-      {askOpen ? <AskAiDrawer onClose={() => setAskOpen(false)} context={askContext} learnerName={learnerName} /> : null}
+      {askOpen ? <AskAiDrawer onClose={closeAskIris} context={askContext} learnerName={learnerName} /> : null}
     </div>
   );
 }

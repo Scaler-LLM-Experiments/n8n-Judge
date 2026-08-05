@@ -21,7 +21,10 @@ export const nodePalette = [
   { type: 'code', label: 'Code', category: 'core', isDistractor: true },
   { type: 'web-search', label: 'Web Search', category: 'core', isDistractor: true },
   { type: 'switch', label: 'Switch', category: 'core', isDistractor: true },
-  { type: 'google-sheets', label: 'Google Sheets — Append Row', category: 'action', isDistractor: false },
+  // Just 'Google Sheets'. Append Row is a GRADED answer on this node's Operation field, so
+  // naming it in the palette label prints the answer on the node the learner is about to be
+  // asked about — the catalog label was corrected for the same reason.
+  { type: 'google-sheets', label: 'Google Sheets', category: 'action', isDistractor: false },
   { type: 'action', label: 'Send Reply', category: 'action', isDistractor: false },
   { type: 'google-docs', label: 'Google Docs — Create Document', category: 'action', isDistractor: true },
 ];

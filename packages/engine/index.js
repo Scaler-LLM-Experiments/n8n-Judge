@@ -20,3 +20,10 @@ export {
   DEFAULT_WEIGHTS,
 } from './rubric.ts';
 export { asWorkflow, inferBranches } from './asWorkflow.js';
+export {
+  exportN8nWorkflow,
+  validateN8nWorkflow,
+  workflowFileName,
+  serializeWorkflow,
+} from './exportWorkflow.js';
+export { N8N_NODE_SPECS, EXPORTABLE_TYPES, n8nIdentity } from './n8nNodeSpecs.js';

@@ -9,9 +9,11 @@
 // `explanation` is the reward for getting it right. If the learner later PLACES one of
 // these wrong nodes, the probe in probes.js is what records the misconception.
 //
-// The correct answer is deliberately spread across positions 1, 2 and 3 rather than
-// parked at index 0. `balanceProblemOptions` re-spreads these server-side, but a
-// clustered authored order is the signal that the distractors were never thought about.
+// The correct answer sits at a different position in each of the four items — 0, 1, 2 and 3
+// once — because clustering is the signal that the distractors were never thought about. The
+// rule is "never PARK it at index 0", not "never put it there": an authored set with the top
+// slot empty in every single question is its own pattern, and just as learnable.
+// `balanceProblemOptions` re-spreads these server-side either way.
 //
 // Two option types here — `notion-page` and `noop` — are not in this problem's palette.
 // That is fine and deliberate: a dissection option is a quiz answer, never rendered as a
@@ -40,9 +42,9 @@ export const dissection = [
       'Each row has to carry today’s dollar-to-rupee rate, and nothing on the form asks for it. What brings that number into the flow?',
     options: [
       { label: 'Code', type: 'code' },
-      { label: 'HTTP Request', type: 'http-request' },
       { label: 'Web Search', type: 'web-search' },
       { label: 'Nothing — type this week’s rate into the sheet by hand', type: 'noop' },
+      { label: 'HTTP Request', type: 'http-request' },
     ],
     correctType: 'http-request',
     wrongHint:
@@ -56,16 +58,19 @@ export const dissection = [
     prompt:
       'Every signup needs its own line, with each of the four answers sitting under its own column heading. What does that?',
     options: [
+      // Correct at index 0 here, and the label says only 'Google Sheets': which operation
+      // writes a new line is a GRADED field on this node later, so spelling it out in the
+      // option label would answer that question in advance.
+      { label: 'Google Sheets', type: 'google-sheets' },
       { label: 'Google Docs — Create Document', type: 'google-docs' },
       { label: 'Notion — Create Page', type: 'notion-page' },
       { label: 'Code', type: 'code' },
-      { label: 'Google Sheets — Append Row', type: 'google-sheets' },
     ],
     correctType: 'google-sheets',
     wrongHint:
       'The team wants to sort by plan and count signups per week. Which of these gives you columns you can point a value at, rather than a page of text?',
     explanation:
-      'Google Sheets — Append Row adds one row per signup and lets you say, per column, which incoming value goes under that heading. That mapping is the whole job here: it is why a referral answer full of commas stays in one cell instead of spilling into the next one.',
+      'Google Sheets is the only one of these that thinks in rows and columns, and it lets you say, per column, which incoming value goes under that heading. That mapping is the whole job here: it is why a referral answer full of commas stays in one cell instead of spilling into the next one. It offers several operations and they do noticeably different things to a sheet, so which one you want is a decision still ahead of you.',
     unlocks: ['google-sheets'],
   },
   {

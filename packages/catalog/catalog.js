@@ -360,7 +360,13 @@ export const NODE_CATALOG = {
     description: 'Calls a URL and brings the response back into the flow',
     category: 'core',
     params: [{ key: 'url', label: 'URL', value: '', kind: 'text', mappable: true }],
-    output: { order: { id: 'ORD-4471', value: 8990, trackingId: 'BLR91772', placedAt: '2026-07-19' } },
+    // An exchange-rate lookup, because `output` is what the NDV Input pane of the NEXT
+    // node displays (N8nEditor.jsx:86 → `ndvIn`), so this is read as a claim about what
+    // this node really returns. It used to hold `order-desk`'s
+    // `{ order: { id, value, trackingId, placedAt } }` — a problem deleted on 2026-07-31 —
+    // which meant a case that points this node at a real API showed the learner a payload
+    // from a different one entirely, on the very screen teaching them to read the response.
+    output: { amount: 1, base: 'USD', date: '2026-08-05', rates: { INR: 83.21 } },
   },
   // Added 2026-08-04 for the Class-6 "log it to a spreadsheet" shape, which the
   // action vocabulary could not express at all.
@@ -374,7 +380,11 @@ export const NODE_CATALOG = {
   // be wrong there.
   'google-sheets': {
     type: 'google-sheets', n8nType: 'n8n-nodes-base.googleSheets', n8nVersion: 4.7,
-    label: 'Google Sheets — Append Row',
+    // Just 'Google Sheets', NOT 'Google Sheets — Append Row'. The label is the node's
+    // caption on the canvas and in the palette, and Append Row is one of the operations a
+    // case may GRADE — naming it here prints the answer on the node the learner is being
+    // asked about. The node does several operations; the label should not pick one.
+    label: 'Google Sheets',
     subtitle: 'Google Sheets',
     description: 'Adds one row to a sheet, with each value under the column you map it to',
     category: 'action',
@@ -382,9 +392,27 @@ export const NODE_CATALOG = {
       { key: 'cred', label: 'Credential', value: 'Scaler API — connected', locked: true },
       { key: 'document', label: 'Document', value: 'Signups', kind: 'select' },
       { key: 'sheet', label: 'Sheet', value: 'Signups', kind: 'select' },
-      { key: 'operation', label: 'Operation', value: 'Append Row', kind: 'select' },
+      // Deliberately NOT defaulted to 'Append Row'. Which operation to use is a decision a
+      // case may grade, so a default that names one prints the answer. Nothing renders these
+      // catalog params today (the NDV reads the problem's `nodeSetup`, and the only consumer
+      // of `nodeParams`, components/NodeDetailView.jsx, has no importers) — this keeps it
+      // harmless if anything ever does.
+      { key: 'operation', label: 'Operation', value: '', kind: 'select' },
     ],
-    output: { ok: true, updates: { updatedRows: 1 } },
+    // Echoes the row it appended, which is both what n8n's Sheets append really returns and
+    // what the NEXT node's NDV Input pane needs to show. `{ ok: true }` alone made the
+    // downstream email node's Input pane contain none of the fields its graded options
+    // reference, so a learner reading the pane could reasonably conclude no `$json.*` option
+    // resolves and pick a hardcoded address — a defensible reading of what they were shown,
+    // marked wrong.
+    output: {
+      'Full Name': 'Aarav Sharma',
+      Email: 'aarav@example.com',
+      Plan: 'Pro',
+      'Referral Source': 'Google search',
+      USD_INR_Rate: 83.21,
+      updates: { updatedRows: 1 },
+    },
   },
   // The public-form entry point. Distinct from `webhook`: a webhook is an HTTP call
   // from another system with a body you do not control, whereas a form trigger owns

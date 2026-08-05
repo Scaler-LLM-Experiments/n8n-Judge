@@ -1,5 +1,23 @@
 # Handoff — authoring new cases
 
+> **Partly superseded, 2026-08-04 (later the same day), at `73c3e6a`.** Sections 1, 2, 4, 6
+> and 7 still hold. These do not:
+>
+> - **§3 (uncommitted work) is gone** — all of it is committed, and `main` ==
+>   `sudhanva/authoring`. The tree is clean and the parallel app work landed with it.
+> - **§5 open items (a)–(d) are all resolved.** The `phase_intro` copy is settled, the
+>   snapshot is current, the two stale clips are rendered and uploaded, both problems are
+>   seeded at `v2` byte-identical to the repo, and `expense-approvals` **has** cover art
+>   (1835KB). Verified with `npm run case:verify -- all <slug>`.
+> - **§6 trap 4 is fixed.** `balanceOptions.test.ts` now pins a biased fixture instead of
+>   asserting the live registry is biased, so **`npm test` is 474/474 green** — no test is
+>   expected to be red any more.
+>
+> There is also now an **automated pipeline**: `/author-case`
+> ([skill](.claude/skills/author-case/SKILL.md), [spec template](docs/case-spec-template.md),
+> [CMA port](docs/cma-setup.md)). The traps in §6 are why several of its guards exist, so
+> read them before changing it.
+
 Scope: **authoring challenges only** (`packages/problems/**` and the voice that goes
 with them). Written 2026-08-04, branch `sudhanva/authoring`, HEAD `5a9454b`.
 

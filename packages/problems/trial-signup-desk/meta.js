@@ -62,6 +62,6 @@ export const estimatedMinutes = 15;
 export const coverImage = {
   prompt:
     'Bright vivid lime-green into warm sunny yellow colour field — high-chroma spring green to golden yellow gradients, fresh and energetic, not olive, not muted. Soft spray-paint grain. A loose lattice of large soft-edged rounded squares drifting across the right half, several slightly out of focus and spaced unevenly, like a grid coming apart. Empty bright green atmosphere filling the left. No chevrons, no sparkles, no other symbols.',
-  src: null,
+  src: '/covers/trial-signup-desk.png',
   alt: 'Bright lime and yellow spray field with a soft lattice of rounded squares on the right',
 };

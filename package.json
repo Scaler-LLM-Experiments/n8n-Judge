@@ -31,7 +31,12 @@
     "voice:verify": "node --env-file=.env scripts/verify-voice-s3.mjs",
     "problem:new": "node scripts/problem-new.mjs",
     "problem:check": "node scripts/problem-check.mjs",
-    "problem:draft": "node --env-file=.env scripts/problem-draft.mjs"
+    "problem:draft": "node --env-file=.env scripts/problem-draft.mjs",
+    "case:preflight": "node --env-file=.env scripts/authoring/preflight.mjs",
+    "case:verify": "node --env-file=.env scripts/authoring/verify.mjs",
+    "case:run": "node --env-file=.env scripts/authoring/run-state.mjs",
+    "case:cma": "node scripts/authoring/build-cma-agents.mjs",
+    "workflows:generate": "node scripts/export-workflows.mjs"
   },
   "devDependencies": {
     "@types/node": "^26.1.1",

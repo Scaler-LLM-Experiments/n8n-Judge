@@ -1156,7 +1156,7 @@ const googleDocs = {
     toolExecution: false,
     voice: false,
   },
-  output: {},
+  output: { ok: true },
 };
 
 export default googleDocs;

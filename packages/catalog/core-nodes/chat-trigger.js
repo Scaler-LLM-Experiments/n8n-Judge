@@ -868,7 +868,7 @@ const chatTrigger = {
     runtime: false,
     voice: false,
   },
-  output: {},
+  output: { message: 'hello?', sessionId: 'abc123' },
 };
 
 export default chatTrigger;
