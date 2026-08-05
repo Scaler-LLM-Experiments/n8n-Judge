@@ -568,6 +568,9 @@ function MainApp({ problem, nextProblem, resume, restart = false, onRedo, onNext
           problem={problem}
           grading={grading}
           serverReport={serverReport}
+          // The n8n workflow download is fetched per session and gated on the
+          // server-replayed score, so the screen needs the session to ask for it.
+          sessionId={sessionId}
           nextProblem={nextProblem}
           onRedo={onRedo}
           onNext={onNext}
