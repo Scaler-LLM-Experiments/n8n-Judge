@@ -256,7 +256,12 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
       // Safe for everything downstream: setup must verify green before the phase
       // completes, and green means the rules match what was authored — so by the
       // time validateGraph or the Run reads branches, these ARE the problem's.
-      const nodeBranches = branchesFromRules(nodeSetup?.[type], n.data.values) ?? branches ?? [];
+      const caseBranches = branchesFromRules(nodeSetup?.[type], n.data.values);
+      const hasCaseRuleList = nodeSetup?.[type]?.fields?.some((field) => field.kind === 'ruleList');
+      const catalogBranches = type === 'switch'
+        ? (ports.outputs ?? []).map((port, index) => ({ id: port.name ?? String(index), label: port.label ?? String(index) }))
+        : null;
+      const nodeBranches = caseBranches ?? (hasCaseRuleList ? branches : catalogBranches) ?? branches ?? [];
       const nodeBranchIds = nodeBranches.map((b) => b.id);
       const openBranches = nodeBranchIds.length
         ? nodeBranchIds.filter((b) => !edges.some((e) => e.source === n.id && e.sourceHandle === b))

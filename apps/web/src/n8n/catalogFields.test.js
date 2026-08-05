@@ -56,4 +56,13 @@ describe('catalog-backed node setup', () => {
     expect(resolveNodePorts(NODE_CATALOG.merge, { mode: 'combine', combineBy: 'combineByPosition', positionNumberInputs: 4 }).inputs).toHaveLength(4);
     expect(resolveNodePorts(NODE_CATALOG.merge, { mode: 'combine', combineBy: 'combineAll', positionNumberInputs: 8 }).inputs).toHaveLength(2);
   });
+
+  it('renders Switch outputs from expression counts and named rules', () => {
+    expect(resolveNodePorts(NODE_CATALOG.switch, { mode: 'expression', numberOutputs: 3 }).outputs.map((port) => port.label)).toEqual(['0', '1', '2']);
+    expect(resolveNodePorts(NODE_CATALOG.switch, {
+      mode: 'rules',
+      rules: { values: [{ outputKey: 'Paid' }, { outputKey: '' }] },
+      options: { fallbackOutput: 'extra', renameFallbackOutput: 'Other' },
+    }).outputs.map((port) => port.label)).toEqual(['Paid', '1', 'Other']);
+  });
 });

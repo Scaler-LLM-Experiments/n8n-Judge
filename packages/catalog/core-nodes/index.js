@@ -57,6 +57,9 @@ import loopOverItems from './loop-over-items.js';
 import sseTrigger from './sse-trigger.js';
 import ssh from './ssh.js';
 import stopAndError from './stop-and-error.js';
+import summarizeItems from './summarize-items.js';
+import switchNode from './switch.js';
+import totp from './totp.js';
 
 export const SOURCE_COMMIT = '3d68c29b9281f14097aa9f15e01ac0777e538b11';
 
@@ -116,9 +119,9 @@ export const CORE_NODE_INVENTORY = [
   { type: 'sse-trigger', docsSlug: 'n8n-nodes-base.ssetrigger', label: 'SSE Trigger', status: 'complete' },
   { type: 'ssh', docsSlug: 'n8n-nodes-base.ssh', label: 'SSH', status: 'complete' },
   { type: 'stop-and-error', docsSlug: 'n8n-nodes-base.stopanderror', label: 'Stop And Error', status: 'complete' },
-  { type: 'summarize-items', docsSlug: 'n8n-nodes-base.summarize', label: 'Summarize', status: 'pending' },
-  { type: 'switch', docsSlug: 'n8n-nodes-base.switch', label: 'Switch', status: 'pending' },
-  { type: 'totp', docsSlug: 'n8n-nodes-base.totp', label: 'TOTP', status: 'pending' },
+  { type: 'summarize-items', docsSlug: 'n8n-nodes-base.summarize', label: 'Summarize', status: 'complete' },
+  { type: 'switch', docsSlug: 'n8n-nodes-base.switch', label: 'Switch', status: 'complete' },
+  { type: 'totp', docsSlug: 'n8n-nodes-base.totp', label: 'TOTP', status: 'complete' },
   { type: 'wait', docsSlug: 'n8n-nodes-base.wait', label: 'Wait', status: 'pending' },
   { type: 'webhook', docsSlug: 'n8n-nodes-base.webhook', label: 'Webhook', status: 'pending' },
   { type: 'workflow-trigger', docsSlug: 'n8n-nodes-base.workflowtrigger', label: 'Workflow Trigger', status: 'excluded-deprecated' },
@@ -152,6 +155,7 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
     rssRead, schedule, sendEmail,
     editFields, sort, loopOverItems,
     sseTrigger, ssh, stopAndError,
+    summarizeItems, switchNode, totp,
   ].map((node) => [node.type, node])
 );
 

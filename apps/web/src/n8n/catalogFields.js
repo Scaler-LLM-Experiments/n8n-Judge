@@ -6,6 +6,9 @@ function clone(value) {
   return value;
 }
 
+const atPath = (value, path) => String(path ?? '').split('.').filter(Boolean)
+  .reduce((current, key) => current?.[key], value);
+
 /** Seed a fresh simulated node with the same parameter defaults as n8n. */
 export function defaultsForParams(params = []) {
   return Object.fromEntries(
@@ -38,9 +41,38 @@ export function resolveNodePorts(entry = {}, values = {}) {
     }));
   }
 
+  let outputs = variant?.outputs ?? entry.outputs;
+  const dynamicOutputs = entry.dynamicOutputs;
+  if (dynamicOutputs?.enabled) {
+    const mode = effectiveValues[dynamicOutputs.modeParameter ?? 'mode'];
+    const spec = dynamicOutputs.modes?.[mode];
+    if (spec?.countParameter) {
+      const count = Math.max(0, Number(effectiveValues[spec.countParameter] ?? spec.defaultCount));
+      outputs = Array.from({ length: count }, (_, index) => ({ type: 'main', label: String(index), name: String(index), index }));
+    } else if (spec?.rulesPath) {
+      const rules = atPath(effectiveValues, spec.rulesPath) ?? [];
+      outputs = rules.map((rule, index) => ({
+        type: 'main',
+        label: rule[spec.labelParameter] || String(index),
+        name: String(index),
+        index,
+      }));
+      const fallback = atPath(effectiveValues, spec.fallbackPath);
+      if (fallback === spec.extraFallbackValue) {
+        const index = outputs.length;
+        outputs.push({
+          type: 'main',
+          label: atPath(effectiveValues, spec.fallbackLabelPath) || spec.defaultFallbackLabel,
+          name: String(index),
+          index,
+        });
+      }
+    }
+  }
+
   return {
     inputs,
-    outputs: variant?.outputs ?? entry.outputs,
+    outputs,
   };
 }
 
