@@ -773,6 +773,36 @@ describe('cluster-node batch 11 carries the local and cloud routed embedding sur
   });
 });
 
+describe('cluster-node batch 12 closes embeddings and starts current chat models', () => {
+  it('models current OpenAI v1.2 fields without the historical node-level Base URL', () => {
+    const node = NODE_CATALOG['embeddings-openai'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.2, n8nType: '@n8n/n8n-nodes-langchain.embeddingsOpenAi' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 9, credentialEditorFieldCount: 6, dynamicFieldCount: 2 });
+    expect(params.model).toMatchObject({ value: 'text-embedding-3-small', locked: true, options: [] });
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['dimensions', 'batchSize', 'stripNewLines', 'timeout', 'encodingFormat']);
+  });
+
+  it('models Oracle Database v1 credentials and locked searchable ONNX model', () => {
+    const node = NODE_CATALOG['embeddings-oracle-database'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.embeddingsOracleDb', defaultName: 'Embeddings ONNX' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 3, credentialEditorFieldCount: 20, dynamicResourceLocatorCount: 1 });
+    expect(params.model).toMatchObject({ kind: 'resourceLocator', locked: true, value: { __rl: true, mode: 'list', value: 'ALL_MINILM_L12_V2' } });
+    expect(node.credentialUiMetadata[0].fields.find(({ key }) => key === 'privilege').options).toHaveLength(8);
+  });
+
+  it('models Qwen Cloud v1 credentials, routed model, and eight native options', () => {
+    const node = NODE_CATALOG['qwen-cloud-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmChatAlibabaCloud' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 13, credentialEditorFieldCount: 4, dynamicFieldCount: 2 });
+    expect(params.model).toMatchObject({ value: 'qwen-plus', locked: true, options: [] });
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['frequencyPenalty', 'maxTokens', 'responseFormat', 'presencePenalty', 'temperature', 'timeout', 'maxRetries', 'topP']);
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_languageModel', label: 'Model' })]);
+  });
+});
+
 // Judge does not implement typeVersion — one shipped schema per node type is the
 // right simplification — but every node must SAY which real node and version it
 // models, or the catalogue drifts from the n8n a learner meets next and nobody

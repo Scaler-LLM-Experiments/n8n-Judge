@@ -1,6 +1,6 @@
 # n8n node library catalog
 
-Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **134 canonical nodes** (27 triggers, 24 app actions, 83 core/data/AI nodes) plus 10 compatibility aliases.
+Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **137 canonical nodes** (27 triggers, 24 app actions, 86 core/data/AI nodes) plus 10 compatibility aliases.
 
 ## How to choose
 
@@ -80,7 +80,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | YouTube | `youtube` | Consume YouTube API |
 | Zoom | `zoom` | Consume Zoom API |
 
-## Core, data, and AI building blocks (83)
+## Core, data, and AI building blocks (86)
 
 | Node | Catalog type | Function |
 |---|---|---|
@@ -111,6 +111,8 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Embeddings Lemonade | `embeddings-lemonade` | Configure a model discovered from a Lemonade server |
 | Embeddings Mistral Cloud | `embeddings-mistral-cloud` | Configure a Mistral embedding model and batching options |
 | Embeddings Ollama | `embeddings-ollama` | Configure an embedding model discovered from an Ollama server |
+| Embeddings OpenAI | `embeddings-openai` | Configure a current OpenAI embedding model and request options |
+| Embeddings Oracle Database | `embeddings-oracle-database` | Configure an Oracle Database ONNX embedding model |
 | Evaluation | `evaluation` | Runs an evaluation |
 | Execute Command | `execute-command` | Executes a command on the host |
 | Execute Sub-workflow | `execute-subworkflow` | Execute another workflow |
@@ -144,6 +146,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Postgres PGVector Store | `pgvector-vector-store` | Configure PostgreSQL PGVector insertion, search, retrieval, and tool modes |
 | Qdrant Vector Store | `qdrant-vector-store` | Configure Qdrant insertion, search, retrieval, and tool modes |
 | Question and Answer Chain | `question-answer-chain` | Answer questions using a connected retriever and language model |
+| Qwen Cloud Chat Model | `qwen-cloud-chat-model` | Configure a Qwen Cloud language model and completion controls |
 | Read/Write Files from Disk | `read-write-file` | Read or write files from the computer that runs n8n |
 | Redis Vector Store | `redis-vector-store` | Configure Redis vector-index insertion, search, retrieval, tool, and update modes |
 | Remove Duplicates | `remove-duplicates` | Delete items with matching field values |

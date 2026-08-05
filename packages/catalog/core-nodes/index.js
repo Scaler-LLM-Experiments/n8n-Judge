@@ -31,6 +31,8 @@ import embeddingsHuggingFaceInference from './embeddings-huggingface-inference.j
 import embeddingsLemonade from './embeddings-lemonade.js';
 import embeddingsMistralCloud from './embeddings-mistral-cloud.js';
 import embeddingsOllama from './embeddings-ollama.js';
+import embeddingsOpenAi from './embeddings-openai.js';
+import embeddingsOracleDatabase from './embeddings-oracle-database.js';
 import errorTrigger from './error-trigger.js';
 import evaluationTrigger from './evaluation-trigger.js';
 import evaluation from './evaluation.js';
@@ -67,6 +69,7 @@ import oracleDatabaseVectorStore from './oracle-database-vector-store.js';
 import pgvectorVectorStore from './pgvector-vector-store.js';
 import pineconeVectorStore from './pinecone-vector-store.js';
 import qdrantVectorStore from './qdrant-vector-store.js';
+import qwenCloudChatModel from './qwen-cloud-chat-model.js';
 import redisVectorStore from './redis-vector-store.js';
 import readWriteFile from './read-write-file.js';
 import questionAnswerChain from './question-answer-chain.js';
@@ -212,9 +215,9 @@ export const CLUSTER_NODE_INVENTORY = [
   { type: 'embeddings-lemonade', docsSlug: 'n8n-nodes-langchain.embeddingslemonade', label: 'Embeddings Lemonade', clusterRole: 'sub', status: 'complete' },
   { type: 'embeddings-mistral-cloud', docsSlug: 'n8n-nodes-langchain.embeddingsmistralcloud', label: 'Embeddings Mistral Cloud', clusterRole: 'sub', status: 'complete' },
   { type: 'embeddings-ollama', docsSlug: 'n8n-nodes-langchain.embeddingsollama', label: 'Embeddings Ollama', clusterRole: 'sub', status: 'complete' },
-  { type: 'embeddings-openai', docsSlug: 'n8n-nodes-langchain.embeddingsopenai', label: 'Embeddings OpenAI', clusterRole: 'sub', status: 'pending' },
-  { type: 'embeddings-oracle-database', docsSlug: 'n8n-nodes-langchain.embeddingsoracledb', label: 'Embeddings Oracle Database', clusterRole: 'sub', status: 'pending' },
-  { type: 'qwen-cloud-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatalibabacloud', label: 'Qwen Cloud Chat Model', clusterRole: 'sub', status: 'pending' },
+  { type: 'embeddings-openai', docsSlug: 'n8n-nodes-langchain.embeddingsopenai', label: 'Embeddings OpenAI', clusterRole: 'sub', status: 'complete' },
+  { type: 'embeddings-oracle-database', docsSlug: 'n8n-nodes-langchain.embeddingsoracledb', label: 'Embeddings Oracle Database', clusterRole: 'sub', status: 'complete' },
+  { type: 'qwen-cloud-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatalibabacloud', label: 'Qwen Cloud Chat Model', clusterRole: 'sub', status: 'complete' },
   { type: 'anthropic-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatanthropic', label: 'Anthropic Chat Model', clusterRole: 'sub', status: 'pending' },
   { type: 'aws-bedrock-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatawsbedrock', label: 'AWS Bedrock Chat Model', clusterRole: 'sub', status: 'pending' },
   { type: 'azure-openai-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatazureopenai', label: 'Azure OpenAI Chat Model', clusterRole: 'sub', status: 'pending' },
@@ -286,6 +289,7 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
     embeddingsAwsBedrock, embeddingsAzureOpenAi, embeddingsCohere,
     embeddingsGoogleGemini, embeddingsGoogleVertex, embeddingsHuggingFaceInference,
     embeddingsLemonade, embeddingsMistralCloud, embeddingsOllama,
+    embeddingsOpenAi, embeddingsOracleDatabase, qwenCloudChatModel,
     aiTransform, code, compareDatasets,
     compression, convertToFile, crypto,
     dataTable, dateTime, debugHelper,
