@@ -332,6 +332,14 @@ describe('app-trigger library', () => {
     expect(params('google-drive-trigger').triggerOn.options.map(({ value }) => value)).toEqual(['specificFile', 'specificFolder']);
     expect(params('google-drive-trigger').specificFolderEvent.options).toHaveLength(5);
   });
+
+  it('models Gmail, Slack, and Google Sheets trigger surfaces', () => {
+    expect(NODE_CATALOG['gmail-trigger']).toMatchObject({ n8nVersion: 1.4, polling: true });
+    expect(params('gmail-trigger').event.options.map(({ value }) => value)).toEqual(['messageReceived']);
+    expect(params('slack-trigger').trigger.options).toHaveLength(9);
+    expect(params('google-sheets-trigger').event.options.map(({ value }) => value)).toEqual(['rowAdded', 'rowUpdate', 'anyUpdate']);
+    expect(params('google-sheets-trigger').includeInOutput.hideWhen).toEqual({ event: ['rowAdded'] });
+  });
 });
 
 describe('core-node completion inventory', () => {
