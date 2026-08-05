@@ -529,6 +529,35 @@ describe('cluster-node batch 3 carries the current root-node authoring surface',
   });
 });
 
+describe('cluster-node batch 4 carries the current vector-store authoring surface', () => {
+  it('models Azure AI Search v1.3 provider fields and all five modes', () => {
+    const node = NODE_CATALOG['azure-ai-search-vector-store'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.3, n8nType: '@n8n/n8n-nodes-langchain.vectorStoreAzureAISearch' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 23, dynamicPortShapeCount: 8, credentialFieldCount: 2 });
+    expect(params.mode.options.map(({ value }) => value)).toEqual(['load', 'insert', 'retrieve', 'retrieve-as-tool', 'update']);
+    expect(params.insertOptions.fields.map(({ key }) => key)).toEqual(['clearIndex', 'metadataKeysToInsert']);
+  });
+
+  it('models Simple Vector Store v1.3 memory lookup and four supported modes', () => {
+    const node = NODE_CATALOG['simple-vector-store'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.3, n8nType: '@n8n/n8n-nodes-langchain.vectorStoreInMemory' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 14, operationModeCount: 4, dynamicPortShapeCount: 7 });
+    expect(params.memoryKey).toMatchObject({ kind: 'resourceLocator', locked: true });
+    expect(params.mode.options.map(({ value }) => value)).toEqual(['load', 'insert', 'retrieve', 'retrieve-as-tool']);
+  });
+
+  it('models Milvus Vector Store v1.3 credentials, collection lookup, and ports', () => {
+    const node = NODE_CATALOG['milvus-vector-store'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.3, n8nType: '@n8n/n8n-nodes-langchain.vectorStoreMilvus' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 13, operationCount: 4, credentialEditorFieldCount: 3 });
+    expect(params.milvusCollection).toMatchObject({ kind: 'resourceLocator', locked: true });
+    expect(node.portParity.variantCount).toBe(7);
+  });
+});
+
 // Judge does not implement typeVersion — one shipped schema per node type is the
 // right simplification — but every node must SAY which real node and version it
 // models, or the catalogue drifts from the n8n a learner meets next and nobody

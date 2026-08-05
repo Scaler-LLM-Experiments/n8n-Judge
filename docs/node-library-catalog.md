@@ -1,6 +1,6 @@
 # n8n node library catalog
 
-Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **110 canonical nodes** (27 triggers, 24 app actions, 59 core/data/AI nodes) plus 10 compatibility aliases.
+Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **113 canonical nodes** (27 triggers, 24 app actions, 62 core/data/AI nodes) plus 10 compatibility aliases.
 
 ## How to choose
 
@@ -80,13 +80,14 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | YouTube | `youtube` | Consume YouTube API |
 | Zoom | `zoom` | Consume Zoom API |
 
-## Core, data, and AI building blocks (59)
+## Core, data, and AI building blocks (62)
 
 | Node | Catalog type | Function |
 |---|---|---|
 | Aggregate | `aggregate` | Combine a field from many items into a list in a single item |
 | AI Agent | `ai-agent` | Configure a tool-using AI agent with model, memory, tools, and optional structured output |
 | AI Transform | `ai-transform` | Modify data based on instructions written in plain english |
+| Azure AI Search Vector Store | `azure-ai-search-vector-store` | Configure Azure AI Search insertion, search, retrieval, tool, and update modes |
 | Basic LLM Chain | `basic-llm-chain` | Prompt a language model with optional messages, fallback model, and output parser |
 | Chat | `chat` | Send a message into the chat |
 | Code | `code` | Run custom JavaScript or Python code |
@@ -121,6 +122,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Markdown | `markdown` | Convert data between Markdown and HTML |
 | MCP Client | `mcp-client` | Standalone MCP Client |
 | Merge | `merge` | Merges data of multiple streams once data from both is available |
+| Milvus Vector Store | `milvus-vector-store` | Configure Milvus insertion, search, retrieval, and tool modes |
 | n8n | `n8n` | Handle events and perform actions on your n8n instance |
 | n8n Form | `form` | Generate webforms in n8n and pass their responses to the workflow |
 | No Operation, do nothing | `noop` | No Operation |
@@ -132,6 +134,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | RSS Read | `rss-read` | Reads data from an RSS Feed |
 | Send Email | `send-email` | Sends an email using SMTP protocol |
 | Sentiment Analysis | `sentiment-analysis` | Configure sentiment categories with one authored output branch per label |
+| Simple Vector Store | `simple-vector-store` | Configure an experimental in-memory vector store without external setup |
 | Sort | `sort` | Change items order |
 | Split Out | `split-out` | Turn a list inside item(s) into separate items |
 | SSH | `ssh` | Execute commands via SSH |

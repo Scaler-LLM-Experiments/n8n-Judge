@@ -8,6 +8,7 @@
 
 import aiTransform from './ai-transform.js';
 import aiAgent from './ai-agent.js';
+import azureAiSearchVectorStore from './azure-ai-search-vector-store.js';
 import basicLlmChain from './basic-llm-chain.js';
 import code from './code.js';
 import compareDatasets from './compare-datasets.js';
@@ -45,6 +46,7 @@ import manual from './manual.js';
 import markdown from './markdown.js';
 import merge from './merge.js';
 import microsoftAgent365Trigger from './microsoft-agent-365-trigger.js';
+import milvusVectorStore from './milvus-vector-store.js';
 import n8nTrigger from './n8n-trigger.js';
 import n8n from './n8n.js';
 import noop from './noop.js';
@@ -58,6 +60,7 @@ import rssRead from './rss-read.js';
 import schedule from './schedule.js';
 import sendEmail from './send-email.js';
 import sentimentAnalysis from './sentiment-analysis.js';
+import simpleVectorStore from './simple-vector-store.js';
 import editFields from './edit-fields.js';
 import sort from './sort.js';
 import loopOverItems from './loop-over-items.js';
@@ -163,9 +166,9 @@ export const CLUSTER_NODE_INVENTORY = [
   { type: 'sentiment-analysis', docsSlug: 'n8n-nodes-langchain.sentimentanalysis', label: 'Sentiment Analysis', clusterRole: 'root', status: 'complete' },
   { type: 'langchain-code', docsSlug: 'n8n-nodes-langchain.code', label: 'LangChain Code', clusterRole: 'root', status: 'complete' },
   { type: 'microsoft-agent-365-trigger', docsSlug: 'n8n-nodes-langchain.microsoftagent365trigger', label: 'Microsoft Agent 365 Trigger', clusterRole: 'root', status: 'complete' },
-  { type: 'azure-ai-search-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoreazureaisearch', label: 'Azure AI Search Vector Store', clusterRole: 'root', status: 'pending' },
-  { type: 'simple-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoreinmemory', label: 'Simple Vector Store', clusterRole: 'root', status: 'pending' },
-  { type: 'milvus-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoremilvus', label: 'Milvus Vector Store', clusterRole: 'root', status: 'pending' },
+  { type: 'azure-ai-search-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoreazureaisearch', label: 'Azure AI Search Vector Store', clusterRole: 'root', status: 'complete' },
+  { type: 'simple-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoreinmemory', label: 'Simple Vector Store', clusterRole: 'root', status: 'complete' },
+  { type: 'milvus-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoremilvus', label: 'Milvus Vector Store', clusterRole: 'root', status: 'complete' },
   { type: 'mongodb-atlas-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoremongodbatlas', label: 'MongoDB Atlas Vector Store', clusterRole: 'root', status: 'pending' },
   { type: 'pgvector-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstorepgvector', label: 'PGVector Vector Store', clusterRole: 'root', status: 'pending' },
   { type: 'oracle-database-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoreoracledb', label: 'Oracle Database Vector Store', clusterRole: 'root', status: 'pending' },
@@ -254,6 +257,7 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
     aiAgent, basicLlmChain, questionAnswerChain,
     summarizationChain, informationExtractor, textClassifier,
     sentimentAnalysis, langchainCode, microsoftAgent365Trigger,
+    azureAiSearchVectorStore, simpleVectorStore, milvusVectorStore,
     aiTransform, code, compareDatasets,
     compression, convertToFile, crypto,
     dataTable, dateTime, debugHelper,
