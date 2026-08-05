@@ -48,6 +48,9 @@ import removeDuplicates from './remove-duplicates.js';
 import renameKeys from './rename-keys.js';
 import respondToWebhook from './respond-to-webhook.js';
 import rssFeedTrigger from './rss-feed-trigger.js';
+import rssRead from './rss-read.js';
+import schedule from './schedule.js';
+import sendEmail from './send-email.js';
 
 export const SOURCE_COMMIT = '3d68c29b9281f14097aa9f15e01ac0777e538b11';
 
@@ -97,9 +100,9 @@ export const CORE_NODE_INVENTORY = [
   { type: 'rename-keys', docsSlug: 'n8n-nodes-base.renamekeys', label: 'Rename Keys', status: 'complete' },
   { type: 'respond-to-webhook', docsSlug: 'n8n-nodes-base.respondtowebhook', label: 'Respond to Webhook', status: 'complete' },
   { type: 'rss-feed-trigger', docsSlug: 'n8n-nodes-base.rssfeedreadtrigger', label: 'RSS Feed Trigger', status: 'complete' },
-  { type: 'rss-read', docsSlug: 'n8n-nodes-base.rssfeedread', label: 'RSS Read', status: 'pending' },
-  { type: 'schedule', docsSlug: 'n8n-nodes-base.scheduletrigger', label: 'Schedule Trigger', status: 'pending' },
-  { type: 'send-email', docsSlug: 'n8n-nodes-base.sendemail', label: 'Send Email', status: 'pending' },
+  { type: 'rss-read', docsSlug: 'n8n-nodes-base.rssfeedread', label: 'RSS Read', status: 'complete' },
+  { type: 'schedule', docsSlug: 'n8n-nodes-base.scheduletrigger', label: 'Schedule Trigger', status: 'complete' },
+  { type: 'send-email', docsSlug: 'n8n-nodes-base.sendemail', label: 'Send Email', status: 'complete' },
   { type: 'edit-fields', docsSlug: 'n8n-nodes-base.set', label: 'Edit Fields (Set)', status: 'pending' },
   { type: 'sort', docsSlug: 'n8n-nodes-base.sort', label: 'Sort', status: 'pending' },
   { type: 'loop-over-items', docsSlug: 'n8n-nodes-base.splitinbatches', label: 'Loop Over Items (Split in Batches)', status: 'pending' },
@@ -140,6 +143,7 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
     merge, n8nTrigger, n8n,
     noop, readWriteFile, removeDuplicates,
     renameKeys, respondToWebhook, rssFeedTrigger,
+    rssRead, schedule, sendEmail,
   ].map((node) => [node.type, node])
 );
 
