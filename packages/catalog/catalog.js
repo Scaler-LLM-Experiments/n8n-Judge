@@ -1,4 +1,5 @@
 import { COMPLETE_CORE_NODE_TYPES, CORE_NODE_CATALOG } from './core-nodes/index.js';
+import { APP_NODE_CATALOG, COMPLETE_APP_NODE_TYPES } from './app-nodes/index.js';
 
 // The n8n node catalog for the editor kit: what each node is, its parameters
 // (Scaler API credentials shown locked), and the sample Input/Output JSON that
@@ -403,8 +404,10 @@ export const NODE_CATALOG = {
     output: { 'Full Name': 'Aarav Sharma', Email: 'aarav@example.com', Plan: 'Pro', 'Referral Source': 'Google search' },
   },
   // Reviewed core-node descriptors override the early teaching placeholders
-  // above as batches land. Cases keep their own grading/voice overlays.
+  // above as batches land. Reviewed app descriptors then replace app-shaped
+  // teaching placeholders. Cases keep their own grading/voice overlays.
   ...CORE_NODE_CATALOG,
+  ...APP_NODE_CATALOG,
 };
 
 /**
@@ -467,6 +470,7 @@ export const NODE_OPTIONS = [...new Set([
   'classify', 'summarize', 'parse', 'switch', 'action', 'code', 'if',
   'slack-message', 'google-docs', 'google-sheets', 'http-request',
   ...completeCoreActions,
+  ...COMPLETE_APP_NODE_TYPES,
 ])];
 
 export function catalogEntry(type) {

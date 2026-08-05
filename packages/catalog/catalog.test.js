@@ -2,6 +2,85 @@ import { describe, it, expect } from 'vitest';
 import { existsSync } from 'node:fs';
 import { NODE_CATALOG, AI_SUB_NODE_PORTS, TRIGGER_OPTIONS, NODE_OPTIONS } from './catalog.js';
 import { CORE_NODE_INVENTORY, COMPLETE_CORE_NODE_TYPES, SOURCE_COMMIT } from './core-nodes/index.js';
+import { APP_NODE_INVENTORY, APP_SOURCE_COMMIT, COMPLETE_APP_NODE_TYPES } from './app-nodes/index.js';
+
+const supportedFieldKinds = new Set([
+  'assignmentList', 'boolean', 'button', 'code', 'collection', 'color', 'expression',
+  'fixedCollection', 'hidden', 'notice', 'number', 'resourceLocator',
+  'ruleList', 'multiSelect', 'select', 'text', 'textarea',
+]);
+
+const inspectFields = (type, fields, path = '') => {
+  const keys = fields.map((field) => field.key);
+  expect(new Set(keys).size, `${type}:${path} has duplicate UI keys`).toBe(keys.length);
+  for (const field of fields) {
+    expect(field.label, `${type}:${path}${field.key} has no label`).toBeTruthy();
+    expect(supportedFieldKinds.has(field.kind), `${type}:${path}${field.key} uses unsupported kind ${field.kind}`).toBe(true);
+    if (field.fields) inspectFields(type, field.fields, `${path}${field.key}.`);
+  }
+};
+
+describe('essential app-node completion inventory', () => {
+  it('tracks the deliberately curated app scope without Webex or duplicates', () => {
+    expect(APP_NODE_INVENTORY).toHaveLength(24);
+    expect(new Set(APP_NODE_INVENTORY.map((node) => node.type)).size).toBe(24);
+    expect(new Set(APP_NODE_INVENTORY.map((node) => node.docsSlug)).size).toBe(24);
+    expect(APP_NODE_INVENTORY.some((node) => node.type.includes('webex'))).toBe(false);
+    expect(APP_NODE_INVENTORY.every((node) => ['pending', 'complete'].includes(node.status))).toBe(true);
+  });
+
+  it('publishes only reviewed app descriptors', () => {
+    expect(COMPLETE_APP_NODE_TYPES).toEqual(
+      APP_NODE_INVENTORY.filter((node) => node.status === 'complete').map((node) => node.type)
+    );
+    for (const type of COMPLETE_APP_NODE_TYPES) {
+      const node = NODE_CATALOG[type];
+      expect(node, `${type} is marked complete but missing from the catalog`).toBeTruthy();
+      expect(node.source?.commit, `${type} has no reviewed source commit`).toBe(APP_SOURCE_COMMIT);
+      expect(node.icon, `${type} has no active editor icon`).toMatch(/^\/node-icons\//);
+      expect(existsSync(new URL(`../../apps/web/public${node.icon}`, import.meta.url)), `${type} icon file is missing`).toBe(true);
+      expect(node.execute, `${type} must remain an authoring-only simulation`).toBeUndefined();
+      expect(node.trigger, `${type} must not implement a trigger runtime`).toBeUndefined();
+      expect(node.webhook, `${type} must not implement a webhook runtime`).toBeUndefined();
+      inspectFields(type, node.params ?? []);
+    }
+  });
+});
+
+describe('essential app-node batch 1 carries the real operation surface', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((param) => [param.key, param]));
+
+  it('models Discord v2 channel, message, member, and webhook operations', () => {
+    const node = NODE_CATALOG.discord;
+    const p = params('discord');
+    expect(node).toMatchObject({ n8nVersion: 2, category: 'action', usableAsTool: true });
+    expect(p.channelOperation.options).toHaveLength(5);
+    expect(p.messageOperation.options).toHaveLength(6);
+    expect(p.memberOperation.options).toHaveLength(3);
+    expect(p.webhookOperation.options.map(({ value }) => value)).toEqual(['sendLegacy']);
+  });
+
+  it('models all Dropbox v1 file, folder, and search operations', () => {
+    const node = NODE_CATALOG.dropbox;
+    const p = params('dropbox');
+    expect(node).toMatchObject({ n8nVersion: 1, usableAsTool: true });
+    expect(p.resource.options.map(({ value }) => value)).toEqual(['file', 'folder', 'search']);
+    expect(p.fileOperation.options).toHaveLength(5);
+    expect(p.folderOperation.options).toHaveLength(5);
+    expect(p.searchOperation.options.map(({ value }) => value)).toEqual(['query']);
+  });
+
+  it('models Google Drive v3 files, folders, search, and shared drives', () => {
+    const node = NODE_CATALOG['google-drive'];
+    const p = params('google-drive');
+    expect(node).toMatchObject({ n8nVersion: 3, usableAsTool: true });
+    expect(p.resource.options.map(({ value }) => value)).toEqual(['file', 'fileFolder', 'folder', 'drive']);
+    expect(p.fileOperation.options).toHaveLength(8);
+    expect(p.folderOperation.options).toHaveLength(3);
+    expect(p.driveOperation.options).toHaveLength(5);
+    expect(p.fileFolderOperation.options.map(({ value }) => value)).toEqual(['search']);
+  });
+});
 
 describe('core-node completion inventory', () => {
   it('tracks the complete official docs scope without duplicates', () => {
@@ -18,20 +97,6 @@ describe('core-node completion inventory', () => {
   });
 
   it('publishes only reviewed complete nodes', () => {
-    const supportedKinds = new Set([
-      'assignmentList', 'boolean', 'button', 'code', 'collection', 'color', 'expression',
-      'fixedCollection', 'hidden', 'notice', 'number', 'resourceLocator',
-      'ruleList', 'multiSelect', 'select', 'text', 'textarea',
-    ]);
-    const inspectFields = (type, fields, path = '') => {
-      const keys = fields.map((field) => field.key);
-      expect(new Set(keys).size, `${type}:${path} has duplicate UI keys`).toBe(keys.length);
-      for (const field of fields) {
-        expect(field.label, `${type}:${path}${field.key} has no label`).toBeTruthy();
-        expect(supportedKinds.has(field.kind), `${type}:${path}${field.key} uses unsupported kind ${field.kind}`).toBe(true);
-        if (field.fields) inspectFields(type, field.fields, `${path}${field.key}.`);
-      }
-    };
     expect(COMPLETE_CORE_NODE_TYPES).toEqual(
       CORE_NODE_INVENTORY.filter((node) => node.status === 'complete').map((node) => node.type)
     );
@@ -279,5 +344,6 @@ describe('every catalog type is renderable by the web app', () => {
   it('uses a canvas category with visual metadata', () => {
     const categories = new Set(['trigger', 'ai', 'model', 'core', 'action']);
     for (const type of COMPLETE_CORE_NODE_TYPES) expect(categories.has(NODE_CATALOG[type].category), type).toBe(true);
+    for (const type of COMPLETE_APP_NODE_TYPES) expect(categories.has(NODE_CATALOG[type].category), type).toBe(true);
   });
 });
