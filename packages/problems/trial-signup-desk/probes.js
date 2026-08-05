@@ -46,6 +46,12 @@ export const nodeProbes = {
     prompt: 'On a Schedule is on the canvas. When would a new signup reach the sheet?',
     options: [
       {
+        text: 'On a fixed clock — every few minutes, or at a set hour',
+        correct: true,
+        response:
+          'Correct, and sweeping up a form’s responses on a timer is a real way to work. But this flow promises the person an instant welcome, so what starts it should be the submission itself.',
+      },
+      {
         text: 'The moment somebody submits the form',
         correct: false,
         misconception: 'poll-vs-event',
@@ -58,12 +64,6 @@ export const nodeProbes = {
         misconception: 'schedule-is-close-enough',
         response:
           'Shortening the interval narrows the gap and never closes it, and it also means the flow wakes up all day to find nothing new. Meanwhile the welcome mail this flow promises is supposed to feel instant.',
-      },
-      {
-        text: 'On a fixed clock — every few minutes, or at a set hour',
-        correct: true,
-        response:
-          'Correct, and sweeping up a form’s responses on a timer is a real way to work. But this flow promises the person an instant welcome, so what starts it should be the submission itself.',
       },
     ],
   },
@@ -150,17 +150,17 @@ export const nodeProbes = {
     prompt: 'Switch is on the canvas. Read what this flow does with a signup. What would you route on?',
     options: [
       {
+        text: 'Nothing here — every signup takes the same path',
+        correct: true,
+        response:
+          'Right, and that is the answer. A split earns its place when two kinds of input need genuinely different handling. This flow treats every signup identically, so a split only adds branches with nothing to put down them.',
+      },
+      {
         text: 'The plan — Basic, Plus and Pro should each have their own path',
         correct: false,
         misconception: 'router-without-a-difference',
         response:
           'Read the brief again. All three plans do exactly the same thing: one row on the sheet, one welcome mail with the plan named inside it. Three paths doing identical work is three places to fix the same bug.',
-      },
-      {
-        text: 'Nothing here — every signup takes the same path',
-        correct: true,
-        response:
-          'Right, and that is the answer. A split earns its place when two kinds of input need genuinely different handling. This flow treats every signup identically, so a split only adds branches with nothing to put down them.',
       },
       {
         text: 'Whether the name came in blank, so blanks can be handled on their own path',

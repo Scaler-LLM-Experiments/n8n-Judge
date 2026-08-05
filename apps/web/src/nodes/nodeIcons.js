@@ -232,7 +232,9 @@ export const nodeParams = {
   'google-sheets': [
     { kind: 'select', label: 'Document', value: 'Signups' },
     { kind: 'select', label: 'Sheet', value: 'Signups' },
-    { kind: 'select', label: 'Operation', value: 'Append Row' },
+    // Left blank on purpose — which operation to use is a gradeable decision, so naming one
+    // here would print the answer wherever this ever gets rendered.
+    { kind: 'select', label: 'Operation', value: '' },
   ],
   'form-trigger': [
     { kind: 'text', label: 'Form Title', value: 'Free Trial Signup' },

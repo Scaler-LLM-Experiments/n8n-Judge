@@ -10,8 +10,11 @@
 export const referenceGraph = {
   nodes: [
     { id: 'form-1', type: 'form-trigger', position: { x: 0, y: 180 }, requiredLabel: 'On form submission' },
-    { id: 'rate-1', type: 'http-request', position: { x: 340, y: 180 }, requiredLabel: 'HTTP Request — USD to INR' },
-    { id: 'sheet-1', type: 'google-sheets', position: { x: 680, y: 180 }, requiredLabel: 'Google Sheets — Append Row' },
+    // Plain node labels, matching the catalog and the palette. `referenceGraph` is one of
+    // the pinned client-visible leaks, and both of these used to name a graded answer —
+    // the rate DIRECTION and the sheet OPERATION are each a scored field.
+    { id: 'rate-1', type: 'http-request', position: { x: 340, y: 180 }, requiredLabel: 'HTTP Request' },
+    { id: 'sheet-1', type: 'google-sheets', position: { x: 680, y: 180 }, requiredLabel: 'Google Sheets' },
     { id: 'welcome-1', type: 'action', position: { x: 1020, y: 180 }, requiredLabel: 'Send Reply — Welcome' },
   ],
   edges: [
@@ -49,7 +52,10 @@ export const testCases = [
   },
   {
     id: 'every-signup-logged',
-    description: 'Every signup is appended as a row on the Signups sheet.',
+    // Says what the step is FOR without naming the operation: which of the sheet node's
+    // operations does this is a scored field, and the Run checklist is on screen while a
+    // learner can still be answering it.
+    description: 'Every signup gets its own new line on the Signups sheet.',
     kind: 'structural',
     checks: { requiredNodeTypes: ['google-sheets'] },
   },
