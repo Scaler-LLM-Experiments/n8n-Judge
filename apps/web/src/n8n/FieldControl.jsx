@@ -138,6 +138,9 @@ const nestedHelp = (field) => field.hint || field.description ? (
 ) : null;
 
 function NestedControl({ field, value, border, onChange, inputKeys, rootValues }) {
+  if (field.kind === 'notice') {
+    return <div role="note" style={{ borderLeft: '3px solid var(--brand-primary)', background: 'var(--brand-blue-50, rgba(0,85,255,0.05))', padding: '8px 10px', fontSize: 11.5, lineHeight: 1.5, color: 'var(--fg-2)' }}>{field.label}</div>;
+  }
   if (field.kind === 'collection') {
     return <CollectionControl field={field} value={value} border={border} bg="var(--surface-0)" onChange={onChange} inputKeys={inputKeys} rootValues={rootValues} />;
   }
@@ -150,7 +153,7 @@ function NestedControl({ field, value, border, onChange, inputKeys, rootValues }
 /** n8n's Options → Add Field control. Members stay absent until explicitly added. */
 export function CollectionControl({ field, value, border, bg, onChange, inputKeys = [], rootValues = {} }) {
   const current = value && typeof value === 'object' && !Array.isArray(value) ? value : {};
-  const members = (field.fields ?? []).filter((child) => isVisible(child, { ...rootValues, ...current }));
+  const members = (field.fields ?? []).filter((child) => child.kind !== 'hidden' && isVisible(child, { ...rootValues, ...current }));
   const active = members.filter((child) => Object.hasOwn(current, child.key));
   const available = members.filter((child) => !Object.hasOwn(current, child.key));
   const update = (key, next) => onChange(field.key, { ...current, [key]: next });
@@ -192,9 +195,12 @@ export function CollectionControl({ field, value, border, bg, onChange, inputKey
 export function FixedCollectionControl({ field, value, border, bg, onChange, inputKeys = [] }) {
   const itemKey = field.collectionKey || Object.keys(field.value ?? {})[0] || 'values';
   const current = value && typeof value === 'object' ? value : {};
-  const rows = Array.isArray(current[itemKey]) ? current[itemKey] : [];
+  const rawRows = current[itemKey];
+  const single = field.multiple === false;
+  const rows = Array.isArray(rawRows) ? rawRows : single && rawRows && typeof rawRows === 'object' ? [rawRows] : [];
+  const canAdd = (!single || rows.length === 0) && (!field.maxItems || rows.length < field.maxItems);
   const emptyRow = () => Object.fromEntries((field.fields ?? []).map((child) => [child.key, copy(child.value)]));
-  const setRows = (next) => onChange(field.key, { ...current, [itemKey]: next });
+  const setRows = (next) => onChange(field.key, { ...current, [itemKey]: single ? (next[0] ?? {}) : next });
   const setCell = (index, key, next) => setRows(rows.map((row, rowIndex) => rowIndex === index ? { ...row, [key]: next } : row));
   const move = (index, offset) => {
     const target = index + offset;
@@ -217,7 +223,7 @@ export function FixedCollectionControl({ field, value, border, bg, onChange, inp
             </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {(field.fields ?? []).filter((child) => isVisible(child, row)).map((child) => (
+            {(field.fields ?? []).filter((child) => child.kind !== 'hidden' && isVisible(child, row)).map((child) => (
               <div key={child.key}>
                 {nestedLabel(child)}
                 <NestedControl field={child} value={row[child.key]} border={border} onChange={(_, next) => setCell(index, child.key, next)} inputKeys={inputKeys} rootValues={row} />
@@ -227,7 +233,7 @@ export function FixedCollectionControl({ field, value, border, bg, onChange, inp
           </div>
         </div>
       ))}
-      <button type="button" onClick={() => setRows(rows.concat(emptyRow()))} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, border: `1px solid ${border}`, background: 'var(--surface-0)', color: 'var(--brand-primary)', padding: '8px 10px', fontSize: 11.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
+      <button type="button" disabled={!canAdd} onClick={() => setRows(rows.concat(emptyRow()))} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, border: `1px solid ${border}`, background: 'var(--surface-0)', color: canAdd ? 'var(--brand-primary)' : 'var(--fg-3)', padding: '8px 10px', fontSize: 11.5, fontWeight: 700, cursor: canAdd ? 'pointer' : 'not-allowed', fontFamily: 'var(--font-body)' }}>
         <Plus size={13} weight="bold" /> {field.addLabel || 'Add Item'}
       </button>
     </div>
@@ -352,6 +358,7 @@ export function FieldControl({ field, value, border, bg, onChange, shuffledOptio
           </select>
         ) : (
           <input
+            type={field.inputType ?? 'text'}
             aria-label={field.label}
             value={current.value ?? ''}
             placeholder={modeMeta(current.mode)?.placeholder ?? PLACEHOLDER[current.mode] ?? ''}
@@ -397,6 +404,7 @@ export function FieldControl({ field, value, border, bg, onChange, shuffledOptio
           />
         ) : (
           <input
+            type={field.inputType ?? 'text'}
             aria-label={field.label}
             value={value ?? ''}
             placeholder={field.placeholder ?? (isExpr ? 'Drag a field from Input, or type {{ $json.… }}' : '')}

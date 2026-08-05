@@ -21,6 +21,12 @@ import errorTrigger from './error-trigger.js';
 import evaluationTrigger from './evaluation-trigger.js';
 import evaluation from './evaluation.js';
 import executeCommand from './execute-command.js';
+import executeSubworkflowTrigger from './execute-subworkflow-trigger.js';
+import executeSubworkflow from './execute-subworkflow.js';
+import executionData from './execution-data.js';
+import extractFromFile from './extract-from-file.js';
+import filter from './filter.js';
+import formTrigger from './form-trigger.js';
 
 export const SOURCE_COMMIT = '3d68c29b9281f14097aa9f15e01ac0777e538b11';
 
@@ -42,12 +48,12 @@ export const CORE_NODE_INVENTORY = [
   { type: 'evaluation-trigger', docsSlug: 'n8n-nodes-base.evaluationtrigger', label: 'Evaluation Trigger', status: 'complete' },
   { type: 'evaluation', docsSlug: 'n8n-nodes-base.evaluation', label: 'Evaluation', status: 'complete' },
   { type: 'execute-command', docsSlug: 'n8n-nodes-base.executecommand', label: 'Execute Command', status: 'complete' },
-  { type: 'execute-subworkflow-trigger', docsSlug: 'n8n-nodes-base.executeworkflowtrigger', label: 'Execute Sub-workflow Trigger', status: 'pending' },
-  { type: 'execute-subworkflow', docsSlug: 'n8n-nodes-base.executeworkflow', label: 'Execute Sub-workflow', status: 'pending' },
-  { type: 'execution-data', docsSlug: 'n8n-nodes-base.executiondata', label: 'Execution Data', status: 'pending' },
-  { type: 'extract-from-file', docsSlug: 'n8n-nodes-base.extractfromfile', label: 'Extract From File', status: 'pending' },
-  { type: 'filter', docsSlug: 'n8n-nodes-base.filter', label: 'Filter', status: 'pending' },
-  { type: 'form-trigger', docsSlug: 'n8n-nodes-base.formtrigger', label: 'n8n Form Trigger', status: 'pending' },
+  { type: 'execute-subworkflow-trigger', docsSlug: 'n8n-nodes-base.executeworkflowtrigger', label: 'Execute Sub-workflow Trigger', status: 'complete' },
+  { type: 'execute-subworkflow', docsSlug: 'n8n-nodes-base.executeworkflow', label: 'Execute Sub-workflow', status: 'complete' },
+  { type: 'execution-data', docsSlug: 'n8n-nodes-base.executiondata', label: 'Execution Data', status: 'complete' },
+  { type: 'extract-from-file', docsSlug: 'n8n-nodes-base.extractfromfile', label: 'Extract From File', status: 'complete' },
+  { type: 'filter', docsSlug: 'n8n-nodes-base.filter', label: 'Filter', status: 'complete' },
+  { type: 'form-trigger', docsSlug: 'n8n-nodes-base.formtrigger', label: 'n8n Form Trigger', status: 'complete' },
   { type: 'form', docsSlug: 'n8n-nodes-base.form', label: 'n8n Form', status: 'pending' },
   { type: 'ftp', docsSlug: 'n8n-nodes-base.ftp', label: 'FTP', status: 'pending' },
   { type: 'git', docsSlug: 'n8n-nodes-base.git', label: 'Git', status: 'pending' },
@@ -104,6 +110,8 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
     dataTable, dateTime, debugHelper,
     editImage, emailTriggerImap, errorTrigger,
     evaluationTrigger, evaluation, executeCommand,
+    executeSubworkflowTrigger, executeSubworkflow, executionData,
+    extractFromFile, filter, formTrigger,
   ].map((node) => [node.type, node])
 );
 
