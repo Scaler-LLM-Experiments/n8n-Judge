@@ -1,6 +1,6 @@
 # n8n node library catalog
 
-Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **188 canonical nodes** (27 triggers, 24 app actions, 137 core/data/AI nodes) plus 10 compatibility aliases.
+Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **190 canonical nodes** (27 triggers, 24 app actions, 139 core/data/AI nodes) plus 10 compatibility aliases.
 
 ## How to choose
 
@@ -80,7 +80,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | YouTube | `youtube` | Consume YouTube API |
 | Zoom | `zoom` | Consume Zoom API |
 
-## Core, data, and AI building blocks (137)
+## Core, data, and AI building blocks (139)
 
 | Node | Catalog type | Function |
 |---|---|---|
@@ -161,6 +161,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Milvus Vector Store | `milvus-vector-store` | Configure Milvus insertion, search, retrieval, and tool modes |
 | MiniMax Chat Model | `minimax-chat-model` | Configure a MiniMax M2 chat model and reasoning controls |
 | Mistral Cloud Chat Model | `mistral-cloud-chat-model` | Configure a Mistral Cloud chat model and completion controls |
+| Model Selector | `model-selector` | Configure two to ten model inputs and ordered inert selection rules |
 | MongoDB Atlas Vector Store | `mongodb-atlas-vector-store` | Configure MongoDB Atlas vector insertion, search, retrieval, tool, and update modes |
 | MongoDB Chat Memory | `mongodb-chat-memory` | Configure MongoDB-backed chat history and session controls |
 | Moonshot Kimi Chat Model | `moonshot-chat-model` | Configure a Moonshot Kimi chat model and completion controls |
@@ -183,6 +184,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Qwen Cloud Chat Model | `qwen-cloud-chat-model` | Configure a Qwen Cloud language model and completion controls |
 | Read/Write Files from Disk | `read-write-file` | Read or write files from the computer that runs n8n |
 | Recursive Character Text Splitter | `recursive-character-text-splitter` | Configure recursive and language-aware document chunking |
+| Reranker Cohere | `reranker-cohere` | Configure a Cohere reranking model and result limit |
 | Redis Chat Memory | `redis-chat-memory` | Configure Redis-backed chat history, sessions, and expiry |
 | Redis Vector Store | `redis-vector-store` | Configure Redis vector-index insertion, search, retrieval, tool, and update modes |
 | Remove Duplicates | `remove-duplicates` | Delete items with matching field values |

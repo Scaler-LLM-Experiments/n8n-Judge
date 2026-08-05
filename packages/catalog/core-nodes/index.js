@@ -84,6 +84,7 @@ import microsoftAgent365Trigger from './microsoft-agent-365-trigger.js';
 import milvusVectorStore from './milvus-vector-store.js';
 import minimaxChatModel from './minimax-chat-model.js';
 import mistralCloudChatModel from './mistral-cloud-chat-model.js';
+import modelSelector from './model-selector.js';
 import mongodbAtlasVectorStore from './mongodb-atlas-vector-store.js';
 import multiQueryRetriever from './multi-query-retriever.js';
 import moonshotChatModel from './moonshot-chat-model.js';
@@ -108,6 +109,7 @@ import redisChatMemory from './redis-chat-memory.js';
 import recursiveCharacterTextSplitter from './recursive-character-text-splitter.js';
 import readWriteFile from './read-write-file.js';
 import questionAnswerChain from './question-answer-chain.js';
+import rerankerCohere from './reranker-cohere.js';
 import removeDuplicates from './remove-duplicates.js';
 import renameKeys from './rename-keys.js';
 import respondToWebhook from './respond-to-webhook.js';
@@ -320,8 +322,8 @@ export const CLUSTER_NODE_INVENTORY = [
   { type: 'wikipedia-tool', docsSlug: 'n8n-nodes-langchain.toolwikipedia', label: 'Wikipedia', clusterRole: 'sub', status: 'complete' },
   { type: 'wolfram-alpha-tool', docsSlug: 'n8n-nodes-langchain.toolwolframalpha', label: 'Wolfram|Alpha tool', clusterRole: 'sub', status: 'complete' },
   { type: 'call-n8n-workflow-tool', docsSlug: 'n8n-nodes-langchain.toolworkflow', label: 'Call n8n Workflow Tool', clusterRole: 'sub', status: 'complete' },
-  { type: 'reranker-cohere', docsSlug: 'n8n-nodes-langchain.rerankercohere', label: 'Reranker Cohere', clusterRole: 'sub', status: 'pending' },
-  { type: 'model-selector', docsSlug: 'n8n-nodes-langchain.modelselector', label: 'Model Selector', clusterRole: 'sub', status: 'pending' },
+  { type: 'reranker-cohere', docsSlug: 'n8n-nodes-langchain.rerankercohere', label: 'Reranker Cohere', clusterRole: 'sub', status: 'complete' },
+  { type: 'model-selector', docsSlug: 'n8n-nodes-langchain.modelselector', label: 'Model Selector', clusterRole: 'sub', status: 'complete' },
 ];
 
 // Descriptors are imported here after each three-node batch is reviewed. Keeping
@@ -358,6 +360,7 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
     customCodeTool, mcpClientTool, searXngTool,
     serpApiTool, thinkTool, vectorStoreQuestionAnswerTool,
     wikipediaTool, wolframAlphaTool, callN8nWorkflowTool,
+    rerankerCohere, modelSelector,
     aiTransform, code, compareDatasets,
     compression, convertToFile, crypto,
     dataTable, dateTime, debugHelper,

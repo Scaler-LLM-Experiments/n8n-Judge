@@ -1451,6 +1451,44 @@ describe('cluster-node batch 29 carries Wikipedia, Wolfram, and workflow tool su
   });
 });
 
+describe('cluster-node batch 30 completes Cohere reranking and model selection surfaces', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((param) => [param.key, param]));
+  const fields = (param) => Object.fromEntries(param.fields.map((field) => [field.key, field]));
+
+  it('models Reranker Cohere v1 fields, credential metadata, and output', () => {
+    const node = NODE_CATALOG['reranker-cohere'];
+    const p = params('reranker-cohere');
+    expect(node).toMatchObject({ n8nVersion: 1, defaultVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.rerankerCohere' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 3, credentialEditorFieldCount: 2, dynamicFieldCount: 1, totalAuthoringFieldCount: 5 });
+    expect(p.modelName.options.map(({ value }) => value)).toEqual(['rerank-v3.5', 'rerank-english-v3.0', 'rerank-multilingual-v3.0']);
+    expect(p.modelName.value).toBe('rerank-v3.5');
+    expect(p.topN.value).toBe(3);
+    expect(node.credentialUiMetadata[0].fields.map(({ key }) => key)).toEqual(['apiKey', 'url']);
+    expect(node.credentialUiMetadata[0].fields[1]).toMatchObject({ kind: 'hidden', value: 'https://api.cohere.ai' });
+    expect(node.requestDefaultCredentialReferenceMetadata).toMatchObject({ sourceRequestDefaultKey: 'host', declaredCredentialBaseUrlKey: 'url', mismatchPreservedFromSource: true });
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_reranker', label: 'Reranker' })]);
+    expect(node.simulation).toMatchObject({ credentialAccess: false, modelInvocation: false, reranking: false, networkAccess: false });
+  });
+
+  it('models Model Selector v1 dynamic ports and inert ordered rules', () => {
+    const node = NODE_CATALOG['model-selector'];
+    const p = params('model-selector');
+    const ruleFields = fields(p.rules);
+    expect(node).toMatchObject({ n8nVersion: 1, defaultVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.modelSelector', requiredInputs: 1 });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 4, helperGeneratedFieldCount: 1, dynamicFieldCount: 1, totalAuthoringFieldCount: 4 });
+    expect(p.numberInputs.options.map(({ value }) => value)).toEqual([2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    expect(p.numberInputs).toMatchObject({ value: 2, noDataExpression: true, validateType: 'number' });
+    expect(p.rules).toMatchObject({ kind: 'fixedCollection', multiple: true, sortable: true, value: {} });
+    expect(ruleFields.modelIndex).toMatchObject({ value: 1, required: true, dynamic: true, locked: true, loadOptionsMethod: 'getModels' });
+    expect(ruleFields.conditions).toMatchObject({ kind: 'textarea', sourceKind: 'filter', editor: 'json', value: '{}', expressionEvaluation: false });
+    expect(ruleFields.conditions.filter).toEqual({ caseSensitive: true, typeValidation: 'strict', version: 2 });
+    expect(node.portVariants).toHaveLength(9);
+    expect(node.portVariants.map(({ inputs }) => inputs.length)).toEqual([2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_languageModel', label: '' })]);
+    expect(node.simulation).toMatchObject({ localModelOptionLookup: false, filterEvaluation: false, modelSelection: false, supplyData: false });
+  });
+});
+
 // Judge does not implement typeVersion — one shipped schema per node type is the
 // right simplification — but every node must SAY which real node and version it
 // models, or the catalogue drifts from the n8n a learner meets next and nobody
