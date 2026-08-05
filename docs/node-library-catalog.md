@@ -1,6 +1,6 @@
 # n8n node library catalog
 
-Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **122 canonical nodes** (27 triggers, 24 app actions, 71 core/data/AI nodes) plus 10 compatibility aliases.
+Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **125 canonical nodes** (27 triggers, 24 app actions, 74 core/data/AI nodes) plus 10 compatibility aliases.
 
 ## How to choose
 
@@ -80,7 +80,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | YouTube | `youtube` | Consume YouTube API |
 | Zoom | `zoom` | Consume Zoom API |
 
-## Core, data, and AI building blocks (71)
+## Core, data, and AI building blocks (74)
 
 | Node | Catalog type | Function |
 |---|---|---|
@@ -98,6 +98,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Crypto | `crypto` | Provide cryptographic utilities |
 | Data table | `data-table` | Permanently save data across workflow executions in a table |
 | Date & Time | `date-time` | Manipulate date and time values |
+| Default Data Loader | `default-data-loader` | Configure JSON or binary document loading with simple or custom text splitting |
 | DebugHelper | `debug-helper` | Causes problems intentionally and generates useful data for debugging |
 | Edit Fields (Set) | `edit-fields` | Modify, add, or remove item fields |
 | Edit Image | `edit-image` | Edits an image like blur, resize or adding border and text |
@@ -109,6 +110,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Filter | `filter` | Keep only items matching a condition |
 | FTP | `ftp` | Transfer files via FTP or SFTP |
 | Git | `git` | Control git. |
+| GitHub Document Loader | `github-document-loader` | Configure GitHub repository documents and text splitting for AI workflows |
 | GraphQL | `graphql` | Makes a GraphQL request and returns the received data |
 | Guardrails | `guardrails` | Safeguard AI models from malicious input or prevent them from generating undesirable responses |
 | HTML | `html` | Work with HTML |
@@ -155,6 +157,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Wait | `wait` | Wait before continue with execution |
 | Weaviate Vector Store | `weaviate-vector-store` | Configure Weaviate insertion, search, retrieval, and tool modes |
 | XML | `xml` | Convert data from and to XML |
+| Zep Vector Store | `zep-vector-store` | Configure the hidden deprecated Zep insertion, search, retrieval, and tool modes |
 
 ## Compatibility-only aliases (10)
 

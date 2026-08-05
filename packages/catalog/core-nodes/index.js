@@ -17,6 +17,7 @@ import compression from './compression.js';
 import convertToFile from './convert-to-file.js';
 import crypto from './crypto.js';
 import dataTable from './data-table.js';
+import defaultDataLoader from './default-data-loader.js';
 import dateTime from './date-time.js';
 import debugHelper from './debug-helper.js';
 import editImage from './edit-image.js';
@@ -34,6 +35,7 @@ import formTrigger from './form-trigger.js';
 import form from './form.js';
 import ftp from './ftp.js';
 import git from './git.js';
+import githubDocumentLoader from './github-document-loader.js';
 import graphql from './graphql.js';
 import html from './html.js';
 import httpRequest from './http-request.js';
@@ -84,6 +86,7 @@ import wait from './wait.js';
 import webhook from './webhook.js';
 import weaviateVectorStore from './weaviate-vector-store.js';
 import xml from './xml.js';
+import zepVectorStore from './zep-vector-store.js';
 import chatTrigger from './chat-trigger.js';
 import chat from './chat.js';
 import guardrails from './guardrails.js';
@@ -187,9 +190,9 @@ export const CLUSTER_NODE_INVENTORY = [
   { type: 'redis-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoreredis', label: 'Redis Vector Store', clusterRole: 'root', status: 'complete' },
   { type: 'supabase-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoresupabase', label: 'Supabase Vector Store', clusterRole: 'root', status: 'complete' },
   { type: 'weaviate-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoreweaviate', label: 'Weaviate Vector Store', clusterRole: 'root', status: 'complete' },
-  { type: 'zep-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstorezep', label: 'Zep Vector Store', clusterRole: 'root', status: 'pending' },
-  { type: 'default-data-loader', docsSlug: 'n8n-nodes-langchain.documentdefaultdataloader', label: 'Default Data Loader', clusterRole: 'sub', status: 'pending' },
-  { type: 'github-document-loader', docsSlug: 'n8n-nodes-langchain.documentgithubloader', label: 'GitHub Document Loader', clusterRole: 'sub', status: 'pending' },
+  { type: 'zep-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstorezep', label: 'Zep Vector Store', clusterRole: 'root', status: 'complete' },
+  { type: 'default-data-loader', docsSlug: 'n8n-nodes-langchain.documentdefaultdataloader', label: 'Default Data Loader', clusterRole: 'sub', status: 'complete' },
+  { type: 'github-document-loader', docsSlug: 'n8n-nodes-langchain.documentgithubloader', label: 'GitHub Document Loader', clusterRole: 'sub', status: 'complete' },
   { type: 'embeddings-aws-bedrock', docsSlug: 'n8n-nodes-langchain.embeddingsawsbedrock', label: 'Embeddings AWS Bedrock', clusterRole: 'sub', status: 'pending' },
   { type: 'embeddings-azure-openai', docsSlug: 'n8n-nodes-langchain.embeddingsazureopenai', label: 'Embeddings Azure OpenAI', clusterRole: 'sub', status: 'pending' },
   { type: 'embeddings-cohere', docsSlug: 'n8n-nodes-langchain.embeddingscohere', label: 'Embeddings Cohere', clusterRole: 'sub', status: 'pending' },
@@ -270,6 +273,7 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
     mongodbAtlasVectorStore, pgvectorVectorStore, oracleDatabaseVectorStore,
     chromaVectorStore, pineconeVectorStore, qdrantVectorStore,
     redisVectorStore, supabaseVectorStore, weaviateVectorStore,
+    zepVectorStore, defaultDataLoader, githubDocumentLoader,
     aiTransform, code, compareDatasets,
     compression, convertToFile, crypto,
     dataTable, dateTime, debugHelper,

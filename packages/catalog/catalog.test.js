@@ -649,6 +649,37 @@ describe('cluster-node batch 7 carries the remaining current hosted vector-store
   });
 });
 
+describe('cluster-node batch 8 carries the final root node and current document loaders', () => {
+  it('models the hidden deprecated Zep v1.3 factory node without the split legacy nodes', () => {
+    const node = NODE_CATALOG['zep-vector-store'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.3, n8nType: '@n8n/n8n-nodes-langchain.vectorStoreZep', hidden: true, deprecated: true });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 25, credentialEditorFieldCount: 4, operationCount: 4 });
+    expect(params.mode.options.map(({ value }) => value)).toEqual(['load', 'insert', 'retrieve', 'retrieve-as-tool']);
+    expect(params.insertOptions.fields.map(({ key }) => key)).toEqual(['embeddingDimensions', 'isAutoEmbedded']);
+  });
+
+  it('models Default Data Loader v1.1 format, metadata, and text-splitter branches', () => {
+    const node = NODE_CATALOG['default-data-loader'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.1, n8nType: '@n8n/n8n-nodes-langchain.documentDefaultDataLoader' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 16, credentialEditorFieldCount: 0 });
+    expect(params.loader.options.map(({ value }) => value)).toEqual(['auto', 'csvLoader', 'docxLoader', 'epubLoader', 'jsonLoader', 'pdfLoader', 'textLoader']);
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['pointers', 'separator', 'column', 'splitPages', 'metadata']);
+    expect(node.portVariants).toHaveLength(2);
+  });
+
+  it('models GitHub Document Loader v1.1 credentials, options, and custom splitter input', () => {
+    const node = NODE_CATALOG['github-document-loader'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.1, n8nType: '@n8n/n8n-nodes-langchain.documentGithubLoader', hidden: true });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 8, credentialEditorFieldCount: 3 });
+    expect(params.additionalOptions.fields.map(({ key }) => key)).toEqual(['recursive', 'ignorePaths']);
+    expect(params.textSplittingMode.options.map(({ value }) => value)).toEqual(['simple', 'custom']);
+    expect(node.portVariants[1].inputs).toEqual([expect.objectContaining({ type: 'ai_textSplitter', required: true, maxConnections: 1 })]);
+  });
+});
+
 // Judge does not implement typeVersion — one shipped schema per node type is the
 // right simplification — but every node must SAY which real node and version it
 // models, or the catalogue drifts from the n8n a learner meets next and nobody
