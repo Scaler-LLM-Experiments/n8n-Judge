@@ -16,6 +16,7 @@ import azureOpenAiChatModel from './azure-openai-chat-model.js';
 import basicLlmChain from './basic-llm-chain.js';
 import code from './code.js';
 import chatMemoryManager from './chat-memory-manager.js';
+import characterTextSplitter from './character-text-splitter.js';
 import chromaVectorStore from './chroma-vector-store.js';
 import cohereChatModel from './cohere-chat-model.js';
 import cohereModel from './cohere-model.js';
@@ -100,6 +101,7 @@ import qdrantVectorStore from './qdrant-vector-store.js';
 import qwenCloudChatModel from './qwen-cloud-chat-model.js';
 import redisVectorStore from './redis-vector-store.js';
 import redisChatMemory from './redis-chat-memory.js';
+import recursiveCharacterTextSplitter from './recursive-character-text-splitter.js';
 import readWriteFile from './read-write-file.js';
 import questionAnswerChain from './question-answer-chain.js';
 import removeDuplicates from './remove-duplicates.js';
@@ -130,6 +132,7 @@ import vectorStoreRetriever from './vector-store-retriever.js';
 import wait from './wait.js';
 import webhook from './webhook.js';
 import weaviateVectorStore from './weaviate-vector-store.js';
+import workflowRetriever from './workflow-retriever.js';
 import xml from './xml.js';
 import xAiGrokChatModel from './xai-grok-chat-model.js';
 import xataMemory from './xata-memory.js';
@@ -290,9 +293,9 @@ export const CLUSTER_NODE_INVENTORY = [
   { type: 'contextual-compression-retriever', docsSlug: 'n8n-nodes-langchain.retrievercontextualcompression', label: 'Contextual Compression Retriever', clusterRole: 'sub', status: 'complete' },
   { type: 'multi-query-retriever', docsSlug: 'n8n-nodes-langchain.retrievermultiquery', label: 'MultiQuery Retriever', clusterRole: 'sub', status: 'complete' },
   { type: 'vector-store-retriever', docsSlug: 'n8n-nodes-langchain.retrievervectorstore', label: 'Vector Store Retriever', clusterRole: 'sub', status: 'complete' },
-  { type: 'workflow-retriever', docsSlug: 'n8n-nodes-langchain.retrieverworkflow', label: 'Workflow Retriever', clusterRole: 'sub', status: 'pending' },
-  { type: 'character-text-splitter', docsSlug: 'n8n-nodes-langchain.textsplittercharactertextsplitter', label: 'Character Text Splitter', clusterRole: 'sub', status: 'pending' },
-  { type: 'recursive-character-text-splitter', docsSlug: 'n8n-nodes-langchain.textsplitterrecursivecharactertextsplitter', label: 'Recursive Character Text Splitter', clusterRole: 'sub', status: 'pending' },
+  { type: 'workflow-retriever', docsSlug: 'n8n-nodes-langchain.retrieverworkflow', label: 'Workflow Retriever', clusterRole: 'sub', status: 'complete' },
+  { type: 'character-text-splitter', docsSlug: 'n8n-nodes-langchain.textsplittercharactertextsplitter', label: 'Character Text Splitter', clusterRole: 'sub', status: 'complete' },
+  { type: 'recursive-character-text-splitter', docsSlug: 'n8n-nodes-langchain.textsplitterrecursivecharactertextsplitter', label: 'Recursive Character Text Splitter', clusterRole: 'sub', status: 'complete' },
   { type: 'token-splitter', docsSlug: 'n8n-nodes-langchain.textsplittertokensplitter', label: 'Token Splitter', clusterRole: 'sub', status: 'pending' },
   { type: 'ai-agent-tool', docsSlug: 'n8n-nodes-langchain.toolaiagent', label: 'AI Agent Tool', clusterRole: 'sub', status: 'pending' },
   { type: 'calculator', docsSlug: 'n8n-nodes-langchain.toolcalculator', label: 'Calculator', clusterRole: 'sub', status: 'pending' },
@@ -338,6 +341,7 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
     postgresChatMemory, xataMemory, zepMemory,
     autoFixingOutputParser, itemListOutputParser, structuredOutputParser,
     contextualCompressionRetriever, multiQueryRetriever, vectorStoreRetriever,
+    workflowRetriever, characterTextSplitter, recursiveCharacterTextSplitter,
     aiTransform, code, compareDatasets,
     compression, convertToFile, crypto,
     dataTable, dateTime, debugHelper,

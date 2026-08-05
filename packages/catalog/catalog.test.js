@@ -1236,6 +1236,47 @@ describe('cluster-node batch 24 carries current retriever authoring surfaces', (
   });
 });
 
+describe('cluster-node batch 25 carries Workflow Retriever and character-splitter surfaces', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((param) => [param.key, param]));
+  const fields = (param) => Object.fromEntries(param.fields.map((field) => [field.key, field]));
+
+  it('models Workflow Retriever current v1.1 selector and typed values', () => {
+    const node = NODE_CATALOG['workflow-retriever'];
+    const p = params('workflow-retriever');
+    const values = fields(p.fields);
+    expect(node).toMatchObject({ n8nVersion: 1.1, defaultVersion: 1.1, n8nType: '@n8n/n8n-nodes-langchain.retrieverWorkflow' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 12, credentialEditorFieldCount: 0, dynamicFieldCount: 1, totalAuthoringFieldCount: 12 });
+    expect(p.workflowId).toMatchObject({ kind: 'resourceLocator', sourceKind: 'workflowSelector', locked: true, modes: ['list', 'id'] });
+    expect(p.workflowJson).toMatchObject({ kind: 'textarea', sourceKind: 'json', editor: 'json', rows: 10 });
+    expect(p.fields).toMatchObject({ kind: 'fixedCollection', multiple: true, sortable: true, collectionKey: 'values' });
+    expect(values.valueType.options.map(({ value }) => value)).toEqual(['stringValue', 'numberValue', 'booleanValue', 'arrayValue', 'objectValue']);
+    expect(values.objectValue).toMatchObject({ kind: 'textarea', sourceKind: 'json', editor: 'json', rows: 2, showWhen: { valueType: ['objectValue'] } });
+    expect(node.excludedHistoricalAuthoring[0]).toMatchObject({ n8nKey: 'workflowId', sourceVersionCondition: '@version = 1' });
+  });
+
+  it('models Character Text Splitter v1 defaults', () => {
+    const node = NODE_CATALOG['character-text-splitter'];
+    const p = params('character-text-splitter');
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.textSplitterCharacterTextSplitter' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 4, helperGeneratedFieldCount: 1, dynamicFieldCount: 0, totalAuthoringFieldCount: 4 });
+    expect(p.separator.value).toBe('');
+    expect(p.chunkSize.value).toBe(1000);
+    expect(p.chunkOverlap.value).toBe(0);
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_textSplitter', label: 'Text Splitter' })]);
+  });
+
+  it('models Recursive Character Text Splitter v1 and all language options', () => {
+    const node = NODE_CATALOG['recursive-character-text-splitter'];
+    const p = params('recursive-character-text-splitter');
+    const options = fields(p.options);
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 5, supportedLanguageOptionCount: 15, dynamicFieldCount: 0, totalAuthoringFieldCount: 5 });
+    expect(options.splitCode.value).toBe('markdown');
+    expect(options.splitCode.options.map(({ value }) => value)).toEqual(['cpp', 'go', 'java', 'js', 'php', 'proto', 'python', 'rst', 'ruby', 'rust', 'scala', 'swift', 'markdown', 'latex', 'html']);
+    expect(node.simulation).toMatchObject({ separatorSelection: false, textSplitting: false, chunkCreation: false });
+  });
+});
+
 // Judge does not implement typeVersion — one shipped schema per node type is the
 // right simplification — but every node must SAY which real node and version it
 // models, or the catalogue drifts from the n8n a learner meets next and nobody

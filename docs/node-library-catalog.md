@@ -1,6 +1,6 @@
 # n8n node library catalog
 
-Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **173 canonical nodes** (27 triggers, 24 app actions, 122 core/data/AI nodes) plus 10 compatibility aliases.
+Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **176 canonical nodes** (27 triggers, 24 app actions, 125 core/data/AI nodes) plus 10 compatibility aliases.
 
 ## How to choose
 
@@ -80,7 +80,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | YouTube | `youtube` | Consume YouTube API |
 | Zoom | `zoom` | Consume Zoom API |
 
-## Core, data, and AI building blocks (122)
+## Core, data, and AI building blocks (125)
 
 | Node | Catalog type | Function |
 |---|---|---|
@@ -93,6 +93,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Azure AI Search Vector Store | `azure-ai-search-vector-store` | Configure Azure AI Search insertion, search, retrieval, tool, and update modes |
 | Azure OpenAI Chat Model | `azure-openai-chat-model` | Configure an Azure OpenAI chat deployment and completion controls |
 | Basic LLM Chain | `basic-llm-chain` | Prompt a language model with optional messages, fallback model, and output parser |
+| Character Text Splitter | `character-text-splitter` | Configure character-based document chunks, separator, size, and overlap |
 | Chat | `chat` | Send a message into the chat |
 | Chat Memory Manager | `chat-memory-manager` | Retrieve, insert, replace, or delete messages in connected chat memory |
 | Chroma Vector Store | `chroma-vector-store` | Configure Chroma insertion, search, retrieval, and tool modes |
@@ -176,6 +177,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Question and Answer Chain | `question-answer-chain` | Answer questions using a connected retriever and language model |
 | Qwen Cloud Chat Model | `qwen-cloud-chat-model` | Configure a Qwen Cloud language model and completion controls |
 | Read/Write Files from Disk | `read-write-file` | Read or write files from the computer that runs n8n |
+| Recursive Character Text Splitter | `recursive-character-text-splitter` | Configure recursive and language-aware document chunking |
 | Redis Chat Memory | `redis-chat-memory` | Configure Redis-backed chat history, sessions, and expiry |
 | Redis Vector Store | `redis-vector-store` | Configure Redis vector-index insertion, search, retrieval, tool, and update modes |
 | Remove Duplicates | `remove-duplicates` | Delete items with matching field values |
@@ -201,6 +203,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Vector Store Retriever | `vector-store-retriever` | Configure a vector store as a retriever with a result limit |
 | Wait | `wait` | Wait before continue with execution |
 | Weaviate Vector Store | `weaviate-vector-store` | Configure Weaviate insertion, search, retrieval, and tool modes |
+| Workflow Retriever | `workflow-retriever` | Configure an n8n workflow and typed values as a retriever source |
 | Xata | `xata-memory` | Configure Xata-backed chat history and session controls |
 | XML | `xml` | Convert data from and to XML |
 | xAI Grok Chat Model | `xai-grok-chat-model` | Configure an xAI Grok chat model, priority, and reasoning controls |
