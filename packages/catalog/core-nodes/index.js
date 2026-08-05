@@ -16,6 +16,7 @@ import basicLlmChain from './basic-llm-chain.js';
 import code from './code.js';
 import chromaVectorStore from './chroma-vector-store.js';
 import cohereChatModel from './cohere-chat-model.js';
+import cohereModel from './cohere-model.js';
 import compareDatasets from './compare-datasets.js';
 import compression from './compression.js';
 import convertToFile from './convert-to-file.js';
@@ -64,6 +65,7 @@ import jwt from './jwt.js';
 import langchainCode from './langchain-code.js';
 import ldap from './ldap.js';
 import lemonadeChatModel from './lemonade-chat-model.js';
+import lemonadeModel from './lemonade-model.js';
 import localFileTrigger from './local-file-trigger.js';
 import manual from './manual.js';
 import markdown from './markdown.js';
@@ -79,6 +81,7 @@ import n8n from './n8n.js';
 import noop from './noop.js';
 import nvidiaNemotronChatModel from './nvidia-nemotron-chat-model.js';
 import ollamaChatModel from './ollama-chat-model.js';
+import ollamaModel from './ollama-model.js';
 import openAiChatModel from './openai-chat-model.js';
 import openRouterChatModel from './openrouter-chat-model.js';
 import oracleDatabaseVectorStore from './oracle-database-vector-store.js';
@@ -254,9 +257,9 @@ export const CLUSTER_NODE_INVENTORY = [
   { type: 'openrouter-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatopenrouter', label: 'OpenRouter Chat Model', clusterRole: 'sub', status: 'complete' },
   { type: 'vercel-ai-gateway-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatvercel', label: 'Vercel AI Gateway Chat Model', clusterRole: 'sub', status: 'complete' },
   { type: 'xai-grok-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatxaigrok', label: 'xAI Grok Chat Model', clusterRole: 'sub', status: 'complete' },
-  { type: 'cohere-model', docsSlug: 'n8n-nodes-langchain.lmcohere', label: 'Cohere Model', clusterRole: 'sub', status: 'pending' },
-  { type: 'lemonade-model', docsSlug: 'n8n-nodes-langchain.lmlemonade', label: 'Lemonade Model', clusterRole: 'sub', status: 'pending' },
-  { type: 'ollama-model', docsSlug: 'n8n-nodes-langchain.lmollama', label: 'Ollama Model', clusterRole: 'sub', status: 'pending' },
+  { type: 'cohere-model', docsSlug: 'n8n-nodes-langchain.lmcohere', label: 'Cohere Model', clusterRole: 'sub', status: 'complete' },
+  { type: 'lemonade-model', docsSlug: 'n8n-nodes-langchain.lmlemonade', label: 'Lemonade Model', clusterRole: 'sub', status: 'complete' },
+  { type: 'ollama-model', docsSlug: 'n8n-nodes-langchain.lmollama', label: 'Ollama Model', clusterRole: 'sub', status: 'complete' },
   { type: 'huggingface-inference-model', docsSlug: 'n8n-nodes-langchain.lmopenhuggingfaceinference', label: 'Hugging Face Inference Model', clusterRole: 'sub', status: 'pending' },
   { type: 'chat-memory-manager', docsSlug: 'n8n-nodes-langchain.memorymanager', label: 'Chat Memory Manager', clusterRole: 'sub', status: 'pending' },
   { type: 'simple-memory', docsSlug: 'n8n-nodes-langchain.memorybufferwindow', label: 'Simple Memory', clusterRole: 'sub', status: 'pending' },
@@ -314,6 +317,7 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
     minimaxChatModel, mistralCloudChatModel, moonshotChatModel,
     nvidiaNemotronChatModel, ollamaChatModel, openAiChatModel,
     openRouterChatModel, vercelAiGatewayChatModel, xAiGrokChatModel,
+    cohereModel, lemonadeModel, ollamaModel,
     aiTransform, code, compareDatasets,
     compression, convertToFile, crypto,
     dataTable, dateTime, debugHelper,

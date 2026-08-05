@@ -1,6 +1,6 @@
 # n8n node library catalog
 
-Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **155 canonical nodes** (27 triggers, 24 app actions, 104 core/data/AI nodes) plus 10 compatibility aliases.
+Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **158 canonical nodes** (27 triggers, 24 app actions, 107 core/data/AI nodes) plus 10 compatibility aliases.
 
 ## How to choose
 
@@ -96,6 +96,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Chroma Vector Store | `chroma-vector-store` | Configure Chroma insertion, search, retrieval, and tool modes |
 | Code | `code` | Run custom JavaScript or Python code |
 | Cohere Chat Model | `cohere-chat-model` | Configure a Cohere Command chat model and request controls |
+| Cohere Model | `cohere-model` | Configure a Cohere text-completion model and generation controls |
 | Compare Datasets | `compare-datasets` | Compare two inputs for changes |
 | Compression | `compression` | Compress and decompress files |
 | Convert to File | `convert-to-file` | Convert JSON data to binary data |
@@ -140,6 +141,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | LangChain Code | `langchain-code` | Author inert JavaScript text and custom LangChain connection shapes |
 | Ldap | `ldap` | Interact with LDAP servers |
 | Lemonade Chat Model | `lemonade-chat-model` | Configure a Lemonade chat model and completion controls |
+| Lemonade Model | `lemonade-model` | Configure a Lemonade text-completion model and generation controls |
 | Limit | `limit` | Restrict the number of items |
 | Loop Over Items (Split in Batches) | `loop-over-items` | Split data into batches and iterate over each batch |
 | Markdown | `markdown` | Convert data between Markdown and HTML |
@@ -155,6 +157,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | No Operation, do nothing | `noop` | No Operation |
 | NVIDIA Nemotron Chat Model | `nvidia-nemotron-chat-model` | Configure an NVIDIA Nemotron chat model and completion controls |
 | Ollama Chat Model | `ollama-chat-model` | Configure a local Ollama chat model and runtime options |
+| Ollama Model | `ollama-model` | Configure a local Ollama text-completion model and runtime options |
 | OpenAI Chat Model | `openai-chat-model` | Configure OpenAI chat completions, Responses API, and built-in tools |
 | OpenRouter Chat Model | `openrouter-chat-model` | Configure an OpenRouter chat model and completion controls |
 | Oracle Database Vector Store | `oracle-database-vector-store` | Configure Oracle Database vector insertion, search, retrieval, and tool modes |

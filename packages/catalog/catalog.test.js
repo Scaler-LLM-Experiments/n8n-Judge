@@ -1011,6 +1011,43 @@ describe('cluster-node batch 18 carries current OpenRouter, Vercel, and xAI chat
   });
 });
 
+describe('cluster-node batch 19 carries current Cohere, Lemonade, and Ollama completion models', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((param) => [param.key, param]));
+  const optionKeys = (type) => params(type).options.fields.map(({ key }) => key);
+
+  it('models Cohere v1 with its native plain-text model option', () => {
+    const node = NODE_CATALOG['cohere-model'];
+    const options = Object.fromEntries(params('cohere-model').options.fields.map((field) => [field.key, field]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmCohere' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 6, credentialEditorFieldCount: 2, dynamicFieldCount: 1 });
+    expect(optionKeys('cohere-model')).toEqual(['maxTokens', 'model', 'temperature']);
+    expect(options.maxTokens).toMatchObject({ value: 250, maxValue: 32768 });
+    expect(options.model).toMatchObject({ kind: 'text', value: '' });
+    expect(options.temperature).toMatchObject({ value: 0, minValue: 0, maxValue: 1 });
+  });
+
+  it('models Lemonade v1 with the shared required model and six options', () => {
+    const node = NODE_CATALOG['lemonade-model'];
+    const p = params('lemonade-model');
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmLemonade' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 10, credentialEditorFieldCount: 2, dynamicFieldCount: 2, directOptionFieldCount: 6 });
+    expect(p.model).toMatchObject({ value: '', required: true, locked: true, options: [] });
+    expect(optionKeys('lemonade-model')).toEqual(['temperature', 'topP', 'frequencyPenalty', 'presencePenalty', 'maxTokens', 'stop']);
+    expect(node.params).toBe(NODE_CATALOG['lemonade-chat-model'].params);
+  });
+
+  it('models Ollama v1 with all 20 live shared options and no dormant exports', () => {
+    const node = NODE_CATALOG['ollama-model'];
+    const p = params('ollama-model');
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmOllama' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 24, credentialEditorFieldCount: 2, dynamicFieldCount: 2, currentDirectOptionFieldCount: 20 });
+    expect(p.model).toMatchObject({ value: 'llama3.2', required: true, locked: true, options: [] });
+    expect(optionKeys('ollama-model')).toEqual(optionKeys('ollama-chat-model'));
+    expect(node.dormantExportAudit.dormantExports).toEqual([]);
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_languageModel', label: 'Model' })]);
+  });
+});
+
 // Judge does not implement typeVersion — one shipped schema per node type is the
 // right simplification — but every node must SAY which real node and version it
 // models, or the catalogue drifts from the n8n a learner meets next and nobody
