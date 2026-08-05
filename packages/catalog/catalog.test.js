@@ -803,6 +803,38 @@ describe('cluster-node batch 12 closes embeddings and starts current chat models
   });
 });
 
+describe('cluster-node batch 13 carries current Anthropic, Bedrock, and Azure chat models', () => {
+  it('models Anthropic v1.5 thinking modes and locked model discovery', () => {
+    const node = NODE_CATALOG['anthropic-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.5, n8nType: '@n8n/n8n-nodes-langchain.lmChatAnthropic' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 13, credentialEditorFieldCount: 5, dynamicFieldCount: 2 });
+    expect(params.model).toMatchObject({ kind: 'resourceLocator', locked: true, value: { __rl: true, mode: 'list', value: 'claude-sonnet-4-6' } });
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['maxTokensToSample', 'temperature', 'topK', 'topP', 'thinkingMode', 'effortOpus', 'effortNonOpus', 'thinkingBudget', 'streaming']);
+  });
+
+  it('models AWS Bedrock v1.2 combined model discovery and guardrails', () => {
+    const node = NODE_CATALOG['aws-bedrock-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.2, n8nType: '@n8n/n8n-nodes-langchain.lmChatAwsBedrock' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 17, credentialEditorFieldCount: 33, dynamicFieldCount: 3 });
+    expect(params.model).toMatchObject({ value: '', locked: true, options: [] });
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['maxTokensToSample', 'temperature', 'topP', 'maxRetries', 'timeout', 'additionalModelRequestFields', 'latency', 'guardrail']);
+    expect(params.options.fields.find(({ key }) => key === 'guardrail').fields.map(({ sourceN8nKey }) => sourceN8nKey)).toEqual(['guardrailIdentifier', 'guardrailVersion', 'trace']);
+  });
+
+  it('models Azure OpenAI v1 authentication branches and completion controls', () => {
+    const node = NODE_CATALOG['azure-openai-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmChatAzureOpenAi' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 15, credentialEditorFieldCount: 25, credentialSelectorCount: 2 });
+    expect(params.authentication.options.map(({ value }) => value)).toEqual(['azureOpenAiApi', 'azureEntraCognitiveServicesOAuth2Api']);
+    expect(params.model).toMatchObject({ value: '', required: true, remoteLookup: false });
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['frequencyPenalty', 'maxTokens', 'responseFormat', 'presencePenalty', 'temperature', 'timeout', 'maxRetries', 'topP']);
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_languageModel', label: 'Model' })]);
+  });
+});
+
 // Judge does not implement typeVersion — one shipped schema per node type is the
 // right simplification — but every node must SAY which real node and version it
 // models, or the catalogue drifts from the n8n a learner meets next and nobody

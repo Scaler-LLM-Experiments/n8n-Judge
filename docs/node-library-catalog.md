@@ -1,6 +1,6 @@
 # n8n node library catalog
 
-Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **137 canonical nodes** (27 triggers, 24 app actions, 86 core/data/AI nodes) plus 10 compatibility aliases.
+Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **140 canonical nodes** (27 triggers, 24 app actions, 89 core/data/AI nodes) plus 10 compatibility aliases.
 
 ## How to choose
 
@@ -80,14 +80,17 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | YouTube | `youtube` | Consume YouTube API |
 | Zoom | `zoom` | Consume Zoom API |
 
-## Core, data, and AI building blocks (86)
+## Core, data, and AI building blocks (89)
 
 | Node | Catalog type | Function |
 |---|---|---|
 | Aggregate | `aggregate` | Combine a field from many items into a list in a single item |
 | AI Agent | `ai-agent` | Configure a tool-using AI agent with model, memory, tools, and optional structured output |
 | AI Transform | `ai-transform` | Modify data based on instructions written in plain english |
+| Anthropic Chat Model | `anthropic-chat-model` | Configure an Anthropic Claude chat model and current thinking controls |
+| AWS Bedrock Chat Model | `aws-bedrock-chat-model` | Configure an AWS Bedrock chat model, inference profile, and guardrails |
 | Azure AI Search Vector Store | `azure-ai-search-vector-store` | Configure Azure AI Search insertion, search, retrieval, tool, and update modes |
+| Azure OpenAI Chat Model | `azure-openai-chat-model` | Configure an Azure OpenAI chat deployment and completion controls |
 | Basic LLM Chain | `basic-llm-chain` | Prompt a language model with optional messages, fallback model, and output parser |
 | Chat | `chat` | Send a message into the chat |
 | Chroma Vector Store | `chroma-vector-store` | Configure Chroma insertion, search, retrieval, and tool modes |
