@@ -1163,6 +1163,45 @@ describe('cluster-node batch 22 carries current Postgres, Xata, and Zep memory s
   });
 });
 
+describe('cluster-node batch 23 carries current output-parser authoring surfaces', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((param) => [param.key, param]));
+
+  it('models deprecated Auto-fixing Output Parser v1 without parser or model execution', () => {
+    const node = NODE_CATALOG['auto-fixing-output-parser'];
+    const p = params('auto-fixing-output-parser');
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.outputParserAutofixing', deprecated: true });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 4, credentialEditorFieldCount: 0, dynamicFieldCount: 0, totalAuthoringFieldCount: 4 });
+    expect(p.options.fields[0]).toMatchObject({ key: 'prompt', kind: 'textarea', rows: 10 });
+    expect(p.options.fields[0].value).toContain('{error}');
+    expect(node.inputs.map(({ type, maxConnections }) => [type, maxConnections])).toEqual([['ai_languageModel', 1], ['ai_outputParser', 1]]);
+    expect(node.simulation).toMatchObject({ parsing: false, modelInvocation: false, retryInvocation: false });
+  });
+
+  it('models Item List Output Parser v1 defaults and dormant exclusion', () => {
+    const node = NODE_CATALOG['item-list-output-parser'];
+    const p = params('item-list-output-parser');
+    const options = Object.fromEntries(p.options.fields.map((field) => [field.key, field]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.outputParserItemList' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 4, credentialEditorFieldCount: 0, dynamicFieldCount: 0, totalAuthoringFieldCount: 4 });
+    expect(options.numberOfItems.value).toBe(-1);
+    expect(options.separator.value).toBe('\\n');
+    expect(node.excludedDormantAuthoring.map(({ n8nKey }) => n8nKey)).toEqual(['options.parseOutput']);
+  });
+
+  it('models Structured Output Parser v1.3 schema branches and declarative Auto-Fix input', () => {
+    const node = NODE_CATALOG['structured-output-parser'];
+    const p = params('structured-output-parser');
+    expect(node).toMatchObject({ n8nVersion: 1.3, defaultVersion: 1.3, n8nType: '@n8n/n8n-nodes-langchain.outputParserStructured', dynamicPorts: true });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 8, helperGeneratedFieldCount: 5, dynamicFieldCount: 0, totalAuthoringFieldCount: 8 });
+    expect(p.schemaType.options.map(({ value }) => value)).toEqual(['fromJson', 'manual']);
+    expect(p.jsonSchemaExample).toMatchObject({ kind: 'textarea', editor: 'json', showWhen: { schemaType: ['fromJson'] } });
+    expect(p.inputSchema).toMatchObject({ kind: 'textarea', editor: 'json', showWhen: { schemaType: ['manual'] } });
+    expect(p.prompt.showWhen).toEqual({ autoFix: [true], customizeRetryPrompt: [true] });
+    expect(node.portVariants[1].inputs).toEqual([expect.objectContaining({ type: 'ai_languageModel', maxConnections: 1, required: true })]);
+    expect(node.excludedHistoricalAuthoring.map(({ n8nKey }) => n8nKey)).toEqual(['jsonSchema']);
+  });
+});
+
 // Judge does not implement typeVersion — one shipped schema per node type is the
 // right simplification — but every node must SAY which real node and version it
 // models, or the catalogue drifts from the n8n a learner meets next and nobody

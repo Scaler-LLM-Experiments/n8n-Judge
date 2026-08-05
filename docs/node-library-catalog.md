@@ -1,6 +1,6 @@
 # n8n node library catalog
 
-Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **167 canonical nodes** (27 triggers, 24 app actions, 116 core/data/AI nodes) plus 10 compatibility aliases.
+Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **170 canonical nodes** (27 triggers, 24 app actions, 119 core/data/AI nodes) plus 10 compatibility aliases.
 
 ## How to choose
 
@@ -80,7 +80,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | YouTube | `youtube` | Consume YouTube API |
 | Zoom | `zoom` | Consume Zoom API |
 
-## Core, data, and AI building blocks (101)
+## Core, data, and AI building blocks (119)
 
 | Node | Catalog type | Function |
 |---|---|---|
@@ -88,6 +88,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | AI Agent | `ai-agent` | Configure a tool-using AI agent with model, memory, tools, and optional structured output |
 | AI Transform | `ai-transform` | Modify data based on instructions written in plain english |
 | Anthropic Chat Model | `anthropic-chat-model` | Configure an Anthropic Claude chat model and current thinking controls |
+| Auto-fixing Output Parser | `auto-fixing-output-parser` | Configure the deprecated parser wrapper and retry prompt without invoking a model |
 | AWS Bedrock Chat Model | `aws-bedrock-chat-model` | Configure an AWS Bedrock chat model, inference profile, and guardrails |
 | Azure AI Search Vector Store | `azure-ai-search-vector-store` | Configure Azure AI Search insertion, search, retrieval, tool, and update modes |
 | Azure OpenAI Chat Model | `azure-openai-chat-model` | Configure an Azure OpenAI chat deployment and completion controls |
@@ -139,6 +140,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Hugging Face Inference Model | `huggingface-inference-model` | Configure a Hugging Face text-generation model and inference controls |
 | If | `if` | Route items to different branches (true/false) |
 | Information Extractor | `information-extractor` | Extract structured information from text using a connected language model |
+| Item List Output Parser | `item-list-output-parser` | Configure how model text would be split into a limited list of items |
 | JWT | `jwt` | JWT |
 | LangChain Code | `langchain-code` | Author inert JavaScript text and custom LangChain connection shapes |
 | Ldap | `ldap` | Interact with LDAP servers |
@@ -186,6 +188,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Split Out | `split-out` | Turn a list inside item(s) into separate items |
 | SSH | `ssh` | Execute commands via SSH |
 | Stop and Error | `stop-and-error` | Throw an error in the workflow |
+| Structured Output Parser | `structured-output-parser` | Configure JSON output structure and optional model-assisted retry metadata |
 | Supabase Vector Store | `supabase-vector-store` | Configure Supabase insertion, search, retrieval, tool, and update modes |
 | Summarization Chain | `summarization-chain` | Summarize JSON, binary, or loaded documents with configurable chunking and prompts |
 | Summarize | `summarize-items` | Sum, count, max, etc. across items |

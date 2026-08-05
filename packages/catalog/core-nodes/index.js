@@ -8,6 +8,7 @@
 
 import aiTransform from './ai-transform.js';
 import aiAgent from './ai-agent.js';
+import autoFixingOutputParser from './auto-fixing-output-parser.js';
 import anthropicChatModel from './anthropic-chat-model.js';
 import awsBedrockChatModel from './aws-bedrock-chat-model.js';
 import azureAiSearchVectorStore from './azure-ai-search-vector-store.js';
@@ -63,6 +64,7 @@ import huggingFaceInferenceModel from './huggingface-inference-model.js';
 import httpRequest from './http-request.js';
 import ifNode from './if.js';
 import informationExtractor from './information-extractor.js';
+import itemListOutputParser from './item-list-output-parser.js';
 import jwt from './jwt.js';
 import langchainCode from './langchain-code.js';
 import ldap from './ldap.js';
@@ -115,6 +117,7 @@ import loopOverItems from './loop-over-items.js';
 import sseTrigger from './sse-trigger.js';
 import ssh from './ssh.js';
 import stopAndError from './stop-and-error.js';
+import structuredOutputParser from './structured-output-parser.js';
 import summarizationChain from './summarization-chain.js';
 import summarizeItems from './summarize-items.js';
 import switchNode from './switch.js';
@@ -278,9 +281,9 @@ export const CLUSTER_NODE_INVENTORY = [
   { type: 'postgres-chat-memory', docsSlug: 'n8n-nodes-langchain.memorypostgreschat', label: 'Postgres Chat Memory', clusterRole: 'sub', status: 'complete' },
   { type: 'xata-memory', docsSlug: 'n8n-nodes-langchain.memoryxata', label: 'Xata', clusterRole: 'sub', status: 'complete' },
   { type: 'zep-memory', docsSlug: 'n8n-nodes-langchain.memoryzep', label: 'Zep', clusterRole: 'sub', status: 'complete' },
-  { type: 'auto-fixing-output-parser', docsSlug: 'n8n-nodes-langchain.outputparserautofixing', label: 'Auto-fixing Output Parser', clusterRole: 'sub', status: 'pending' },
-  { type: 'item-list-output-parser', docsSlug: 'n8n-nodes-langchain.outputparseritemlist', label: 'Item List Output Parser', clusterRole: 'sub', status: 'pending' },
-  { type: 'structured-output-parser', docsSlug: 'n8n-nodes-langchain.outputparserstructured', label: 'Structured Output Parser', clusterRole: 'sub', status: 'pending' },
+  { type: 'auto-fixing-output-parser', docsSlug: 'n8n-nodes-langchain.outputparserautofixing', label: 'Auto-fixing Output Parser', clusterRole: 'sub', status: 'complete' },
+  { type: 'item-list-output-parser', docsSlug: 'n8n-nodes-langchain.outputparseritemlist', label: 'Item List Output Parser', clusterRole: 'sub', status: 'complete' },
+  { type: 'structured-output-parser', docsSlug: 'n8n-nodes-langchain.outputparserstructured', label: 'Structured Output Parser', clusterRole: 'sub', status: 'complete' },
   { type: 'contextual-compression-retriever', docsSlug: 'n8n-nodes-langchain.retrievercontextualcompression', label: 'Contextual Compression Retriever', clusterRole: 'sub', status: 'pending' },
   { type: 'multi-query-retriever', docsSlug: 'n8n-nodes-langchain.retrievermultiquery', label: 'MultiQuery Retriever', clusterRole: 'sub', status: 'pending' },
   { type: 'vector-store-retriever', docsSlug: 'n8n-nodes-langchain.retrievervectorstore', label: 'Vector Store Retriever', clusterRole: 'sub', status: 'pending' },
@@ -330,6 +333,7 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
     huggingFaceInferenceModel, chatMemoryManager, simpleMemory,
     motorhead, mongodbChatMemory, redisChatMemory,
     postgresChatMemory, xataMemory, zepMemory,
+    autoFixingOutputParser, itemListOutputParser, structuredOutputParser,
     aiTransform, code, compareDatasets,
     compression, convertToFile, crypto,
     dataTable, dateTime, debugHelper,
