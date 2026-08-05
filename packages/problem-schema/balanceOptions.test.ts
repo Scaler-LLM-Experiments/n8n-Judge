@@ -27,14 +27,55 @@ function positions(p: Rec) {
   return { fields, diss, probes };
 }
 
+/**
+ * A deliberately biased problem: every correct answer parked at index 0.
+ *
+ * This is a FIXTURE, not a sample of the catalogue, and the distinction is the whole
+ * point. The describe below documents the *input* `balanceProblemOptions` exists to
+ * fix, and it used to assert that against the live registry — which was true only
+ * while `email-triage` was the only problem, and which quietly inverted the authoring
+ * rule: any new problem that spread its answers properly (as
+ * `.claude/skills/authoring-a-problem/SKILL.md` §5 requires, and as
+ * `expense-approvals` does) turned this test red for doing the right thing.
+ *
+ * Pinning the biased input here keeps the characterisation honest and frees the
+ * catalogue to obey the rule. Authored balance is guarded where it belongs — by
+ * `apps/web/scripts/verify-option-balance.mjs` and by `npm run problem:check`, which
+ * report the real distribution per problem.
+ */
+const BIASED: Rec = {
+  dissection: [
+    { correctType: 'trigger', options: [{ type: 'trigger' }, { type: 'switch' }, { type: 'action' }] },
+    { correctType: 'classify', options: [{ type: 'classify' }, { type: 'parse' }, { type: 'code' }] },
+    { correctType: 'switch', options: [{ type: 'switch' }, { type: 'if' }, { type: 'filter' }] },
+  ],
+  nodeSetup: {
+    classify: {
+      fields: [
+        { key: 'a', options: [{ correct: true }, {}, {}] },
+        { key: 'b', options: [{ correct: true }, {}, {}] },
+        { key: 'c', options: [{ correct: true }, {}, {}] },
+      ],
+    },
+  },
+  nodeProbes: {
+    parse: { options: [{ correct: true }, {}, {}] },
+    code: { options: [{ correct: true }, {}, {}] },
+  },
+};
+
 describe('the authored data really is biased — this is what we are fixing', () => {
   it('puts the correct option first in every graded list', () => {
-    for (const p of all) {
-      const { fields, diss, probes } = positions(p);
-      expect(fields.every((i) => i === 0)).toBe(true);
-      expect(diss.every((i) => i === 0)).toBe(true);
-      expect(probes.every((i) => i === 0)).toBe(true);
-    }
+    const { fields, diss, probes } = positions(BIASED);
+    expect(fields.every((i) => i === 0)).toBe(true);
+    expect(diss.every((i) => i === 0)).toBe(true);
+    expect(probes.every((i) => i === 0)).toBe(true);
+  });
+
+  it('and balancing is what moves them off the top', () => {
+    const { fields, diss } = positions(balanceProblemOptions(BIASED));
+    expect(fields.some((i) => i !== 0)).toBe(true);
+    expect(diss.some((i) => i !== 0)).toBe(true);
   });
 });
 
