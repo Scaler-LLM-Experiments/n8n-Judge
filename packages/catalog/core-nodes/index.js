@@ -16,6 +16,7 @@ import azureAiSearchVectorStore from './azure-ai-search-vector-store.js';
 import azureOpenAiChatModel from './azure-openai-chat-model.js';
 import basicLlmChain from './basic-llm-chain.js';
 import calculator from './calculator.js';
+import callN8nWorkflowTool from './call-n8n-workflow-tool.js';
 import code from './code.js';
 import chatMemoryManager from './chat-memory-manager.js';
 import characterTextSplitter from './character-text-splitter.js';
@@ -140,6 +141,8 @@ import vectorStoreQuestionAnswerTool from './vector-store-question-answer-tool.j
 import wait from './wait.js';
 import webhook from './webhook.js';
 import weaviateVectorStore from './weaviate-vector-store.js';
+import wikipediaTool from './wikipedia-tool.js';
+import wolframAlphaTool from './wolfram-alpha-tool.js';
 import workflowRetriever from './workflow-retriever.js';
 import xml from './xml.js';
 import xAiGrokChatModel from './xai-grok-chat-model.js';
@@ -314,9 +317,9 @@ export const CLUSTER_NODE_INVENTORY = [
   { type: 'serpapi-tool', docsSlug: 'n8n-nodes-langchain.toolserpapi', label: 'SerpApi (Google Search)', clusterRole: 'sub', status: 'complete' },
   { type: 'think-tool', docsSlug: 'n8n-nodes-langchain.toolthink', label: 'Think Tool', clusterRole: 'sub', status: 'complete' },
   { type: 'vector-store-question-answer-tool', docsSlug: 'n8n-nodes-langchain.toolvectorstore', label: 'Vector Store Question Answer Tool', clusterRole: 'sub', status: 'complete' },
-  { type: 'wikipedia-tool', docsSlug: 'n8n-nodes-langchain.toolwikipedia', label: 'Wikipedia', clusterRole: 'sub', status: 'pending' },
-  { type: 'wolfram-alpha-tool', docsSlug: 'n8n-nodes-langchain.toolwolframalpha', label: 'Wolfram|Alpha tool', clusterRole: 'sub', status: 'pending' },
-  { type: 'call-n8n-workflow-tool', docsSlug: 'n8n-nodes-langchain.toolworkflow', label: 'Call n8n Workflow Tool', clusterRole: 'sub', status: 'pending' },
+  { type: 'wikipedia-tool', docsSlug: 'n8n-nodes-langchain.toolwikipedia', label: 'Wikipedia', clusterRole: 'sub', status: 'complete' },
+  { type: 'wolfram-alpha-tool', docsSlug: 'n8n-nodes-langchain.toolwolframalpha', label: 'Wolfram|Alpha tool', clusterRole: 'sub', status: 'complete' },
+  { type: 'call-n8n-workflow-tool', docsSlug: 'n8n-nodes-langchain.toolworkflow', label: 'Call n8n Workflow Tool', clusterRole: 'sub', status: 'complete' },
   { type: 'reranker-cohere', docsSlug: 'n8n-nodes-langchain.rerankercohere', label: 'Reranker Cohere', clusterRole: 'sub', status: 'pending' },
   { type: 'model-selector', docsSlug: 'n8n-nodes-langchain.modelselector', label: 'Model Selector', clusterRole: 'sub', status: 'pending' },
 ];
@@ -354,6 +357,7 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
     tokenSplitter, aiAgentTool, calculator,
     customCodeTool, mcpClientTool, searXngTool,
     serpApiTool, thinkTool, vectorStoreQuestionAnswerTool,
+    wikipediaTool, wolframAlphaTool, callN8nWorkflowTool,
     aiTransform, code, compareDatasets,
     compression, convertToFile, crypto,
     dataTable, dateTime, debugHelper,

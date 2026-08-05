@@ -1412,6 +1412,45 @@ describe('cluster-node batch 28 carries SerpApi, Think, and vector-store QA tool
   });
 });
 
+describe('cluster-node batch 29 carries Wikipedia, Wolfram, and workflow tool surfaces', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((param) => [param.key, param]));
+
+  it('models Wikipedia v1 as one notice and one inert tool output', () => {
+    const node = NODE_CATALOG['wikipedia-tool'];
+    const p = params('wikipedia-tool');
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.toolWikipedia' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 1, helperGeneratedFieldCount: 1, dynamicFieldCount: 0, totalAuthoringFieldCount: 1 });
+    expect(p.agentConnectionNotice.label).toContain('connected to an AI agent');
+    expect(node.source.runtimeToolMetadataExcluded.description).toContain('Wikipedia API');
+    expect(node.source.runtimeErrorClassificationExcluded.errorLevel).toEqual(['TypeError', 'RangeError', 'ReferenceError', 'SyntaxError']);
+    expect(node.simulation).toMatchObject({ wikipediaAccess: false, toolInvocation: false, errorClassification: false });
+  });
+
+  it('models Wolfram|Alpha v1 locked App ID credential and exact test metadata', () => {
+    const node = NODE_CATALOG['wolfram-alpha-tool'];
+    const p = params('wolfram-alpha-tool');
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.toolWolframAlpha' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 2, credentialEditorFieldCount: 1, dynamicFieldCount: 1, totalAuthoringFieldCount: 3 });
+    expect(p.wolframAlphaCredential).toMatchObject({ sourceKind: 'credentials', locked: true });
+    expect(node.credentialUiMetadata[0].fields).toEqual([expect.objectContaining({ key: 'appId', password: true, required: true, locked: true })]);
+    expect(node.credentialUiMetadata[0].test).toMatchObject({ baseURL: 'https://api.wolframalpha.com/v1', url: '=/simple', inert: true });
+    expect(node.simulation).toMatchObject({ credentialAccess: false, wolframAccess: false, toolInvocation: false });
+  });
+
+  it('models Call n8n Workflow Tool current v2.2 selector and resource mapper', () => {
+    const node = NODE_CATALOG['call-n8n-workflow-tool'];
+    const p = params('call-n8n-workflow-tool');
+    expect(node).toMatchObject({ n8nVersion: 2.2, defaultVersion: 2.2, n8nType: '@n8n/n8n-nodes-langchain.toolWorkflow' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 12, sourceVisibleFieldCount: 8, normalizedDynamicShellFieldCount: 4, dynamicFieldCount: 2, totalAuthoringFieldCount: 12 });
+    expect(p.workflowId).toMatchObject({ kind: 'resourceLocator', sourceKind: 'workflowSelector', locked: true, modes: ['list', 'id'] });
+    expect(p.workflowInputs).toMatchObject({ kind: 'collection', sourceKind: 'resourceMapper', locked: true, loadOptionsDependsOn: ['workflowId.value'] });
+    expect(p.workflowInputs.resourceMapper).toMatchObject({ localResourceMapperMethod: 'loadSubWorkflowInputs', refreshStaleSchemaOnOpen: true, inert: true });
+    expect(p.workflowJson).toMatchObject({ kind: 'textarea', sourceKind: 'json', editor: 'json', rows: 10, value: '\n\n\n\n\n\n\n\n\n' });
+    expect(node.excludedHistoricalAuthoring).toHaveLength(10);
+    expect(node.simulation).toMatchObject({ workflowBrowsing: false, workflowInputSchemaLoading: false, resourceMapping: false, workflowExecution: false });
+  });
+});
+
 // Judge does not implement typeVersion — one shipped schema per node type is the
 // right simplification — but every node must SAY which real node and version it
 // models, or the catalogue drifts from the n8n a learner meets next and nobody

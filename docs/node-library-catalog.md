@@ -1,6 +1,6 @@
 # n8n node library catalog
 
-Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **185 canonical nodes** (27 triggers, 24 app actions, 134 core/data/AI nodes) plus 10 compatibility aliases.
+Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **188 canonical nodes** (27 triggers, 24 app actions, 137 core/data/AI nodes) plus 10 compatibility aliases.
 
 ## How to choose
 
@@ -80,7 +80,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | YouTube | `youtube` | Consume YouTube API |
 | Zoom | `zoom` | Consume Zoom API |
 
-## Core, data, and AI building blocks (134)
+## Core, data, and AI building blocks (137)
 
 | Node | Catalog type | Function |
 |---|---|---|
@@ -95,6 +95,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Azure OpenAI Chat Model | `azure-openai-chat-model` | Configure an Azure OpenAI chat deployment and completion controls |
 | Basic LLM Chain | `basic-llm-chain` | Prompt a language model with optional messages, fallback model, and output parser |
 | Calculator | `calculator` | Connect an inert arithmetic tool descriptor to an AI Agent |
+| Call n8n Workflow Tool | `call-n8n-workflow-tool` | Configure another n8n workflow and mapped trigger inputs as an AI tool |
 | Character Text Splitter | `character-text-splitter` | Configure character-based document chunks, separator, size, and overlap |
 | Chat | `chat` | Send a message into the chat |
 | Chat Memory Manager | `chat-memory-manager` | Retrieve, insert, replace, or delete messages in connected chat memory |
@@ -212,6 +213,8 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Vector Store Question Answer Tool | `vector-store-question-answer-tool` | Configure vector-store question answering with a data description and result limit |
 | Wait | `wait` | Wait before continue with execution |
 | Weaviate Vector Store | `weaviate-vector-store` | Configure Weaviate insertion, search, retrieval, and tool modes |
+| Wikipedia | `wikipedia-tool` | Connect an inert Wikipedia lookup tool descriptor to an AI Agent |
+| Wolfram|Alpha tool | `wolfram-alpha-tool` | Configure a locked Wolfram Alpha credential for an AI tool |
 | Workflow Retriever | `workflow-retriever` | Configure an n8n workflow and typed values as a retriever source |
 | Xata | `xata-memory` | Configure Xata-backed chat history and session controls |
 | XML | `xml` | Convert data from and to XML |
