@@ -1,0 +1,285 @@
+// Editor-only descriptor for Embeddings Lemonade v1.
+// Credentials, remote models, expressions, APIs, embeddings, and execution stay inert.
+
+const embeddingOutput = {
+  type: 'ai_embedding',
+  connector: 'ai_embedding',
+  label: 'Embeddings',
+  displayName: 'Embeddings',
+  required: true,
+};
+
+const credentialDefinition = {
+  type: 'lemonadeApi',
+  name: 'Lemonade',
+  required: true,
+  documentationUrl: 'lemonade',
+  sourcePath: 'packages/@n8n/nodes-langchain/credentials/LemonadeApi.credentials.ts',
+  renderedInCredentialEditor: false,
+  locked: true,
+  inert: true,
+  fields: [
+    {
+      key: 'baseUrl',
+      n8nKey: 'baseUrl',
+      label: 'Base URL',
+      kind: 'text',
+      value: 'http://localhost:8000/api/v1',
+      required: true,
+      locked: true,
+    },
+    {
+      key: 'apiKey',
+      n8nKey: 'apiKey',
+      label: 'API Key',
+      kind: 'text',
+      value: '',
+      required: false,
+      locked: true,
+      password: true,
+      hint:
+        'Optional API key for Lemonade server authentication. Not required for default Lemonade installation',
+    },
+  ],
+  authenticate: {
+    type: 'conditionalBearerHeader',
+    condition: 'apiKey is non-empty after trimming',
+    header: 'Authorization',
+    valueTemplate: 'Bearer ${apiKey}',
+    inert: true,
+  },
+  test: {
+    baseURL: '={{ $credentials.baseUrl }}',
+    url: '/models',
+    method: 'GET',
+    inert: true,
+  },
+};
+
+const embeddingsLemonade = {
+  type: 'embeddings-lemonade',
+  n8nType: '@n8n/n8n-nodes-langchain.embeddingsLemonade',
+  packageName: '@n8n/n8n-nodes-langchain',
+  n8nVersion: 1,
+  defaultVersion: 1,
+  versionHistory: [1],
+  label: 'Embeddings Lemonade',
+  defaultName: 'Embeddings Lemonade',
+  subtitle: '',
+  description: 'Use Lemonade Embeddings',
+  details:
+    'Configure an embedding model managed by a Lemonade server. This catalog entry never reads credentials, lists models, or generates embeddings.',
+  category: 'core',
+  libraryCategory: 'ai',
+  categories: ['AI'],
+  subcategory: 'Embeddings',
+  subcategories: ['Embeddings'],
+  subcategoryMap: { AI: ['Embeddings'] },
+  group: ['transform'],
+  inputs: [],
+  outputs: [embeddingOutput],
+  outputNames: ['Embeddings'],
+  aiConnectorPorts: [embeddingOutput],
+  usableAsTool: false,
+  icon: '/node-icons/embeddings-lemonade.svg',
+  n8nIcon: { light: 'file:lemonade.svg', dark: 'file:lemonade.svg' },
+  iconMode: 'image',
+  iconAssetType: 'svg',
+  iconAssetSize: { width: 32, height: 32, viewBox: '0 0 32 32' },
+  iconAssetSha256: 'bfa64b2b3f31977515f1380285a461d82abb54c0ec1a251b9358bd1000514b71',
+  aliases: [],
+  docs:
+    'https://docs.n8n.io/integrations/builtin/cluster-nodes/sub-nodes/n8n-nodes-langchain.embeddingslemonade/',
+  requestDefaults: {
+    ignoreHttpStatusErrors: true,
+    baseURL: '={{ $credentials.baseUrl.replace(new RegExp("/$"), "") }}',
+    inert: true,
+  },
+  source: {
+    commit: '3d68c29b9281f14097aa9f15e01ac0777e538b11',
+    path:
+      'packages/@n8n/nodes-langchain/nodes/embeddings/EmbeddingsLemonade/EmbeddingsLemonade.node.ts',
+    sharedDescriptionPath:
+      'packages/@n8n/nodes-langchain/nodes/llms/LMLemonade/description.ts',
+    credentialPath: credentialDefinition.sourcePath,
+    sharedFieldsPath: 'packages/@n8n/ai-utilities/src/utils/shared-fields.ts',
+    iconPath:
+      'packages/@n8n/nodes-langchain/nodes/embeddings/EmbeddingsLemonade/lemonade.svg',
+    directDescriptionImports: [
+      {
+        module: '@n8n/ai-utilities',
+        names: ['getConnectionHintNoticeField'],
+      },
+      {
+        module: '../../llms/LMLemonade/description',
+        names: ['lemonadeDescription', 'lemonadeModel'],
+      },
+    ],
+    runtimeImportsExcluded: [
+      { module: '@langchain/openai', names: ['OpenAIEmbeddings'] },
+      { module: '@n8n/ai-utilities', names: ['logWrapper'] },
+      {
+        module: '../../../credentials/LemonadeApi.credentials',
+        names: ['LemonadeApiCredentialsType'],
+        typeOnly: true,
+      },
+    ],
+  },
+  defaults: { name: 'Embeddings Lemonade' },
+  credentials: [
+    {
+      name: 'lemonadeApi',
+      type: 'lemonadeApi',
+      displayName: 'Lemonade',
+      required: true,
+      locked: true,
+      sourcePath: credentialDefinition.sourcePath,
+    },
+  ],
+  credentialRequirements: [
+    {
+      type: 'lemonadeApi',
+      name: 'Lemonade',
+      required: true,
+      locked: true,
+      inert: true,
+    },
+  ],
+  credentialUiMetadata: [credentialDefinition],
+  methods: {
+    loadOptions: {
+      model: {
+        request: {
+          method: 'GET',
+          url: '/models',
+          credentialType: 'lemonadeApi',
+        },
+        response: {
+          rootProperty: 'data',
+          mapping: {
+            label: '={{$responseItem.id}}',
+            value: '={{$responseItem.id}}',
+          },
+          sortBy: 'name',
+        },
+        inert: true,
+      },
+    },
+  },
+  params: [
+    {
+      key: 'lemonadeCredential',
+      n8nKey: 'credentials.lemonadeApi',
+      sourceN8nKey: 'credentials',
+      label: 'Credentials',
+      kind: 'select',
+      sourceKind: 'credentials',
+      value: 'lemonadeApi',
+      required: true,
+      locked: true,
+      dynamicOptions: {
+        source: 'credentialStore',
+        credentialType: 'lemonadeApi',
+        inert: true,
+      },
+      options: [{ label: 'Lemonade', value: 'lemonadeApi' }],
+      simulationNote: 'The selector is locked and never creates, reads, tests, or applies credentials.',
+    },
+    {
+      key: 'connectionNotice',
+      n8nKey: 'notice',
+      sourceN8nKey: 'notice',
+      label:
+        "This node must be connected to a vector store. <a data-action='openSelectiveNodeCreator' data-action-parameter-connectiontype='ai_vectorStore'>Insert one</a>",
+      kind: 'notice',
+      sourceKind: 'notice',
+      value: '',
+      required: false,
+      containerClass: 'ndv-connection-hint-notice',
+    },
+    {
+      key: 'model',
+      n8nKey: 'model',
+      sourceN8nKey: 'model',
+      label: 'Model',
+      kind: 'select',
+      sourceKind: 'options',
+      value: '',
+      required: true,
+      locked: true,
+      dynamic: true,
+      options: [],
+      description:
+        'The model which will generate the completion. Models are loaded and managed through the Lemonade server.',
+      dynamicOptions: {
+        credentialType: 'lemonadeApi',
+        request: { method: 'GET', url: '/models' },
+        responseRoot: 'data',
+        mapLabel: 'id',
+        mapValue: 'id',
+        sortBy: 'name',
+        inert: true,
+      },
+      routing: { send: { type: 'body', property: 'model', inert: true } },
+      simulationNote: 'Remote model options are locked and empty; no Lemonade model is loaded or invoked.',
+    },
+  ],
+  authoringParity: {
+    currentVersion: 1,
+    recursiveFieldCount: 3,
+    sourceVisibleFieldCount: 2,
+    credentialSelectorCount: 1,
+    credentialEditorFieldCount: 2,
+    dynamicFieldCount: 2,
+    inputPortCount: 0,
+    outputPortCount: 1,
+    outputPorts: [{ type: 'ai_embedding', name: 'Embeddings' }],
+    modelRequired: true,
+  },
+  dynamicAuthoringMetadata: {
+    credentialSelectors: ['lemonadeCredential'],
+    lockedFields: ['lemonadeCredential', 'model'],
+    remoteDynamicFields: ['lemonadeCredential', 'model'],
+  },
+  rendererNormalizations: [
+    {
+      n8nKey: 'credentials.lemonadeApi',
+      sourceType: 'required credential selector',
+      normalizedKind: 'locked select',
+    },
+    {
+      n8nKey: 'model',
+      sourceType: 'required options with routing loadOptions',
+      normalizedKind: 'locked empty select retaining routing metadata',
+    },
+  ],
+  platformGaps: [
+    'Credential selection/editing/testing and conditional bearer authentication are locked inert metadata.',
+    'Model discovery never requests the Lemonade /models endpoint; the locked options list remains empty.',
+    'Credential, request-default, routing, and response expressions are stored without evaluation.',
+    'OpenAIEmbeddings construction, model invocation, embedding generation, custom headers, and logging never run.',
+  ],
+  simulation: {
+    configurationOnly: true,
+    credentialCreation: false,
+    credentialAccess: false,
+    credentialTesting: false,
+    authentication: false,
+    dynamicLookups: false,
+    modelListing: false,
+    expressionResolution: false,
+    customHeaders: false,
+    modelInvocation: false,
+    embeddingGeneration: false,
+    workflowExecution: false,
+    supplyData: false,
+    networkAccess: false,
+    apiCalls: false,
+    webhooks: false,
+    polling: false,
+    voice: false,
+  },
+  output: {},
+};
+
+export default embeddingsLemonade;

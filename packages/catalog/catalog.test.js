@@ -743,6 +743,36 @@ describe('cluster-node batch 10 carries the Google and Hugging Face embedding su
   });
 });
 
+describe('cluster-node batch 11 carries the local and cloud routed embedding surfaces', () => {
+  it('models Lemonade v1 with the exact required routed model source', () => {
+    const node = NODE_CATALOG['embeddings-lemonade'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.embeddingsLemonade' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 3, credentialEditorFieldCount: 2, dynamicFieldCount: 2 });
+    expect(params.model).toMatchObject({ required: true, locked: true, options: [] });
+    expect(node.methods.loadOptions.model).toMatchObject({ request: { method: 'GET', url: '/models' } });
+  });
+
+  it('models Mistral Cloud v1 routed model discovery and native options', () => {
+    const node = NODE_CATALOG['embeddings-mistral-cloud'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.embeddingsMistralCloud' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 6, credentialEditorFieldCount: 1, dynamicModelLookupCount: 1 });
+    expect(params.model).toMatchObject({ value: 'mistral-embed', locked: true });
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['batchSize', 'stripNewLines']);
+  });
+
+  it('models Ollama v1 with the exact required model routing and no dormant options', () => {
+    const node = NODE_CATALOG['embeddings-ollama'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.embeddingsOllama' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 3, credentialEditorFieldCount: 2, dynamicFieldCount: 2 });
+    expect(params.model).toMatchObject({ value: 'llama3.2', required: true, locked: true, options: [] });
+    expect(node.excludedDormantAuthoring[0].sourceExport).toBe('ollamaOptions');
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_embedding', label: 'Embeddings' })]);
+  });
+});
+
 // Judge does not implement typeVersion — one shipped schema per node type is the
 // right simplification — but every node must SAY which real node and version it
 // models, or the catalogue drifts from the n8n a learner meets next and nobody

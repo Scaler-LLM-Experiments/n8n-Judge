@@ -28,6 +28,9 @@ import embeddingsCohere from './embeddings-cohere.js';
 import embeddingsGoogleGemini from './embeddings-google-gemini.js';
 import embeddingsGoogleVertex from './embeddings-google-vertex.js';
 import embeddingsHuggingFaceInference from './embeddings-huggingface-inference.js';
+import embeddingsLemonade from './embeddings-lemonade.js';
+import embeddingsMistralCloud from './embeddings-mistral-cloud.js';
+import embeddingsOllama from './embeddings-ollama.js';
 import errorTrigger from './error-trigger.js';
 import evaluationTrigger from './evaluation-trigger.js';
 import evaluation from './evaluation.js';
@@ -206,9 +209,9 @@ export const CLUSTER_NODE_INVENTORY = [
   { type: 'embeddings-google-palm', docsSlug: 'n8n-nodes-langchain.embeddingsgooglepalm', label: 'Embeddings Google PaLM', clusterRole: 'sub', status: 'excluded-deprecated' },
   { type: 'embeddings-google-vertex', docsSlug: 'n8n-nodes-langchain.embeddingsgooglevertex', label: 'Embeddings Google Vertex', clusterRole: 'sub', status: 'complete' },
   { type: 'embeddings-huggingface-inference', docsSlug: 'n8n-nodes-langchain.embeddingshuggingfaceinference', label: 'Embeddings HuggingFace Inference', clusterRole: 'sub', status: 'complete' },
-  { type: 'embeddings-lemonade', docsSlug: 'n8n-nodes-langchain.embeddingslemonade', label: 'Embeddings Lemonade', clusterRole: 'sub', status: 'pending' },
-  { type: 'embeddings-mistral-cloud', docsSlug: 'n8n-nodes-langchain.embeddingsmistralcloud', label: 'Embeddings Mistral Cloud', clusterRole: 'sub', status: 'pending' },
-  { type: 'embeddings-ollama', docsSlug: 'n8n-nodes-langchain.embeddingsollama', label: 'Embeddings Ollama', clusterRole: 'sub', status: 'pending' },
+  { type: 'embeddings-lemonade', docsSlug: 'n8n-nodes-langchain.embeddingslemonade', label: 'Embeddings Lemonade', clusterRole: 'sub', status: 'complete' },
+  { type: 'embeddings-mistral-cloud', docsSlug: 'n8n-nodes-langchain.embeddingsmistralcloud', label: 'Embeddings Mistral Cloud', clusterRole: 'sub', status: 'complete' },
+  { type: 'embeddings-ollama', docsSlug: 'n8n-nodes-langchain.embeddingsollama', label: 'Embeddings Ollama', clusterRole: 'sub', status: 'complete' },
   { type: 'embeddings-openai', docsSlug: 'n8n-nodes-langchain.embeddingsopenai', label: 'Embeddings OpenAI', clusterRole: 'sub', status: 'pending' },
   { type: 'embeddings-oracle-database', docsSlug: 'n8n-nodes-langchain.embeddingsoracledb', label: 'Embeddings Oracle Database', clusterRole: 'sub', status: 'pending' },
   { type: 'qwen-cloud-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatalibabacloud', label: 'Qwen Cloud Chat Model', clusterRole: 'sub', status: 'pending' },
@@ -282,6 +285,7 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
     zepVectorStore, defaultDataLoader, githubDocumentLoader,
     embeddingsAwsBedrock, embeddingsAzureOpenAi, embeddingsCohere,
     embeddingsGoogleGemini, embeddingsGoogleVertex, embeddingsHuggingFaceInference,
+    embeddingsLemonade, embeddingsMistralCloud, embeddingsOllama,
     aiTransform, code, compareDatasets,
     compression, convertToFile, crypto,
     dataTable, dateTime, debugHelper,

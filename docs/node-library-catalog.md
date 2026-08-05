@@ -1,6 +1,6 @@
 # n8n node library catalog
 
-Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **131 canonical nodes** (27 triggers, 24 app actions, 80 core/data/AI nodes) plus 10 compatibility aliases.
+Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **134 canonical nodes** (27 triggers, 24 app actions, 83 core/data/AI nodes) plus 10 compatibility aliases.
 
 ## How to choose
 
@@ -80,7 +80,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | YouTube | `youtube` | Consume YouTube API |
 | Zoom | `zoom` | Consume Zoom API |
 
-## Core, data, and AI building blocks (80)
+## Core, data, and AI building blocks (83)
 
 | Node | Catalog type | Function |
 |---|---|---|
@@ -108,6 +108,9 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Embeddings Google Gemini | `embeddings-google-gemini` | Configure a locked Google Gemini embedding model selection |
 | Embeddings Google Vertex | `embeddings-google-vertex` | Configure a Google Cloud project, Vertex model, and location |
 | Embeddings Hugging Face Inference | `embeddings-huggingface-inference` | Configure a Hugging Face embedding model, provider, and optional endpoint |
+| Embeddings Lemonade | `embeddings-lemonade` | Configure a model discovered from a Lemonade server |
+| Embeddings Mistral Cloud | `embeddings-mistral-cloud` | Configure a Mistral embedding model and batching options |
+| Embeddings Ollama | `embeddings-ollama` | Configure an embedding model discovered from an Ollama server |
 | Evaluation | `evaluation` | Runs an evaluation |
 | Execute Command | `execute-command` | Executes a command on the host |
 | Execute Sub-workflow | `execute-subworkflow` | Execute another workflow |
