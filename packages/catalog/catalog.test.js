@@ -198,6 +198,36 @@ describe('essential app-node batch 5 carries the real operation surface', () => 
   });
 });
 
+describe('essential app-node batch 6 carries the real operation surface', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((param) => [param.key, param]));
+
+  it('models all five live Zoom v1 meeting operations', () => {
+    const node = NODE_CATALOG.zoom;
+    const p = params('zoom');
+    expect(node).toMatchObject({ n8nVersion: 1, usableAsTool: true, operationCount: 5 });
+    expect(p.resource.options.map(({ value }) => value)).toEqual(['meeting']);
+    expect(p.meetingOperation.options.map(({ value }) => value)).toEqual(['create', 'delete', 'get', 'getAll', 'update']);
+  });
+
+  it('models all 20 YouTube v1 operations', () => {
+    const node = NODE_CATALOG.youtube;
+    const operationParams = node.params.filter(({ n8nKey }) => n8nKey === 'operation');
+    expect(node).toMatchObject({ n8nVersion: 1, usableAsTool: true, operationCount: 20 });
+    expect(params('youtube').resource.options).toHaveLength(5);
+    expect(operationParams.reduce((total, param) => total + param.options.length, 0)).toBe(20);
+  });
+
+  it('models all 26 Gmail v2.2 operations including Send and Wait', () => {
+    const node = NODE_CATALOG.gmail;
+    const p = params('gmail');
+    const operationParams = node.params.filter(({ n8nKey }) => n8nKey === 'operation');
+    expect(node).toMatchObject({ n8nVersion: 2.2, usableAsTool: true, operationCount: 26 });
+    expect(p.resource.options).toHaveLength(4);
+    expect(operationParams.reduce((total, param) => total + param.options.length, 0)).toBe(26);
+    expect(p.messageOperation.options.map(({ value }) => value)).toContain('sendAndWait');
+  });
+});
+
 describe('core-node completion inventory', () => {
   it('tracks the complete official docs scope without duplicates', () => {
     expect(CORE_NODE_INVENTORY).toHaveLength(67);

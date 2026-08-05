@@ -19,6 +19,9 @@ import openAi from './openai.js';
 import paypal from './paypal.js';
 import postgres from './postgres.js';
 import twilio from './twilio.js';
+import zoom from './zoom.js';
+import youtube from './youtube.js';
+import gmail from './gmail.js';
 
 export const APP_SOURCE_COMMIT = '3d68c29b9281f14097aa9f15e01ac0777e538b11';
 
@@ -38,9 +41,9 @@ export const APP_NODE_INVENTORY = [
   { type: 'paypal', docsSlug: 'n8n-nodes-base.paypal', label: 'PayPal', status: 'complete' },
   { type: 'postgres', docsSlug: 'n8n-nodes-base.postgres', label: 'Postgres', status: 'complete' },
   { type: 'twilio', docsSlug: 'n8n-nodes-base.twilio', label: 'Twilio', status: 'complete' },
-  { type: 'zoom', docsSlug: 'n8n-nodes-base.zoom', label: 'Zoom', status: 'pending' },
-  { type: 'youtube', docsSlug: 'n8n-nodes-base.youtube', label: 'YouTube', status: 'pending' },
-  { type: 'gmail', docsSlug: 'n8n-nodes-base.gmail', label: 'Gmail', status: 'pending' },
+  { type: 'zoom', docsSlug: 'n8n-nodes-base.zoom', label: 'Zoom', status: 'complete' },
+  { type: 'youtube', docsSlug: 'n8n-nodes-base.youtube', label: 'YouTube', status: 'complete' },
+  { type: 'gmail', docsSlug: 'n8n-nodes-base.gmail', label: 'Gmail', status: 'complete' },
   { type: 'slack', docsSlug: 'n8n-nodes-base.slack', label: 'Slack', status: 'pending' },
   { type: 'google-calendar', docsSlug: 'n8n-nodes-base.googlecalendar', label: 'Google Calendar', status: 'pending' },
   { type: 'microsoft-outlook', docsSlug: 'n8n-nodes-base.microsoftoutlook', label: 'Microsoft Outlook', status: 'pending' },
@@ -57,6 +60,7 @@ export const APP_NODE_CATALOG = Object.fromEntries(
     googleSheets, googleTranslate, microsoftOneDrive,
     microsoftExcel, microsoftTeams, openAi,
     paypal, postgres, twilio,
+    zoom, youtube, gmail,
   ].map((node) => [node.type, node])
 );
 
