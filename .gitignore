@@ -30,3 +30,6 @@ tmp-*.mjs
 # how many revision cycles it burned. Local operational state, like a log — the
 # artifacts a run produces are committed to its branch instead.
 .authoring-runs/
+
+# macOS Finder metadata. Never useful, appears everywhere.
+.DS_Store
