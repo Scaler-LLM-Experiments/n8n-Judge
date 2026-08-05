@@ -712,6 +712,37 @@ describe('cluster-node batch 9 carries the first current embedding-model surface
   });
 });
 
+describe('cluster-node batch 10 carries the Google and Hugging Face embedding surfaces', () => {
+  it('models Google Gemini v1 with locked routed model discovery', () => {
+    const node = NODE_CATALOG['embeddings-google-gemini'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.embeddingsGoogleGemini' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 4, credentialEditorFieldCount: 2, dynamicFieldCount: 2 });
+    expect(params.modelName).toMatchObject({ value: 'models/gemini-embedding-001', locked: true, options: [] });
+    expect(node.methods.loadOptions.modelName.response).toMatchObject({ rootProperty: 'models', sortBy: 'name' });
+  });
+
+  it('models Google Vertex v1 project lookup, model text, and imported location choices', () => {
+    const node = NODE_CATALOG['embeddings-google-vertex'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.embeddingsGoogleVertex' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 6, credentialEditorFieldCount: 8, credentialRegionOptionCount: 44 });
+    expect(params.projectId).toMatchObject({ kind: 'resourceLocator', locked: true });
+    expect(params.modelName).toMatchObject({ kind: 'text', value: 'text-embedding-005', dynamic: false });
+    expect(params.location.options.map(({ value }) => value)).toEqual(['', 'global', 'eu', 'us']);
+  });
+
+  it('models Hugging Face v1 freeform model and all pinned provider policies', () => {
+    const node = NODE_CATALOG['embeddings-huggingface-inference'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.embeddingsHuggingFaceInference' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 7, credentialEditorFieldCount: 1, providerOptionCount: 18 });
+    expect(params.modelName.value).toBe('sentence-transformers/distilbert-base-nli-mean-tokens');
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['endpointUrl', 'provider']);
+    expect(params.options.fields[1].options).toHaveLength(18);
+  });
+});
+
 // Judge does not implement typeVersion — one shipped schema per node type is the
 // right simplification — but every node must SAY which real node and version it
 // models, or the catalogue drifts from the n8n a learner meets next and nobody
