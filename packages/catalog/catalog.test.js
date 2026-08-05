@@ -110,6 +110,36 @@ describe('essential app-node batch 2 carries the real operation surface', () => 
   });
 });
 
+describe('essential app-node batch 3 carries the real operation surface', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((param) => [param.key, param]));
+
+  it('models all ten Google Sheets v4.7 operations', () => {
+    const node = NODE_CATALOG['google-sheets'];
+    const p = params('google-sheets');
+    expect(node).toMatchObject({ n8nVersion: 4.7, usableAsTool: true });
+    expect(p.resource.options.map(({ value }) => value)).toEqual(['spreadsheet', 'sheet']);
+    expect(p.sheetOperation.options).toHaveLength(8);
+    expect(p.spreadsheetOperation.options).toHaveLength(2);
+  });
+
+  it('models the Google Translate v2 language operation', () => {
+    const node = NODE_CATALOG['google-translate'];
+    const p = params('google-translate');
+    expect(node).toMatchObject({ n8nVersion: 2, usableAsTool: true });
+    expect(p.resource.options.map(({ value }) => value)).toEqual(['language']);
+    expect(p.operation.options.map(({ value }) => value)).toEqual(['translate']);
+  });
+
+  it('models all 16 Microsoft OneDrive v1.1 operations', () => {
+    const node = NODE_CATALOG['microsoft-onedrive'];
+    const p = params('microsoft-onedrive');
+    expect(node).toMatchObject({ n8nVersion: 1.1, usableAsTool: true });
+    expect(p.resource.options.map(({ value }) => value)).toEqual(['file', 'folder']);
+    expect(p.fileOperation.options).toHaveLength(9);
+    expect(p.folderOperation.options).toHaveLength(7);
+  });
+});
+
 describe('core-node completion inventory', () => {
   it('tracks the complete official docs scope without duplicates', () => {
     expect(CORE_NODE_INVENTORY).toHaveLength(67);

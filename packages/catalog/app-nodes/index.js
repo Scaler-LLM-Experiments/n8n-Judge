@@ -10,6 +10,9 @@ import googleDrive from './google-drive.js';
 import github from './github.js';
 import googleDocs from './google-docs.js';
 import googleGemini from './google-gemini.js';
+import googleSheets from './google-sheets.js';
+import googleTranslate from './google-translate.js';
+import microsoftOneDrive from './microsoft-onedrive.js';
 
 export const APP_SOURCE_COMMIT = '3d68c29b9281f14097aa9f15e01ac0777e538b11';
 
@@ -20,9 +23,9 @@ export const APP_NODE_INVENTORY = [
   { type: 'github', docsSlug: 'n8n-nodes-base.github', label: 'GitHub', status: 'complete' },
   { type: 'google-docs', docsSlug: 'n8n-nodes-base.googledocs', label: 'Google Docs', status: 'complete' },
   { type: 'google-gemini', docsSlug: 'n8n-nodes-langchain.googlegemini', label: 'Google Gemini', status: 'complete' },
-  { type: 'google-sheets', docsSlug: 'n8n-nodes-base.googlesheets', label: 'Google Sheets', status: 'pending' },
-  { type: 'google-translate', docsSlug: 'n8n-nodes-base.googletranslate', label: 'Google Translate', status: 'pending' },
-  { type: 'microsoft-onedrive', docsSlug: 'n8n-nodes-base.microsoftonedrive', label: 'Microsoft OneDrive', status: 'pending' },
+  { type: 'google-sheets', docsSlug: 'n8n-nodes-base.googlesheets', label: 'Google Sheets', status: 'complete' },
+  { type: 'google-translate', docsSlug: 'n8n-nodes-base.googletranslate', label: 'Google Translate', status: 'complete' },
+  { type: 'microsoft-onedrive', docsSlug: 'n8n-nodes-base.microsoftonedrive', label: 'Microsoft OneDrive', status: 'complete' },
   { type: 'microsoft-excel', docsSlug: 'n8n-nodes-base.microsoftexcel', label: 'Microsoft Excel 365', status: 'pending' },
   { type: 'microsoft-teams', docsSlug: 'n8n-nodes-base.microsoftteams', label: 'Microsoft Teams', status: 'pending' },
   { type: 'openai', docsSlug: 'n8n-nodes-langchain.openai', label: 'OpenAI', status: 'pending' },
@@ -42,7 +45,11 @@ export const APP_NODE_INVENTORY = [
 
 // Descriptors are added here only after each three-node batch is reviewed.
 export const APP_NODE_CATALOG = Object.fromEntries(
-  [discord, dropbox, googleDrive, github, googleDocs, googleGemini].map((node) => [node.type, node])
+  [
+    discord, dropbox, googleDrive,
+    github, googleDocs, googleGemini,
+    googleSheets, googleTranslate, microsoftOneDrive,
+  ].map((node) => [node.type, node])
 );
 
 export const COMPLETE_APP_NODE_TYPES = APP_NODE_INVENTORY
