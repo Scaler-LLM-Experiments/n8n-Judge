@@ -1,6 +1,6 @@
 # n8n node library catalog
 
-Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **107 canonical nodes** (26 triggers, 24 app actions, 57 core/data/AI nodes) plus 10 compatibility aliases.
+Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. Current reviewed scope: **110 canonical nodes** (27 triggers, 24 app actions, 59 core/data/AI nodes) plus 10 compatibility aliases.
 
 ## How to choose
 
@@ -19,7 +19,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Database changes | `postgres-trigger` → `filter` / `edit-fields` → notification or record action |
 | App event routing | matching `*-trigger` → `switch` → one or more app actions |
 
-## Trigger nodes (26)
+## Trigger nodes (27)
 
 | Node | Catalog type | Function |
 |---|---|---|
@@ -36,6 +36,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Local File Trigger | `local-file-trigger` | Triggers a workflow on file system changes |
 | Manual Trigger | `manual` | Runs the flow on clicking a button in n8n |
 | MCP Server Trigger | `mcp-server-trigger` | Expose n8n tools as an MCP Server endpoint |
+| Microsoft Agent 365 Trigger | `microsoft-agent-365-trigger` | Author a Microsoft Agent 365 trigger and its connected AI components |
 | Microsoft Outlook Trigger | `microsoft-outlook-trigger` | Fetches emails from Microsoft Outlook and starts the workflow on specified polling intervals. |
 | Microsoft Teams Trigger | `microsoft-teams-trigger` | Triggers workflows in n8n based on events from Microsoft Teams, such as new messages or team updates, using specified configurations. |
 | n8n Form Trigger | `form-trigger` | Generate webforms in n8n and pass their responses to the workflow |
@@ -79,7 +80,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | YouTube | `youtube` | Consume YouTube API |
 | Zoom | `zoom` | Consume Zoom API |
 
-## Core, data, and AI building blocks (57)
+## Core, data, and AI building blocks (59)
 
 | Node | Catalog type | Function |
 |---|---|---|
@@ -113,6 +114,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | If | `if` | Route items to different branches (true/false) |
 | Information Extractor | `information-extractor` | Extract structured information from text using a connected language model |
 | JWT | `jwt` | JWT |
+| LangChain Code | `langchain-code` | Author inert JavaScript text and custom LangChain connection shapes |
 | Ldap | `ldap` | Interact with LDAP servers |
 | Limit | `limit` | Restrict the number of items |
 | Loop Over Items (Split in Batches) | `loop-over-items` | Split data into batches and iterate over each batch |
@@ -129,6 +131,7 @@ Use this file when choosing nodes for a new case. Use the catalog `type` in the 
 | Respond to Webhook | `respond-to-webhook` | Returns data for Webhook |
 | RSS Read | `rss-read` | Reads data from an RSS Feed |
 | Send Email | `send-email` | Sends an email using SMTP protocol |
+| Sentiment Analysis | `sentiment-analysis` | Configure sentiment categories with one authored output branch per label |
 | Sort | `sort` | Change items order |
 | Split Out | `split-out` | Turn a list inside item(s) into separate items |
 | SSH | `ssh` | Execute commands via SSH |

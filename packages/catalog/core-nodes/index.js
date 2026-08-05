@@ -38,11 +38,13 @@ import httpRequest from './http-request.js';
 import ifNode from './if.js';
 import informationExtractor from './information-extractor.js';
 import jwt from './jwt.js';
+import langchainCode from './langchain-code.js';
 import ldap from './ldap.js';
 import localFileTrigger from './local-file-trigger.js';
 import manual from './manual.js';
 import markdown from './markdown.js';
 import merge from './merge.js';
+import microsoftAgent365Trigger from './microsoft-agent-365-trigger.js';
 import n8nTrigger from './n8n-trigger.js';
 import n8n from './n8n.js';
 import noop from './noop.js';
@@ -55,6 +57,7 @@ import rssFeedTrigger from './rss-feed-trigger.js';
 import rssRead from './rss-read.js';
 import schedule from './schedule.js';
 import sendEmail from './send-email.js';
+import sentimentAnalysis from './sentiment-analysis.js';
 import editFields from './edit-fields.js';
 import sort from './sort.js';
 import loopOverItems from './loop-over-items.js';
@@ -157,9 +160,9 @@ export const CLUSTER_NODE_INVENTORY = [
   { type: 'summarization-chain', docsSlug: 'n8n-nodes-langchain.chainsummarization', label: 'Summarization Chain', clusterRole: 'root', status: 'complete' },
   { type: 'information-extractor', docsSlug: 'n8n-nodes-langchain.information-extractor', label: 'Information Extractor', clusterRole: 'root', status: 'complete' },
   { type: 'text-classifier', docsSlug: 'n8n-nodes-langchain.text-classifier', label: 'Text Classifier', clusterRole: 'root', status: 'complete' },
-  { type: 'sentiment-analysis', docsSlug: 'n8n-nodes-langchain.sentimentanalysis', label: 'Sentiment Analysis', clusterRole: 'root', status: 'pending' },
-  { type: 'langchain-code', docsSlug: 'n8n-nodes-langchain.code', label: 'LangChain Code', clusterRole: 'root', status: 'pending' },
-  { type: 'microsoft-agent-365-trigger', docsSlug: 'n8n-nodes-langchain.microsoftagent365trigger', label: 'Microsoft Agent 365 Trigger', clusterRole: 'root', status: 'pending' },
+  { type: 'sentiment-analysis', docsSlug: 'n8n-nodes-langchain.sentimentanalysis', label: 'Sentiment Analysis', clusterRole: 'root', status: 'complete' },
+  { type: 'langchain-code', docsSlug: 'n8n-nodes-langchain.code', label: 'LangChain Code', clusterRole: 'root', status: 'complete' },
+  { type: 'microsoft-agent-365-trigger', docsSlug: 'n8n-nodes-langchain.microsoftagent365trigger', label: 'Microsoft Agent 365 Trigger', clusterRole: 'root', status: 'complete' },
   { type: 'azure-ai-search-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoreazureaisearch', label: 'Azure AI Search Vector Store', clusterRole: 'root', status: 'pending' },
   { type: 'simple-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoreinmemory', label: 'Simple Vector Store', clusterRole: 'root', status: 'pending' },
   { type: 'milvus-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoremilvus', label: 'Milvus Vector Store', clusterRole: 'root', status: 'pending' },
@@ -250,6 +253,7 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
   [
     aiAgent, basicLlmChain, questionAnswerChain,
     summarizationChain, informationExtractor, textClassifier,
+    sentimentAnalysis, langchainCode, microsoftAgent365Trigger,
     aiTransform, code, compareDatasets,
     compression, convertToFile, crypto,
     dataTable, dateTime, debugHelper,

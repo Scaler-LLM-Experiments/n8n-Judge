@@ -72,6 +72,21 @@ export function resolveNodePorts(entry = {}, values = {}) {
       ? [...(dynamicInput.baseInputs ?? inputs ?? []), dynamicInput.appendInput]
       : dynamicInput.baseInputs ?? inputs;
   }
+  if (dynamicInput?.enabled && dynamicInput.strategy === 'configured-connection-rows') {
+    const rows = atPath(effectiveValues, dynamicInput.parameterPath) ?? [];
+    inputs = rows.map((row) => {
+      const type = row[dynamicInput.typeParameter];
+      const maxConnections = row[dynamicInput.maxConnectionsParameter];
+      const label = type === 'main' ? '' : dynamicInput.displayNameByType?.[type] ?? '';
+      return {
+        type,
+        label,
+        displayName: label,
+        required: Boolean(row[dynamicInput.requiredParameter]),
+        ...(maxConnections === dynamicInput.unlimitedValue ? {} : { maxConnections }),
+      };
+    });
+  }
 
   let outputs = variant?.outputs ?? entry.outputs;
   const dynamicOutputs = entry.dynamicOutputs;
@@ -93,6 +108,16 @@ export function resolveNodePorts(entry = {}, values = {}) {
           index,
         });
       }
+    } else if (dynamicOutputs.strategy === 'comma-separated-labels') {
+      const labels = String(
+        atPath(effectiveValues, dynamicOutputs.parameterPath) ?? dynamicOutputs.defaultValue ?? ''
+      ).split(dynamicOutputs.delimiter ?? ',').map((label) => label.trim());
+      outputs = labels.map((label, index) => ({
+        type: dynamicOutputs.outputType ?? 'main',
+        label,
+        name: String(index),
+        index,
+      }));
     } else {
       const mode = effectiveValues[dynamicOutputs.modeParameter ?? 'mode'];
       const spec = dynamicOutputs.modes?.[mode];
@@ -121,6 +146,14 @@ export function resolveNodePorts(entry = {}, values = {}) {
     }
   }
   const selectedOutputs = entry.dynamicOutputMetadata;
+  if (selectedOutputs?.enabled && selectedOutputs.strategy === 'configured-connection-rows') {
+    const rows = atPath(effectiveValues, selectedOutputs.parameterPath) ?? [];
+    outputs = rows.map((row, index) => {
+      const type = row[selectedOutputs.typeParameter];
+      const label = type === 'main' ? '' : selectedOutputs.displayNameByType?.[type] ?? '';
+      return { type, label, displayName: label, name: String(index), index };
+    });
+  }
   if (selectedOutputs?.settingParameter && selectedOutputs?.methodParameter) {
     const multiple = Boolean(effectiveValues[selectedOutputs.settingParameter]);
     const parameter = multiple

@@ -497,6 +497,38 @@ describe('cluster-node batch 2 carries the current root-node authoring surface',
   });
 });
 
+describe('cluster-node batch 3 carries the current root-node authoring surface', () => {
+  it('models Sentiment Analysis v1.1 fields and comma-separated outputs', () => {
+    const node = NODE_CATALOG['sentiment-analysis'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.1, n8nType: '@n8n/n8n-nodes-langchain.sentimentAnalysis' });
+    expect(node.authoringParity.recursiveFieldCount).toBe(10);
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['categories', 'systemPromptTemplate', 'includeDetailedResults', 'enableAutoFixing', 'batching']);
+    expect(node.dynamicOutputs).toMatchObject({ strategy: 'comma-separated-labels', filterEmptyLabels: false });
+  });
+
+  it('models hidden LangChain Code v1 fields and typed connection rows as inert data', () => {
+    const node = NODE_CATALOG['langchain-code'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.code', hidden: true });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 10, connectorTypeCount: 10 });
+    expect(params.inputs.fields.map(({ key }) => key)).toEqual(['inputType', 'maxConnections', 'maxConnectionsRequired']);
+    expect(params.outputs.fields.map(({ key }) => key)).toEqual(['outputType']);
+    expect(params.code.fields.every(({ value }) => typeof value === 'string')).toBe(true);
+  });
+
+  it('models Microsoft Agent 365 Trigger v1.1 without unreachable fallback controls', () => {
+    const node = NODE_CATALOG['microsoft-agent-365-trigger'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.1, n8nType: '@n8n/n8n-nodes-langchain.microsoftAgent365Trigger', category: 'trigger' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 11, microsoftMcpServerCount: 20 });
+    expect(params.needsFallback).toBeUndefined();
+    expect(params.includeTools.options).toHaveLength(20);
+    expect(node.credentialUiMetadata[0].fields.every(({ locked }) => locked)).toBe(true);
+    expect(node.portVariants[0].inputs.map(({ type }) => type)).toEqual(['ai_languageModel', 'ai_memory', 'ai_tool', 'ai_outputParser']);
+  });
+});
+
 // Judge does not implement typeVersion — one shipped schema per node type is the
 // right simplification — but every node must SAY which real node and version it
 // models, or the catalogue drifts from the n8n a learner meets next and nobody
