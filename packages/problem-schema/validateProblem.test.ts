@@ -141,4 +141,43 @@ describe('validateProblem', () => {
     expect(result.valid).toBe(true);
     expect(result.issues.some((i) => i.level === 'warning' && i.path === 'sampleCases')).toBe(true);
   });
+  // The Chat Model drawer is a MENU; `modelNext` is the answer key. Keeping them
+  // separate is what lets a case offer several plausible brains and probe a wrong pick.
+  // A menu that omits its own answer is the worst failure the editor can produce — it
+  // shipped once, and the learner picked the only option offered and was marked wrong.
+  describe('flow.modelOptions', () => {
+    const withModels = (): any => {
+      const p = base();
+      p.flow.modelNext = ['openai-chat-model'];
+      return p;
+    };
+
+    it('rejects a drawer that does not offer the model it grades as correct', () => {
+      const p = withModels();
+      p.flow.modelOptions = ['anthropic-chat-model', 'google-gemini-chat-model'];
+      const result = validateProblem(p);
+      expect(result.valid).toBe(false);
+      expect(result.issues.some((i) => i.path === 'flow.modelOptions' && i.message.includes('does not offer'))).toBe(true);
+    });
+
+    it('accepts a drawer offering the answer plus plausible alternatives', () => {
+      const p = withModels();
+      p.flow.modelOptions = ['openai-chat-model', 'anthropic-chat-model', 'google-gemini-chat-model'];
+      const result = validateProblem(p);
+      expect(result.issues.filter((i) => i.level === 'error' && i.path === 'flow.modelOptions')).toHaveLength(0);
+    });
+
+    it('warns when the drawer offers nothing but the answer', () => {
+      const p = withModels();
+      p.flow.modelOptions = ['openai-chat-model'];
+      const result = validateProblem(p);
+      expect(result.issues.some((i) => i.level === 'warning' && i.path === 'flow.modelOptions')).toBe(true);
+    });
+
+    it('is optional — omitting it leaves the problem valid', () => {
+      const p = withModels();
+      delete p.flow.modelOptions;
+      expect(validateProblem(p).issues.some((i) => i.path === 'flow.modelOptions')).toBe(false);
+    });
+  });
 });

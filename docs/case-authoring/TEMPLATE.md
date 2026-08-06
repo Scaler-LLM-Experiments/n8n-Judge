@@ -196,7 +196,19 @@ worse challenge:
 
 >
 
-**Tempting wrong nodes** *(optional)* — nodes a learner might reach for by mistake. Each one
+**Tempting wrong nodes** *(strongly recommended — this is where the teaching happens)*
+
+Name **5–10 nodes a beginner would plausibly reach for and be wrong about**, and say in one line
+what they'd be thinking. These get added to the picker alongside the right ones, so the choice is
+a real decision rather than clicking the only thing on offer. When a learner takes the bait the
+node lands with a red pulse, Iris comes over and asks what they believed, and the node is removed.
+
+Cover the AI brain too, if your case has one: several chat models get offered, and "which brain?"
+should be a decision, not a formality.
+
+A wrong pick costs an attempt on that step — it does not fail the case, and nobody is punished
+for exploring.
+ — nodes a learner might reach for by mistake. Each one
 becomes a teaching moment, so this is a genuinely useful thing to fill in.
 
 >

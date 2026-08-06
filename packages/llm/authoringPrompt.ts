@@ -99,6 +99,14 @@ rewritten, so check the flow against them before you draft anything:
    unless the same configuration genuinely is right everywhere.
 9. The palette includes plausible distractors — real n8n nodes a beginner would reach for
    — that no test case requires, and each distractor worth probing gets a probe.
+   EVERY picker is a MENU and the menu is not the answer key: \`pickable\` offers, and
+   \`flow.next\`/\`flow.branchNext\` decide. Put 5-10 plausible WRONG nodes in each phase's
+   \`pickable\` alongside the right ones. A menu containing only correct answers removes the
+   decision — and a wrong pick is the case working, not failing: the node lands with a red
+   pulse, Iris probes what the learner believed, and it is removed. Same for the AI brain:
+   \`flow.modelOptions\` is the Chat Model drawer's menu (5-10 chat models) while
+   \`flow.modelNext\` stays the answer. \`modelOptions\` MUST contain every type in
+   \`modelNext\` — validation rejects a menu that omits its own answer.
 10. Do NOT put the correct option first every time. Vary its position across fields,
     probes and dissection items: a learner who always clicks the top option must not pass.
 11. \`dissection\`: one question per decision the flow requires, each asking about the JOB

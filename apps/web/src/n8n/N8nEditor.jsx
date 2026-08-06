@@ -415,13 +415,18 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
           </div>
         ) : null}
 
-        {/* A model slot is scoped by the problem's `flow.modelNext`; every other slot
-            by the build phase's `pickable`. `pickable` lists main-flow nodes, so
-            passing it to the Chat Model drawer would offer the wrong menu entirely. */}
+        {/* The drawer is a MENU, and the menu is not the answer key.
+            Everywhere else those are already separate — a phase's `pickable` offers
+            plausible wrong nodes while `flow.next` decides which is right, which is what
+            gives Iris something to probe. The Chat Model slot had no equivalent, so its
+            drawer listed exactly the correct model and the "which brain?" decision was a
+            one-item menu. `flow.modelOptions` is that menu; it falls back to `modelNext`,
+            so a problem that does not author one is unchanged. Correctness still comes
+            from `expectedNext()`, which reads `modelNext` either way. */}
         {picker ? (
           <NodePickerDrawer
             context={picker}
-            options={picker.modelSlot ? (flow?.modelNext ?? []) : pickable}
+            options={picker.modelSlot ? (flow?.modelOptions ?? flow?.modelNext ?? []) : pickable}
             onPick={addNode}
             onClose={() => setPicker(null)}
           />

@@ -88,6 +88,20 @@ export const flowSchema = z.object({
   // at the Run, after the build phase has already gone green.
   branchNext: z.union([z.array(z.string()), z.record(z.string(), z.array(z.string()))]).optional(),
   modelNext: z.array(z.string()).optional(),
+  /**
+   * What the Chat Model drawer OFFERS, as distinct from what is correct.
+   *
+   * Everywhere else these are already two different things — a phase's `pickable`
+   * is the menu and `flow.next` is the answer — which is what lets a build phase
+   * offer plausible wrong nodes and have Iris probe the pick. The model slot had
+   * no equivalent, so its drawer listed exactly the right answer and the hardest
+   * "which brain?" decision in a case was a one-item menu.
+   *
+   * Optional, and defaults to `modelNext`, so a problem that does not author it
+   * behaves exactly as before. Must CONTAIN every type in `modelNext`, or the
+   * correct answer is not offerable — validateProblem rejects that.
+   */
+  modelOptions: z.array(z.string()).optional(),
 });
 
 export const buildPhaseSchema = z.object({

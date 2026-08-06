@@ -582,6 +582,49 @@ Two leak rules that bit here, on top of §6b's:
   from the form hands over the answer key to the richest config surface in the case. State that
   they come from two places and that keeping them apart is the job.
 
+### A menu of one is not a decision — offer wrong nodes on purpose
+
+Every picker in this product is a **menu**, and the menu is deliberately *not* the answer key:
+
+| Slot | Menu (what is offered) | Answer key (what is right) |
+|---|---|---|
+| First step | `TRIGGER_OPTIONS` | `flow.start` |
+| Next step | the phase's `pickable` | `flow.next[sourceType]` |
+| A router's exit | the phase's `pickable` | `flow.branchNext` |
+| Chat Model | **`flow.modelOptions`** | `flow.modelNext` |
+
+A wrong pick is not a failure of the case — it is the case working. The node lands with a red
+pulse, Iris travels to it, a probe asks what the learner believed, and the node is removed. That
+is where most of the teaching happens, and it cannot happen if the only thing on the menu is the
+answer.
+
+**So offer 5–10 plausible alternatives in every slot.** Not filler: nodes a beginner would
+genuinely reach for. The Chat Model slot used to list a single model — the hardest "which brain?"
+question in a case reduced to clicking the one thing on offer — which is why `flow.modelOptions`
+exists. It defaults to `modelNext`, so a case that does not author one keeps the old behaviour;
+author it and the choice becomes real:
+
+```js
+modelNext: ['openai-chat-model'],                    // the answer
+modelOptions: [                                       // the menu
+  'openai-chat-model', 'anthropic-chat-model', 'google-gemini-chat-model',
+  'mistral-cloud-chat-model', 'groq-chat-model', 'ollama-chat-model',
+],
+```
+
+`validateProblem()` **errors** if `modelOptions` omits anything `modelNext` grades as correct —
+a menu without its own answer is the worst thing this editor can do to a learner, and it has
+shipped before — and **warns** if the menu is nothing but the answer.
+
+Two things that make the distractors earn their place:
+
+- **Give the tempting ones a probe.** `nodeProbes` is keyed by type, so an authored probe on
+  `text-classifier` or `anthropic-chat-model` argues about *that* node. Without one the learner
+  still gets the generated sequence probe, which is generic — fine for a long tail, weak for the
+  one wrong answer your §7 misconceptions say most learners will pick.
+- **Distractors are unscored except through decay.** A wrong pick costs an attempt on the slot it
+  was filling, which is already the right price. Do not also add a scored item for it.
+
 ### Say what a phase is still waiting on
 
 A build phase can be blocked by three independent things at once and used to report none of them,

@@ -97,7 +97,12 @@ export function validateProblem(input: unknown): ValidateProblemResult {
   // Distractor-ish types (palette entries, pickable offers, probe keys) may
   // live outside the catalog — they render from palette/nodeIcons metadata and
   // are removed after the probe. Warn so the author verifies an icon mapping.
-  const pickableTypes = new Set(p.buildPhases.flatMap((ph) => ph.pickable));
+  // `modelOptions` is the Chat Model drawer's menu, so its entries are droppable in
+  // exactly the same sense as `pickable` — including the deliberately wrong ones.
+  const pickableTypes = new Set([
+    ...p.buildPhases.flatMap((ph) => ph.pickable),
+    ...(p.flow.modelOptions ?? []),
+  ]);
   const looseKnown = new Set<string>([...catalogTypes, ...paletteByType.keys(), ...pickableTypes]);
   for (const t of new Set([...p.nodePalette.map((n) => n.type), ...pickableTypes])) {
     if (!catalogTypes.has(t)) {
@@ -210,6 +215,27 @@ export function validateProblem(input: unknown): ValidateProblemResult {
       if (!ph.pickable.includes(t)) {
         err(`buildPhases.${ph.id}`, `Phase requires "${t}" but does not offer it in pickable`);
       }
+    }
+  }
+
+  // --- The Chat Model drawer must offer the answer it grades.
+  //
+  // `modelOptions` is the menu and `modelNext` is the answer, the same split as
+  // `pickable` vs `flow.next`. A menu that omits the answer is the worst failure this
+  // editor can produce: it happened for real when the drawer was hardcoded to one model,
+  // and the learner picked the only option available and was told it was wrong, with no
+  // way to choose otherwise.
+  if (p.flow.modelOptions?.length) {
+    for (const t of p.flow.modelNext ?? []) {
+      if (!p.flow.modelOptions.includes(t)) {
+        err('flow.modelOptions', `Chat Model drawer does not offer "${t}", which flow.modelNext grades as correct`);
+      }
+    }
+    if (p.flow.modelOptions.length === (p.flow.modelNext ?? []).length) {
+      warn(
+        'flow.modelOptions',
+        'Chat Model drawer offers only the correct answer(s) — add a few plausible alternatives so the choice is a real one'
+      );
     }
   }
 
