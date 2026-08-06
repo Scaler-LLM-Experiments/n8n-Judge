@@ -67,4 +67,4 @@ npm run build
 
 Before hand-off: inventory count equals catalog count, no pending/missing nodes, every icon resolves, scalar selects have scalar defaults, inert dynamic fields are locked, `simulation.voice === false`, and the exported descriptor graph contains no functions. Do not regenerate `graphify-out` or author voice for node-library work.
 
-Current baseline note: the focused node suite and build pass. The full `npm test` has 15 unrelated pre-existing engine/problem-authoring failures that reproduce at pre-app commit `f9510f5`; do not fix them as part of a node batch.
+Current baseline: the full suite, both typecheck targets, and the production build pass. The catalog guide also verifies that every registered type has exactly one function row and every current AI cluster node is identified as a root or sub-node.

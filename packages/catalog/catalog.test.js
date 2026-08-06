@@ -1742,10 +1742,23 @@ describe('every catalog type is renderable by the web app', () => {
 });
 
 describe('agent-facing node library catalog', () => {
-  it('lists every available catalog type and its function', () => {
+  it('lists every available catalog type exactly once with a useful function', () => {
     const guide = readFileSync(new URL('../../docs/node-library-catalog.md', import.meta.url), 'utf8');
     for (const type of Object.keys(NODE_CATALOG)) {
-      expect(guide, `${type} is missing from docs/node-library-catalog.md`).toContain(`| \`${type}\` |`);
+      const escapedType = type.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const rows = [...guide.matchAll(new RegExp('^\\| .*? \\| `' + escapedType + '` \\| (.+) \\|$', 'gm'))];
+      expect(rows, `${type} must have exactly one row in docs/node-library-catalog.md`).toHaveLength(1);
+      expect(rows[0][1].trim().length, `${type} has no useful function description`).toBeGreaterThan(10);
+    }
+  });
+
+  it('identifies every current AI cluster node as a root or sub-node', () => {
+    const guide = readFileSync(new URL('../../docs/node-library-catalog.md', import.meta.url), 'utf8');
+    const rootLine = guide.match(/^- \*\*AI roots \(\d+\):\*\* (.+)$/m)?.[1] ?? '';
+    const subLine = guide.match(/^- \*\*AI sub-nodes \(\d+\):\*\* (.+)$/m)?.[1] ?? '';
+    for (const node of CLUSTER_NODE_INVENTORY.filter(({ status }) => status === 'complete')) {
+      if (NODE_CATALOG[node.type].deprecated) continue;
+      expect(node.clusterRole === 'root' ? rootLine : subLine, `${node.type} has no documented cluster role`).toContain(`\`${node.type}\``);
     }
   });
 });
