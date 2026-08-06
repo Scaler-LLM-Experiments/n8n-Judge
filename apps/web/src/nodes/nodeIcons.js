@@ -68,13 +68,7 @@ export const nodeIcons = {
   'remove-duplicates': CopySimple,
   wait: HourglassMedium,
   'http-request': Globe,
-  // Added 2026-08-04 with the two new catalog types.
-  //
-  // Google Sheets is a real product and by this file's own rule belongs in
-  // `nodeImageIcons` with its brand logo — there is no `sheets.png` in
-  // public/node-icons/ yet, so it renders a glyph until one is added. It is
-  // deliberately NOT pointed at the generic `google.png`: `web-search` already uses
-  // that, and two different nodes wearing one icon is worse than an honest glyph.
+  // Compatibility fallbacks; canonical catalog assets take priority.
   'google-sheets': Table,
   'form-trigger': ClipboardText,
   noop: Prohibit,
@@ -82,7 +76,11 @@ export const nodeIcons = {
 
 // Colour override for a glyph node (falls back to the category colour). Nodes
 // backed by a real image icon carry their own colour and are not listed here.
-export const nodeIconColor = {};
+export const nodeIconColor = {
+  evaluation: '#5B6675',
+  'evaluation-trigger': '#5B6675',
+  noop: '#5B6675',
+};
 
 // Unified node-icon renderer: a real product image when one exists, otherwise
 // the category/Phosphor glyph. `size` is the pixel box; images are contained
@@ -98,7 +96,7 @@ export function NodeIcon({ type, size = 24, color, style }) {
       violet: '#9B6DD5',
       lime: '#62F730',
     };
-    const iconColor = color || catalogNode.iconHex || catalogNode.iconColorLight || semanticColors[catalogNode.iconColor] || metaOf(type).color;
+    const iconColor = color || nodeIconColor[type] || catalogNode.iconHex || catalogNode.iconColorLight || semanticColors[catalogNode.iconColor] || metaOf(type).color;
     return React.createElement('span', {
       'aria-hidden': true,
       style: {

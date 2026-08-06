@@ -1,6 +1,6 @@
 import React from 'react';
 import { Gear } from '@phosphor-icons/react';
-import { nodeIcons, nodeIconColor, metaOf, CHIP_BG } from './nodeIcons.js';
+import { NodeIcon, metaOf, CHIP_BG } from './nodeIcons.js';
 
 // Node types that carry meaningful configuration the learner should open.
 export const NEEDS_SETUP = new Set(['trigger', 'classify', 'chat-gemini', 'switch', 'action']);
@@ -9,8 +9,6 @@ export const NEEDS_SETUP = new Set(['trigger', 'classify', 'chat-gemini', 'switc
 // name, and a small category label. n8n-flavoured but on the Scaler palette.
 export function NodeCard({ type, label, sublabel, selected, sim, seen, width = 210, children }) {
   const meta = metaOf(type);
-  const Icon = nodeIcons[type];
-  const iconColor = nodeIconColor[type] || meta.color;
   const showSetup = NEEDS_SETUP.has(type) && !seen && sim === undefined;
 
   const active = sim === 'active';
@@ -55,7 +53,7 @@ export function NodeCard({ type, label, sublabel, selected, sim, seen, width = 2
             justifyContent: 'center',
           }}
         >
-          {Icon ? <Icon size={20} color={iconColor} /> : null}
+          <NodeIcon type={type} size={20} />
         </div>
         <div style={{ minWidth: 0 }}>
           <div

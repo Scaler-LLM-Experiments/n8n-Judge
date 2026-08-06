@@ -27,8 +27,8 @@ Milestones have been completed out of order. What is actually true, per mileston
 | **M5 authoring** | ⚠️ mostly done — the CLI pipeline (`problem:new/check/draft`) plus the **agent pipeline** (`/author-case`, see below); no admin editor |
 | M6 voice · M7 SQS | M6 largely done in practice (see Voice); M7 not started |
 
-Verified 2026-08-06: **688/688 unit tests**, both typecheck halves, and the production build.
-The full-screen smoke journey was last verified on 2026-07-31, including the `resume` check.
+Verified 2026-08-06: **693/693 unit tests**, both typecheck halves, the production build,
+and the full-screen smoke journey, including the `resume` check.
 
 ---
 
@@ -51,6 +51,8 @@ The full-screen smoke journey was last verified on 2026-07-31, including the `re
   cluster nodes. OneDrive, PayPal, and Twilio triggers remain deliberately deferred. See
   [docs/node-library-catalog.md](docs/node-library-catalog.md). Every descriptor is inert:
   it models n8n's authoring surface without API calls, execution, polling, webhooks, or voice.
+  All canvas and detail surfaces now share the catalog icon renderer: official app/provider
+  marks render as images, while core concepts use accessible monochrome glyphs.
 - **Topology generalised.** `engine/simulate.js` resolves each node's role from catalog
   metadata (`category`, `needsModel`, `branches`) instead of hard-coding
   `trigger → ai → parse → switch → action`. This overrode the plan's risk-#1 deferral.
