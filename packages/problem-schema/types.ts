@@ -79,7 +79,14 @@ export const flowSchema = z.object({
   next: z.record(z.string(), z.array(z.string())),
   // Optional: only problems with a router need branchNext; only problems with an
   // AI node that takes a Chat Model need modelNext. Topology is not assumed.
-  branchNext: z.array(z.string()).optional(),
+  //
+  // Two shapes. An array means every exit accepts the same types — right when a
+  // router's branches all end at the same kind of node. A record keyed by branch id
+  // scopes each exit separately, which is what a problem whose exits end at DIFFERENT
+  // types needs: with one shared list the editor can only ask "is this a destination
+  // at all?", so the right node on the wrong exit is accepted and only fails later,
+  // at the Run, after the build phase has already gone green.
+  branchNext: z.union([z.array(z.string()), z.record(z.string(), z.array(z.string()))]).optional(),
   modelNext: z.array(z.string()).optional(),
 });
 

@@ -142,12 +142,51 @@ function branchesFromRules(setup, values) {
   });
 }
 
+/**
+ * What a branch exit accepts.
+ *
+ * `flow.branchNext` may be either shape:
+ *   ['action']                                  every exit accepts the same thing
+ *   { log: ['google-sheets'], email: [...] }    each exit accepts its own
+ *
+ * The array form is all there was, and it can only ask "is this a destination at
+ * all?" — so on a problem whose exits end at DIFFERENT node types, dropping the
+ * spreadsheet on the escalation exit was accepted, because a spreadsheet is a
+ * legal destination somewhere. The mistake surfaced much later, as a failing Run,
+ * after the phase had already gone green.
+ *
+ * The map form makes the exit itself the question. Kept optional: a problem whose
+ * exits genuinely share a destination type still writes an array.
+ */
+export function branchNextFor(flow, branchId) {
+  const bn = flow?.branchNext;
+  if (!bn) return [];
+  if (Array.isArray(bn)) return bn;
+  return bn[branchId] ?? [];
+}
+
+/** Does this problem scope its exits individually? */
+export function hasPerBranchNext(flow) {
+  return Boolean(flow?.branchNext) && !Array.isArray(flow.branchNext);
+}
+
+/**
+ * Every type that is a legal destination on SOME exit — used to tell "you reached
+ * for something that is not a destination" from "right destination, wrong exit".
+ * Those are different mistakes and deserve different questions.
+ */
+export function allBranchTargets(flow) {
+  const bn = flow?.branchNext;
+  if (!bn) return [];
+  return Array.isArray(bn) ? bn : [...new Set(Object.values(bn).flat())];
+}
+
 // Which node types may validly follow the current add-context, per the problem's
 // canonical flow. Anything else is a sequence mistake.
 function expectedNext(ctx, nodes, flow) {
   if (!flow) return null; // no flow rules → accept anything
   if (ctx.modelSlot) return flow.modelNext || [];
-  if (ctx.branch) return flow.branchNext || [];
+  if (ctx.branch) return branchNextFor(flow, ctx.branch);
   if (ctx.triggerSlot || !ctx.sourceId) return flow.start || [];
   const src = nodes.find((n) => n.id === ctx.sourceId);
   return (src && flow.next?.[src.type]) || [];
@@ -251,13 +290,21 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
 
     if (isWrong) {
       const expectedLabel = (expected || []).map((t) => NODE_CATALOG[t]?.label).filter(Boolean).join(' or ');
+      // "Right destination, wrong exit" is a DIFFERENT mistake from "that is not a
+      // destination at all", and the sequence probe — which asks what has to be true
+      // before a node can run — is the wrong question for it. The learner did not get
+      // the ordering wrong; they got the routing wrong.
+      const wrongBranch = Boolean(ctx.branch) && allBranchTargets(flow).includes(catalogType);
+      const branchLabel = ctx.branch
+        ? (branches || []).find((b) => b.id === ctx.branch)?.label ?? ctx.branch
+        : null;
       const sourceLabel = ctx.modelSlot ? `${source ? source.data.label : 'this node'}’s Chat Model port`
-        : ctx.branch ? 'a Switch branch'
+        : ctx.branch ? `the ${branchLabel} way out`
         : source ? source.data.label : 'the start of the flow';
       // `expectedTypes` goes through raw as well as prettified: the caller
       // records the attempt against the SLOT the learner was filling, so a
       // wrong pick costs the node it was standing in for.
-      if (onWrongPick) onWrongPick(catalogType, id, { sourceLabel, expectedLabel, expectedTypes: expected || [] });
+      if (onWrongPick) onWrongPick(catalogType, id, { sourceLabel, expectedLabel, expectedTypes: expected || [], wrongBranch, branchLabel });
     } else if (onPlaceCorrect) {
       onPlaceCorrect(catalogType, id);
     }
@@ -368,7 +415,17 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
           </div>
         ) : null}
 
-        {picker ? <NodePickerDrawer context={picker} options={pickable} onPick={addNode} onClose={() => setPicker(null)} /> : null}
+        {/* A model slot is scoped by the problem's `flow.modelNext`; every other slot
+            by the build phase's `pickable`. `pickable` lists main-flow nodes, so
+            passing it to the Chat Model drawer would offer the wrong menu entirely. */}
+        {picker ? (
+          <NodePickerDrawer
+            context={picker}
+            options={picker.modelSlot ? (flow?.modelNext ?? []) : pickable}
+            onPick={addNode}
+            onClose={() => setPicker(null)}
+          />
+        ) : null}
         {ndvNode ? (
           <Ndv
             key={ndvNode.id}

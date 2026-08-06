@@ -19,7 +19,14 @@ export function NodePickerDrawer({ context, options, onPick, onClose }) {
   let types;
   let title;
   if (context.modelSlot) {
-    types = ['chat-gemini'];
+    // The problem's `flow.modelNext`, NOT a hardcoded list. This used to be
+    // `['chat-gemini']` outright, which happened to be right for email-triage and
+    // was wrong for every other case: ops-request-desk answers on
+    // `openai-chat-model`, so the only model the drawer offered was a wrong pick.
+    // The learner filled the Chat Model slot with the sole option available and
+    // was told it was not the one, with no way to choose otherwise.
+    // Falls back to Gemini only when a problem declares no model at all.
+    types = options?.length ? options : ['chat-gemini'];
     title = 'Choose a language model';
   } else if (context.triggerSlot) {
     types = options || TRIGGER_OPTIONS;

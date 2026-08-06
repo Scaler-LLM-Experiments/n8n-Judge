@@ -81,9 +81,12 @@ export const flowSummary = {
  * Canonical order, used to detect a SEQUENCE mistake: from a given source, only these
  * types are a valid next step.
  *
- * `branchNext` is ONE shared list for every branch — the engine does not key it per
- * branch, so all three exits accept any of the three terminals and the wrong one on the
- * wrong branch is caught by the Run rather than by the picker.
+ * `branchNext` is keyed PER EXIT here, which the engine now supports (an array still
+ * means "every exit accepts the same thing"). It matters for this problem because its
+ * three exits end at three DIFFERENT node types: with one shared list the only question
+ * the picker could ask was "is this a destination at all?", so the spreadsheet on the
+ * escalation exit was accepted, the phase went green, and the mistake only surfaced
+ * later as a failing Run. Now the exit itself is the question.
  *
  * Every terminal maps to an empty list. Chaining one action into another was considered
  * and rejected: `flow.next` is keyed by TYPE, so allowing it would put an "add next" cue
@@ -101,7 +104,11 @@ export const flow = {
     slack: [],
     'openai-chat-model': [],
   },
-  branchNext: ['google-sheets', 'gmail', 'slack'],
+  branchNext: {
+    log: ['google-sheets'],
+    email: ['gmail'],
+    needs_human: ['slack'],
+  },
   modelNext: ['openai-chat-model'],
 };
 

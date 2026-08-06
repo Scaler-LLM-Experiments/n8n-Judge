@@ -15,6 +15,19 @@ const catalogEntryOf = (type: string): CatalogEntry | undefined =>
   (NODE_CATALOG as Record<string, CatalogEntry>)[type];
 import { problemSchema, type Problem } from './types.ts';
 
+/**
+ * Every node type reachable through `flow.branchNext`, whichever shape it takes —
+ * a flat array (all exits accept the same thing) or a record keyed by branch id
+ * (each exit scoped separately). Flattened here so the catalog check below sees the
+ * per-exit types too; without this, a type named only inside the record form would
+ * skip validation entirely and fail at runtime instead.
+ */
+function branchNextTypes(branchNext: unknown): string[] {
+  if (!branchNext) return [];
+  if (Array.isArray(branchNext)) return branchNext as string[];
+  return Object.values(branchNext as Record<string, string[]>).flat();
+}
+
 export interface ProblemIssue {
   level: 'error' | 'warning';
   path: string;
@@ -73,7 +86,7 @@ export function validateProblem(input: unknown): ValidateProblemResult {
     ...p.flow.start,
     ...Object.keys(p.flow.next),
     ...Object.values(p.flow.next).flat(),
-    ...(p.flow.branchNext ?? []),
+    ...branchNextTypes(p.flow.branchNext),
     ...(p.flow.modelNext ?? []),
     ...p.dissection.flatMap((d) => [d.correctType, ...d.unlocks]),
     ...p.flowSummary.steps.map((s) => s.type),

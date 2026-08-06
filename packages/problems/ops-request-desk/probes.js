@@ -277,4 +277,10 @@ export const misconceptionLabels = {
   'respond-reaches-person': 'Confused answering an HTTP call with messaging a person',
   'respond-is-passthrough': 'Treated a response node as an ordinary step in the chain',
   'flow-sequence': 'Placed a step out of the correct flow order',
+  // Also generated rather than authored: BuildStage records these when a node that IS
+  // a destination somewhere is dropped on an exit that wanted a different one. Only
+  // reachable on a problem whose `flow.branchNext` is keyed per exit, which this one is.
+  'branch-is-positional': 'Read a router’s exits as an ordered list rather than as named routes',
+  'branch-destination-unused': 'Chose a destination because it was spare, not because the exit needed it',
+  'branch-destination-shape': 'Told the exits apart by the data they carry rather than by what was asked for',
 };

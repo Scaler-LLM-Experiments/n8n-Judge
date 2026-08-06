@@ -9,7 +9,7 @@ import { Confetti } from '../components/Confetti.jsx';
 import { N8nEditor } from '../n8n/N8nEditor.jsx';
 import { validateGraph } from '@judge/engine/validateGraph.js';
 import { simulateAll, roleOf } from '@judge/engine/simulate.js';
-import { allBranchesWired } from '@judge/engine/branchReach.js';
+import { allBranchesWired, openBranchIds } from '@judge/engine/branchReach.js';
 import { checkAnswer } from '../lib/grader.js';
 import { traceableGraph } from '../lib/traceGraph.js';
 import { useTraceContext } from '../lib/TraceContext.jsx';
@@ -144,6 +144,72 @@ function sequenceProbe(meta, variant = 0) {
   return build(source);
 }
 
+/**
+ * "Right destination, wrong exit."
+ *
+ * A node that is a legal destination SOMEWHERE, dropped on an exit that wanted a
+ * different one. The sequence probe is the wrong question for this: it asks what has
+ * to be true before a node can run, and the learner did not get the ordering wrong —
+ * every exit hands over the same item, so this node would run perfectly well. They
+ * got the routing wrong.
+ *
+ * Follows the probe rules: never names the node that belongs here, every option is a
+ * position somebody actually holds, and the correct answer describes what the exit is
+ * for rather than what the learner should have clicked.
+ */
+const BRANCH_PROBES = [
+  (branch) => ({
+    prompt: `Not on the ${branch} way out. What decides which node belongs on a particular exit?`,
+    options: [
+      {
+        text: 'The order the exits are listed on the router',
+        correct: false,
+        misconception: 'branch-is-positional',
+        response: `The exits are named, not ranked. What arrives at each one is decided by its rule, not by where it sits in the list.`,
+      },
+      {
+        text: 'What the requests leaving through it were actually asking for',
+        correct: true,
+        response: `Yes. Each exit carries a different kind of request, so the question is what THOSE requests wanted done — not what this node is good at in general.`,
+      },
+      {
+        text: 'Whichever destination has not been used somewhere else yet',
+        correct: false,
+        misconception: 'branch-destination-unused',
+        response: `Being unused is not a reason. Two exits can legitimately end at the same kind of node, and some exits are meant to end differently from the rest.`,
+      },
+    ],
+  }),
+  (branch) => ({
+    prompt: `This is a real destination for this flow, just not for the ${branch} way out. What has to be true of the node on an exit?`,
+    options: [
+      {
+        text: 'It can accept the fields the router passes on',
+        correct: false,
+        misconception: 'branch-destination-shape',
+        response: `Every exit passes on the same item, so that is equally true of all of them — it cannot be the thing that tells the exits apart.`,
+      },
+      {
+        text: 'It is a different node from the ones on the other exits',
+        correct: false,
+        misconception: 'branch-destination-unused',
+        response: `Difference is not the test. Two exits can end at the same kind of node; what the request asked for is what decides it.`,
+      },
+      {
+        text: 'It does the thing that this exit’s requests came here for',
+        correct: true,
+        response: `That is it. This node does a real job in this flow — just not the job the ${branch} requests arrived wanting.`,
+      },
+    ],
+  }),
+];
+
+function branchProbe(meta, variant = 0) {
+  const branch = meta.branchLabel || 'this';
+  const build = BRANCH_PROBES[((variant % BRANCH_PROBES.length) + BRANCH_PROBES.length) % BRANCH_PROBES.length];
+  return build(branch);
+}
+
 // `initialGraph` seeds the canvas: the finished reference flow for the #run-story
 // dev route, or a resumed learner's own half-built graph replayed from the trace.
 export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessionId, initialGraph, resumePhaseId }) {
@@ -201,6 +267,8 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
   const [showProblem, setShowProblem] = useState(false);
   const [editorKey, setEditorKey] = useState(0);
   const [irisSay, setIrisSay] = useState(null); // chat bubble to the right of parked Iris
+  // What this phase is still waiting on — see the completion effect.
+  const [blocked, setBlocked] = useState(null);
 
   const editorRef = useRef(null);
   const canvasRef = useRef(null);
@@ -416,8 +484,15 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
     voice.play('node_wrong', { key: type, scope: `wrong:${type}` });
     // Only the generated sequence probe needs a rotation counter: the authored ones
     // differ from each other already, because they are keyed by node type.
-    const data = authored || sequenceProbe(meta || {}, sequenceProbeSeen.current);
-    if (!authored) sequenceProbeSeen.current += 1;
+    // Wrong-EXIT beats an authored probe, deliberately. An authored probe argues that
+    // this node is the wrong tool for the job — which is false here, because the node
+    // is a legal destination and the learner only sent it out of the wrong exit.
+    // Otherwise a node keeps its own copy, and the sequence probe is the last resort.
+    const useBranch = Boolean(meta?.wrongBranch);
+    const data = useBranch
+      ? branchProbe(meta, sequenceProbeSeen.current)
+      : authored || sequenceProbe(meta || {}, sequenceProbeSeen.current);
+    if (useBranch || !authored) sequenceProbeSeen.current += 1;
     setProbe({ type, nodeId, data, anchor: null });
   }, [problem, recordPlacement, voice]);
 
@@ -503,7 +578,29 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
     const branchesOk = phase.nodeTypes.includes('switch')
       ? allBranchesWired(graphRef.current, problem)
       : true;
-    if (!allPlaced || !allConfigured || !branchesOk) return;
+    if (!allPlaced || !allConfigured || !branchesOk) {
+      // WHY it is not done, not just that it is not. A phase can be blocked by three
+      // independent things at once and used to report none of them: the canvas looked
+      // finished, nothing advanced, and there was no way to tell a missing node from a
+      // branch pointing at the wrong place. That reads as a broken product.
+      //
+      // Deliberately does NOT name an unplaced node type — that is the graded decision
+      // the phase exists to ask. It names the count. Nodes already on the canvas and
+      // exits already drawn are named freely: the learner can see both, so there is
+      // nothing left to give away.
+      const missing = phase.nodeTypes.filter((t) => !placedSet.has(t)).length;
+      const unconfigured = needConfig
+        .filter((n) => !n.configured)
+        .map((n) => problem.nodeSetup?.[n.type]?.label ?? nodeLabel(n.type));
+      const openBranches = phase.nodeTypes.includes('switch')
+        ? openBranchIds(graphRef.current, problem).map(
+            (id) => (problem.branches ?? []).find((b) => b.id === id)?.label ?? id
+          )
+        : [];
+      setBlocked({ missing, unconfigured, openBranches });
+      return;
+    }
+    setBlocked(null);
 
     advancing.current = true;
     setMascotVisible(false); // the clear overlay carries its own celebratory Iris
@@ -727,6 +824,31 @@ export function BuildStage({ problem, onDecision, onComplete, devAutoRun, sessio
           <div className="fade-in" style={{ position: 'absolute', left: MASCOT_LEFT + MASCOT_SIZE + 12, bottom: MASCOT_BOTTOM + 12, maxWidth: 260, zIndex: 31, background: 'var(--surface-0)', border: '1px solid var(--border-strong)', borderLeft: '3px solid var(--brand-primary)', boxShadow: '0 10px 26px rgba(1,24,69,0.16)', padding: '10px 13px' }}>
             <span style={{ position: 'absolute', left: -8, bottom: 16, width: 0, height: 0, borderTop: '7px solid transparent', borderBottom: '7px solid transparent', borderRight: '8px solid var(--surface-0)' }} />
             <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--fg-1)', lineHeight: 1.5 }}>{irisSay}</div>
+          </div>
+        ) : null}
+
+        {/* Why this phase has not cleared. Only once something is on the canvas —
+            on an empty one the spotlight is already saying what to do. */}
+        {stage === 'building' && !probe && blocked && nodesState.length > 0
+          && (blocked.missing > 0 || blocked.unconfigured.length > 0 || blocked.openBranches.length > 0) ? (
+          <div style={{ position: 'absolute', top: 14, right: 16, zIndex: 28, maxWidth: 268, background: 'var(--surface-0)', border: '1px solid var(--border-strong)', borderLeft: '3px solid var(--brand-primary)', boxShadow: '0 8px 22px rgba(1,24,69,0.12)', padding: '10px 13px' }}>
+            <div style={{ fontSize: 10.5, textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700, color: 'var(--fg-3)', marginBottom: 6 }}>
+              Still to do
+            </div>
+            <ul style={{ margin: 0, paddingLeft: 15, fontSize: 12, lineHeight: 1.55, color: 'var(--fg-2)' }}>
+              {blocked.missing > 0 ? (
+                <li>{blocked.missing === 1 ? 'One more node to place' : `${blocked.missing} more nodes to place`}</li>
+              ) : null}
+              {blocked.unconfigured.length > 0 ? (
+                <li>Set up {blocked.unconfigured.join(', ')}</li>
+              ) : null}
+              {blocked.openBranches.length > 0 ? (
+                <li>
+                  {blocked.openBranches.length === 1 ? 'This way out reaches nothing yet: ' : 'These ways out reach nothing yet: '}
+                  {blocked.openBranches.join(', ')}
+                </li>
+              ) : null}
+            </ul>
           </div>
         ) : null}
 
