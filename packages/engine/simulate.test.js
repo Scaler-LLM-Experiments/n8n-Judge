@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { simulateAll, simulateCase } from './simulate.js';
+import { roleOf, simulateAll, simulateCase } from './simulate.js';
 import { emailTriage } from '@judge/problems/email-triage/index.js';
 
 function correctGraph() {
@@ -27,6 +27,11 @@ function correctGraph() {
 }
 
 describe('simulate', () => {
+  it('treats static multi-output nodes as routers', () => {
+    expect(roleOf('if')).toBe('router');
+    expect(roleOf('compare-datasets')).toBe('router');
+  });
+
   it('delivers all three categorised emails on a correct graph and succeeds', () => {
     const { cases, success } = simulateAll(correctGraph(), emailTriage);
     expect(success).toBe(true);

@@ -37,8 +37,8 @@ const ftp = {
   credentialDocs: 'https://docs.n8n.io/integrations/builtin/credentials/ftp/',
   source: {
     commit: '3d68c29b9281f14097aa9f15e01ac0777e538b11',
-    path: 'packages/nodes-base/nodes/FTP/Ftp.node.ts',
-    metadataPath: 'packages/nodes-base/nodes/FTP/Ftp.node.json',
+    path: 'packages/nodes-base/nodes/Ftp/Ftp.node.ts',
+    metadataPath: 'packages/nodes-base/nodes/Ftp/Ftp.node.json',
     credentialPaths: [
       'packages/nodes-base/credentials/Ftp.credentials.ts',
       'packages/nodes-base/credentials/Sftp.credentials.ts',

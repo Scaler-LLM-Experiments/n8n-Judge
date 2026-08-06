@@ -14,7 +14,7 @@ import { APP_NODE_CATALOG, COMPLETE_APP_NODE_TYPES, COMPLETE_APP_TRIGGER_NODE_TY
 // a plain string to a resourceLocator at 1.2), so "which version is this?" is a
 // real question with a real answer.
 //
-// Read from n8n v2.33.0, commit eb38e10. When you update one of these, check the
+// Read from n8n v2.34.0, commit 3d68c29b9281f14097aa9f15e01ac0777e538b11. When you update one of these, check the
 // node's real `version` array first:
 // docs/n8n-reference/00-how-n8n-actually-works.md §6.
 
@@ -504,4 +504,48 @@ export const NODE_OPTIONS = [...new Set([
 
 export function catalogEntry(type) {
   return NODE_CATALOG[type];
+}
+
+export function isRouterEntry(entry) {
+  const mainOutputs = (entry?.outputs ?? []).filter((port) =>
+    (typeof port === 'string' ? port : port.type) === 'main');
+  return Boolean(entry?.router || entry?.branches?.length || mainOutputs.length > 1);
+}
+
+const descriptorValue = (value) => value && typeof value === 'object' && '__rl' in value
+  ? value.value
+  : value;
+
+const descriptorAtPath = (values, path) => String(path).split('.').filter(Boolean)
+  .reduce((current, key) => current && typeof current === 'object' ? current[key] : undefined, values);
+
+const descriptorHasPath = (values, path) => {
+  let current = values;
+  for (const key of String(path).split('.').filter(Boolean)) {
+    if (!current || typeof current !== 'object' || !Object.hasOwn(current, key)) return false;
+    current = current[key];
+  }
+  return true;
+};
+
+const descriptorConditionMatches = (actual, accepted, exists) => {
+  const same = (candidate) => candidate === descriptorValue(actual)
+    || String(candidate) === String(descriptorValue(actual) ?? '');
+  if (Array.isArray(accepted)) {
+    const values = Array.isArray(actual) ? actual : [actual];
+    return values.some((value) => accepted.some((candidate) =>
+      candidate === descriptorValue(value) || String(candidate) === String(descriptorValue(value) ?? '')));
+  }
+  if (accepted?.exists !== undefined) return exists === accepted.exists;
+  if (Object.hasOwn(accepted ?? {}, 'not')) return !same(accepted.not);
+  if (accepted?.notIn) return !accepted.notIn.some(same);
+  if (accepted?.includes !== undefined) return String(descriptorValue(actual) ?? '').includes(accepted.includes);
+  return false;
+};
+
+export function descriptorFieldIsVisible(field, values = {}) {
+  const matchesAll = (conditions) => Object.entries(conditions).every(([key, accepted]) =>
+    descriptorConditionMatches(descriptorAtPath(values, key), accepted, descriptorHasPath(values, key)));
+  return (!field.showWhen || matchesAll(field.showWhen))
+    && (!field.hideWhen || !matchesAll(field.hideWhen));
 }

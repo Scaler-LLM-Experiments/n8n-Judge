@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { compatibleCatalogParams, defaultsForParams, mergeCatalogFields, resolveNodePorts } from './catalogFields.js';
+import { branchesForPorts, compatibleCatalogParams, defaultsForParams, mergeCatalogFields, resolveNodePorts } from './catalogFields.js';
 import { NODE_CATALOG } from '@judge/catalog/catalog.js';
 
 describe('catalog-backed node setup', () => {
@@ -70,6 +70,21 @@ describe('catalog-backed node setup', () => {
       rules: { values: [{ outputKey: 'Paid' }, { outputKey: '' }] },
       options: { fallbackOutput: 'extra', renameFallbackOutput: 'Other' },
     }).outputs.map((port) => port.label)).toEqual(['Paid', '1', 'Other']);
+  });
+
+  it('uses real multi-output labels with case branch ids', () => {
+    expect(branchesForPorts(NODE_CATALOG.if, resolveNodePorts(NODE_CATALOG.if), [
+      { id: 'matched', label: 'Matched' },
+      { id: 'unmatched', label: 'Unmatched' },
+    ])).toEqual([
+      { id: 'matched', label: 'True' },
+      { id: 'unmatched', label: 'False' },
+    ]);
+  });
+
+  it('keeps real single-output nodes and variants linear', () => {
+    expect(branchesForPorts(NODE_CATALOG.filter, resolveNodePorts(NODE_CATALOG.filter))).toBeNull();
+    expect(branchesForPorts(NODE_CATALOG.guardrails, resolveNodePorts(NODE_CATALOG.guardrails, { operation: 'sanitize' }))).toBeNull();
   });
 
   it('renders one Webhook output per selected HTTP method', () => {

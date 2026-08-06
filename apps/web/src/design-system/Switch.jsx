@@ -45,6 +45,7 @@ export function Switch({
       <span
         role="switch"
         aria-checked={checked}
+        aria-disabled={disabled}
         aria-label={ariaLabel || (typeof label === 'string' ? label : undefined)}
         tabIndex={disabled ? -1 : 0}
         onClick={(e) => {

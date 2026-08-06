@@ -38,7 +38,7 @@
 //    already disambiguates duplicates the way n8n does.
 import { toWorkflow } from '@judge/workflow';
 import { NODE_CATALOG } from '@judge/catalog';
-import { N8N_NODE_SPECS, n8nIdentity } from './n8nNodeSpecs.js';
+import { N8N_NODE_SPECS, genericNodeSpec, n8nIdentity } from './n8nNodeSpecs.js';
 
 /** n8n's own default for new workflows. v0 exists only for pre-change ones (§2). */
 const WORKFLOW_SETTINGS = { executionOrder: 'v1' };
@@ -193,7 +193,7 @@ export function exportN8nWorkflow(problem) {
 
   const nodes = canonical.nodes.map((n) => {
     const judgeType = n.type;
-    const spec = N8N_NODE_SPECS[judgeType];
+    const spec = N8N_NODE_SPECS[judgeType] ?? genericNodeSpec(judgeType);
     const { type, typeVersion, overrideReason } = n8nIdentity(judgeType);
 
     if (!spec) {

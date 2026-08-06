@@ -23,19 +23,19 @@ export function N8nFlowNode({ id, type, data, selected }) {
   const { openPicker, openNdv, branches, removeNode } = useEditor();
   // The node's OWN outputs when it has a rule list (derived from what the learner
   // built), otherwise the problem's declared branches.
-  const SWITCH_BRANCHES = data.branches ?? branches ?? [];
+  const ROUTER_BRANCHES = data.branches ?? branches ?? [];
   const [hover, setHover] = useState(false);
   const [warnHover, setWarnHover] = useState(false);
   const variant = variantOf(type);
   const isTrigger = variant === 'trigger';
   const isAi = variant === 'ai';
   const isModel = variant === 'model';
-  const isSwitch = type === 'switch';
   const needsSetup = data.needsSetup;
   const inputs = normalizePorts(data.inputs ?? (isTrigger || isModel ? [] : ['main']));
   const outputs = normalizePorts(data.outputs ?? (isModel ? [] : ['main']));
   const mainInputs = inputs.filter((port) => port.type === 'main');
   const mainOutputs = outputs.filter((port) => port.type === 'main');
+  const isRouter = Boolean(data.router);
   const auxiliaryInputs = inputs.filter((port) => port.type !== 'main');
   const auxiliaryOutputs = outputs.filter((port) => port.type !== 'main');
 
@@ -53,7 +53,7 @@ export function N8nFlowNode({ id, type, data, selected }) {
       ) : (
         <>
           <MainPorts ports={mainInputs} direction="input" />
-          {!isSwitch ? <MainPorts ports={mainOutputs} direction="output" /> : null}
+          {!isRouter ? <MainPorts ports={mainOutputs} direction="output" /> : null}
         </>
       )}
 
@@ -121,11 +121,10 @@ export function N8nFlowNode({ id, type, data, selected }) {
         </div>
       ) : null}
 
-      {/* Switch: labelled branch outputs. The + to add a reply appears only once the
-          Switch itself is set up, so the learner configures before wiring replies. */}
-      {isSwitch ? (
+      {/* Routers: labelled outputs. The + appears only once the node is set up. */}
+      {isRouter ? (
         <div style={{ position: 'absolute', left: '100%', top: 0, bottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 10, paddingLeft: 10 }}>
-          {SWITCH_BRANCHES.map((b, i) => (
+          {ROUTER_BRANCHES.map((b, i) => (
             <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 8, position: 'relative' }}>
               <Handle type="source" id={b.id} position={Position.Right} style={{ ...portStyle, position: 'relative', left: 0, top: 0, transform: 'none' }} />
               <span style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--fg-2)', whiteSpace: 'nowrap' }}>{b.label}</span>

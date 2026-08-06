@@ -130,7 +130,6 @@ const filter = {
   inputs: ['main'],
   outputs: [
     { type: 'main', label: 'Kept' },
-    { type: 'main', label: 'Discarded' },
   ],
   parameterPane: 'wide',
   icon: '/node-icons/filter.svg',

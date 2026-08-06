@@ -15,7 +15,7 @@
 // runs" (which is the point of the download).
 //
 // Everything here is written against docs/n8n-reference/00-how-n8n-actually-works.md,
-// which was read out of n8n v2.33.0's own source. When you touch a spec, check
+// which is pinned to n8n v2.34.0 at commit 3d68c29b9281f14097aa9f15e01ac0777e538b11. When you touch a spec, check
 // §2 (the workflow document), §4 (parameters are sparse) and §6 (typeVersion).
 //
 // ---------------------------------------------------------------------------
@@ -28,7 +28,7 @@
 // 2. **Sparse beats complete.** n8n stores only what differs from the default
 //    and only what is currently displayed (§4), so a real workflow for a
 //    correctly-configured node is smaller than the form suggests. Do not pad.
-import { NODE_CATALOG } from '@judge/catalog';
+import { NODE_CATALOG, descriptorFieldIsVisible } from '@judge/catalog';
 
 /**
  * A placeholder every credential stub carries.
@@ -106,6 +106,93 @@ function expr(value) {
   if (!s) return '';
   if (s.startsWith('=')) return s;
   return s.includes('{{') ? `=${s}` : s;
+}
+
+const clone = (value) => {
+  if (Array.isArray(value)) return value.map(clone);
+  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, child]) => [key, clone(child)]));
+  return value;
+};
+
+const setAtPath = (target, path, value) => {
+  const keys = String(path).split('.').filter(Boolean);
+  let cursor = target;
+  keys.forEach((key, index) => {
+    if (index === keys.length - 1) cursor[key] = value;
+    else cursor = cursor[key] ??= {};
+  });
+};
+
+const normalizeValue = (value) => {
+  if (typeof value === 'string') return expr(value);
+  if (Array.isArray(value)) return value.map(normalizeValue);
+  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, child]) => [key, normalizeValue(child)]));
+  return value;
+};
+
+function selectedValue(field, value) {
+  const option = field.options?.find((candidate) => candidate.value === value);
+  if (option?.sourceValue) return normalizeValue(option.sourceValue);
+  if (option?.type && option?.operation) {
+    return { type: option.type, operation: option.operation, ...(option.nameKey ? { name: option.nameKey } : {}) };
+  }
+  return normalizeValue(value);
+}
+
+function serializeFields(fields, values, rootValues) {
+  const out = {};
+  for (const field of fields ?? []) {
+    if (field.kind === 'notice' || !descriptorFieldIsVisible(field, rootValues)) continue;
+    const path = field.n8nKey ?? field.key;
+    if (!path || path.startsWith('credentials.') || !Object.hasOwn(values, field.key)) continue;
+    const current = values[field.key];
+    let value;
+    if (field.kind === 'collection') {
+      const children = current && typeof current === 'object' && !Array.isArray(current) ? current : {};
+      value = serializeFields(field.fields, children, { ...rootValues, ...children });
+    } else if (field.kind === 'fixedCollection') {
+      const itemKey = field.collectionKey || Object.keys(field.value ?? {})[0] || 'values';
+      const rawRows = current?.[itemKey];
+      const rows = Array.isArray(rawRows) ? rawRows : rawRows && typeof rawRows === 'object' ? [rawRows] : [];
+      const serialized = rows.map((row) => serializeFields(field.fields, row, { ...rootValues, ...row }));
+      const nativeRows = field.multiple === false ? (serialized[0] ?? {}) : serialized;
+      value = path.split('.').at(-1) === itemKey ? nativeRows : { [itemKey]: nativeRows };
+    } else {
+      value = selectedValue(field, current);
+    }
+    setAtPath(out, path, value);
+  }
+  return out;
+}
+
+/** Descriptor-based fallback for catalog nodes without a case-specific export adapter. */
+export function genericNodeSpec(judgeType) {
+  const entry = NODE_CATALOG[judgeType];
+  if (!entry) return null;
+  return {
+    parameters: ({ node, setup }) => {
+      const values = Object.fromEntries((entry.params ?? [])
+        .filter((field) => Object.hasOwn(field, 'value'))
+        .map((field) => [field.key, clone(field.value)]));
+      Object.assign(values, node?.data?.values ?? node?.values ?? {});
+      for (const field of setup?.fields ?? []) {
+        const answer = field.options?.find((option) => option.correct)?.value ?? field.correct;
+        if (answer !== undefined && Object.hasOwn(values, field.key)) values[field.key] = clone(answer);
+      }
+      return serializeFields(entry.params, values, values);
+    },
+    credentials: ({ node }) => {
+      const values = {
+        ...Object.fromEntries((entry.params ?? []).map((field) => [field.key, clone(field.value)])),
+        ...(node?.data?.values ?? node?.values ?? {}),
+      };
+      const requirements = (entry.credentialRequirements ?? []).filter((requirement) =>
+        descriptorFieldIsVisible(requirement, values));
+      return requirements.length
+        ? Object.fromEntries(requirements.map((requirement) => [requirement.type, { id: null, name: requirement.name ?? requirement.type }]))
+        : null;
+    },
+  };
 }
 
 /** n8n's resourceLocator shape. `mode: 'list'` needs a cached name to display. */

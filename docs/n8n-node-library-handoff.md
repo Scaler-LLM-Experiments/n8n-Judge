@@ -4,8 +4,8 @@ Scope: reproduce n8n's **authoring UI**, not its execution runtime. Nodes must l
 
 ## Source and workspace
 
-- Worktree: `/Users/kshnvagale/Documents/Ai/Scaler/n8n-Judge-core-nodes`
-- Branch: `codex/n8n-core-nodes-batch-1`
+- Repository: `/Users/kshnvagale/Documents/Ai/Scaler/n8n-Judge`
+- Workspace rule: create a dedicated worktree and branch for each batch; never reuse another agent's worktree.
 - Official read-only clone: `/Users/kshnvagale/Documents/TempTemp/n8n`
 - Pinned source commit: `3d68c29b9281f14097aa9f15e01ac0777e538b11`
 - Available node/function list: `docs/node-library-catalog.md`
@@ -67,4 +67,4 @@ npm run build
 
 Before hand-off: inventory count equals catalog count, no pending/missing nodes, every icon resolves, scalar selects have scalar defaults, inert dynamic fields are locked, `simulation.voice === false`, and the exported descriptor graph contains no functions. Do not regenerate `graphify-out` or author voice for node-library work.
 
-Current baseline note: the focused node suite and build pass. The full `npm test` has 15 unrelated pre-existing engine/problem-authoring failures that reproduce at pre-app commit `f9510f5`; do not fix them as part of a node batch.
+Current baseline note: the focused node suite, full test suite, typecheck, and build are expected to pass. Investigate any failure before hand-off instead of carrying a stale failure count forward.

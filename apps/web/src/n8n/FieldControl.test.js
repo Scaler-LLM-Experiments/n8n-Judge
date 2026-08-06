@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { isCorrectValue, expressionFor, whyForField, resourceValue, emptyResource, fieldIsVisible, initialFixedCollectionRow, visibilityValuesForFields } from './FieldControl.jsx';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { FieldControl, isCorrectValue, expressionFor, whyForField, resourceValue, emptyResource, fieldIsVisible, initialFixedCollectionRow, pruneInvisibleValues, visibilityValuesForFields } from './FieldControl.jsx';
 import { toPublicProblem } from '@judge/problem-schema';
 import { problems } from '@judge/problems';
 
@@ -219,5 +220,34 @@ describe('conditional collection fields', () => {
     });
     expect(scoped.condition).toBe('is_empty');
     expect(fieldIsVisible({ hideWhen: { condition: ['is_empty'] } }, scoped)).toBe(false);
+  });
+
+  it('drops a dependent collection value when its discriminator hides it', () => {
+    const fields = [
+      { key: 'mode' },
+      { key: 'query', showWhen: { mode: ['search'] } },
+    ];
+    expect(pruneInvisibleValues(fields, { mode: 'list', query: 'stale' })).toEqual({ mode: 'list' });
+  });
+});
+
+describe('locked controls', () => {
+  const markup = (field, value, options = field.options ?? []) => renderToStaticMarkup(FieldControl({
+    field,
+    value,
+    border: '#ddd',
+    bg: '#fff',
+    onChange: () => {},
+    shuffledOptions: options,
+  }));
+
+  it('disables multi-select and both resource-locator selectors', () => {
+    expect(markup({ key: 'events', label: 'Events', kind: 'multiSelect', locked: true }, [])).toContain('disabled=""');
+    expect(markup({ key: 'sheet', label: 'Sheet', kind: 'resourceLocator', modes: ['list'], locked: true }, { __rl: true, mode: 'list', value: '' }).match(/<select[^>]*disabled=""/g)).toHaveLength(2);
+  });
+
+  it('makes locked text fields read-only', () => {
+    expect(markup({ key: 'query', label: 'Query', kind: 'text', locked: true }, 'SELECT 1')).toContain('readOnly=""');
+    expect(markup({ key: 'enabled', label: 'Enabled', kind: 'boolean', locked: true }, true)).toContain('aria-disabled="true"');
   });
 });

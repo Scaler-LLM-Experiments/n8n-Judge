@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { problems } from '@judge/problems';
 import { NODE_CATALOG } from '@judge/catalog';
 import { exportN8nWorkflow, validateN8nWorkflow, workflowFileName } from './exportWorkflow.js';
-import { N8N_NODE_SPECS, EXPORTABLE_TYPES, n8nIdentity } from './n8nNodeSpecs.js';
+import { N8N_NODE_SPECS, EXPORTABLE_TYPES, genericNodeSpec, n8nIdentity } from './n8nNodeSpecs.js';
 
 const all = Object.entries(problems);
 
@@ -185,6 +185,40 @@ describe('the export spec table', () => {
 
   it('names every spec after a real catalog type', () => {
     for (const type of EXPORTABLE_TYPES) expect(NODE_CATALOG[type], type).toBeTruthy();
+  });
+
+  it('has a descriptor-based fallback for every catalog node', () => {
+    for (const type of Object.keys(NODE_CATALOG)) {
+      const spec = genericNodeSpec(type);
+      expect(spec, type).toBeTruthy();
+      const context = { node: {}, setup: null, problem: { branches: [] } };
+      expect(() => JSON.stringify({ parameters: spec.parameters(context), credentials: spec.credentials(context) }), type).not.toThrow();
+    }
+  });
+
+  it('exports newly registered app nodes without credential values or runtime behavior', () => {
+    const problem = {
+      id: 'catalog-export',
+      title: 'Catalog export',
+      branches: [],
+      nodeSetup: {},
+      referenceGraph: {
+        nodes: [
+          { id: 't', type: 'gmail-trigger', position: { x: 0, y: 0 }, requiredLabel: 'Gmail Trigger' },
+          { id: 'a', type: 'notion', position: { x: 240, y: 0 }, requiredLabel: 'Notion' },
+        ],
+        edges: [{ source: 't', target: 'a' }],
+      },
+    };
+    const { workflow, unsupported } = exportN8nWorkflow(problem);
+    expect(unsupported).toEqual([]);
+    expect(validateN8nWorkflow(workflow)).toEqual([]);
+    expect(workflow.nodes.map(({ type }) => type)).toEqual([
+      'n8n-nodes-base.gmailTrigger',
+      'n8n-nodes-base.notion',
+    ]);
+    expect(workflow.nodes[0].parameters).not.toHaveProperty('credentials');
+    expect(workflow.nodes[0].credentials.gmailOAuth2).toEqual({ id: null, name: 'Gmail OAuth2 API' });
   });
 });
 

@@ -20,7 +20,7 @@ import { variantOf } from './N8nNodeView.jsx';
 import { NODE_CATALOG } from '@judge/catalog/catalog.js';
 import { useTraceContext } from '../lib/TraceContext.jsx';
 import { asRules } from '@judge/problem-schema';
-import { resolveNodePorts } from './catalogFields.js';
+import { branchesForPorts, resolveNodePorts } from './catalogFields.js';
 
 const nodeTypes = Object.fromEntries(Object.keys(NODE_CATALOG).map((t) => [t, N8nFlowNode]));
 // Custom type: seamless flowing dash (see AiModelEdge.jsx). Do not use RF's
@@ -261,7 +261,7 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
       const ports = resolveNodePorts(NODE_CATALOG[type], n.data.values);
       const isAi = variantOf(type) === 'ai';
       const hasEditable = (nodeSetup?.[type]?.fields?.length || 0) > 0;
-      const hasMainOut = edges.some((e) => e.source === n.id && !e.sourceHandle && e.targetHandle !== 'ai_model');
+      const hasMainOut = edges.some((e) => e.source === n.id && e.targetHandle !== 'ai_model');
       const hasModel = isAi ? edges.some((e) => e.target === n.id && e.targetHandle === 'ai_model') : undefined;
       const flowNext = flow?.next?.[type] || [];
       const needsSetup = !n.data.configured && !n.data.wrong && hasEditable;
@@ -279,9 +279,8 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
       // time validateGraph or the Run reads branches, these ARE the problem's.
       const caseBranches = branchesFromRules(nodeSetup?.[type], n.data.values);
       const hasCaseRuleList = nodeSetup?.[type]?.fields?.some((field) => field.kind === 'ruleList');
-      const catalogBranches = type === 'switch'
-        ? (ports.outputs ?? []).map((port, index) => ({ id: port.name ?? String(index), label: port.label ?? String(index) }))
-        : null;
+      const catalogBranches = branchesForPorts(NODE_CATALOG[type], ports, branches);
+      const isRouter = Boolean(catalogBranches);
       const nodeBranches = caseBranches ?? (hasCaseRuleList ? branches : catalogBranches) ?? branches ?? [];
       const nodeBranchIds = nodeBranches.map((b) => b.id);
       const openBranches = nodeBranchIds.length
@@ -289,7 +288,7 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
         : undefined;
       const running = !!runActiveId && (n.id === runActiveId || n.id === activeModelId);
       const dimmed = !!runActiveId && !running;
-      return { ...n, data: { ...n.data, ...ports, hasModel, needsSetup, awaitingNext, openBranches, branches: nodeBranches, running, dimmed } };
+      return { ...n, data: { ...n.data, ...ports, hasModel, needsSetup, awaitingNext, openBranches, branches: nodeBranches, router: isRouter, running, dimmed } };
     }),
     [nodes, edges, flow, nodeSetup, runActiveId, activeModelId]
   );

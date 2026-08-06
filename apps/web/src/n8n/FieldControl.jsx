@@ -1,5 +1,6 @@
 import React from 'react';
 import { CaretDown, CaretUp, Lightning, Plus, Trash } from '@phosphor-icons/react';
+import { isFieldVisible } from '@judge/problem-schema';
 import { Switch } from '../design-system/Switch.jsx';
 
 // Parameter controls, one per n8n field type.
@@ -128,26 +129,7 @@ export const initialFixedCollectionRow = (field) => Object.fromEntries((field.fi
   .filter((child) => !field.hideOptionalFields || child.required || child.showEvenWhenOptional)
   .map((child) => [child.key, copy(child.value)]));
 
-const atPath = (value, path) => String(path ?? '').split('.').filter(Boolean)
-  .reduce((current, key) => current?.[key], value);
-
-const matchesVisibility = (values, conditions = {}) => Object.entries(conditions).every(
-  ([key, accepted]) => {
-    const actual = resourceValue(atPath(values, key));
-    if (Array.isArray(accepted)) {
-      const actualValues = Array.isArray(actual) ? actual : [actual];
-      return actualValues.some((value) => accepted.includes(value));
-    }
-    if (accepted?.not !== undefined) return actual !== accepted.not;
-    if (accepted?.notIn) return !accepted.notIn.includes(actual);
-    if (accepted?.exists !== undefined) return Object.hasOwn(values ?? {}, key) === accepted.exists;
-    if (accepted?.includes !== undefined) return String(actual ?? '').includes(accepted.includes);
-    return actual === accepted;
-  }
-);
-
-export const fieldIsVisible = (field, values) =>
-  matchesVisibility(values, field.showWhen) && (!field.hideWhen || !matchesVisibility(values, field.hideWhen));
+export const fieldIsVisible = isFieldVisible;
 
 // n8n reuses native names inside conditional fixed collections. The catalog
 // keeps unique UI keys, so expose the currently visible sibling under its native
@@ -169,6 +151,15 @@ export const visibilityValuesForFields = (fields = [], values = {}) => {
     if (fieldIsVisible(field, values)) scoped[field.n8nKey] = values[field.key];
   }
   return scoped;
+};
+
+export const pruneInvisibleValues = (fields = [], values = {}, rootValues = {}) => {
+  const scoped = visibilityValuesForFields(fields, { ...rootValues, ...values });
+  const byKey = new Map(fields.map((field) => [field.key, field]));
+  return Object.fromEntries(Object.entries(values).filter(([key]) => {
+    const field = byKey.get(key);
+    return !field || (!field.showWhen && !field.hideWhen) || fieldIsVisible(field, scoped);
+  }));
 };
 
 const nestedLabel = (field) => (
@@ -201,8 +192,14 @@ export function CollectionControl({ field, value, border, bg, onChange, inputKey
   const members = (field.fields ?? []).filter((child) => child.kind !== 'hidden' && fieldIsVisible(child, scopedValues));
   const active = members.filter((child) => Object.hasOwn(current, child.key));
   const available = members.filter((child) => !Object.hasOwn(current, child.key));
-  const update = (key, next) => onChange(field.key, { ...current, [key]: next });
-  const remove = (key) => onChange(field.key, Object.fromEntries(Object.entries(current).filter(([name]) => name !== key)));
+  const update = (key, next) => {
+    if (field.locked) return;
+    onChange(field.key, pruneInvisibleValues(field.fields, { ...current, [key]: next }, rootValues));
+  };
+  const remove = (key) => {
+    if (field.locked) return;
+    onChange(field.key, Object.fromEntries(Object.entries(current).filter(([name]) => name !== key)));
+  };
 
   return (
     <div style={{ border: `1px solid ${border}`, background: bg, padding: 10, display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -211,22 +208,23 @@ export function CollectionControl({ field, value, border, bg, onChange, inputKey
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               {nestedLabel(child)}
-              <NestedControl field={child} value={current[child.key]} border={border} onChange={update} inputKeys={inputKeys} rootValues={scopedValues} />
+              <NestedControl field={field.locked ? { ...child, locked: true } : child} value={current[child.key]} border={border} onChange={update} inputKeys={inputKeys} rootValues={scopedValues} />
               {nestedHelp(child)}
             </div>
-            <button type="button" aria-label={`Remove ${child.label}`} onClick={() => remove(child.key)} style={{ border: 'none', background: 'none', color: 'var(--fg-3)', cursor: 'pointer', padding: 4 }}><Trash size={14} /></button>
+            <button type="button" disabled={field.locked} aria-label={`Remove ${child.label}`} onClick={() => remove(child.key)} style={{ border: 'none', background: 'none', color: 'var(--fg-3)', cursor: field.locked ? 'not-allowed' : 'pointer', padding: 4 }}><Trash size={14} /></button>
           </div>
         </div>
       ))}
       {available.length ? (
         <select
           aria-label={field.addLabel || `Add ${field.label}`}
+          disabled={field.locked}
           value=""
           onChange={(event) => {
             const child = members.find((candidate) => candidate.key === event.target.value);
             if (child) update(child.key, copy(child.value));
           }}
-          style={{ ...baseInput(border, 'var(--surface-0)'), cursor: 'pointer' }}
+          style={{ ...baseInput(border, field.locked ? 'var(--surface-2)' : 'var(--surface-0)'), cursor: field.locked ? 'not-allowed' : 'pointer' }}
         >
           <option value="">{field.addLabel || 'Add Field'}</option>
           {available.map((child) => <option key={child.key} value={child.key}>{child.label}</option>)}
@@ -245,8 +243,13 @@ export function FixedCollectionControl({ field, value, border, bg, onChange, inp
   const rows = Array.isArray(rawRows) ? rawRows : single && rawRows && typeof rawRows === 'object' ? [rawRows] : [];
   const canAdd = (!single || rows.length === 0) && (!field.maxItems || rows.length < field.maxItems);
   const emptyRow = () => initialFixedCollectionRow(field);
-  const setRows = (next) => onChange(field.key, { ...current, [itemKey]: single ? (next[0] ?? {}) : next });
-  const setCell = (index, key, next) => setRows(rows.map((row, rowIndex) => rowIndex === index ? { ...row, [key]: next } : row));
+  const setRows = (next) => {
+    if (field.locked) return;
+    onChange(field.key, { ...current, [itemKey]: single ? (next[0] ?? {}) : next });
+  };
+  const setCell = (index, key, next) => setRows(rows.map((row, rowIndex) => rowIndex === index
+    ? pruneInvisibleValues(field.fields, { ...row, [key]: next }, rootValues)
+    : row));
   const move = (index, offset) => {
     const target = index + offset;
     if (target < 0 || target >= rows.length) return;
@@ -267,9 +270,9 @@ export function FixedCollectionControl({ field, value, border, bg, onChange, inp
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 9 }}>
             <span style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--fg-3)' }}>{field.collectionLabel || 'Item'} {index + 1}</span>
             <div style={{ display: 'flex', gap: 3 }}>
-              {field.sortable ? <button type="button" aria-label={`Move ${field.label} ${index + 1} up`} disabled={index === 0} onClick={() => move(index, -1)} style={{ border: 'none', background: 'none', color: 'var(--fg-3)', cursor: index === 0 ? 'not-allowed' : 'pointer', padding: 2 }}><CaretUp size={14} /></button> : null}
-              {field.sortable ? <button type="button" aria-label={`Move ${field.label} ${index + 1} down`} disabled={index === rows.length - 1} onClick={() => move(index, 1)} style={{ border: 'none', background: 'none', color: 'var(--fg-3)', cursor: index === rows.length - 1 ? 'not-allowed' : 'pointer', padding: 2 }}><CaretDown size={14} /></button> : null}
-              <button type="button" aria-label={`Remove ${field.label} ${index + 1}`} onClick={() => setRows(rows.filter((_, rowIndex) => rowIndex !== index))} style={{ border: 'none', background: 'none', color: 'var(--fg-3)', cursor: 'pointer', padding: 2 }}><Trash size={14} /></button>
+              {field.sortable ? <button type="button" aria-label={`Move ${field.label} ${index + 1} up`} disabled={field.locked || index === 0} onClick={() => move(index, -1)} style={{ border: 'none', background: 'none', color: 'var(--fg-3)', cursor: field.locked || index === 0 ? 'not-allowed' : 'pointer', padding: 2 }}><CaretUp size={14} /></button> : null}
+              {field.sortable ? <button type="button" aria-label={`Move ${field.label} ${index + 1} down`} disabled={field.locked || index === rows.length - 1} onClick={() => move(index, 1)} style={{ border: 'none', background: 'none', color: 'var(--fg-3)', cursor: field.locked || index === rows.length - 1 ? 'not-allowed' : 'pointer', padding: 2 }}><CaretDown size={14} /></button> : null}
+              <button type="button" disabled={field.locked} aria-label={`Remove ${field.label} ${index + 1}`} onClick={() => setRows(rows.filter((_, rowIndex) => rowIndex !== index))} style={{ border: 'none', background: 'none', color: 'var(--fg-3)', cursor: field.locked ? 'not-allowed' : 'pointer', padding: 2 }}><Trash size={14} /></button>
             </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -278,17 +281,17 @@ export function FixedCollectionControl({ field, value, border, bg, onChange, inp
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     {nestedLabel(child)}
-                    <NestedControl field={child} value={row[child.key]} border={border} onChange={(_, next) => setCell(index, child.key, next)} inputKeys={inputKeys} rootValues={scopedValues} />
+                    <NestedControl field={field.locked ? { ...child, locked: true } : child} value={row[child.key]} border={border} onChange={(_, next) => setCell(index, child.key, next)} inputKeys={inputKeys} rootValues={scopedValues} />
                   </div>
                   {field.hideOptionalFields && !child.required && !child.showEvenWhenOptional ? (
-                    <button type="button" aria-label={`Remove ${child.label}`} onClick={() => setRows(rows.map((item, rowIndex) => rowIndex === index ? Object.fromEntries(Object.entries(item).filter(([key]) => key !== child.key)) : item))} style={{ border: 'none', background: 'none', color: 'var(--fg-3)', cursor: 'pointer', padding: 4 }}><Trash size={14} /></button>
+                    <button type="button" disabled={field.locked} aria-label={`Remove ${child.label}`} onClick={() => setRows(rows.map((item, rowIndex) => rowIndex === index ? Object.fromEntries(Object.entries(item).filter(([key]) => key !== child.key)) : item))} style={{ border: 'none', background: 'none', color: 'var(--fg-3)', cursor: field.locked ? 'not-allowed' : 'pointer', padding: 4 }}><Trash size={14} /></button>
                   ) : null}
                 </div>
                 {nestedHelp(child)}
               </div>
             ))}
             {available.length ? (
-              <select aria-label={field.addOptionalFieldButtonText || 'Add Attributes'} value="" onChange={(event) => {
+              <select aria-label={field.addOptionalFieldButtonText || 'Add Attributes'} disabled={field.locked} value="" onChange={(event) => {
                 const child = available.find((candidate) => candidate.key === event.target.value);
                 if (child) setCell(index, child.key, copy(child.value));
               }} style={{ ...baseInput(border, 'var(--surface-0)'), cursor: 'pointer' }}>
@@ -300,7 +303,7 @@ export function FixedCollectionControl({ field, value, border, bg, onChange, inp
         </div>
         );
       })}
-      <button type="button" disabled={!canAdd} onClick={() => setRows(rows.concat(emptyRow()))} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, border: `1px solid ${border}`, background: 'var(--surface-0)', color: canAdd ? 'var(--brand-primary)' : 'var(--fg-3)', padding: '8px 10px', fontSize: 11.5, fontWeight: 700, cursor: canAdd ? 'pointer' : 'not-allowed', fontFamily: 'var(--font-body)' }}>
+      <button type="button" disabled={field.locked || !canAdd} onClick={() => setRows(rows.concat(emptyRow()))} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, border: `1px solid ${border}`, background: 'var(--surface-0)', color: canAdd && !field.locked ? 'var(--brand-primary)' : 'var(--fg-3)', padding: '8px 10px', fontSize: 11.5, fontWeight: 700, cursor: canAdd && !field.locked ? 'pointer' : 'not-allowed', fontFamily: 'var(--font-body)' }}>
         <Plus size={13} weight="bold" /> {field.addLabel || 'Add Item'}
       </button>
     </div>
@@ -313,7 +316,7 @@ export function FieldControl({ field, value, border, bg, onChange, shuffledOptio
   if (kind === 'button') {
     return (
       <div style={{ display: 'flex', gap: 8 }}>
-        <input aria-label={field.label} value={value ?? ''} maxLength={field.buttonConfig?.inputFieldMaxLength} placeholder={field.placeholder} onChange={(event) => onChange(field.key, event.target.value)} style={baseInput(border, bg)} />
+        <input aria-label={field.label} value={value ?? ''} readOnly={field.locked} maxLength={field.buttonConfig?.inputFieldMaxLength} placeholder={field.placeholder} onChange={(event) => onChange(field.key, event.target.value)} style={baseInput(border, field.locked ? 'var(--surface-2)' : bg)} />
         <button type="button" title="Simulated control — code generation is authored, not executed here" style={{ flex: 'none', border: 'none', background: 'var(--brand-primary)', color: '#fff', padding: '0 12px', fontSize: 11.5, fontWeight: 700, cursor: 'default', fontFamily: 'var(--font-body)' }}>{field.buttonConfig?.label || field.label}</button>
       </div>
     );
@@ -325,6 +328,7 @@ export function FieldControl({ field, value, border, bg, onChange, shuffledOptio
         checked={Boolean(value)}
         aria-label={field.label}
         borderColor={border}
+        disabled={field.locked}
         onChange={(next) => onChange(field.key, next)}
       />
     );
@@ -339,6 +343,7 @@ export function FieldControl({ field, value, border, bg, onChange, shuffledOptio
         min={field.min}
         max={field.max}
         step={field.step ?? 1}
+        disabled={field.locked}
         placeholder={field.placeholder}
         onChange={(e) => {
           if (e.target.value === '') return onChange(field.key, '');
@@ -350,7 +355,7 @@ export function FieldControl({ field, value, border, bg, onChange, shuffledOptio
           if (typeof field.max === 'number') n = Math.min(field.max, n);
           onChange(field.key, n);
         }}
-        style={baseInput(border, bg)}
+        style={{ ...baseInput(border, field.locked ? 'var(--surface-2)' : bg), cursor: field.locked ? 'not-allowed' : 'text' }}
       />
     );
   }
@@ -360,8 +365,8 @@ export function FieldControl({ field, value, border, bg, onChange, shuffledOptio
     const swatch = /^#[0-9a-f]{6}/i.test(raw) ? raw.slice(0, 7) : '#000000';
     return (
       <div style={{ display: 'flex', gap: 8 }}>
-        <input type="color" aria-label={`${field.label} picker`} value={swatch} onChange={(event) => onChange(field.key, `${event.target.value}${raw.length === 9 ? raw.slice(7) : ''}`)} style={{ width: 44, minHeight: 38, border: `1.5px solid ${border}`, background: bg, padding: 3 }} />
-        <input aria-label={field.label} value={raw} onChange={(event) => onChange(field.key, event.target.value)} style={baseInput(border, bg)} />
+        <input type="color" aria-label={`${field.label} picker`} value={swatch} disabled={field.locked} onChange={(event) => onChange(field.key, `${event.target.value}${raw.length === 9 ? raw.slice(7) : ''}`)} style={{ width: 44, minHeight: 38, border: `1.5px solid ${border}`, background: field.locked ? 'var(--surface-2)' : bg, padding: 3 }} />
+        <input aria-label={field.label} value={raw} readOnly={field.locked} onChange={(event) => onChange(field.key, event.target.value)} style={baseInput(border, field.locked ? 'var(--surface-2)' : bg)} />
       </div>
     );
   }
@@ -371,9 +376,10 @@ export function FieldControl({ field, value, border, bg, onChange, shuffledOptio
       <select
         multiple
         aria-label={field.label}
+        disabled={field.locked}
         value={Array.isArray(value) ? value : []}
         onChange={(event) => onChange(field.key, Array.from(event.target.selectedOptions, (option) => option.value))}
-        style={{ ...baseInput(border, bg), minHeight: 96 }}
+        style={{ ...baseInput(border, field.locked ? 'var(--surface-2)' : bg), minHeight: 96, cursor: field.locked ? 'not-allowed' : 'pointer' }}
       >
         {(shuffledOptions ?? []).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
       </select>
@@ -398,8 +404,9 @@ export function FieldControl({ field, value, border, bg, onChange, shuffledOptio
         <select
           aria-label={`How to choose ${field.label}`}
           value={current.mode}
+          disabled={field.locked}
           onChange={(e) => set({ mode: e.target.value, value: '' })}
-          style={{ ...baseInput(border, bg), width: 'auto', flex: 'none', minWidth: 108, appearance: 'none', paddingRight: 22, cursor: 'pointer' }}
+          style={{ ...baseInput(border, field.locked ? 'var(--surface-2)' : bg), width: 'auto', flex: 'none', minWidth: 108, appearance: 'none', paddingRight: 22, cursor: field.locked ? 'not-allowed' : 'pointer' }}
         >
           {modes.map((m) => (
             <option key={m} value={m}>{modeMeta(m)?.label ?? LABEL[m] ?? m}</option>
@@ -410,8 +417,9 @@ export function FieldControl({ field, value, border, bg, onChange, shuffledOptio
           <select
             aria-label={field.label}
             value={current.value ?? ''}
+            disabled={field.locked}
             onChange={(e) => set({ value: e.target.value })}
-            style={{ ...baseInput(border, bg), appearance: 'none', paddingRight: 30, cursor: 'pointer', color: current.value ? 'var(--fg-1)' : 'var(--fg-3)' }}
+            style={{ ...baseInput(border, field.locked ? 'var(--surface-2)' : bg), appearance: 'none', paddingRight: 30, cursor: field.locked ? 'not-allowed' : 'pointer', color: current.value ? 'var(--fg-1)' : 'var(--fg-3)' }}
           >
             <option value="" disabled>Choose…</option>
             {(shuffledOptions ?? []).map((o) => (
@@ -423,10 +431,11 @@ export function FieldControl({ field, value, border, bg, onChange, shuffledOptio
             type={field.inputType ?? 'text'}
             aria-label={field.label}
             value={current.value ?? ''}
+            readOnly={field.locked}
             placeholder={modeMeta(current.mode)?.placeholder ?? PLACEHOLDER[current.mode] ?? ''}
             spellCheck={false}
             onChange={(e) => set({ value: e.target.value })}
-            style={baseInput(border, bg)}
+            style={baseInput(border, field.locked ? 'var(--surface-2)' : bg)}
           />
         )}
       </div>
@@ -457,23 +466,24 @@ export function FieldControl({ field, value, border, bg, onChange, shuffledOptio
           <textarea
             aria-label={field.label}
             value={value ?? ''}
-            readOnly={field.readOnly}
+            readOnly={field.readOnly || field.locked}
             rows={8}
             placeholder={field.placeholder}
             spellCheck={false}
             onChange={(e) => onChange(field.key, e.target.value)}
-            style={{ ...baseInput(border, field.readOnly ? 'var(--surface-2)' : bg), minHeight: 150, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace)' }}
+            style={{ ...baseInput(border, field.readOnly || field.locked ? 'var(--surface-2)' : bg), minHeight: 150, resize: 'vertical', lineHeight: 1.5, fontFamily: 'var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace)' }}
           />
         ) : (
           <input
             type={field.inputType ?? 'text'}
             aria-label={field.label}
             value={value ?? ''}
+            readOnly={field.locked}
             placeholder={field.placeholder ?? (isExpr ? 'Drag a field from Input, or type {{ $json.… }}' : '')}
             spellCheck={false}
             onChange={(e) => onChange(field.key, e.target.value)}
             style={{
-              ...baseInput(border, bg),
+              ...baseInput(border, field.locked ? 'var(--surface-2)' : bg),
               paddingLeft: isExpr ? 30 : 11,
               fontFamily: isExpr ? 'var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace)' : 'var(--font-body)',
             }}
@@ -486,6 +496,7 @@ export function FieldControl({ field, value, border, bg, onChange, shuffledOptio
           <select
             aria-label={`Insert an input field into ${field.label}`}
             value=""
+            disabled={field.locked}
             onChange={(e) => { if (e.target.value) onChange(field.key, expressionFor(e.target.value)); }}
             style={{ position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)', border: '1px solid var(--border-strong)', background: 'var(--surface-1)', fontSize: 10.5, fontFamily: 'var(--font-body)', color: 'var(--fg-2)', padding: '3px 4px', cursor: 'pointer', maxWidth: 118 }}
           >
@@ -496,7 +507,7 @@ export function FieldControl({ field, value, border, bg, onChange, shuffledOptio
           </select>
         ) : null}
         {!isExpr && (field.dataPath || field.requiresDataPath) && inputKeys.length > 0 ? (
-          <select aria-label={`Insert an input field into ${field.label}`} value="" onChange={(event) => setRawPath(event.target.value)} style={{ position: 'absolute', right: 6, top: 6, border: '1px solid var(--border-strong)', background: 'var(--surface-1)', fontSize: 10.5, fontFamily: 'var(--font-body)', color: 'var(--fg-2)', padding: '3px 4px', cursor: 'pointer', maxWidth: 118 }}>
+          <select aria-label={`Insert an input field into ${field.label}`} value="" disabled={field.locked} onChange={(event) => setRawPath(event.target.value)} style={{ position: 'absolute', right: 6, top: 6, border: '1px solid var(--border-strong)', background: 'var(--surface-1)', fontSize: 10.5, fontFamily: 'var(--font-body)', color: 'var(--fg-2)', padding: '3px 4px', cursor: field.locked ? 'not-allowed' : 'pointer', maxWidth: 118 }}>
             <option value="">Insert field…</option>
             {inputKeys.map((key) => <option key={key} value={key}>{key}</option>)}
           </select>
@@ -520,9 +531,10 @@ export function FieldControl({ field, value, border, bg, onChange, shuffledOptio
           aria-label={field.label}
           list={listId}
           value={value ?? ''}
+          readOnly={field.locked}
           placeholder={field.placeholder ?? 'Choose or enter a value'}
           onChange={(event) => onChange(field.key, event.target.value)}
-          style={baseInput(border, bg)}
+          style={baseInput(border, field.locked ? 'var(--surface-2)' : bg)}
         />
         <datalist id={listId}>
           {(shuffledOptions ?? []).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}

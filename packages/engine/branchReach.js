@@ -1,4 +1,4 @@
-import { NODE_CATALOG } from '@judge/catalog';
+import { NODE_CATALOG, isRouterEntry } from '@judge/catalog';
 
 // "Has every branch of the router been wired to something that actually replies?"
 //
@@ -31,9 +31,7 @@ import { NODE_CATALOG } from '@judge/catalog';
 const isTerminal = (type) => NODE_CATALOG[type]?.category === 'action';
 
 /** The router: whichever node type the catalog says has branches. */
-const isRouter = (type) => Boolean(
-  NODE_CATALOG[type]?.router || (NODE_CATALOG[type]?.branches?.length ?? 0) > 0
-);
+const isRouter = (type) => isRouterEntry(NODE_CATALOG[type]);
 
 /** Does this problem ask the learner to configure this node type at all? */
 const isGraded = (problem, type) => (problem?.nodeSetup?.[type]?.fields?.length ?? 0) > 0;

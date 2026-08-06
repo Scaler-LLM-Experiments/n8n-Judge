@@ -24,6 +24,14 @@ describe('branchReachesReply', () => {
     expect(branchReachesReply(graph, problem, 'left')).toBe(true);
   });
 
+  it('recognizes a static multi-output node as a router', () => {
+    const graph = {
+      nodes: [node('if', 'if'), node('a', 'action')],
+      edges: [{ source: 'if', sourceHandle: 'true', target: 'a' }],
+    };
+    expect(branchReachesReply(graph, problem, 'true')).toBe(true);
+  });
+
   it('accepts a reply that is action-CATEGORY but not type "action"', () => {
     // The bug this module exists for: Slack ends a run, and the old inline check
     // demanded type === 'action', so this branch could never complete.

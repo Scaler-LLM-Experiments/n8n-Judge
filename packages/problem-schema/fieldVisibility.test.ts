@@ -46,6 +46,19 @@ describe('isFieldVisible', () => {
     expect(isFieldVisible(f, { hideTools: 'hide' })).toBe(false);
   });
 
+  it('supports nested, resource-locator, substring, and existence conditions', () => {
+    expect(isFieldVisible(
+      { key: 'quality', showWhen: { model: { includes: 'gpt-image' } } },
+      { model: { __rl: true, mode: 'list', value: 'gpt-image-1' } },
+    )).toBe(true);
+    expect(isFieldVisible(
+      { key: 'memory', showWhen: { 'options.mode': ['session'] } },
+      { options: { mode: 'session' } },
+    )).toBe(true);
+    expect(isFieldVisible({ key: 'query', showWhen: { value: { exists: true } } }, { value: '' })).toBe(true);
+    expect(isFieldVisible({ key: 'query', showWhen: { value: { exists: true } } }, {})).toBe(false);
+  });
+
   // A checkbox hands back a real boolean and a number input often a string, so
   // matching has to be loose or an authored `true`/`3` would never fire.
   it('matches loosely across types', () => {

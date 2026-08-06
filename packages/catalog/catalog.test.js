@@ -60,6 +60,23 @@ describe('essential app-node completion inventory', () => {
   });
 });
 
+describe('pinned source metadata and ports', () => {
+  it('keeps single-output Filter and Remove Duplicates faithful to n8n', () => {
+    expect(NODE_CATALOG.filter.outputs).toHaveLength(1);
+    expect(NODE_CATALOG['remove-duplicates'].outputs).toHaveLength(1);
+  });
+
+  it('uses the case-sensitive FTP source paths from the pinned checkout', () => {
+    expect(NODE_CATALOG.ftp.source.path).toBe('packages/nodes-base/nodes/Ftp/Ftp.node.ts');
+    expect(NODE_CATALOG.ftp.source.metadataPath).toBe('packages/nodes-base/nodes/Ftp/Ftp.node.json');
+  });
+
+  it('keeps auxiliary source references at their pinned locations', () => {
+    expect(NODE_CATALOG['execute-subworkflow'].source.workflowSelectorPath).toContain('/features/ndv/parameters/');
+    expect(NODE_CATALOG['microsoft-excel'].source.excludedSiblingPath).toBe('packages/nodes-base/nodes/Microsoft/ExcelSharePoint/MicrosoftExcelSharePoint.node.ts');
+  });
+});
+
 describe('essential app-node batch 1 carries the real operation surface', () => {
   const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((param) => [param.key, param]));
 

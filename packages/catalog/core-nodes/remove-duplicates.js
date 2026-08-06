@@ -76,7 +76,6 @@ const removeDuplicates = {
   inputs: ['main'],
   outputs: [
     { type: 'main', label: 'Kept', name: 'kept' },
-    { type: 'main', label: 'Discarded', name: 'discarded' },
   ],
   outputNames: ['Kept', 'Discarded'],
   icon: '/node-icons/remove-duplicates.svg',

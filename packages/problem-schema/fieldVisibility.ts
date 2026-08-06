@@ -19,9 +19,16 @@
 //
 // See docs/n8n-reference/00-how-n8n-actually-works.md §4–§5.
 
+import { descriptorFieldIsVisible } from '@judge/catalog';
+
 type Values = Record<string, unknown>;
 type ConditionalValue = string | number | boolean;
-type Condition = ConditionalValue[] | { not?: unknown; notIn?: unknown[] };
+type Condition = ConditionalValue[] | {
+  not?: unknown;
+  notIn?: unknown[];
+  includes?: string;
+  exists?: boolean;
+};
 
 export interface ConditionalField {
   key: string;
@@ -29,26 +36,9 @@ export interface ConditionalField {
   hideWhen?: Record<string, Condition>;
 }
 
-/** Loose equality, so authored `true` matches a checkbox's `true` and `3` matches `'3'`. */
-function same(actual: unknown, accepted: unknown): boolean {
-  return accepted === actual || String(accepted) === String(actual ?? '');
-}
-
-function matches(actual: unknown, accepted: Condition): boolean {
-  if (!Array.isArray(accepted)) {
-    if ('not' in accepted) return !same(actual, accepted.not);
-    if (accepted.notIn) return !accepted.notIn.some((value) => same(actual, value));
-    return false;
-  }
-  const actualValues = Array.isArray(actual) ? actual : [actual];
-  return actualValues.some((value) => accepted.some((candidate) => same(value, candidate)));
-}
-
 /** Is this field displayed, given the values chosen so far? */
 export function isFieldVisible(field: ConditionalField, values: Values = {}): boolean {
-  const shown = !field.showWhen || Object.entries(field.showWhen).every(([key, accepted]) => matches(values[key], accepted));
-  const hidden = field.hideWhen && Object.entries(field.hideWhen).every(([key, accepted]) => matches(values[key], accepted));
-  return shown && !hidden;
+  return descriptorFieldIsVisible(field, values);
 }
 
 /** The subset of `fields` currently displayed — the only ones setup may demand. */

@@ -1,4 +1,4 @@
-import { NODE_CATALOG } from '@judge/catalog';
+import { NODE_CATALOG, isRouterEntry } from '@judge/catalog';
 
 // The catalog is a plain JS object literal, so TypeScript infers its exact keys
 // and refuses an arbitrary `string` index. Problem node types are validated
@@ -9,6 +9,7 @@ interface CatalogEntry {
   needsModel?: boolean;
   router?: boolean;
   branches?: unknown[];
+  outputs?: Array<string | { type?: string }>;
 }
 const catalogEntryOf = (type: string): CatalogEntry | undefined =>
   (NODE_CATALOG as Record<string, CatalogEntry>)[type];
@@ -165,7 +166,7 @@ export function validateProblem(input: unknown): ValidateProblemResult {
   // capability without baking case-specific branch names into the global catalog.
   const hasRouter = [...requiredTypes].some((t) => {
     const entry = catalogEntryOf(t);
-    return Boolean(entry?.router || (entry?.branches?.length ?? 0) > 0);
+    return isRouterEntry(entry);
   });
   if (hasRouter && p.branches.length < 2) {
     err('branches', 'A routing node needs at least 2 declared branches');

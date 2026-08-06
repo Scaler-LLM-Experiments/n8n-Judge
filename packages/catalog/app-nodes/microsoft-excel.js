@@ -297,7 +297,7 @@ const microsoftExcel = {
       'packages/nodes-base/credentials/OAuth2Api.credentials.ts',
     ],
     iconPath: 'packages/nodes-base/nodes/Microsoft/Excel/excel.svg',
-    excludedSiblingPath: 'packages/nodes-base/nodes/Microsoft/Excel/MicrosoftExcelSharePoint.node.ts',
+    excludedSiblingPath: 'packages/nodes-base/nodes/Microsoft/ExcelSharePoint/MicrosoftExcelSharePoint.node.ts',
   },
   resources: [
     { value: 'table', defaultOperation: 'append', operations: tableOperations.map(({ value }) => value) },

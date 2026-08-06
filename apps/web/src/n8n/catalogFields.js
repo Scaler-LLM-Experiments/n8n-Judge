@@ -118,6 +118,16 @@ export function resolveNodePorts(entry = {}, values = {}) {
   };
 }
 
+export function branchesForPorts(entry = {}, ports = {}, authoredBranches = []) {
+  const outputs = (ports.outputs ?? []).filter((port) =>
+    (typeof port === 'string' ? port : port.type) === 'main');
+  if (!entry.router && outputs.length < 2) return null;
+  return outputs.map((port, index) => ({
+    id: authoredBranches[index]?.id ?? port.name ?? String(index),
+    label: port.label ?? port.name ?? authoredBranches[index]?.label ?? String(index),
+  }));
+}
+
 /**
  * The catalog owns the real editor surface; a case owns only grading and voice.
  * Overlay authored fields by key, and leave every other real field interactive

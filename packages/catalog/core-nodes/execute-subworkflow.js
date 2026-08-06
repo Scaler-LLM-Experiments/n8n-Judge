@@ -39,7 +39,7 @@ export const executeSubworkflowNode = {
     resourceMappingPath:
       'packages/nodes-base/nodes/ExecuteWorkflow/ExecuteWorkflow/methods/localResourceMapping.ts',
     workflowSelectorPath:
-      'packages/frontend/editor-ui/src/components/WorkflowSelectorParameterInput/WorkflowSelectorParameterInput.vue',
+      'packages/frontend/editor-ui/src/features/ndv/parameters/components/WorkflowSelectorParameterInput/WorkflowSelectorParameterInput.vue',
     iconPath:
       'packages/frontend/@n8n/design-system/src/components/N8nIcon/nodes/execute-sub-workflow.svg',
   },
