@@ -140,11 +140,20 @@ type: report it and stop, rather than shipping a case whose reward is a file tha
 > is authored. An unregistered case reports those placeholders as non-blocking, which is the
 > correct signal for a case that is not finished yet.
 
-**The hard human gate.** If the agent reports `blocked: true` because the spec needs a node
-type outside the 23 in `NODE_CATALOG` — **stop**. Do not let it substitute a near-miss node;
-a case built on the wrong node teaches the wrong thing while passing every test. Adding a
-type is a code change in `packages/catalog/catalog.js` and `apps/web/src/nodes/nodeIcons.js`,
-which is outside an authoring run.
+**The hard human gate.** If the agent reports `blocked: true` because the spec needs a node type
+that is not registered — **stop**. Do not let it substitute a near-miss node; a case built on the
+wrong node teaches the wrong thing while passing every test.
+
+The menu is [docs/node-library-catalog.md](../../../docs/node-library-catalog.md): **200
+registered types**, with 10 compatibility aliases, 5 deprecated descriptors and 3 deferred
+triggers that a new case must not pick. Adding a genuinely new type is five things (descriptor,
+`typeCategory` + icon map, the SVG, an export spec, a catalog row) and is outside an authoring run.
+
+**The likelier block now is the n8n export spec, not the catalog.** With 200 types registered and
+only 14 carrying an entry in `packages/engine/n8nNodeSpecs.js` — 7 of them legacy aliases — a case
+authored on canonical types will fail `npm run workflows:generate`. Treat that the same way: stop
+and report which types need a spec. Do **not** accept a fallback to a legacy alias to make the
+export pass, because that picks the wrong node for a tooling reason.
 
 ```bash
 npm run case:run -- stage author_case blocked --note "needs <type>, not in the catalog"
