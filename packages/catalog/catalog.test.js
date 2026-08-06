@@ -1,7 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
 import { NODE_CATALOG, AI_SUB_NODE_PORTS, TRIGGER_OPTIONS, NODE_OPTIONS } from './catalog.js';
-import { CORE_NODE_INVENTORY, COMPLETE_CORE_NODE_TYPES, SOURCE_COMMIT } from './core-nodes/index.js';
+import {
+  CLUSTER_NODE_INVENTORY,
+  COMPLETE_CLUSTER_NODE_TYPES,
+  CORE_NODE_INVENTORY,
+  COMPLETE_CORE_NODE_TYPES,
+  SOURCE_COMMIT,
+} from './core-nodes/index.js';
 import {
   APP_NODE_INVENTORY,
   APP_SOURCE_COMMIT,
@@ -30,6 +36,13 @@ const inspectFields = (type, fields, path = '', requireInertLocks = false) => {
     }
     if (field.fields) inspectFields(type, field.fields, `${path}${field.key}.`, requireInertLocks);
   }
+};
+
+const containsFunction = (value, seen = new Set()) => {
+  if (typeof value === 'function') return true;
+  if (!value || typeof value !== 'object' || seen.has(value)) return false;
+  seen.add(value);
+  return Object.values(value).some((child) => containsFunction(child, seen));
 };
 
 describe('essential app-node completion inventory', () => {
@@ -407,6 +420,1092 @@ describe('core-node completion inventory', () => {
   });
 });
 
+describe('cluster-node completion inventory', () => {
+  it('tracks the linked root/sub-node scope without duplicates', () => {
+    expect(CLUSTER_NODE_INVENTORY).toHaveLength(90);
+    expect(CLUSTER_NODE_INVENTORY.filter((node) => node.clusterRole === 'root')).toHaveLength(22);
+    expect(CLUSTER_NODE_INVENTORY.filter((node) => node.clusterRole === 'sub')).toHaveLength(68);
+    expect(new Set(CLUSTER_NODE_INVENTORY.map((node) => node.type)).size).toBe(90);
+    expect(new Set(CLUSTER_NODE_INVENTORY.map((node) => node.docsSlug)).size).toBe(90);
+    expect(CLUSTER_NODE_INVENTORY.filter((node) => node.status === 'excluded-deprecated').map((node) => node.type)).toEqual([
+      'embeddings-google-palm',
+    ]);
+  });
+
+  it('publishes only reviewed complete cluster nodes as inert data', () => {
+    expect(COMPLETE_CLUSTER_NODE_TYPES).toEqual(
+      CLUSTER_NODE_INVENTORY.filter((node) => node.status === 'complete').map((node) => node.type)
+    );
+    for (const type of COMPLETE_CLUSTER_NODE_TYPES) {
+      const node = NODE_CATALOG[type];
+      expect(node, `${type} is marked complete but missing from the catalog`).toBeTruthy();
+      expect(node.source?.commit, `${type} has no reviewed source commit`).toBe(SOURCE_COMMIT);
+      expect(node.icon, `${type} has no active editor icon`).toMatch(/^\/node-icons\//);
+      expect(existsSync(new URL(`../../apps/web/public${node.icon}`, import.meta.url)), `${type} icon file is missing`).toBe(true);
+      expect(containsFunction(node), `${type} exports executable code`).toBe(false);
+      expect(node.execute, `${type} must remain an authoring-only simulation`).toBeUndefined();
+      expect(node.trigger, `${type} must not implement a trigger runtime`).toBeUndefined();
+      expect(node.webhook, `${type} must not implement a webhook runtime`).toBeUndefined();
+      expect(node.simulation?.voice, `${type} must not generate voice`).toBe(false);
+      inspectFields(type, node.params ?? [], '', true);
+    }
+  });
+});
+
+describe('cluster-node batch 1 carries the current root-node authoring surface', () => {
+  it('models AI Agent v3.1 ports, prompts, options, and dormant exclusions', () => {
+    const node = NODE_CATALOG['ai-agent'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 3.1, n8nType: '@n8n/n8n-nodes-langchain.agent' });
+    expect(node.fieldParity.recursiveVisibleFieldCount).toBe(27);
+    expect(params.promptType.options.map(({ value }) => value)).toEqual(['auto', 'define']);
+    expect(params.autoPrompt).toMatchObject({ readOnly: true, showWhen: { promptType: ['auto'] } });
+    expect(node.connectorParity.withOutputParserAndFallback).toHaveLength(6);
+  });
+
+  it('models Basic LLM Chain v1.9 dynamic inputs and current fields', () => {
+    const node = NODE_CATALOG['basic-llm-chain'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.9, n8nType: '@n8n/n8n-nodes-langchain.chainLlm' });
+    expect(node.parameterParity).toMatchObject({ recursiveFieldCount: 18, dynamicInputShapeCount: 4 });
+    expect(params.promptType.options.map(({ value }) => value)).toEqual(['auto', 'define']);
+    expect(params.messages.fields).toHaveLength(6);
+    expect(params.batching.fields.map(({ key }) => key)).toEqual(['batchSize', 'delayBetweenBatches']);
+  });
+
+  it('models Question and Answer Chain v1.7 prompt, retriever, and batching fields', () => {
+    const node = NODE_CATALOG['question-answer-chain'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.7, n8nType: '@n8n/n8n-nodes-langchain.chainRetrievalQa' });
+    expect(node.authoringParity.recursiveFieldCount).toBe(9);
+    expect(node.portMetadata.requiredInputs).toEqual(['ai_languageModel', 'ai_retriever']);
+    expect(params.promptType.options.map(({ value }) => value)).toEqual(['auto', 'define']);
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['systemPromptTemplate', 'batching']);
+  });
+});
+
+describe('cluster-node batch 2 carries the current root-node authoring surface', () => {
+  it('models Summarization Chain v2.1 inputs, methods, prompts, and batching', () => {
+    const node = NODE_CATALOG['summarization-chain'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 2.1, n8nType: '@n8n/n8n-nodes-langchain.chainSummarization' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 17, dynamicInputShapeCount: 3 });
+    expect(params.operationMode.options.map(({ value }) => value)).toEqual(['nodeInputJson', 'nodeInputBinary', 'documentLoader']);
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['binaryDataKey', 'summarizationMethodAndPrompts', 'batching']);
+  });
+
+  it('models Information Extractor v1.2 schema choices and attributes', () => {
+    const node = NODE_CATALOG['information-extractor'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.2, n8nType: '@n8n/n8n-nodes-langchain.informationExtractor' });
+    expect(node.authoringParity.recursiveFieldCount).toBe(15);
+    expect(params.schemaType.options.map(({ value }) => value)).toEqual(['fromAttributes', 'fromJson', 'manual']);
+    expect(params.attributes.fields.map(({ key }) => key)).toEqual(['attributeName', 'attributeType', 'attributeDescription', 'attributeRequired']);
+  });
+
+  it('models Text Classifier v1.1 fields and category-named outputs', () => {
+    const node = NODE_CATALOG['text-classifier'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.1, n8nType: '@n8n/n8n-nodes-langchain.textClassifier' });
+    expect(node.authoringParity.recursiveFieldCount).toBe(12);
+    expect(params.categories.fields.map(({ key }) => key)).toEqual(['category', 'description']);
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['multiClass', 'fallback', 'systemPromptTemplate', 'enableAutoFixing', 'batching']);
+    expect(node.dynamicOutputs).toMatchObject({ strategy: 'fixed-collection-labels', fallbackLabel: 'Other' });
+  });
+});
+
+describe('cluster-node batch 3 carries the current root-node authoring surface', () => {
+  it('models Sentiment Analysis v1.1 fields and comma-separated outputs', () => {
+    const node = NODE_CATALOG['sentiment-analysis'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.1, n8nType: '@n8n/n8n-nodes-langchain.sentimentAnalysis' });
+    expect(node.authoringParity.recursiveFieldCount).toBe(10);
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['categories', 'systemPromptTemplate', 'includeDetailedResults', 'enableAutoFixing', 'batching']);
+    expect(node.dynamicOutputs).toMatchObject({ strategy: 'comma-separated-labels', filterEmptyLabels: false });
+  });
+
+  it('models hidden LangChain Code v1 fields and typed connection rows as inert data', () => {
+    const node = NODE_CATALOG['langchain-code'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.code', hidden: true });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 10, connectorTypeCount: 10 });
+    expect(params.inputs.fields.map(({ key }) => key)).toEqual(['inputType', 'maxConnections', 'maxConnectionsRequired']);
+    expect(params.outputs.fields.map(({ key }) => key)).toEqual(['outputType']);
+    expect(params.code.fields.every(({ value }) => typeof value === 'string')).toBe(true);
+  });
+
+  it('models Microsoft Agent 365 Trigger v1.1 without unreachable fallback controls', () => {
+    const node = NODE_CATALOG['microsoft-agent-365-trigger'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.1, n8nType: '@n8n/n8n-nodes-langchain.microsoftAgent365Trigger', category: 'trigger' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 11, microsoftMcpServerCount: 20 });
+    expect(params.needsFallback).toBeUndefined();
+    expect(params.includeTools.options).toHaveLength(20);
+    expect(node.credentialUiMetadata[0].fields.every(({ locked }) => locked)).toBe(true);
+    expect(node.portVariants[0].inputs.map(({ type }) => type)).toEqual(['ai_languageModel', 'ai_memory', 'ai_tool', 'ai_outputParser']);
+  });
+});
+
+describe('cluster-node batch 4 carries the current vector-store authoring surface', () => {
+  it('models Azure AI Search v1.3 provider fields and all five modes', () => {
+    const node = NODE_CATALOG['azure-ai-search-vector-store'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.3, n8nType: '@n8n/n8n-nodes-langchain.vectorStoreAzureAISearch' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 23, dynamicPortShapeCount: 8, credentialFieldCount: 2 });
+    expect(params.mode.options.map(({ value }) => value)).toEqual(['load', 'insert', 'retrieve', 'retrieve-as-tool', 'update']);
+    expect(params.insertOptions.fields.map(({ key }) => key)).toEqual(['clearIndex', 'metadataKeysToInsert']);
+  });
+
+  it('models Simple Vector Store v1.3 memory lookup and four supported modes', () => {
+    const node = NODE_CATALOG['simple-vector-store'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.3, n8nType: '@n8n/n8n-nodes-langchain.vectorStoreInMemory' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 14, operationModeCount: 4, dynamicPortShapeCount: 7 });
+    expect(params.memoryKey).toMatchObject({ kind: 'resourceLocator', locked: true });
+    expect(params.mode.options.map(({ value }) => value)).toEqual(['load', 'insert', 'retrieve', 'retrieve-as-tool']);
+  });
+
+  it('models Milvus Vector Store v1.3 credentials, collection lookup, and ports', () => {
+    const node = NODE_CATALOG['milvus-vector-store'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.3, n8nType: '@n8n/n8n-nodes-langchain.vectorStoreMilvus' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 13, operationCount: 4, credentialEditorFieldCount: 3 });
+    expect(params.milvusCollection).toMatchObject({ kind: 'resourceLocator', locked: true });
+    expect(node.portParity.variantCount).toBe(7);
+  });
+});
+
+describe('cluster-node batch 5 carries the current database vector-store surfaces', () => {
+  it('models MongoDB Atlas v1.3 collection, index, namespace, and filters', () => {
+    const node = NODE_CATALOG['mongodb-atlas-vector-store'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.3, n8nType: '@n8n/n8n-nodes-langchain.vectorStoreMongoDBAtlas' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 32, credentialEditorFieldCount: 12, dynamicPortShapeCount: 8 });
+    expect(params.mongoCollection).toMatchObject({ kind: 'resourceLocator', locked: true });
+    expect(params.insertOptions.fields.map(({ key }) => key)).toEqual(['clearNamespace', 'namespace']);
+  });
+
+  it('models the live Postgres PGVector v1.3 label and nested collection settings', () => {
+    const node = NODE_CATALOG['pgvector-vector-store'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ label: 'Postgres PGVector Store', n8nVersion: 1.3, n8nType: '@n8n/n8n-nodes-langchain.vectorStorePGVector' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 49, credentialEditorFieldCount: 16 });
+    expect(params.insertOptions.fields.map(({ key }) => key)).toEqual(['collection', 'columnNames']);
+    expect(params.loadToolOptions.fields.map(({ key }) => key)).toEqual(['distanceStrategy', 'collection', 'columnNames', 'metadata']);
+  });
+
+  it('models Oracle Database Vector Store v1.3 distances and credential schema', () => {
+    const node = NODE_CATALOG['oracle-database-vector-store'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.3, n8nType: '@n8n/n8n-nodes-langchain.vectorStoreOracleDBVector' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 22, credentialEditorFieldCount: 20, distanceStrategyCount: 6 });
+    expect(params.loadAndToolOptions.fields[0].options.map(({ value }) => value)).toEqual(['COSINE', 'DOT', 'EUCLIDEAN', 'MANHATTAN', 'EUCLIDEAN_SQUARED', 'HAMMING']);
+    expect(node.portParity.variantCount).toBe(7);
+  });
+});
+
+describe('cluster-node batch 6 carries the current hosted vector-store surfaces', () => {
+  it('models Chroma v1.3 authentication branches and collection lookup', () => {
+    const node = NODE_CATALOG['chroma-vector-store'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.3, n8nType: '@n8n/n8n-nodes-langchain.vectorStoreChromaDB' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 23, credentialEditorFieldCount: 8, dynamicFieldCount: 3 });
+    expect(params.authentication.options.map(({ value }) => value)).toEqual(['chromaSelfHostedApi', 'chromaCloudApi']);
+    expect(params.chromaCollection).toMatchObject({ kind: 'resourceLocator', locked: true });
+  });
+
+  it('models Pinecone v1.3 namespace, metadata, update, and index lookup', () => {
+    const node = NODE_CATALOG['pinecone-vector-store'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.3, n8nType: '@n8n/n8n-nodes-langchain.vectorStorePinecone' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldOccurrenceCount: 25, credentialEditorFieldCount: 1, operationCount: 5 });
+    expect(params.pineconeIndex).toMatchObject({ kind: 'resourceLocator', locked: true });
+    expect(params.insertOptions.fields.map(({ key }) => key)).toEqual(['clearNamespace', 'pineconeNamespace']);
+  });
+
+  it('models Qdrant v1.3 JSON options and collection lookup', () => {
+    const node = NODE_CATALOG['qdrant-vector-store'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.3, n8nType: '@n8n/n8n-nodes-langchain.vectorStoreQdrant' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 23, credentialEditorFieldCount: 2, operationCount: 4 });
+    expect(params.qdrantCollection).toMatchObject({ kind: 'resourceLocator', locked: true });
+    expect(params.insertOptions.fields.map(({ key }) => key)).toEqual(['collectionConfig', 'contentPayloadKey', 'metadataPayloadKey']);
+  });
+});
+
+describe('cluster-node batch 7 carries the remaining current hosted vector-store surfaces', () => {
+  it('models Redis v1.3 index lookup, native option keys, credentials, and update mode', () => {
+    const node = NODE_CATALOG['redis-vector-store'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.3, n8nType: '@n8n/n8n-nodes-langchain.vectorStoreRedis' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 31, credentialEditorFieldCount: 7, operationCount: 5 });
+    expect(params.redisIndex).toMatchObject({ kind: 'resourceLocator', locked: true });
+    expect(params.insertOptions.fields.map(({ key }) => key)).toEqual(['keyPrefix', 'overwriteDocuments', 'metadataKey', 'contentKey', 'vectorKey', 'ttl']);
+    expect(node.portVariants).toHaveLength(8);
+  });
+
+  it('models Supabase v1.3 table lookup and native query-name collections', () => {
+    const node = NODE_CATALOG['supabase-vector-store'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.3, n8nType: '@n8n/n8n-nodes-langchain.vectorStoreSupabase' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldOccurrenceCount: 26, credentialEditorFieldCount: 2, operationCount: 5 });
+    expect(params.tableName).toMatchObject({ kind: 'resourceLocator', locked: true });
+    expect(params.insertOptions.fields.map(({ key }) => key)).toEqual(['queryName']);
+    expect(params.loadToolOptions.fields.map(({ key }) => key)).toEqual(['queryName', 'metadata']);
+  });
+
+  it('models Weaviate v1.3 hybrid-search fields without the unsupported update mode', () => {
+    const node = NODE_CATALOG['weaviate-vector-store'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.3, n8nType: '@n8n/n8n-nodes-langchain.vectorStoreWeaviate' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 54, credentialEditorFieldCount: 9, operationCount: 4 });
+    expect(params.weaviateCollection).toMatchObject({ kind: 'resourceLocator', locked: true });
+    expect(params.insertOptions.fields.map(({ key }) => key)).toEqual(['tenant', 'textKey', 'skip_init_checks', 'timeout_init', 'timeout_insert', 'timeout_query', 'proxy_grpc', 'clearStore']);
+    expect(params.loadAndToolOptions.fields.map(({ key }) => key)).toEqual(['searchFilterJson', 'metadataKeys', 'hybridQuery', 'hybridExplainScore', 'fusionType', 'autoCutLimit', 'alpha', 'queryProperties', 'maxVectorDistance', 'tenant', 'textKey', 'skip_init_checks', 'timeout_init', 'timeout_insert', 'timeout_query', 'proxy_grpc']);
+    expect(params.mode.options.map(({ value }) => value)).toEqual(['load', 'insert', 'retrieve', 'retrieve-as-tool']);
+  });
+});
+
+describe('cluster-node batch 8 carries the final root node and current document loaders', () => {
+  it('models the hidden deprecated Zep v1.3 factory node without the split legacy nodes', () => {
+    const node = NODE_CATALOG['zep-vector-store'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.3, n8nType: '@n8n/n8n-nodes-langchain.vectorStoreZep', hidden: true, deprecated: true });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 25, credentialEditorFieldCount: 4, operationCount: 4 });
+    expect(params.mode.options.map(({ value }) => value)).toEqual(['load', 'insert', 'retrieve', 'retrieve-as-tool']);
+    expect(params.insertOptions.fields.map(({ key }) => key)).toEqual(['embeddingDimensions', 'isAutoEmbedded']);
+  });
+
+  it('models Default Data Loader v1.1 format, metadata, and text-splitter branches', () => {
+    const node = NODE_CATALOG['default-data-loader'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.1, n8nType: '@n8n/n8n-nodes-langchain.documentDefaultDataLoader' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 16, credentialEditorFieldCount: 0 });
+    expect(params.loader.options.map(({ value }) => value)).toEqual(['auto', 'csvLoader', 'docxLoader', 'epubLoader', 'jsonLoader', 'pdfLoader', 'textLoader']);
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['pointers', 'separator', 'column', 'splitPages', 'metadata']);
+    expect(node.portVariants).toHaveLength(2);
+  });
+
+  it('models GitHub Document Loader v1.1 credentials, options, and custom splitter input', () => {
+    const node = NODE_CATALOG['github-document-loader'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.1, n8nType: '@n8n/n8n-nodes-langchain.documentGithubLoader', hidden: true });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 8, credentialEditorFieldCount: 3 });
+    expect(params.additionalOptions.fields.map(({ key }) => key)).toEqual(['recursive', 'ignorePaths']);
+    expect(params.textSplittingMode.options.map(({ value }) => value)).toEqual(['simple', 'custom']);
+    expect(node.portVariants[1].inputs).toEqual([expect.objectContaining({ type: 'ai_textSplitter', required: true, maxConnections: 1 })]);
+  });
+});
+
+describe('cluster-node batch 9 carries the first current embedding-model surfaces', () => {
+  it('models AWS Bedrock v1 auth branches, locked model discovery, and request options', () => {
+    const node = NODE_CATALOG['embeddings-aws-bedrock'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.embeddingsAwsBedrock' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 9, credentialEditorFieldCount: 33, regionOptionCount: 38 });
+    expect(params.authentication.options.map(({ value }) => value)).toEqual(['iam', 'assumeRole']);
+    expect(params.model).toMatchObject({ kind: 'select', locked: true, options: [] });
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['additionalModelRequestFields', 'maxRetries', 'timeout']);
+  });
+
+  it('models Azure OpenAI v1 deployment text and all four native request options', () => {
+    const node = NODE_CATALOG['embeddings-azure-openai'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.embeddingsAzureOpenAi' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 8, credentialEditorFieldCount: 4, dynamicModelLookupCount: 0 });
+    expect(params.model).toMatchObject({ kind: 'text', dynamic: false });
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['batchSize', 'stripNewLines', 'timeout', 'dimensions']);
+    expect(params.options.fields[3].options.map(({ value }) => value)).toEqual([256, 512, 1024, 1536, 3072]);
+  });
+
+  it('models Cohere v1 with the exact static seven-model list', () => {
+    const node = NODE_CATALOG['embeddings-cohere'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.embeddingsCohere' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 4, credentialEditorFieldCount: 2, modelOptionCount: 7 });
+    expect(params.modelName.value).toBe('embed-english-v2.0');
+    expect(params.modelName.options).toHaveLength(7);
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_embedding', label: 'Embeddings' })]);
+  });
+});
+
+describe('cluster-node batch 10 carries the Google and Hugging Face embedding surfaces', () => {
+  it('models Google Gemini v1 with locked routed model discovery', () => {
+    const node = NODE_CATALOG['embeddings-google-gemini'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.embeddingsGoogleGemini' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 4, credentialEditorFieldCount: 2, dynamicFieldCount: 2 });
+    expect(params.modelName).toMatchObject({ value: 'models/gemini-embedding-001', locked: true, options: [] });
+    expect(node.methods.loadOptions.modelName.response).toMatchObject({ rootProperty: 'models', sortBy: 'name' });
+  });
+
+  it('models Google Vertex v1 project lookup, model text, and imported location choices', () => {
+    const node = NODE_CATALOG['embeddings-google-vertex'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.embeddingsGoogleVertex' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 6, credentialEditorFieldCount: 8, credentialRegionOptionCount: 44 });
+    expect(params.projectId).toMatchObject({ kind: 'resourceLocator', locked: true });
+    expect(params.modelName).toMatchObject({ kind: 'text', value: 'text-embedding-005', dynamic: false });
+    expect(params.location.options.map(({ value }) => value)).toEqual(['', 'global', 'eu', 'us']);
+  });
+
+  it('models Hugging Face v1 freeform model and all pinned provider policies', () => {
+    const node = NODE_CATALOG['embeddings-huggingface-inference'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.embeddingsHuggingFaceInference' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 7, credentialEditorFieldCount: 1, providerOptionCount: 18 });
+    expect(params.modelName.value).toBe('sentence-transformers/distilbert-base-nli-mean-tokens');
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['endpointUrl', 'provider']);
+    expect(params.options.fields[1].options).toHaveLength(18);
+  });
+});
+
+describe('cluster-node batch 11 carries the local and cloud routed embedding surfaces', () => {
+  it('models Lemonade v1 with the exact required routed model source', () => {
+    const node = NODE_CATALOG['embeddings-lemonade'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.embeddingsLemonade' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 3, credentialEditorFieldCount: 2, dynamicFieldCount: 2 });
+    expect(params.model).toMatchObject({ required: true, locked: true, options: [] });
+    expect(node.methods.loadOptions.model).toMatchObject({ request: { method: 'GET', url: '/models' } });
+  });
+
+  it('models Mistral Cloud v1 routed model discovery and native options', () => {
+    const node = NODE_CATALOG['embeddings-mistral-cloud'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.embeddingsMistralCloud' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 6, credentialEditorFieldCount: 1, dynamicModelLookupCount: 1 });
+    expect(params.model).toMatchObject({ value: 'mistral-embed', locked: true });
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['batchSize', 'stripNewLines']);
+  });
+
+  it('models Ollama v1 with the exact required model routing and no dormant options', () => {
+    const node = NODE_CATALOG['embeddings-ollama'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.embeddingsOllama' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 3, credentialEditorFieldCount: 2, dynamicFieldCount: 2 });
+    expect(params.model).toMatchObject({ value: 'llama3.2', required: true, locked: true, options: [] });
+    expect(node.excludedDormantAuthoring[0].sourceExport).toBe('ollamaOptions');
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_embedding', label: 'Embeddings' })]);
+  });
+});
+
+describe('cluster-node batch 12 closes embeddings and starts current chat models', () => {
+  it('models current OpenAI v1.2 fields without the historical node-level Base URL', () => {
+    const node = NODE_CATALOG['embeddings-openai'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.2, n8nType: '@n8n/n8n-nodes-langchain.embeddingsOpenAi' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 9, credentialEditorFieldCount: 6, dynamicFieldCount: 2 });
+    expect(params.model).toMatchObject({ value: 'text-embedding-3-small', locked: true, options: [] });
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['dimensions', 'batchSize', 'stripNewLines', 'timeout', 'encodingFormat']);
+  });
+
+  it('models Oracle Database v1 credentials and locked searchable ONNX model', () => {
+    const node = NODE_CATALOG['embeddings-oracle-database'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.embeddingsOracleDb', defaultName: 'Embeddings ONNX' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 3, credentialEditorFieldCount: 20, dynamicResourceLocatorCount: 1 });
+    expect(params.model).toMatchObject({ kind: 'resourceLocator', locked: true, value: { __rl: true, mode: 'list', value: 'ALL_MINILM_L12_V2' } });
+    expect(node.credentialUiMetadata[0].fields.find(({ key }) => key === 'privilege').options).toHaveLength(8);
+  });
+
+  it('models Qwen Cloud v1 credentials, routed model, and eight native options', () => {
+    const node = NODE_CATALOG['qwen-cloud-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmChatAlibabaCloud' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 13, credentialEditorFieldCount: 4, dynamicFieldCount: 2 });
+    expect(params.model).toMatchObject({ value: 'qwen-plus', locked: true, options: [] });
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['frequencyPenalty', 'maxTokens', 'responseFormat', 'presencePenalty', 'temperature', 'timeout', 'maxRetries', 'topP']);
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_languageModel', label: 'Model' })]);
+  });
+});
+
+describe('cluster-node batch 13 carries current Anthropic, Bedrock, and Azure chat models', () => {
+  it('models Anthropic v1.5 thinking modes and locked model discovery', () => {
+    const node = NODE_CATALOG['anthropic-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.5, n8nType: '@n8n/n8n-nodes-langchain.lmChatAnthropic' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 13, credentialEditorFieldCount: 5, dynamicFieldCount: 2 });
+    expect(params.model).toMatchObject({ kind: 'resourceLocator', locked: true, value: { __rl: true, mode: 'list', value: 'claude-sonnet-4-6' } });
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['maxTokensToSample', 'temperature', 'topK', 'topP', 'thinkingMode', 'effortOpus', 'effortNonOpus', 'thinkingBudget', 'streaming']);
+  });
+
+  it('models AWS Bedrock v1.2 combined model discovery and guardrails', () => {
+    const node = NODE_CATALOG['aws-bedrock-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.2, n8nType: '@n8n/n8n-nodes-langchain.lmChatAwsBedrock' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 17, credentialEditorFieldCount: 33, dynamicFieldCount: 3 });
+    expect(params.model).toMatchObject({ value: '', locked: true, options: [] });
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['maxTokensToSample', 'temperature', 'topP', 'maxRetries', 'timeout', 'additionalModelRequestFields', 'latency', 'guardrail']);
+    expect(params.options.fields.find(({ key }) => key === 'guardrail').fields.map(({ sourceN8nKey }) => sourceN8nKey)).toEqual(['guardrailIdentifier', 'guardrailVersion', 'trace']);
+  });
+
+  it('models Azure OpenAI v1 authentication branches and completion controls', () => {
+    const node = NODE_CATALOG['azure-openai-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmChatAzureOpenAi' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 15, credentialEditorFieldCount: 25, credentialSelectorCount: 2 });
+    expect(params.authentication.options.map(({ value }) => value)).toEqual(['azureOpenAiApi', 'azureEntraCognitiveServicesOAuth2Api']);
+    expect(params.model).toMatchObject({ value: '', required: true, remoteLookup: false });
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['frequencyPenalty', 'maxTokens', 'responseFormat', 'presencePenalty', 'temperature', 'timeout', 'maxRetries', 'topP']);
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_languageModel', label: 'Model' })]);
+  });
+});
+
+describe('cluster-node batch 14 carries current Cohere, DeepSeek, and Gemini chat models', () => {
+  it('models Cohere v1 credentials, routed model discovery, and two options', () => {
+    const node = NODE_CATALOG['cohere-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmChatCohere' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 6, credentialEditorFieldCount: 2, dynamicFieldCount: 2 });
+    expect(params.model).toMatchObject({ value: 'command-a-03-2025', locked: true, options: [] });
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['temperature', 'maxRetries']);
+  });
+
+  it('models DeepSeek v1 model routing, JSON notice, and eight options', () => {
+    const node = NODE_CATALOG['deepseek-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmChatDeepSeek' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 13, credentialEditorFieldCount: 2, dynamicFieldCount: 2 });
+    expect(params.jsonResponseNotice.showWhen).toEqual({ 'options.responseFormat': ['json_object'] });
+    expect(params.model).toMatchObject({ value: 'deepseek-chat', locked: true, options: [] });
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['frequencyPenalty', 'maxTokens', 'responseFormat', 'presencePenalty', 'temperature', 'timeout', 'maxRetries', 'topP']);
+  });
+
+  it('models Google Gemini v1.1 generation controls and native safety rows', () => {
+    const node = NODE_CATALOG['google-gemini-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    const safety = params.options.fields.find(({ key }) => key === 'safetySettings');
+    expect(node).toMatchObject({ n8nVersion: 1.1, n8nType: '@n8n/n8n-nodes-langchain.lmChatGoogleGemini' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 11, credentialEditorFieldCount: 2, dynamicFieldCount: 2 });
+    expect(params.modelName).toMatchObject({ value: 'models/gemini-3-flash-preview', locked: true, options: [] });
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['maxOutputTokens', 'temperature', 'topK', 'topP', 'safetySettings']);
+    expect(safety).toMatchObject({ collectionKey: 'values', multiple: true });
+    expect(safety.fields.map(({ sourceN8nKey }) => sourceN8nKey)).toEqual(['category', 'threshold']);
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_languageModel', label: 'Model' })]);
+  });
+});
+
+describe('cluster-node batch 15 carries current Vertex, Groq, and Lemonade chat models', () => {
+  it('models Google Vertex v1 projects, regions, safety, and thinking budget', () => {
+    const node = NODE_CATALOG['google-vertex-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    const safety = params.options.fields.find(({ key }) => key === 'safetySettings');
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmChatGoogleVertex' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 14, credentialEditorFieldCount: 8, credentialRegionOptionCount: 44, dynamicFieldCount: 2 });
+    expect(params.projectId).toMatchObject({ kind: 'resourceLocator', required: true, locked: true });
+    expect(params.location.options.map(({ value }) => value)).toEqual(['', 'global', 'eu', 'us']);
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['maxOutputTokens', 'temperature', 'topK', 'topP', 'safetySettings', 'thinkingBudget']);
+    expect(safety.fields.map(({ sourceN8nKey }) => sourceN8nKey)).toEqual(['category', 'threshold']);
+  });
+
+  it('models Groq v1 filtered model discovery and two completion options', () => {
+    const node = NODE_CATALOG['groq-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmChatGroq' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 6, credentialEditorFieldCount: 1, dynamicFieldCount: 2 });
+    expect(params.model).toMatchObject({ value: 'llama3-8b-8192', locked: true, options: [] });
+    expect(params.model.dynamicOptions.filterExpression).toContain('$responseItem.active === true');
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['maxTokensToSample', 'temperature']);
+  });
+
+  it('models Lemonade v1 required model discovery and six native options', () => {
+    const node = NODE_CATALOG['lemonade-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmChatLemonade' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 10, credentialEditorFieldCount: 2, dynamicFieldCount: 2 });
+    expect(params.model).toMatchObject({ value: '', required: true, locked: true, options: [] });
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['temperature', 'topP', 'frequencyPenalty', 'presencePenalty', 'maxTokens', 'stop']);
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_languageModel', label: 'Model' })]);
+  });
+});
+
+describe('cluster-node batch 16 carries current MiniMax, Mistral, and Moonshot chat models', () => {
+  it('models MiniMax v1 static models, region credentials, and reasoning visibility', () => {
+    const node = NODE_CATALOG['minimax-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmChatMinimax' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 10, credentialEditorFieldCount: 3, dynamicFieldCount: 1, modelOptionCount: 7 });
+    expect(params.model).toMatchObject({ value: 'MiniMax-M2.7' });
+    expect(params.model.options.map(({ value }) => value)).toContain('MiniMax-M2.7-highspeed');
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['hideThinking', 'maxTokens', 'temperature', 'timeout', 'maxRetries', 'topP']);
+  });
+
+  it('models Mistral Cloud v1 filtered models and six request options', () => {
+    const node = NODE_CATALOG['mistral-cloud-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmChatMistralCloud' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 10, credentialEditorFieldCount: 1, dynamicFieldCount: 2 });
+    expect(params.model).toMatchObject({ value: 'mistral-small', locked: true, options: [] });
+    expect(params.model.dynamicOptions.filterExpression).toContain("!$responseItem.id.includes('embed')");
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['maxTokens', 'temperature', 'maxRetries', 'topP', 'safeMode', 'randomSeed']);
+  });
+
+  it('models Moonshot Kimi current v1.1 model and eight completion options', () => {
+    const node = NODE_CATALOG['moonshot-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1.1, n8nType: '@n8n/n8n-nodes-langchain.lmChatMoonshot', label: 'Moonshot Kimi Chat Model' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 13, credentialEditorFieldCount: 3, dynamicFieldCount: 2 });
+    expect(params.model).toMatchObject({ value: 'kimi-k2.6', locked: true, options: [] });
+    expect(params.jsonResponseNotice.showWhen).toEqual({ 'options.responseFormat': ['json_object'] });
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['frequencyPenalty', 'maxTokens', 'responseFormat', 'presencePenalty', 'temperature', 'timeout', 'maxRetries', 'topP']);
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_languageModel', label: 'Model' })]);
+  });
+});
+
+describe('cluster-node batch 17 carries current NVIDIA, Ollama, and OpenAI chat models', () => {
+  it('models NVIDIA Nemotron v1 allow-listed models and eight completion options', () => {
+    const node = NODE_CATALOG['nvidia-nemotron-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmChatNvidia' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 13, credentialEditorFieldCount: 2, dynamicFieldCount: 2, modelOptionCount: 8 });
+    expect(params.model).toMatchObject({ value: 'nvidia/llama-3.3-nemotron-super-49b-v1', locked: true });
+    expect(params.model.options).toHaveLength(8);
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['frequencyPenalty', 'maxTokens', 'responseFormat', 'presencePenalty', 'temperature', 'timeout', 'maxRetries', 'topP']);
+  });
+
+  it('models Ollama v1 required model routing and all 20 shared options', () => {
+    const node = NODE_CATALOG['ollama-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmChatOllama' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 24, credentialEditorFieldCount: 2, dynamicFieldCount: 2 });
+    expect(params.model).toMatchObject({ value: 'llama3.2', required: true, locked: true, options: [] });
+    expect(params.options.fields.map(({ key }) => key)).toEqual(['think', 'temperature', 'topK', 'topP', 'frequencyPenalty', 'keepAlive', 'lowVram', 'mainGpu', 'numBatch', 'numCtx', 'numGpu', 'numPredict', 'numThread', 'penalizeNewline', 'presencePenalty', 'repeatPenalty', 'useMLock', 'useMMap', 'vocabOnly', 'format']);
+    expect(node.dormantExportAudit.dormantExports).toEqual([]);
+  });
+
+  it('models OpenAI current v1.3 Responses API, tools, formats, and prompts', () => {
+    const node = NODE_CATALOG['openai-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    const options = Object.fromEntries(params.options.fields.map((field) => [field.key, field]));
+    expect(node).toMatchObject({ n8nVersion: 1.3, n8nType: '@n8n/n8n-nodes-langchain.lmChatOpenAi' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 48, credentialEditorFieldCount: 6, dynamicFieldCount: 2, currentDirectOptionFieldCount: 18, builtInToolFieldCount: 11 });
+    expect(params.model).toMatchObject({ kind: 'resourceLocator', required: true, locked: true, value: { __rl: true, mode: 'list', value: 'gpt-5-mini' } });
+    expect(params.responsesApiEnabled.value).toBe(true);
+    expect(params.builtInTools.fields.map(({ key }) => key)).toEqual(['webSearch', 'fileSearch', 'codeInterpreter']);
+    expect(options.textFormat).toMatchObject({ kind: 'fixedCollection', collectionKey: 'textOptions' });
+    expect(options.textFormat.fields.map(({ key }) => key)).toEqual(['type', 'verbosity', 'name', 'requiredNotice', 'schema', 'description', 'strict']);
+    expect(options.promptConfig).toMatchObject({ kind: 'fixedCollection', collectionKey: 'promptOptions' });
+    expect(options.promptConfig.fields.map(({ key }) => key)).toEqual(['promptId', 'version', 'variables']);
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_languageModel', label: 'Model' })]);
+  });
+});
+
+describe('cluster-node batch 18 carries current OpenRouter, Vercel, and xAI chat models', () => {
+  const optionKeys = (node) => node.params.find(({ key }) => key === 'options').fields.map(({ key }) => key);
+
+  it('models OpenRouter v1 model routing and all eight completion options', () => {
+    const node = NODE_CATALOG['openrouter-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmChatOpenRouter' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 13, credentialEditorFieldCount: 2, dynamicFieldCount: 2 });
+    expect(params.model).toMatchObject({ value: 'openai/gpt-4.1-mini', locked: true, options: [] });
+    expect(params.jsonResponseNotice.showWhen).toEqual({ 'options.responseFormat': ['json_object'] });
+    expect(optionKeys(node)).toEqual(['frequencyPenalty', 'maxTokens', 'responseFormat', 'presencePenalty', 'temperature', 'timeout', 'maxRetries', 'topP']);
+  });
+
+  it('models Vercel AI Gateway v1 credentials, model routing, and eight options', () => {
+    const node = NODE_CATALOG['vercel-ai-gateway-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmChatVercelAiGateway' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 13, credentialEditorFieldCount: 2, dynamicFieldCount: 2 });
+    expect(params.model).toMatchObject({ value: 'openai/gpt-4o', locked: true, options: [] });
+    expect(node.credentialUiMetadata[0].test.request).toMatchObject({ method: 'POST', url: '/chat/completions' });
+    expect(optionKeys(node)).toEqual(['frequencyPenalty', 'maxTokens', 'responseFormat', 'presencePenalty', 'temperature', 'timeout', 'maxRetries', 'topP']);
+  });
+
+  it('models xAI Grok v1 priority, reasoning, and eight shared options', () => {
+    const node = NODE_CATALOG['xai-grok-chat-model'];
+    const params = Object.fromEntries(node.params.map((param) => [param.key, param]));
+    const options = Object.fromEntries(params.options.fields.map((field) => [field.key, field]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmChatXAiGrok' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 15, credentialEditorFieldCount: 2, dynamicFieldCount: 2, currentDirectOptionFieldCount: 10 });
+    expect(params.model).toMatchObject({ value: 'grok-2-vision-1212', locked: true, options: [] });
+    expect(optionKeys(node)).toEqual(['frequencyPenalty', 'maxTokens', 'responseFormat', 'presencePenalty', 'temperature', 'timeout', 'maxRetries', 'topP', 'priority', 'reasoning']);
+    expect(options.priority.value).toBe(false);
+    expect(options.reasoning.options.map(({ value }) => value)).toEqual(['none', 'low', 'medium', 'high']);
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_languageModel', label: 'Model' })]);
+  });
+});
+
+describe('cluster-node batch 19 carries current Cohere, Lemonade, and Ollama completion models', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((param) => [param.key, param]));
+  const optionKeys = (type) => params(type).options.fields.map(({ key }) => key);
+
+  it('models Cohere v1 with its native plain-text model option', () => {
+    const node = NODE_CATALOG['cohere-model'];
+    const options = Object.fromEntries(params('cohere-model').options.fields.map((field) => [field.key, field]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmCohere' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 6, credentialEditorFieldCount: 2, dynamicFieldCount: 1 });
+    expect(optionKeys('cohere-model')).toEqual(['maxTokens', 'model', 'temperature']);
+    expect(options.maxTokens).toMatchObject({ value: 250, maxValue: 32768 });
+    expect(options.model).toMatchObject({ kind: 'text', value: '' });
+    expect(options.temperature).toMatchObject({ value: 0, minValue: 0, maxValue: 1 });
+  });
+
+  it('models Lemonade v1 with the shared required model and six options', () => {
+    const node = NODE_CATALOG['lemonade-model'];
+    const p = params('lemonade-model');
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmLemonade' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 10, credentialEditorFieldCount: 2, dynamicFieldCount: 2, directOptionFieldCount: 6 });
+    expect(p.model).toMatchObject({ value: '', required: true, locked: true, options: [] });
+    expect(optionKeys('lemonade-model')).toEqual(['temperature', 'topP', 'frequencyPenalty', 'presencePenalty', 'maxTokens', 'stop']);
+    expect(node.params).toBe(NODE_CATALOG['lemonade-chat-model'].params);
+  });
+
+  it('models Ollama v1 with all 20 live shared options and no dormant exports', () => {
+    const node = NODE_CATALOG['ollama-model'];
+    const p = params('ollama-model');
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmOllama' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 24, credentialEditorFieldCount: 2, dynamicFieldCount: 2, currentDirectOptionFieldCount: 20 });
+    expect(p.model).toMatchObject({ value: 'llama3.2', required: true, locked: true, options: [] });
+    expect(optionKeys('ollama-model')).toEqual(optionKeys('ollama-chat-model'));
+    expect(node.dormantExportAudit.dormantExports).toEqual([]);
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_languageModel', label: 'Model' })]);
+  });
+});
+
+describe('cluster-node batch 20 carries Hugging Face completion and current memory surfaces', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((param) => [param.key, param]));
+
+  it('models Hugging Face Inference v1 freeform model and seven options', () => {
+    const node = NODE_CATALOG['huggingface-inference-model'];
+    const p = params('huggingface-inference-model');
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.lmOpenHuggingFaceInference' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 11, credentialEditorFieldCount: 1, dynamicFieldCount: 1, optionCollectionFieldCount: 7 });
+    expect(p.model).toMatchObject({ kind: 'expression', value: 'mistralai/Mistral-Nemo-Base-2407', remoteLookup: false });
+    expect(p.options.fields.map(({ key }) => key)).toEqual(['endpointUrl', 'frequencyPenalty', 'maxTokens', 'presencePenalty', 'temperature', 'topK', 'topP']);
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_languageModel', label: 'Model' })]);
+  });
+
+  it('models Chat Memory Manager v1.1 modes, message rows, and capped memory input', () => {
+    const node = NODE_CATALOG['chat-memory-manager'];
+    const p = params('chat-memory-manager');
+    expect(node).toMatchObject({ n8nVersion: 1.1, n8nType: '@n8n/n8n-nodes-langchain.memoryManager' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 11, credentialEditorFieldCount: 0, dynamicFieldCount: 0, conditionalFieldCount: 6 });
+    expect(p.mode.options.map(({ value }) => value)).toEqual(['load', 'insert', 'delete']);
+    expect(p.messages).toMatchObject({ kind: 'fixedCollection', collectionKey: 'messageValues', multiple: true, showWhen: { mode: ['insert'] } });
+    expect(p.messages.fields.map(({ sourceN8nKey }) => sourceN8nKey)).toEqual(['type', 'message', 'hideFromUI']);
+    expect(node.inputs).toEqual([
+      expect.objectContaining({ type: 'main' }),
+      expect.objectContaining({ type: 'ai_memory', label: 'Memory', required: true, maxConnections: 1 }),
+    ]);
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'main' })]);
+  });
+
+  it('models Simple Memory current v1.4 session variants and historical exclusions', () => {
+    const node = NODE_CATALOG['simple-memory'];
+    const p = params('simple-memory');
+    expect(node).toMatchObject({ n8nVersion: 1.4, n8nType: '@n8n/n8n-nodes-langchain.memoryBufferWindow' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 7, credentialEditorFieldCount: 0, dynamicFieldCount: 0, helperGeneratedFieldCount: 5 });
+    expect(p.sessionIdType.options.map(({ value }) => value)).toEqual(['fromInput', 'customKey']);
+    expect(p.sessionKeyFromPreviousNode).toMatchObject({ n8nKey: 'sessionKey', kind: 'expression', readOnly: true, showWhen: { sessionIdType: ['fromInput'] } });
+    expect(p.definedSessionKey).toMatchObject({ n8nKey: 'sessionKey', showWhen: { sessionIdType: ['customKey'] } });
+    expect(node.excludedHistoricalAuthoring.map(({ sourceVersionCondition }) => sourceVersionCondition)).toEqual(['@version = 1', '@version = 1.1']);
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_memory', label: 'Memory' })]);
+  });
+});
+
+describe('cluster-node batch 21 carries current Motorhead, MongoDB, and Redis memory surfaces', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((param) => [param.key, param]));
+
+  it('models hidden deprecated Motorhead current v1.4 and its session variants', () => {
+    const node = NODE_CATALOG.motorhead;
+    const p = params('motorhead');
+    expect(node).toMatchObject({ n8nVersion: 1.4, n8nType: '@n8n/n8n-nodes-langchain.memoryMotorhead', hidden: true, deprecated: true });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 7, credentialEditorFieldCount: 3, dynamicFieldCount: 1 });
+    expect(p.sessionIdType.options.map(({ value }) => value)).toEqual(['fromInput', 'customKey']);
+    expect(p.deprecationNotice.label).toContain('no longer maintained');
+    expect(node.excludedHistoricalAuthoring.map(({ sourceVersionCondition }) => sourceVersionCondition)).toEqual(['@version = 1', '@version = 1.1']);
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_memory', label: 'Memory' })]);
+  });
+
+  it('models MongoDB Chat Memory v1.1 and all 12 credential fields', () => {
+    const node = NODE_CATALOG['mongodb-chat-memory'];
+    const p = params('mongodb-chat-memory');
+    expect(node).toMatchObject({ n8nVersion: 1.1, n8nType: '@n8n/n8n-nodes-langchain.memoryMongoDbChat' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 9, credentialEditorFieldCount: 12, dynamicFieldCount: 1, totalAuthoringFieldCount: 21 });
+    expect(node.credentialUiMetadata[0].fields.map(({ key }) => key)).toEqual(['configurationType', 'connectionString', 'host', 'database', 'user', 'password', 'port', 'tls', 'ca', 'cert', 'key', 'passphrase']);
+    expect(p.collectionName.value).toBe('n8n_chat_histories');
+    expect(p.sessionKeyFromPreviousNode).toMatchObject({ readOnly: true, showWhen: { sessionIdType: ['fromInput'] } });
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_memory', label: 'Memory' })]);
+  });
+
+  it('models Redis Chat Memory current v1.6 credentials, TTL, and context window', () => {
+    const node = NODE_CATALOG['redis-chat-memory'];
+    const p = params('redis-chat-memory');
+    expect(node).toMatchObject({ n8nVersion: 1.6, n8nType: '@n8n/n8n-nodes-langchain.memoryRedisChat' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 8, credentialEditorFieldCount: 7, dynamicFieldCount: 1, totalAuthoringFieldCount: 15 });
+    expect(node.credentialUiMetadata[0].fields.map(({ key }) => key)).toEqual(['password', 'user', 'host', 'port', 'database', 'ssl', 'disableTlsVerification']);
+    expect(p.sessionTTL.value).toBe(0);
+    expect(p.contextWindowLength).toMatchObject({ value: 5, sourceVersionCondition: '@version >= 1.3' });
+    expect(node.excludedHistoricalAuthoring.map(({ sourceVersionCondition }) => sourceVersionCondition)).toEqual(['@version = 1', '@version = 1.1']);
+  });
+});
+
+describe('cluster-node batch 22 carries current Postgres, Xata, and Zep memory surfaces', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((param) => [param.key, param]));
+
+  it('models Postgres Chat Memory v1.4 with all 16 credential fields', () => {
+    const node = NODE_CATALOG['postgres-chat-memory'];
+    const p = params('postgres-chat-memory');
+    expect(node).toMatchObject({ n8nVersion: 1.4, n8nType: '@n8n/n8n-nodes-langchain.memoryPostgresChat' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 8, credentialEditorFieldCount: 16, importedCredentialFieldCount: 8, dynamicFieldCount: 1, totalAuthoringFieldCount: 24 });
+    expect(node.credentialUiMetadata[0].fields.map(({ key }) => key)).toEqual(['host', 'database', 'user', 'password', 'maxConnections', 'allowUnauthorizedCerts', 'ssl', 'port', 'sshTunnel', 'sshAuthenticateWith', 'sshHost', 'sshPort', 'sshUser', 'sshPassword', 'privateKey', 'passphrase']);
+    expect(p.tableName.value).toBe('n8n_chat_histories');
+    expect(p.contextWindowLength).toMatchObject({ value: 5, sourceVersionCondition: '@version >= 1.1' });
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_memory', label: 'Memory' })]);
+  });
+
+  it('models Xata current v1.5 session variants and three credentials', () => {
+    const node = NODE_CATALOG['xata-memory'];
+    const p = params('xata-memory');
+    expect(node).toMatchObject({ n8nVersion: 1.5, n8nType: '@n8n/n8n-nodes-langchain.memoryXata', hidden: false, deprecated: false });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 7, credentialEditorFieldCount: 3, dynamicFieldCount: 1, totalAuthoringFieldCount: 10 });
+    expect(node.credentialUiMetadata[0].fields.map(({ key }) => key)).toEqual(['databaseEndpoint', 'branch', 'apiKey']);
+    expect(p.sessionKeyFromPreviousNode).toMatchObject({ readOnly: true, sourceVersionCondition: '@version >= 1.4' });
+    expect(p.contextWindowLength.value).toBe(5);
+    expect(node.excludedHistoricalAuthoring.map(({ sourceVersionCondition }) => sourceVersionCondition)).toEqual(['@version = 1', '@version = 1.1']);
+  });
+
+  it('models hidden deprecated Zep current v1.4 and exact credential branches', () => {
+    const node = NODE_CATALOG['zep-memory'];
+    const p = params('zep-memory');
+    expect(node).toMatchObject({ n8nVersion: 1.4, n8nType: '@n8n/n8n-nodes-langchain.memoryZep', hidden: true, deprecated: true, iconAssetType: 'png' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 8, credentialEditorFieldCount: 4, dynamicFieldCount: 1, totalAuthoringFieldCount: 12 });
+    expect(node.credentialUiMetadata[0].fields.map(({ key }) => key)).toEqual(['deprecationNotice', 'apiKey', 'cloud', 'apiUrl']);
+    expect(p.supportedVersions.label).toContain('Community edition <= v0.27.2');
+    expect(p.sessionKeyFromPreviousNode).toMatchObject({ readOnly: true, sourceVersionCondition: '@version >= 1.3' });
+    expect(node.excludedHistoricalAuthoring.map(({ sourceVersionCondition }) => sourceVersionCondition)).toEqual(['@version = 1', '@version = 1.1']);
+  });
+});
+
+describe('cluster-node batch 23 carries current output-parser authoring surfaces', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((param) => [param.key, param]));
+
+  it('models deprecated Auto-fixing Output Parser v1 without parser or model execution', () => {
+    const node = NODE_CATALOG['auto-fixing-output-parser'];
+    const p = params('auto-fixing-output-parser');
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.outputParserAutofixing', deprecated: true });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 4, credentialEditorFieldCount: 0, dynamicFieldCount: 0, totalAuthoringFieldCount: 4 });
+    expect(p.options.fields[0]).toMatchObject({ key: 'prompt', kind: 'textarea', rows: 10 });
+    expect(p.options.fields[0].value).toContain('{error}');
+    expect(node.inputs.map(({ type, maxConnections }) => [type, maxConnections])).toEqual([['ai_languageModel', 1], ['ai_outputParser', 1]]);
+    expect(node.simulation).toMatchObject({ parsing: false, modelInvocation: false, retryInvocation: false });
+  });
+
+  it('models Item List Output Parser v1 defaults and dormant exclusion', () => {
+    const node = NODE_CATALOG['item-list-output-parser'];
+    const p = params('item-list-output-parser');
+    const options = Object.fromEntries(p.options.fields.map((field) => [field.key, field]));
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.outputParserItemList' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 4, credentialEditorFieldCount: 0, dynamicFieldCount: 0, totalAuthoringFieldCount: 4 });
+    expect(options.numberOfItems.value).toBe(-1);
+    expect(options.separator.value).toBe('\\n');
+    expect(node.excludedDormantAuthoring.map(({ n8nKey }) => n8nKey)).toEqual(['options.parseOutput']);
+  });
+
+  it('models Structured Output Parser v1.3 schema branches and declarative Auto-Fix input', () => {
+    const node = NODE_CATALOG['structured-output-parser'];
+    const p = params('structured-output-parser');
+    expect(node).toMatchObject({ n8nVersion: 1.3, defaultVersion: 1.3, n8nType: '@n8n/n8n-nodes-langchain.outputParserStructured', dynamicPorts: true });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 8, helperGeneratedFieldCount: 5, dynamicFieldCount: 0, totalAuthoringFieldCount: 8 });
+    expect(p.schemaType.options.map(({ value }) => value)).toEqual(['fromJson', 'manual']);
+    expect(p.jsonSchemaExample).toMatchObject({ kind: 'textarea', editor: 'json', showWhen: { schemaType: ['fromJson'] } });
+    expect(p.inputSchema).toMatchObject({ kind: 'textarea', editor: 'json', showWhen: { schemaType: ['manual'] } });
+    expect(p.prompt.showWhen).toEqual({ autoFix: [true], customizeRetryPrompt: [true] });
+    expect(node.portVariants[1].inputs).toEqual([expect.objectContaining({ type: 'ai_languageModel', maxConnections: 1, required: true })]);
+    expect(node.excludedHistoricalAuthoring.map(({ n8nKey }) => n8nKey)).toEqual(['jsonSchema']);
+  });
+});
+
+describe('cluster-node batch 24 carries current retriever authoring surfaces', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((param) => [param.key, param]));
+
+  it('models Contextual Compression Retriever v1 as ports-only inert metadata', () => {
+    const node = NODE_CATALOG['contextual-compression-retriever'];
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.retrieverContextualCompression', params: [] });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 0, credentialEditorFieldCount: 0, dynamicFieldCount: 0, totalAuthoringFieldCount: 0 });
+    expect(node.inputs.map(({ type, maxConnections, required }) => [type, maxConnections, required])).toEqual([['ai_languageModel', 1, true], ['ai_retriever', 1, true]]);
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_retriever', maxConnections: 1 })]);
+    expect(node.simulation).toMatchObject({ modelInvocation: false, contextualCompression: false, documentRetrieval: false });
+  });
+
+  it('models MultiQuery Retriever v1 Query Count and capped ports', () => {
+    const node = NODE_CATALOG['multi-query-retriever'];
+    const p = params('multi-query-retriever');
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.retrieverMultiQuery' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 2, credentialEditorFieldCount: 0, dynamicFieldCount: 0, totalAuthoringFieldCount: 2 });
+    expect(p.options.fields[0]).toMatchObject({ key: 'queryCount', value: 3, min: 1 });
+    expect(node.inputs.map(({ type, maxConnections }) => [type, maxConnections])).toEqual([['ai_languageModel', 1], ['ai_retriever', 1]]);
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_retriever', maxConnections: 1 })]);
+  });
+
+  it('models Vector Store Retriever v1 Limit and related-node hint', () => {
+    const node = NODE_CATALOG['vector-store-retriever'];
+    const p = params('vector-store-retriever');
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.retrieverVectorStore' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 1, credentialEditorFieldCount: 0, dynamicFieldCount: 0, totalAuthoringFieldCount: 1 });
+    expect(p.topK).toMatchObject({ kind: 'number', value: 4 });
+    expect(node.inputs).toEqual([expect.objectContaining({ type: 'ai_vectorStore', maxConnections: 1, required: true })]);
+    expect(node.builderHint.relatedNodes[0].nodeType).toBe('@n8n/n8n-nodes-langchain.vectorStoreInMemory');
+    expect(node.simulation).toMatchObject({ vectorStoreAccess: false, vectorRetrieval: false, retrieverCreation: false });
+  });
+});
+
+describe('cluster-node batch 25 carries Workflow Retriever and character-splitter surfaces', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((param) => [param.key, param]));
+  const fields = (param) => Object.fromEntries(param.fields.map((field) => [field.key, field]));
+
+  it('models Workflow Retriever current v1.1 selector and typed values', () => {
+    const node = NODE_CATALOG['workflow-retriever'];
+    const p = params('workflow-retriever');
+    const values = fields(p.fields);
+    expect(node).toMatchObject({ n8nVersion: 1.1, defaultVersion: 1.1, n8nType: '@n8n/n8n-nodes-langchain.retrieverWorkflow' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 12, credentialEditorFieldCount: 0, dynamicFieldCount: 1, totalAuthoringFieldCount: 12 });
+    expect(p.workflowId).toMatchObject({ kind: 'resourceLocator', sourceKind: 'workflowSelector', locked: true, modes: ['list', 'id'] });
+    expect(p.workflowJson).toMatchObject({ kind: 'textarea', sourceKind: 'json', editor: 'json', rows: 10 });
+    expect(p.fields).toMatchObject({ kind: 'fixedCollection', multiple: true, sortable: true, collectionKey: 'values' });
+    expect(values.valueType.options.map(({ value }) => value)).toEqual(['stringValue', 'numberValue', 'booleanValue', 'arrayValue', 'objectValue']);
+    expect(values.objectValue).toMatchObject({ kind: 'textarea', sourceKind: 'json', editor: 'json', rows: 2, showWhen: { valueType: ['objectValue'] } });
+    expect(node.excludedHistoricalAuthoring[0]).toMatchObject({ n8nKey: 'workflowId', sourceVersionCondition: '@version = 1' });
+  });
+
+  it('models Character Text Splitter v1 defaults', () => {
+    const node = NODE_CATALOG['character-text-splitter'];
+    const p = params('character-text-splitter');
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.textSplitterCharacterTextSplitter' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 4, helperGeneratedFieldCount: 1, dynamicFieldCount: 0, totalAuthoringFieldCount: 4 });
+    expect(p.separator.value).toBe('');
+    expect(p.chunkSize.value).toBe(1000);
+    expect(p.chunkOverlap.value).toBe(0);
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_textSplitter', label: 'Text Splitter' })]);
+  });
+
+  it('models Recursive Character Text Splitter v1 and all language options', () => {
+    const node = NODE_CATALOG['recursive-character-text-splitter'];
+    const p = params('recursive-character-text-splitter');
+    const options = fields(p.options);
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 5, supportedLanguageOptionCount: 15, dynamicFieldCount: 0, totalAuthoringFieldCount: 5 });
+    expect(options.splitCode.value).toBe('markdown');
+    expect(options.splitCode.options.map(({ value }) => value)).toEqual(['cpp', 'go', 'java', 'js', 'php', 'proto', 'python', 'rst', 'ruby', 'rust', 'scala', 'swift', 'markdown', 'latex', 'html']);
+    expect(node.simulation).toMatchObject({ separatorSelection: false, textSplitting: false, chunkCreation: false });
+  });
+});
+
+describe('cluster-node batch 26 carries Token Splitter, AI Agent Tool, and Calculator surfaces', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((param) => [param.key, param]));
+  const fields = (param) => Object.fromEntries(param.fields.map((field) => [field.key, field]));
+
+  it('models Token Splitter v1 defaults without tokenization', () => {
+    const node = NODE_CATALOG['token-splitter'];
+    const p = params('token-splitter');
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.textSplitterTokenSplitter' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 3, helperGeneratedFieldCount: 1, dynamicFieldCount: 0, totalAuthoringFieldCount: 3 });
+    expect(p.chunkSize.value).toBe(1000);
+    expect(p.chunkOverlap.value).toBe(0);
+    expect(node.source.runtimeConstantsExcluded).toMatchObject({ encodingName: 'cl100k_base', keepSeparator: false });
+    expect(node.simulation).toMatchObject({ tokenizerAccess: false, tokenIteration: false, textSplitting: false });
+  });
+
+  it('models AI Agent Tool current v3 imported options and dynamic connectors', () => {
+    const node = NODE_CATALOG['ai-agent-tool'];
+    const p = params('ai-agent-tool');
+    const options = fields(p.options);
+    expect(node).toMatchObject({ n8nVersion: 3, defaultVersion: 3, n8nType: '@n8n/n8n-nodes-langchain.agentTool', dynamicPorts: true });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 26, sourceVisibleFieldCount: 25, hiddenSourceFieldCount: 1, optionFieldCount: 10, totalAuthoringFieldCount: 26 });
+    expect(p.hasOutputParser.value).toBe(false);
+    expect(p.needsFallback.value).toBe(false);
+    expect(options.systemMessage).toMatchObject({ kind: 'textarea', rows: 6, value: 'You are a helpful assistant' });
+    expect(options.tracingMetadata).toMatchObject({ kind: 'fixedCollection', multiple: true, collectionKey: 'values' });
+    expect(fields(options.tracingMetadata).tracingObjectValue).toMatchObject({ kind: 'textarea', sourceKind: 'json', editor: 'json' });
+    expect(options.batching.fields.map(({ key, value }) => [key, value])).toEqual([['batchSize', 1], ['delayBetweenBatches', 0]]);
+    expect(options.maxTokensFromMemory.kind).toBe('hidden');
+    expect(node.portParity).toMatchObject({ inputCountDefault: 3, inputCountWithOutputParserAndFallback: 5, mainInputPresent: false });
+    expect(node.excludedHistoricalAuthoring[0].version).toBe(2.2);
+  });
+
+  it('models Calculator v1 as one notice and one inert tool output', () => {
+    const node = NODE_CATALOG.calculator;
+    const p = params('calculator');
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.toolCalculator' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 1, helperGeneratedFieldCount: 1, dynamicFieldCount: 0, totalAuthoringFieldCount: 1 });
+    expect(p.agentConnectionNotice.label).toContain('connected to an AI agent');
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_tool', label: 'Tool' })]);
+    expect(node.simulation).toMatchObject({ calculation: false, toolInvocation: false, execute: false });
+  });
+});
+
+describe('cluster-node batch 27 carries current code, MCP, and SearXNG tool surfaces', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((param) => [param.key, param]));
+  const fields = (param) => Object.fromEntries(param.fields.map((field) => [field.key, field]));
+
+  it('models Custom Code Tool current v1.3 editors and schema branches', () => {
+    const node = NODE_CATALOG['custom-code-tool'];
+    const p = params('custom-code-tool');
+    expect(node).toMatchObject({ n8nVersion: 1.3, defaultVersion: 1.3, n8nType: '@n8n/n8n-nodes-langchain.toolCode' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 11, helperGeneratedFieldCount: 5, dynamicFieldCount: 0, totalAuthoringFieldCount: 11 });
+    expect(p.language.options.map(({ value }) => value)).toEqual(['javaScript', 'python']);
+    expect(p.jsCode).toMatchObject({ kind: 'code', editor: 'jsEditor', showWhen: { language: ['javaScript'] } });
+    expect(p.pythonCode).toMatchObject({ kind: 'code', editor: 'codeNodeEditor', editorLanguage: 'python', showWhen: { language: ['python'] } });
+    expect(p.jsonSchemaExample).toMatchObject({ kind: 'textarea', sourceKind: 'json', editor: 'json', rows: 10 });
+    expect(p.inputSchema).toMatchObject({ kind: 'textarea', sourceKind: 'json', editor: 'json', rows: 10 });
+    expect(node.excludedHistoricalAuthoring.map(({ sourceVersionCondition }) => sourceVersionCondition)).toEqual(['@version = 1', '@version = 1.1']);
+  });
+
+  it('models MCP Client Tool current v1.4 fields, credentials, and locked discovery', () => {
+    const node = NODE_CATALOG['mcp-client-tool'];
+    const p = params('mcp-client-tool');
+    const options = fields(p.options);
+    expect(node).toMatchObject({ n8nVersion: 1.4, defaultVersion: 1.4, n8nType: '@n8n/n8n-nodes-langchain.mcpClientTool' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 10, credentialDefinitionCount: 4, credentialEditorFieldCount: 24, dynamicFieldCount: 3, totalAuthoringFieldCount: 34 });
+    expect(p.serverTransport).toMatchObject({ value: 'httpStreamable' });
+    expect(p.authentication.options.map(({ value }) => value)).toEqual(['bearerAuth', 'headerAuth', 'mcpOAuth2Api', 'multipleHeadersAuth', 'none']);
+    expect(p.credentials).toMatchObject({ kind: 'select', sourceKind: 'credentials', locked: true });
+    expect(p.includeTools).toMatchObject({ kind: 'multiSelect', showWhen: { include: ['selected'] } });
+    expect(p.includeTools.dynamicOptions).toMatchObject({ source: 'getTools', locked: true, inert: true });
+    expect(p.excludeTools.dynamicOptions).toMatchObject({ source: 'getTools', locked: true, inert: true });
+    expect(options.timeout).toMatchObject({ value: 60000, min: 1 });
+    expect(node.credentialUiMetadata.find(({ type }) => type === 'mcpOAuth2Api').fields).toHaveLength(16);
+    expect(node.excludedHistoricalAuthoring.map(({ sourceVersionCondition }) => sourceVersionCondition)).toEqual(['@version = 1', '@version = 1.1', '@version < 1.2']);
+  });
+
+  it('models SearXNG v1 options and its locked API URL credential', () => {
+    const node = NODE_CATALOG['searxng-tool'];
+    const p = params('searxng-tool');
+    const options = fields(p.options);
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.toolSearXng' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 7, credentialEditorFieldCount: 1, dynamicFieldCount: 1, totalAuthoringFieldCount: 8 });
+    expect(node.credentialUiMetadata[0].fields).toEqual([expect.objectContaining({ key: 'apiUrl', required: true, locked: true })]);
+    expect(options.numResults.value).toBe(10);
+    expect(options.pageNumber.value).toBe(1);
+    expect(options.language.value).toBe('en');
+    expect(options.safesearch.options.map(({ value }) => value)).toEqual([0, 1, 2]);
+    expect(node.simulation).toMatchObject({ searchRequest: false, httpRequest: false, htmlStripping: false });
+  });
+});
+
+describe('cluster-node batch 28 carries SerpApi, Think, and vector-store QA tool surfaces', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((param) => [param.key, param]));
+  const fields = (param) => Object.fromEntries(param.fields.map((field) => [field.key, field]));
+
+  it('models hidden SerpApi v1 with exact deprecated controls and credential metadata', () => {
+    const node = NODE_CATALOG['serpapi-tool'];
+    const p = params('serpapi-tool');
+    const options = fields(p.options);
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.toolSerpApi', hidden: true, deprecated: true });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 9, credentialEditorFieldCount: 2, dynamicFieldCount: 1, totalAuthoringFieldCount: 11 });
+    expect(node.credentialUiMetadata[0].fields.map(({ key }) => key)).toEqual(['oldVersionNotice', 'apiKey']);
+    expect(node.credentialUiMetadata[0].credentialTest).toMatchObject({ url: '/account.json ', sourceUrlHasTrailingSpace: true, inert: true });
+    expect(options.gl.value).toBe('us');
+    expect(options.device.options.map(({ value }) => value)).toEqual(['desktop', 'mobile', 'tablet']);
+    expect(options.no_cache).toMatchObject({ label: 'Explicit Array', value: false });
+    expect(options.google_domain.value).toBe('google.com');
+    expect(options.hl.value).toBe('en');
+  });
+
+  it('models Think Tool current v1.1 exact description and runtime-name history', () => {
+    const node = NODE_CATALOG['think-tool'];
+    const p = params('think-tool');
+    expect(node).toMatchObject({ n8nVersion: 1.1, defaultVersion: 1.1, defaultName: 'Think', n8nType: '@n8n/n8n-nodes-langchain.toolThink' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 2, helperGeneratedFieldCount: 1, dynamicFieldCount: 0, totalAuthoringFieldCount: 2 });
+    expect(p.description).toMatchObject({ kind: 'textarea', rows: 3, required: true });
+    expect(p.description.value).toContain('append the thought to the log');
+    expect(node.historicalRuntimeBehavior.map(({ version, toolName }) => [version, toolName])).toEqual([[1, 'thinking_tool'], [1.1, 'derived from node name']]);
+    expect(node.simulation).toMatchObject({ thinking: false, thoughtLogging: false, toolInvocation: false });
+  });
+
+  it('models Vector Store Question Answer Tool current v1.1 ports and fields', () => {
+    const node = NODE_CATALOG['vector-store-question-answer-tool'];
+    const p = params('vector-store-question-answer-tool');
+    expect(node).toMatchObject({ n8nVersion: 1.1, defaultVersion: 1.1, n8nType: '@n8n/n8n-nodes-langchain.toolVectorStore' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 3, helperGeneratedFieldCount: 1, dynamicFieldCount: 0, totalAuthoringFieldCount: 3 });
+    expect(p.description).toMatchObject({ kind: 'textarea', rows: 3 });
+    expect(p.topK.value).toBe(4);
+    expect(node.inputs.map(({ type, maxConnections }) => [type, maxConnections])).toEqual([['ai_vectorStore', 1], ['ai_languageModel', 1]]);
+    expect(node.excludedHistoricalAuthoring[0]).toMatchObject({ n8nKey: 'name', sourceVersionCondition: '@version = 1', label: 'Data Name' });
+    expect(node.simulation).toMatchObject({ vectorStoreAccess: false, modelAccess: false, retrieval: false, toolInvocation: false });
+  });
+});
+
+describe('cluster-node batch 29 carries Wikipedia, Wolfram, and workflow tool surfaces', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((param) => [param.key, param]));
+
+  it('models Wikipedia v1 as one notice and one inert tool output', () => {
+    const node = NODE_CATALOG['wikipedia-tool'];
+    const p = params('wikipedia-tool');
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.toolWikipedia' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 1, helperGeneratedFieldCount: 1, dynamicFieldCount: 0, totalAuthoringFieldCount: 1 });
+    expect(p.agentConnectionNotice.label).toContain('connected to an AI agent');
+    expect(node.source.runtimeToolMetadataExcluded.description).toContain('Wikipedia API');
+    expect(node.source.runtimeErrorClassificationExcluded.errorLevel).toEqual(['TypeError', 'RangeError', 'ReferenceError', 'SyntaxError']);
+    expect(node.simulation).toMatchObject({ wikipediaAccess: false, toolInvocation: false, errorClassification: false });
+  });
+
+  it('models Wolfram|Alpha v1 locked App ID credential and exact test metadata', () => {
+    const node = NODE_CATALOG['wolfram-alpha-tool'];
+    const p = params('wolfram-alpha-tool');
+    expect(node).toMatchObject({ n8nVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.toolWolframAlpha' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 2, credentialEditorFieldCount: 1, dynamicFieldCount: 1, totalAuthoringFieldCount: 3 });
+    expect(p.wolframAlphaCredential).toMatchObject({ sourceKind: 'credentials', locked: true });
+    expect(node.credentialUiMetadata[0].fields).toEqual([expect.objectContaining({ key: 'appId', password: true, required: true, locked: true })]);
+    expect(node.credentialUiMetadata[0].test).toMatchObject({ baseURL: 'https://api.wolframalpha.com/v1', url: '=/simple', inert: true });
+    expect(node.simulation).toMatchObject({ credentialAccess: false, wolframAccess: false, toolInvocation: false });
+  });
+
+  it('models Call n8n Workflow Tool current v2.2 selector and resource mapper', () => {
+    const node = NODE_CATALOG['call-n8n-workflow-tool'];
+    const p = params('call-n8n-workflow-tool');
+    expect(node).toMatchObject({ n8nVersion: 2.2, defaultVersion: 2.2, n8nType: '@n8n/n8n-nodes-langchain.toolWorkflow' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 12, sourceVisibleFieldCount: 8, normalizedDynamicShellFieldCount: 4, dynamicFieldCount: 2, totalAuthoringFieldCount: 12 });
+    expect(p.workflowId).toMatchObject({ kind: 'resourceLocator', sourceKind: 'workflowSelector', locked: true, modes: ['list', 'id'] });
+    expect(p.workflowInputs).toMatchObject({ kind: 'collection', sourceKind: 'resourceMapper', locked: true, loadOptionsDependsOn: ['workflowId.value'] });
+    expect(p.workflowInputs.resourceMapper).toMatchObject({ localResourceMapperMethod: 'loadSubWorkflowInputs', refreshStaleSchemaOnOpen: true, inert: true });
+    expect(p.workflowJson).toMatchObject({ kind: 'textarea', sourceKind: 'json', editor: 'json', rows: 10, value: '\n\n\n\n\n\n\n\n\n' });
+    expect(node.excludedHistoricalAuthoring).toHaveLength(10);
+    expect(node.simulation).toMatchObject({ workflowBrowsing: false, workflowInputSchemaLoading: false, resourceMapping: false, workflowExecution: false });
+  });
+});
+
+describe('cluster-node batch 30 completes Cohere reranking and model selection surfaces', () => {
+  const params = (type) => Object.fromEntries(NODE_CATALOG[type].params.map((param) => [param.key, param]));
+  const fields = (param) => Object.fromEntries(param.fields.map((field) => [field.key, field]));
+
+  it('models Reranker Cohere v1 fields, credential metadata, and output', () => {
+    const node = NODE_CATALOG['reranker-cohere'];
+    const p = params('reranker-cohere');
+    expect(node).toMatchObject({ n8nVersion: 1, defaultVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.rerankerCohere' });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 3, credentialEditorFieldCount: 2, dynamicFieldCount: 1, totalAuthoringFieldCount: 5 });
+    expect(p.modelName.options.map(({ value }) => value)).toEqual(['rerank-v3.5', 'rerank-english-v3.0', 'rerank-multilingual-v3.0']);
+    expect(p.modelName.value).toBe('rerank-v3.5');
+    expect(p.topN.value).toBe(3);
+    expect(node.credentialUiMetadata[0].fields.map(({ key }) => key)).toEqual(['apiKey', 'url']);
+    expect(node.credentialUiMetadata[0].fields[1]).toMatchObject({ kind: 'hidden', value: 'https://api.cohere.ai' });
+    expect(node.requestDefaultCredentialReferenceMetadata).toMatchObject({ sourceRequestDefaultKey: 'host', declaredCredentialBaseUrlKey: 'url', mismatchPreservedFromSource: true });
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_reranker', label: 'Reranker' })]);
+    expect(node.simulation).toMatchObject({ credentialAccess: false, modelInvocation: false, reranking: false, networkAccess: false });
+  });
+
+  it('models Model Selector v1 dynamic ports and inert ordered rules', () => {
+    const node = NODE_CATALOG['model-selector'];
+    const p = params('model-selector');
+    const ruleFields = fields(p.rules);
+    expect(node).toMatchObject({ n8nVersion: 1, defaultVersion: 1, n8nType: '@n8n/n8n-nodes-langchain.modelSelector', requiredInputs: 1 });
+    expect(node.authoringParity).toMatchObject({ recursiveFieldCount: 4, helperGeneratedFieldCount: 1, dynamicFieldCount: 1, totalAuthoringFieldCount: 4 });
+    expect(p.numberInputs.options.map(({ value }) => value)).toEqual([2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    expect(p.numberInputs).toMatchObject({ value: 2, noDataExpression: true, validateType: 'number' });
+    expect(p.rules).toMatchObject({ kind: 'fixedCollection', multiple: true, sortable: true, value: {} });
+    expect(ruleFields.modelIndex).toMatchObject({ value: 1, required: true, dynamic: true, locked: true, loadOptionsMethod: 'getModels' });
+    expect(ruleFields.conditions).toMatchObject({ kind: 'textarea', sourceKind: 'filter', editor: 'json', value: '{}', expressionEvaluation: false });
+    expect(ruleFields.conditions.filter).toEqual({ caseSensitive: true, typeValidation: 'strict', version: 2 });
+    expect(node.portVariants).toHaveLength(9);
+    expect(node.portVariants.map(({ inputs }) => inputs.length)).toEqual([2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    expect(node.outputs).toEqual([expect.objectContaining({ type: 'ai_languageModel', label: '' })]);
+    expect(node.simulation).toMatchObject({ localModelOptionLookup: false, filterEvaluation: false, modelSelection: false, supplyData: false });
+  });
+});
+
 // Judge does not implement typeVersion — one shipped schema per node type is the
 // right simplification — but every node must SAY which real node and version it
 // models, or the catalogue drifts from the n8n a learner meets next and nobody
@@ -654,15 +1753,29 @@ describe('every catalog type is renderable by the web app', () => {
   it('uses a canvas category with visual metadata', () => {
     const categories = new Set(['trigger', 'ai', 'model', 'core', 'action']);
     for (const type of COMPLETE_CORE_NODE_TYPES) expect(categories.has(NODE_CATALOG[type].category), type).toBe(true);
+    for (const type of COMPLETE_CLUSTER_NODE_TYPES) expect(categories.has(NODE_CATALOG[type].category), type).toBe(true);
     for (const type of COMPLETE_APP_NODE_TYPES) expect(categories.has(NODE_CATALOG[type].category), type).toBe(true);
   });
 });
 
 describe('agent-facing node library catalog', () => {
-  it('lists every available catalog type and its function', () => {
+  it('lists every available catalog type exactly once with a useful function', () => {
     const guide = readFileSync(new URL('../../docs/node-library-catalog.md', import.meta.url), 'utf8');
     for (const type of Object.keys(NODE_CATALOG)) {
-      expect(guide, `${type} is missing from docs/node-library-catalog.md`).toContain(`| \`${type}\` |`);
+      const escapedType = type.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const rows = [...guide.matchAll(new RegExp('^\\| .*? \\| `' + escapedType + '` \\| (.+) \\|$', 'gm'))];
+      expect(rows, `${type} must have exactly one row in docs/node-library-catalog.md`).toHaveLength(1);
+      expect(rows[0][1].trim().length, `${type} has no useful function description`).toBeGreaterThan(10);
+    }
+  });
+
+  it('identifies every current AI cluster node as a root or sub-node', () => {
+    const guide = readFileSync(new URL('../../docs/node-library-catalog.md', import.meta.url), 'utf8');
+    const rootLine = guide.match(/^- \*\*AI roots \(\d+\):\*\* (.+)$/m)?.[1] ?? '';
+    const subLine = guide.match(/^- \*\*AI sub-nodes \(\d+\):\*\* (.+)$/m)?.[1] ?? '';
+    for (const node of CLUSTER_NODE_INVENTORY.filter(({ status }) => status === 'complete')) {
+      if (NODE_CATALOG[node.type].deprecated) continue;
+      expect(node.clusterRole === 'root' ? rootLine : subLine, `${node.type} has no documented cluster role`).toContain(`\`${node.type}\``);
     }
   });
 });

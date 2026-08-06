@@ -1,7 +1,7 @@
 import React from 'react';
 import { X, CaretDown, Sparkle, CheckCircle, WarningCircle, ArrowRight } from '@phosphor-icons/react';
 import { Button } from '../design-system/Button.jsx';
-import { nodeIcons, nodeIconColor, metaOf, nodeParams } from '../nodes/nodeIcons.js';
+import { NodeIcon, metaOf, nodeParams } from '../nodes/nodeIcons.js';
 
 function Label({ children }) {
   return (
@@ -52,8 +52,6 @@ export function NodeDetailView({ node, studentGraph, onChange, onClose, canAdvan
   if (!node) return null;
 
   const meta = metaOf(node.type);
-  const Icon = nodeIcons[node.type];
-  const iconColor = nodeIconColor[node.type] || meta.color;
   const params = nodeParams[node.type] || [];
   const values = node.data.params || {};
 
@@ -74,7 +72,7 @@ export function NodeDetailView({ node, studentGraph, onChange, onClose, canAdvan
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '14px 16px', borderBottom: '1px solid var(--border-subtle)' }}>
         <div style={{ width: 36, height: 36, flex: 'none', borderRadius: 8, background: meta.tint, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {Icon ? <Icon size={19} color={iconColor} /> : null}
+          <NodeIcon type={node.type} size={19} />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.05em', color: meta.color, fontWeight: 700 }}>{meta.label}</div>

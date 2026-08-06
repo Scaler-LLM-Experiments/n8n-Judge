@@ -1,0 +1,286 @@
+// Editor-only descriptor for Embeddings Google Gemini v1.
+// Credentials, remote model options, expressions, APIs, embeddings, and execution stay inert.
+
+const embeddingOutput = {
+  type: 'ai_embedding',
+  connector: 'ai_embedding',
+  label: 'Embeddings',
+  displayName: 'Embeddings',
+  required: true,
+};
+
+const credentialDefinition = {
+  type: 'googlePalmApi',
+  name: 'Google Gemini(PaLM) Api',
+  required: true,
+  documentationUrl: 'google',
+  sourcePath: 'packages/@n8n/nodes-langchain/credentials/GooglePalmApi.credentials.ts',
+  renderedInCredentialEditor: false,
+  locked: true,
+  inert: true,
+  fields: [
+    {
+      key: 'host',
+      n8nKey: 'host',
+      label: 'Host',
+      kind: 'text',
+      value: 'https://generativelanguage.googleapis.com',
+      required: true,
+      locked: true,
+    },
+    {
+      key: 'apiKey',
+      n8nKey: 'apiKey',
+      label: 'API Key',
+      kind: 'text',
+      value: '',
+      required: true,
+      locked: true,
+      password: true,
+    },
+  ],
+  authenticate: {
+    type: 'generic',
+    query: { key: '={{$credentials.apiKey}}' },
+    inert: true,
+  },
+  test: {
+    baseURL: '={{$credentials.host}}/v1beta/models',
+    inert: true,
+  },
+};
+
+const embeddingsGoogleGemini = {
+  type: 'embeddings-google-gemini',
+  n8nType: '@n8n/n8n-nodes-langchain.embeddingsGoogleGemini',
+  packageName: '@n8n/n8n-nodes-langchain',
+  n8nVersion: 1,
+  defaultVersion: 1,
+  versionHistory: [1],
+  label: 'Embeddings Google Gemini',
+  defaultName: 'Embeddings Google Gemini',
+  subtitle: '',
+  description: 'Use Google Gemini Embeddings',
+  details:
+    'Configure a Google Gemini embedding model. This catalog entry never reads credentials, lists models, or generates embeddings.',
+  category: 'core',
+  libraryCategory: 'ai',
+  categories: ['AI'],
+  subcategory: 'Embeddings',
+  subcategories: ['Embeddings'],
+  subcategoryMap: { AI: ['Embeddings'] },
+  group: ['transform'],
+  inputs: [],
+  outputs: [embeddingOutput],
+  outputNames: ['Embeddings'],
+  aiConnectorPorts: [embeddingOutput],
+  usableAsTool: false,
+  icon: '/node-icons/embeddings-google-gemini.svg',
+  n8nIcon: { light: 'file:google.svg', dark: 'file:google.svg' },
+  iconMode: 'image',
+  iconAssetType: 'svg',
+  iconAssetSize: { width: 48, height: 48, viewBox: '0 0 48 48' },
+  iconAssetSha256: 'a15256a44b6f8e6f4a7c6b370dfd533c8305a3f10c1bbfba2759477a4e07c049',
+  aliases: [],
+  docs:
+    'https://docs.n8n.io/integrations/builtin/cluster-nodes/sub-nodes/n8n-nodes-langchain.embeddingsgooglegemini/',
+  requestDefaults: {
+    ignoreHttpStatusErrors: true,
+    baseURL: '={{ $credentials.host }}',
+    inert: true,
+  },
+  source: {
+    commit: '3d68c29b9281f14097aa9f15e01ac0777e538b11',
+    path:
+      'packages/@n8n/nodes-langchain/nodes/embeddings/EmbeddingsGoogleGemini/EmbeddingsGoogleGemini.node.ts',
+    credentialPath: credentialDefinition.sourcePath,
+    sharedFieldsPath: 'packages/@n8n/ai-utilities/src/utils/shared-fields.ts',
+    iconPath:
+      'packages/@n8n/nodes-langchain/nodes/embeddings/EmbeddingsGoogleGemini/google.svg',
+    directDescriptionImports: [
+      {
+        module: '@n8n/ai-utilities',
+        names: ['getConnectionHintNoticeField'],
+      },
+    ],
+    runtimeImportsExcluded: [
+      { module: '@langchain/google-genai', names: ['GoogleGenerativeAIEmbeddings'] },
+      { module: '@n8n/ai-utilities', names: ['logWrapper'] },
+    ],
+  },
+  defaults: { name: 'Embeddings Google Gemini' },
+  credentials: [
+    {
+      name: 'googlePalmApi',
+      type: 'googlePalmApi',
+      displayName: 'Google Gemini(PaLM) Api',
+      required: true,
+      locked: true,
+      sourcePath: credentialDefinition.sourcePath,
+    },
+  ],
+  credentialRequirements: [
+    {
+      type: 'googlePalmApi',
+      name: 'Google Gemini(PaLM) Api',
+      required: true,
+      locked: true,
+      inert: true,
+    },
+  ],
+  credentialUiMetadata: [credentialDefinition],
+  methods: {
+    loadOptions: {
+      modelName: {
+        request: {
+          method: 'GET',
+          url: '/v1beta/models',
+          credentialType: 'googlePalmApi',
+        },
+        response: {
+          rootProperty: 'models',
+          filterExpression: "={{ $responseItem.name.includes('embedding') }}",
+          mapping: {
+            label: '={{$responseItem.name}}',
+            value: '={{$responseItem.name}}',
+            description: '={{$responseItem.description}}',
+          },
+          sortBy: 'name',
+        },
+        inert: true,
+      },
+    },
+  },
+  params: [
+    {
+      key: 'googlePalmCredential',
+      n8nKey: 'credentials.googlePalmApi',
+      sourceN8nKey: 'credentials',
+      label: 'Credentials',
+      kind: 'select',
+      sourceKind: 'credentials',
+      value: 'googlePalmApi',
+      required: true,
+      locked: true,
+      dynamicOptions: {
+        source: 'credentialStore',
+        credentialType: 'googlePalmApi',
+        inert: true,
+      },
+      options: [{ label: 'Google Gemini(PaLM) Api', value: 'googlePalmApi' }],
+      simulationNote: 'The selector is locked and never creates, reads, tests, or applies credentials.',
+    },
+    {
+      key: 'connectionNotice',
+      n8nKey: 'notice',
+      sourceN8nKey: 'notice',
+      label:
+        "This node must be connected to a vector store. <a data-action='openSelectiveNodeCreator' data-action-parameter-connectiontype='ai_vectorStore'>Insert one</a>",
+      kind: 'notice',
+      sourceKind: 'notice',
+      value: '',
+      required: false,
+      containerClass: 'ndv-connection-hint-notice',
+    },
+    {
+      key: 'dimensionalityNotice',
+      n8nKey: 'notice',
+      sourceN8nKey: 'notice',
+      label:
+        'Each model is using different dimensional density for embeddings. Please make sure to use the same dimensionality for your vector store. The default model is using 768-dimensional embeddings.',
+      kind: 'notice',
+      sourceKind: 'notice',
+      value: '',
+      required: false,
+    },
+    {
+      key: 'modelName',
+      n8nKey: 'modelName',
+      sourceN8nKey: 'modelName',
+      label: 'Model',
+      kind: 'select',
+      sourceKind: 'options',
+      value: 'models/gemini-embedding-001',
+      required: false,
+      locked: true,
+      dynamic: true,
+      options: [],
+      description:
+        'The model which will generate the embeddings. <a href="https://developers.generativeai.google/api/rest/generativelanguage/models/list">Learn more</a>.',
+      dynamicOptions: {
+        credentialType: 'googlePalmApi',
+        request: { method: 'GET', url: '/v1beta/models' },
+        responseRoot: 'models',
+        filter: "name includes 'embedding'",
+        sortBy: 'name',
+        inert: true,
+      },
+      routing: { send: { type: 'body', property: 'model', inert: true } },
+      simulationNote:
+        'Remote model options are locked and empty; the stored default is never resolved or invoked.',
+    },
+  ],
+  authoringParity: {
+    currentVersion: 1,
+    recursiveFieldCount: 4,
+    sourceVisibleFieldCount: 3,
+    credentialSelectorCount: 1,
+    credentialEditorFieldCount: 2,
+    dynamicFieldCount: 2,
+    inputPortCount: 0,
+    outputPortCount: 1,
+    outputPorts: [{ type: 'ai_embedding', name: 'Embeddings' }],
+    modelDefault: 'models/gemini-embedding-001',
+  },
+  dynamicAuthoringMetadata: {
+    credentialSelectors: ['googlePalmCredential'],
+    lockedFields: ['googlePalmCredential', 'modelName'],
+    remoteDynamicFields: ['googlePalmCredential', 'modelName'],
+  },
+  rendererNormalizations: [
+    {
+      n8nKey: 'credentials.googlePalmApi',
+      sourceType: 'required credential selector',
+      normalizedKind: 'locked select',
+    },
+    {
+      n8nKey: 'modelName',
+      sourceType: 'options with routing loadOptions',
+      normalizedKind: 'locked empty select retaining the native default and routing metadata',
+    },
+    {
+      n8nKey: 'notice',
+      normalizedKeys: ['connectionNotice', 'dimensionalityNotice'],
+      reason: 'Two native notice fields share the same source name and use unique catalog keys.',
+    },
+  ],
+  platformGaps: [
+    'Credential selection/editing/testing and query authentication are locked inert metadata.',
+    'Model discovery never calls the Gemini models endpoint; the locked options list remains empty.',
+    'Credential, routing, and response expressions are stored without evaluation.',
+    'GoogleGenerativeAIEmbeddings construction, model invocation, embedding generation, and logging never run.',
+  ],
+  simulation: {
+    configurationOnly: true,
+    credentialCreation: false,
+    credentialAccess: false,
+    credentialTesting: false,
+    authentication: false,
+    dynamicLookups: false,
+    modelListing: false,
+    responseFiltering: false,
+    expressionResolution: false,
+    modelInvocation: false,
+    embeddingGeneration: false,
+    workflowExecution: false,
+    supplyData: false,
+    networkAccess: false,
+    apiCalls: false,
+    webhooks: false,
+    polling: false,
+    voice: false,
+  },
+  output: {},
+};
+
+export default embeddingsGoogleGemini;

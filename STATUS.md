@@ -3,7 +3,7 @@
 **The single source of truth for what's built and what's next.** Update this file as work
 lands — don't start a new handoff doc.
 
-Last updated: 2026-07-31 · Branch: `sudhanva/nextjs`
+Last updated: 2026-08-06 · Branch: `main`
 
 ---
 
@@ -27,8 +27,8 @@ Milestones have been completed out of order. What is actually true, per mileston
 | **M5 authoring** | ⚠️ mostly done — the CLI pipeline (`problem:new/check/draft`) plus the **agent pipeline** (`/author-case`, see below); no admin editor |
 | M6 voice · M7 SQS | M6 largely done in practice (see Voice); M7 not started |
 
-Verified 2026-07-31: **458/458 unit tests**, both typecheck halves, smoke green on every screen
-(including the new `resume` check).
+Verified 2026-08-06: **694/694 unit tests**, both typecheck halves, the production build,
+and the full-screen smoke journey, including the `resume` check.
 
 ---
 
@@ -44,6 +44,16 @@ Verified 2026-07-31: **458/458 unit tests**, both typecheck halves, smoke green 
 - Next.js app renders the whole ported journey.
 
 ### Beyond M0
+- **Simulation node library authored.** The reviewed catalog now contains 200 registered
+  types: 185 current canonical nodes for new cases, five deprecated descriptors retained
+  only for compatibility, and 10 aliases for existing cases. It covers all 65 selected
+  live core nodes, 24 priority app actions, 12 priority app triggers, and 84 current AI
+  cluster nodes. OneDrive, PayPal, and Twilio triggers remain deliberately deferred. See
+  [docs/node-library-catalog.md](docs/node-library-catalog.md). Every descriptor is inert:
+  it models n8n's authoring surface without API calls, execution, polling, webhooks, or voice.
+  All canvas and detail surfaces now share the catalog icon renderer: official app/provider
+  marks are stored locally and render as images, while core concepts use accessible
+  monochrome glyphs. No logo is fetched at runtime.
 - **Topology generalised.** `engine/simulate.js` resolves each node's role from catalog
   metadata (`category`, `needsModel`, `branches`) instead of hard-coding
   `trigger → ai → parse → switch → action`. This overrode the plan's risk-#1 deferral.
@@ -182,7 +192,7 @@ Progress:
 - Still to wire: the score is computed on demand in the request rather than by the M3 worker,
   and `runOutcome`/`timeline` are passed to Claude as `null`/`[]` — the Run result and session
   chronology are not yet in the digest.
-- Still to do: rest of B6, B2/B3 (cluster Agent, Text Classifier etc.), B4 (full
+- Still to do: rest of B6, B4 (full
   INPUT/Params/OUTPUT NDV), A3/A5 (widened answer space, assessed mode), C2/C3 (run
   narration, coach copy), D1/D2 (de-clone lead-triage).
 
@@ -219,12 +229,12 @@ and misconception explanations around that number. `GradingReport` already encod
 split: `understandingScore` is a column, `reportJson` is the LLM part, and the token/cost
 columns meter only the latter.
 
-Judge currently cannot fail a learner. An audit of the three shipped problems found the
-correct option at index 0 in **25/25** NDV fields and **13/13** dissection items, every
+The original M1.5 audit found the correct option at index 0 in
+**25/25** NDV fields and **13/13** dissection items, every
 wrong-pick probe shipping a free `correct: true` escape, and probe copy that names the
-right node outright. Separately, the editor is not faithful to how n8n actually works
-(no cluster-node Agent, no typed AI connectors, Settings tab disabled, 2×3-dropdown
-config on every node).
+right node outright. Those assessment defects are fixed above. The node library now models
+cluster roots, typed AI sub-node connectors, and node-specific settings; full execution
+fidelity remains deliberately out of scope because Judge is a simulator.
 
 Sits before M2 deliberately: M2 builds the trace pipeline and M3 replays it to grade, and
 both are shaped by what a session can contain.

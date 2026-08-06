@@ -87,6 +87,50 @@ describe('catalog-backed node setup', () => {
     expect(branchesForPorts(NODE_CATALOG.guardrails, resolveNodePorts(NODE_CATALOG.guardrails, { operation: 'sanitize' }))).toBeNull();
   });
 
+  it('renders Text Classifier outputs from category rows and fallback', () => {
+    const categories = { categories: [{ category: 'Bug' }, { category: 'Feature' }] };
+    expect(resolveNodePorts(NODE_CATALOG['text-classifier'], { categories }).outputs.map((port) => port.label)).toEqual(['Bug', 'Feature']);
+    expect(resolveNodePorts(NODE_CATALOG['text-classifier'], {
+      categories,
+      options: { fallback: 'other' },
+    }).outputs.map((port) => port.label)).toEqual(['Bug', 'Feature', 'Other']);
+    expect(resolveNodePorts(NODE_CATALOG['text-classifier'], {}).outputs).toEqual([]);
+  });
+
+  it('renders Sentiment Analysis outputs from comma-separated labels', () => {
+    expect(resolveNodePorts(NODE_CATALOG['sentiment-analysis'], {}).outputs.map((port) => port.label)).toEqual(['Positive', 'Neutral', 'Negative']);
+    expect(resolveNodePorts(NODE_CATALOG['sentiment-analysis'], {
+      options: { categories: ' Happy, Sad, ' },
+    }).outputs.map((port) => port.label)).toEqual(['Happy', 'Sad', '']);
+  });
+
+  it('renders LangChain Code ports from configured connection rows', () => {
+    const ports = resolveNodePorts(NODE_CATALOG['langchain-code'], {
+      inputs: { input: [
+        { inputType: 'main', maxConnections: -1, maxConnectionsRequired: false },
+        { inputType: 'ai_languageModel', maxConnections: 2, maxConnectionsRequired: true },
+      ] },
+      outputs: { output: [{ outputType: 'ai_tool' }, { outputType: 'main' }] },
+    });
+    expect(ports.inputs).toEqual([
+      { type: 'main', label: '', displayName: '', required: false },
+      { type: 'ai_languageModel', label: 'Language Model', displayName: 'Language Model', required: true, maxConnections: 2 },
+    ]);
+    expect(ports.outputs.map(({ type, label }) => ({ type, label }))).toEqual([
+      { type: 'ai_tool', label: 'Tool' },
+      { type: 'main', label: '' },
+    ]);
+  });
+
+  it('renders Summarization Chain connector variants', () => {
+    expect(resolveNodePorts(NODE_CATALOG['summarization-chain'], {}).inputs.map((port) => port.type)).toEqual(['main', 'ai_languageModel']);
+    expect(resolveNodePorts(NODE_CATALOG['summarization-chain'], { operationMode: 'documentLoader' }).inputs.map((port) => port.type)).toEqual(['main', 'ai_languageModel', 'ai_document']);
+    expect(resolveNodePorts(NODE_CATALOG['summarization-chain'], {
+      operationMode: 'nodeInputJson',
+      chunkingMode: 'advanced',
+    }).inputs.map((port) => port.type)).toEqual(['main', 'ai_languageModel', 'ai_textSplitter']);
+  });
+
   it('renders one Webhook output per selected HTTP method', () => {
     expect(resolveNodePorts(NODE_CATALOG.webhook, {}).outputs.map((port) => port.label)).toEqual(['GET']);
     expect(resolveNodePorts(NODE_CATALOG.webhook, {

@@ -7,16 +7,46 @@
 // out of scope: these definitions reproduce the authoring experience only.
 
 import aiTransform from './ai-transform.js';
+import aiAgent from './ai-agent.js';
+import aiAgentTool from './ai-agent-tool.js';
+import autoFixingOutputParser from './auto-fixing-output-parser.js';
+import anthropicChatModel from './anthropic-chat-model.js';
+import awsBedrockChatModel from './aws-bedrock-chat-model.js';
+import azureAiSearchVectorStore from './azure-ai-search-vector-store.js';
+import azureOpenAiChatModel from './azure-openai-chat-model.js';
+import basicLlmChain from './basic-llm-chain.js';
+import calculator from './calculator.js';
+import callN8nWorkflowTool from './call-n8n-workflow-tool.js';
 import code from './code.js';
+import chatMemoryManager from './chat-memory-manager.js';
+import characterTextSplitter from './character-text-splitter.js';
+import chromaVectorStore from './chroma-vector-store.js';
+import cohereChatModel from './cohere-chat-model.js';
+import cohereModel from './cohere-model.js';
 import compareDatasets from './compare-datasets.js';
 import compression from './compression.js';
 import convertToFile from './convert-to-file.js';
+import contextualCompressionRetriever from './contextual-compression-retriever.js';
 import crypto from './crypto.js';
+import customCodeTool from './custom-code-tool.js';
 import dataTable from './data-table.js';
+import defaultDataLoader from './default-data-loader.js';
 import dateTime from './date-time.js';
 import debugHelper from './debug-helper.js';
+import deepSeekChatModel from './deepseek-chat-model.js';
 import editImage from './edit-image.js';
 import emailTriggerImap from './email-trigger-imap.js';
+import embeddingsAwsBedrock from './embeddings-aws-bedrock.js';
+import embeddingsAzureOpenAi from './embeddings-azure-openai.js';
+import embeddingsCohere from './embeddings-cohere.js';
+import embeddingsGoogleGemini from './embeddings-google-gemini.js';
+import embeddingsGoogleVertex from './embeddings-google-vertex.js';
+import embeddingsHuggingFaceInference from './embeddings-huggingface-inference.js';
+import embeddingsLemonade from './embeddings-lemonade.js';
+import embeddingsMistralCloud from './embeddings-mistral-cloud.js';
+import embeddingsOllama from './embeddings-ollama.js';
+import embeddingsOpenAi from './embeddings-openai.js';
+import embeddingsOracleDatabase from './embeddings-oracle-database.js';
 import errorTrigger from './error-trigger.js';
 import evaluationTrigger from './evaluation-trigger.js';
 import evaluation from './evaluation.js';
@@ -30,20 +60,56 @@ import formTrigger from './form-trigger.js';
 import form from './form.js';
 import ftp from './ftp.js';
 import git from './git.js';
+import githubDocumentLoader from './github-document-loader.js';
 import graphql from './graphql.js';
+import googleGeminiChatModel from './google-gemini-chat-model.js';
+import googleVertexChatModel from './google-vertex-chat-model.js';
+import groqChatModel from './groq-chat-model.js';
 import html from './html.js';
+import huggingFaceInferenceModel from './huggingface-inference-model.js';
 import httpRequest from './http-request.js';
 import ifNode from './if.js';
+import informationExtractor from './information-extractor.js';
+import itemListOutputParser from './item-list-output-parser.js';
 import jwt from './jwt.js';
+import langchainCode from './langchain-code.js';
 import ldap from './ldap.js';
+import lemonadeChatModel from './lemonade-chat-model.js';
+import lemonadeModel from './lemonade-model.js';
 import localFileTrigger from './local-file-trigger.js';
 import manual from './manual.js';
 import markdown from './markdown.js';
 import merge from './merge.js';
+import microsoftAgent365Trigger from './microsoft-agent-365-trigger.js';
+import milvusVectorStore from './milvus-vector-store.js';
+import minimaxChatModel from './minimax-chat-model.js';
+import mistralCloudChatModel from './mistral-cloud-chat-model.js';
+import modelSelector from './model-selector.js';
+import mongodbAtlasVectorStore from './mongodb-atlas-vector-store.js';
+import multiQueryRetriever from './multi-query-retriever.js';
+import moonshotChatModel from './moonshot-chat-model.js';
+import mongodbChatMemory from './mongodb-chat-memory.js';
+import motorhead from './motorhead.js';
 import n8nTrigger from './n8n-trigger.js';
 import n8n from './n8n.js';
 import noop from './noop.js';
+import nvidiaNemotronChatModel from './nvidia-nemotron-chat-model.js';
+import ollamaChatModel from './ollama-chat-model.js';
+import ollamaModel from './ollama-model.js';
+import openAiChatModel from './openai-chat-model.js';
+import openRouterChatModel from './openrouter-chat-model.js';
+import oracleDatabaseVectorStore from './oracle-database-vector-store.js';
+import pgvectorVectorStore from './pgvector-vector-store.js';
+import pineconeVectorStore from './pinecone-vector-store.js';
+import postgresChatMemory from './postgres-chat-memory.js';
+import qdrantVectorStore from './qdrant-vector-store.js';
+import qwenCloudChatModel from './qwen-cloud-chat-model.js';
+import redisVectorStore from './redis-vector-store.js';
+import redisChatMemory from './redis-chat-memory.js';
+import recursiveCharacterTextSplitter from './recursive-character-text-splitter.js';
 import readWriteFile from './read-write-file.js';
+import questionAnswerChain from './question-answer-chain.js';
+import rerankerCohere from './reranker-cohere.js';
 import removeDuplicates from './remove-duplicates.js';
 import renameKeys from './rename-keys.js';
 import respondToWebhook from './respond-to-webhook.js';
@@ -51,22 +117,45 @@ import rssFeedTrigger from './rss-feed-trigger.js';
 import rssRead from './rss-read.js';
 import schedule from './schedule.js';
 import sendEmail from './send-email.js';
+import searXngTool from './searxng-tool.js';
+import serpApiTool from './serpapi-tool.js';
+import sentimentAnalysis from './sentiment-analysis.js';
+import simpleMemory from './simple-memory.js';
+import simpleVectorStore from './simple-vector-store.js';
+import supabaseVectorStore from './supabase-vector-store.js';
 import editFields from './edit-fields.js';
 import sort from './sort.js';
 import loopOverItems from './loop-over-items.js';
 import sseTrigger from './sse-trigger.js';
 import ssh from './ssh.js';
 import stopAndError from './stop-and-error.js';
+import structuredOutputParser from './structured-output-parser.js';
+import summarizationChain from './summarization-chain.js';
 import summarizeItems from './summarize-items.js';
 import switchNode from './switch.js';
+import textClassifier from './text-classifier.js';
+import thinkTool from './think-tool.js';
+import tokenSplitter from './token-splitter.js';
 import totp from './totp.js';
+import vercelAiGatewayChatModel from './vercel-ai-gateway-chat-model.js';
+import vectorStoreRetriever from './vector-store-retriever.js';
+import vectorStoreQuestionAnswerTool from './vector-store-question-answer-tool.js';
 import wait from './wait.js';
 import webhook from './webhook.js';
+import weaviateVectorStore from './weaviate-vector-store.js';
+import wikipediaTool from './wikipedia-tool.js';
+import wolframAlphaTool from './wolfram-alpha-tool.js';
+import workflowRetriever from './workflow-retriever.js';
 import xml from './xml.js';
+import xAiGrokChatModel from './xai-grok-chat-model.js';
+import xataMemory from './xata-memory.js';
+import zepMemory from './zep-memory.js';
+import zepVectorStore from './zep-vector-store.js';
 import chatTrigger from './chat-trigger.js';
 import chat from './chat.js';
 import guardrails from './guardrails.js';
 import mcpClient from './mcp-client.js';
+import mcpClientTool from './mcp-client-tool.js';
 import mcpServerTrigger from './mcp-server-trigger.js';
 
 export const SOURCE_COMMIT = '3d68c29b9281f14097aa9f15e01ac0777e538b11';
@@ -141,11 +230,137 @@ export const CORE_NODE_INVENTORY = [
   { type: 'mcp-server-trigger', docsSlug: 'n8n-nodes-langchain.mcptrigger', label: 'MCP Server Trigger', status: 'complete' },
 ];
 
+// Canonical scope from the official cluster root/sub-node indexes, filtered
+// against SOURCE_COMMIT. Rows become complete only after their descriptor and
+// exact icon are reviewed; docs-only retired nodes remain explicit exclusions.
+export const CLUSTER_NODE_INVENTORY = [
+  { type: 'ai-agent', docsSlug: 'n8n-nodes-langchain.agent', label: 'AI Agent', clusterRole: 'root', status: 'complete' },
+  { type: 'basic-llm-chain', docsSlug: 'n8n-nodes-langchain.chainllm', label: 'Basic LLM Chain', clusterRole: 'root', status: 'complete' },
+  { type: 'question-answer-chain', docsSlug: 'n8n-nodes-langchain.chainretrievalqa', label: 'Question and Answer Chain', clusterRole: 'root', status: 'complete' },
+  { type: 'summarization-chain', docsSlug: 'n8n-nodes-langchain.chainsummarization', label: 'Summarization Chain', clusterRole: 'root', status: 'complete' },
+  { type: 'information-extractor', docsSlug: 'n8n-nodes-langchain.information-extractor', label: 'Information Extractor', clusterRole: 'root', status: 'complete' },
+  { type: 'text-classifier', docsSlug: 'n8n-nodes-langchain.text-classifier', label: 'Text Classifier', clusterRole: 'root', status: 'complete' },
+  { type: 'sentiment-analysis', docsSlug: 'n8n-nodes-langchain.sentimentanalysis', label: 'Sentiment Analysis', clusterRole: 'root', status: 'complete' },
+  { type: 'langchain-code', docsSlug: 'n8n-nodes-langchain.code', label: 'LangChain Code', clusterRole: 'root', status: 'complete' },
+  { type: 'microsoft-agent-365-trigger', docsSlug: 'n8n-nodes-langchain.microsoftagent365trigger', label: 'Microsoft Agent 365 Trigger', clusterRole: 'root', status: 'complete' },
+  { type: 'azure-ai-search-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoreazureaisearch', label: 'Azure AI Search Vector Store', clusterRole: 'root', status: 'complete' },
+  { type: 'simple-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoreinmemory', label: 'Simple Vector Store', clusterRole: 'root', status: 'complete' },
+  { type: 'milvus-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoremilvus', label: 'Milvus Vector Store', clusterRole: 'root', status: 'complete' },
+  { type: 'mongodb-atlas-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoremongodbatlas', label: 'MongoDB Atlas Vector Store', clusterRole: 'root', status: 'complete' },
+  { type: 'pgvector-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstorepgvector', label: 'Postgres PGVector Store', clusterRole: 'root', status: 'complete' },
+  { type: 'oracle-database-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoreoracledb', label: 'Oracle Database Vector Store', clusterRole: 'root', status: 'complete' },
+  { type: 'chroma-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstorechroma', label: 'Chroma Vector Store', clusterRole: 'root', status: 'complete' },
+  { type: 'pinecone-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstorepinecone', label: 'Pinecone Vector Store', clusterRole: 'root', status: 'complete' },
+  { type: 'qdrant-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoreqdrant', label: 'Qdrant Vector Store', clusterRole: 'root', status: 'complete' },
+  { type: 'redis-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoreredis', label: 'Redis Vector Store', clusterRole: 'root', status: 'complete' },
+  { type: 'supabase-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoresupabase', label: 'Supabase Vector Store', clusterRole: 'root', status: 'complete' },
+  { type: 'weaviate-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstoreweaviate', label: 'Weaviate Vector Store', clusterRole: 'root', status: 'complete' },
+  { type: 'zep-vector-store', docsSlug: 'n8n-nodes-langchain.vectorstorezep', label: 'Zep Vector Store', clusterRole: 'root', status: 'complete' },
+  { type: 'default-data-loader', docsSlug: 'n8n-nodes-langchain.documentdefaultdataloader', label: 'Default Data Loader', clusterRole: 'sub', status: 'complete' },
+  { type: 'github-document-loader', docsSlug: 'n8n-nodes-langchain.documentgithubloader', label: 'GitHub Document Loader', clusterRole: 'sub', status: 'complete' },
+  { type: 'embeddings-aws-bedrock', docsSlug: 'n8n-nodes-langchain.embeddingsawsbedrock', label: 'Embeddings AWS Bedrock', clusterRole: 'sub', status: 'complete' },
+  { type: 'embeddings-azure-openai', docsSlug: 'n8n-nodes-langchain.embeddingsazureopenai', label: 'Embeddings Azure OpenAI', clusterRole: 'sub', status: 'complete' },
+  { type: 'embeddings-cohere', docsSlug: 'n8n-nodes-langchain.embeddingscohere', label: 'Embeddings Cohere', clusterRole: 'sub', status: 'complete' },
+  { type: 'embeddings-google-gemini', docsSlug: 'n8n-nodes-langchain.embeddingsgooglegemini', label: 'Embeddings Google Gemini', clusterRole: 'sub', status: 'complete' },
+  { type: 'embeddings-google-palm', docsSlug: 'n8n-nodes-langchain.embeddingsgooglepalm', label: 'Embeddings Google PaLM', clusterRole: 'sub', status: 'excluded-deprecated' },
+  { type: 'embeddings-google-vertex', docsSlug: 'n8n-nodes-langchain.embeddingsgooglevertex', label: 'Embeddings Google Vertex', clusterRole: 'sub', status: 'complete' },
+  { type: 'embeddings-huggingface-inference', docsSlug: 'n8n-nodes-langchain.embeddingshuggingfaceinference', label: 'Embeddings HuggingFace Inference', clusterRole: 'sub', status: 'complete' },
+  { type: 'embeddings-lemonade', docsSlug: 'n8n-nodes-langchain.embeddingslemonade', label: 'Embeddings Lemonade', clusterRole: 'sub', status: 'complete' },
+  { type: 'embeddings-mistral-cloud', docsSlug: 'n8n-nodes-langchain.embeddingsmistralcloud', label: 'Embeddings Mistral Cloud', clusterRole: 'sub', status: 'complete' },
+  { type: 'embeddings-ollama', docsSlug: 'n8n-nodes-langchain.embeddingsollama', label: 'Embeddings Ollama', clusterRole: 'sub', status: 'complete' },
+  { type: 'embeddings-openai', docsSlug: 'n8n-nodes-langchain.embeddingsopenai', label: 'Embeddings OpenAI', clusterRole: 'sub', status: 'complete' },
+  { type: 'embeddings-oracle-database', docsSlug: 'n8n-nodes-langchain.embeddingsoracledb', label: 'Embeddings Oracle Database', clusterRole: 'sub', status: 'complete' },
+  { type: 'qwen-cloud-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatalibabacloud', label: 'Qwen Cloud Chat Model', clusterRole: 'sub', status: 'complete' },
+  { type: 'anthropic-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatanthropic', label: 'Anthropic Chat Model', clusterRole: 'sub', status: 'complete' },
+  { type: 'aws-bedrock-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatawsbedrock', label: 'AWS Bedrock Chat Model', clusterRole: 'sub', status: 'complete' },
+  { type: 'azure-openai-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatazureopenai', label: 'Azure OpenAI Chat Model', clusterRole: 'sub', status: 'complete' },
+  { type: 'cohere-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatcohere', label: 'Cohere Chat Model', clusterRole: 'sub', status: 'complete' },
+  { type: 'deepseek-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatdeepseek', label: 'DeepSeek Chat Model', clusterRole: 'sub', status: 'complete' },
+  { type: 'google-gemini-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatgooglegemini', label: 'Google Gemini Chat Model', clusterRole: 'sub', status: 'complete' },
+  { type: 'google-vertex-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatgooglevertex', label: 'Google Vertex Chat Model', clusterRole: 'sub', status: 'complete' },
+  { type: 'groq-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatgroq', label: 'Groq Chat Model', clusterRole: 'sub', status: 'complete' },
+  { type: 'lemonade-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatlemonade', label: 'Lemonade Chat Model', clusterRole: 'sub', status: 'complete' },
+  { type: 'minimax-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatminimax', label: 'MiniMax Chat Model', clusterRole: 'sub', status: 'complete' },
+  { type: 'mistral-cloud-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatmistralcloud', label: 'Mistral Cloud Chat Model', clusterRole: 'sub', status: 'complete' },
+  { type: 'moonshot-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatmoonshot', label: 'Moonshot Kimi Chat Model', clusterRole: 'sub', status: 'complete' },
+  { type: 'nvidia-nemotron-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatnvidia', label: 'NVIDIA Nemotron Chat Model', clusterRole: 'sub', status: 'complete' },
+  { type: 'ollama-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatollama', label: 'Ollama Chat Model', clusterRole: 'sub', status: 'complete' },
+  { type: 'openai-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatopenai', label: 'OpenAI Chat Model', clusterRole: 'sub', status: 'complete' },
+  { type: 'openrouter-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatopenrouter', label: 'OpenRouter Chat Model', clusterRole: 'sub', status: 'complete' },
+  { type: 'vercel-ai-gateway-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatvercel', label: 'Vercel AI Gateway Chat Model', clusterRole: 'sub', status: 'complete' },
+  { type: 'xai-grok-chat-model', docsSlug: 'n8n-nodes-langchain.lmchatxaigrok', label: 'xAI Grok Chat Model', clusterRole: 'sub', status: 'complete' },
+  { type: 'cohere-model', docsSlug: 'n8n-nodes-langchain.lmcohere', label: 'Cohere Model', clusterRole: 'sub', status: 'complete' },
+  { type: 'lemonade-model', docsSlug: 'n8n-nodes-langchain.lmlemonade', label: 'Lemonade Model', clusterRole: 'sub', status: 'complete' },
+  { type: 'ollama-model', docsSlug: 'n8n-nodes-langchain.lmollama', label: 'Ollama Model', clusterRole: 'sub', status: 'complete' },
+  { type: 'huggingface-inference-model', docsSlug: 'n8n-nodes-langchain.lmopenhuggingfaceinference', label: 'Hugging Face Inference Model', clusterRole: 'sub', status: 'complete' },
+  { type: 'chat-memory-manager', docsSlug: 'n8n-nodes-langchain.memorymanager', label: 'Chat Memory Manager', clusterRole: 'sub', status: 'complete' },
+  { type: 'simple-memory', docsSlug: 'n8n-nodes-langchain.memorybufferwindow', label: 'Simple Memory', clusterRole: 'sub', status: 'complete' },
+  { type: 'motorhead', docsSlug: 'n8n-nodes-langchain.memorymotorhead', label: 'Motorhead', clusterRole: 'sub', status: 'complete' },
+  { type: 'mongodb-chat-memory', docsSlug: 'n8n-nodes-langchain.memorymongochat', label: 'MongoDB Chat Memory', clusterRole: 'sub', status: 'complete' },
+  { type: 'redis-chat-memory', docsSlug: 'n8n-nodes-langchain.memoryredischat', label: 'Redis Chat Memory', clusterRole: 'sub', status: 'complete' },
+  { type: 'postgres-chat-memory', docsSlug: 'n8n-nodes-langchain.memorypostgreschat', label: 'Postgres Chat Memory', clusterRole: 'sub', status: 'complete' },
+  { type: 'xata-memory', docsSlug: 'n8n-nodes-langchain.memoryxata', label: 'Xata', clusterRole: 'sub', status: 'complete' },
+  { type: 'zep-memory', docsSlug: 'n8n-nodes-langchain.memoryzep', label: 'Zep', clusterRole: 'sub', status: 'complete' },
+  { type: 'auto-fixing-output-parser', docsSlug: 'n8n-nodes-langchain.outputparserautofixing', label: 'Auto-fixing Output Parser', clusterRole: 'sub', status: 'complete' },
+  { type: 'item-list-output-parser', docsSlug: 'n8n-nodes-langchain.outputparseritemlist', label: 'Item List Output Parser', clusterRole: 'sub', status: 'complete' },
+  { type: 'structured-output-parser', docsSlug: 'n8n-nodes-langchain.outputparserstructured', label: 'Structured Output Parser', clusterRole: 'sub', status: 'complete' },
+  { type: 'contextual-compression-retriever', docsSlug: 'n8n-nodes-langchain.retrievercontextualcompression', label: 'Contextual Compression Retriever', clusterRole: 'sub', status: 'complete' },
+  { type: 'multi-query-retriever', docsSlug: 'n8n-nodes-langchain.retrievermultiquery', label: 'MultiQuery Retriever', clusterRole: 'sub', status: 'complete' },
+  { type: 'vector-store-retriever', docsSlug: 'n8n-nodes-langchain.retrievervectorstore', label: 'Vector Store Retriever', clusterRole: 'sub', status: 'complete' },
+  { type: 'workflow-retriever', docsSlug: 'n8n-nodes-langchain.retrieverworkflow', label: 'Workflow Retriever', clusterRole: 'sub', status: 'complete' },
+  { type: 'character-text-splitter', docsSlug: 'n8n-nodes-langchain.textsplittercharactertextsplitter', label: 'Character Text Splitter', clusterRole: 'sub', status: 'complete' },
+  { type: 'recursive-character-text-splitter', docsSlug: 'n8n-nodes-langchain.textsplitterrecursivecharactertextsplitter', label: 'Recursive Character Text Splitter', clusterRole: 'sub', status: 'complete' },
+  { type: 'token-splitter', docsSlug: 'n8n-nodes-langchain.textsplittertokensplitter', label: 'Token Splitter', clusterRole: 'sub', status: 'complete' },
+  { type: 'ai-agent-tool', docsSlug: 'n8n-nodes-langchain.toolaiagent', label: 'AI Agent Tool', clusterRole: 'sub', status: 'complete' },
+  { type: 'calculator', docsSlug: 'n8n-nodes-langchain.toolcalculator', label: 'Calculator', clusterRole: 'sub', status: 'complete' },
+  { type: 'custom-code-tool', docsSlug: 'n8n-nodes-langchain.toolcode', label: 'Custom Code Tool', clusterRole: 'sub', status: 'complete' },
+  { type: 'mcp-client-tool', docsSlug: 'n8n-nodes-langchain.toolmcp', label: 'MCP Client Tool', clusterRole: 'sub', status: 'complete' },
+  { type: 'searxng-tool', docsSlug: 'n8n-nodes-langchain.toolsearxng', label: 'SearXNG Tool', clusterRole: 'sub', status: 'complete' },
+  { type: 'serpapi-tool', docsSlug: 'n8n-nodes-langchain.toolserpapi', label: 'SerpApi (Google Search)', clusterRole: 'sub', status: 'complete' },
+  { type: 'think-tool', docsSlug: 'n8n-nodes-langchain.toolthink', label: 'Think Tool', clusterRole: 'sub', status: 'complete' },
+  { type: 'vector-store-question-answer-tool', docsSlug: 'n8n-nodes-langchain.toolvectorstore', label: 'Vector Store Question Answer Tool', clusterRole: 'sub', status: 'complete' },
+  { type: 'wikipedia-tool', docsSlug: 'n8n-nodes-langchain.toolwikipedia', label: 'Wikipedia', clusterRole: 'sub', status: 'complete' },
+  { type: 'wolfram-alpha-tool', docsSlug: 'n8n-nodes-langchain.toolwolframalpha', label: 'Wolfram|Alpha tool', clusterRole: 'sub', status: 'complete' },
+  { type: 'call-n8n-workflow-tool', docsSlug: 'n8n-nodes-langchain.toolworkflow', label: 'Call n8n Workflow Tool', clusterRole: 'sub', status: 'complete' },
+  { type: 'reranker-cohere', docsSlug: 'n8n-nodes-langchain.rerankercohere', label: 'Reranker Cohere', clusterRole: 'sub', status: 'complete' },
+  { type: 'model-selector', docsSlug: 'n8n-nodes-langchain.modelselector', label: 'Model Selector', clusterRole: 'sub', status: 'complete' },
+];
+
 // Descriptors are imported here after each three-node batch is reviewed. Keeping
 // each node in its own file lets research agents work in parallel without sharing
 // or rewriting the catalog monolith.
 export const CORE_NODE_CATALOG = Object.fromEntries(
   [
+    aiAgent, basicLlmChain, questionAnswerChain,
+    summarizationChain, informationExtractor, textClassifier,
+    sentimentAnalysis, langchainCode, microsoftAgent365Trigger,
+    azureAiSearchVectorStore, simpleVectorStore, milvusVectorStore,
+    mongodbAtlasVectorStore, pgvectorVectorStore, oracleDatabaseVectorStore,
+    chromaVectorStore, pineconeVectorStore, qdrantVectorStore,
+    redisVectorStore, supabaseVectorStore, weaviateVectorStore,
+    zepVectorStore, defaultDataLoader, githubDocumentLoader,
+    embeddingsAwsBedrock, embeddingsAzureOpenAi, embeddingsCohere,
+    embeddingsGoogleGemini, embeddingsGoogleVertex, embeddingsHuggingFaceInference,
+    embeddingsLemonade, embeddingsMistralCloud, embeddingsOllama,
+    embeddingsOpenAi, embeddingsOracleDatabase, qwenCloudChatModel,
+    anthropicChatModel, awsBedrockChatModel, azureOpenAiChatModel,
+    cohereChatModel, deepSeekChatModel, googleGeminiChatModel,
+    googleVertexChatModel, groqChatModel, lemonadeChatModel,
+    minimaxChatModel, mistralCloudChatModel, moonshotChatModel,
+    nvidiaNemotronChatModel, ollamaChatModel, openAiChatModel,
+    openRouterChatModel, vercelAiGatewayChatModel, xAiGrokChatModel,
+    cohereModel, lemonadeModel, ollamaModel,
+    huggingFaceInferenceModel, chatMemoryManager, simpleMemory,
+    motorhead, mongodbChatMemory, redisChatMemory,
+    postgresChatMemory, xataMemory, zepMemory,
+    autoFixingOutputParser, itemListOutputParser, structuredOutputParser,
+    contextualCompressionRetriever, multiQueryRetriever, vectorStoreRetriever,
+    workflowRetriever, characterTextSplitter, recursiveCharacterTextSplitter,
+    tokenSplitter, aiAgentTool, calculator,
+    customCodeTool, mcpClientTool, searXngTool,
+    serpApiTool, thinkTool, vectorStoreQuestionAnswerTool,
+    wikipediaTool, wolframAlphaTool, callN8nWorkflowTool,
+    rerankerCohere, modelSelector,
     aiTransform, code, compareDatasets,
     compression, convertToFile, crypto,
     dataTable, dateTime, debugHelper,
@@ -171,5 +386,9 @@ export const CORE_NODE_CATALOG = Object.fromEntries(
 );
 
 export const COMPLETE_CORE_NODE_TYPES = CORE_NODE_INVENTORY
+  .filter((node) => node.status === 'complete')
+  .map((node) => node.type);
+
+export const COMPLETE_CLUSTER_NODE_TYPES = CLUSTER_NODE_INVENTORY
   .filter((node) => node.status === 'complete')
   .map((node) => node.type);

@@ -67,4 +67,4 @@ npm run build
 
 Before hand-off: inventory count equals catalog count, no pending/missing nodes, every icon resolves, scalar selects have scalar defaults, inert dynamic fields are locked, `simulation.voice === false`, and the exported descriptor graph contains no functions. Do not regenerate `graphify-out` or author voice for node-library work.
 
-Current baseline note: the focused node suite, full test suite, typecheck, and build are expected to pass. Investigate any failure before hand-off instead of carrying a stale failure count forward.
+Current baseline: the focused node suite, full suite, both typecheck targets, and production build pass. The catalog guide also verifies that every registered type has exactly one function row and every current AI cluster node is identified as a root or sub-node. Investigate any failure before hand-off instead of carrying a stale failure count forward.
