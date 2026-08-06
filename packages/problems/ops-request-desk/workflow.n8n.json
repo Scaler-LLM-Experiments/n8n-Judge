@@ -1,0 +1,363 @@
+{
+  "name": "Fernwood Robotics — Ops Request Desk",
+  "nodes": [
+    {
+      "id": "form-1",
+      "name": "On form submission",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        200
+      ],
+      "parameters": {
+        "formTitle": "Ops Desk request",
+        "formDescription": "Anything that is not engineering or sales. Priya picks these up.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Your name",
+              "fieldType": "text",
+              "requiredField": false
+            },
+            {
+              "fieldLabel": "Your email",
+              "fieldType": "text",
+              "requiredField": false
+            },
+            {
+              "fieldLabel": "What do you need?",
+              "fieldType": "text",
+              "requiredField": false
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "extract-1",
+      "name": "Information Extractor",
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1.2,
+      "position": [
+        300,
+        200
+      ],
+      "parameters": {
+        "text": "={{ $json[\"What do you need?\"] }}",
+        "schemaType": "fromAttributes",
+        "attributes": {
+          "attributes": [
+            {
+              "name": "request_type",
+              "type": "string",
+              "description": "which of the three kinds this is"
+            },
+            {
+              "name": "subject_name",
+              "type": "string",
+              "description": "the person or thing the request is about, blank if none"
+            },
+            {
+              "name": "subject_email",
+              "type": "string",
+              "description": "an address written inside the request, blank if none"
+            },
+            {
+              "name": "detail",
+              "type": "string",
+              "description": "one plain line saying what should be recorded, or what the message should say"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "model-1",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        315,
+        400
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "options": {
+          "temperature": 0
+        }
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "id": "switch-1",
+      "name": "Switch",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        660,
+        200
+      ],
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "cond-0",
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "log",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Log only"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "cond-1",
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "email",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Email only"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "cond-2",
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "needs_human",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Needs a human"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      }
+    },
+    {
+      "id": "sheets-1",
+      "name": "Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1020,
+        50
+      ],
+      "parameters": {
+        "resource": "sheet",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "url",
+          "value": ""
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "matchingColumns": [],
+          "value": {
+            "Requested By": "={{ $json[\"Your name\"] }}",
+            "Requester Email": "={{ $json[\"Your email\"] }}",
+            "Type": "={{ $json.request_type }}",
+            "Subject Name": "={{ $json.subject_name }}",
+            "Subject Email": "={{ $json.subject_email }}",
+            "Detail": "={{ $json.detail }}"
+          }
+        },
+        "options": {}
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": null,
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "id": "gmail-1",
+      "name": "Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1020,
+        200
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $json.subject_email }}",
+        "subject": "From the Fernwood ops desk",
+        "emailType": "text",
+        "message": "",
+        "options": {}
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": null,
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "id": "slack-1",
+      "name": "Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.6,
+      "position": [
+        1020,
+        350
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "post",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "#ops-desk"
+        },
+        "messageType": "text",
+        "text": "",
+        "otherOptions": {}
+      },
+      "credentials": {
+        "slackApi": {
+          "id": null,
+          "name": "Slack account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Information Extractor": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "pinData": {}
+}

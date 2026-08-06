@@ -65,6 +65,6 @@ export const estimatedMinutes = 25;
 export const coverImage = {
   prompt:
     'Deep charcoal ground with a warm mustard-amber colour field washing across it — soft spray-paint grain, matte, no gloss. A single thin amber line enters from the left, travels most of the way across, and splits once into three prongs that fan out slightly to the right, positioned a little below centre. Nothing else: no arrows, no arrowheads, no icons, no text, no chevrons, no sparkles, no grid. Wide empty charcoal atmosphere on the left where the line begins.',
-  src: null,
+  src: '/covers/ops-request-desk.png',
   alt: 'A single amber line on charcoal that splits into three prongs',
 };

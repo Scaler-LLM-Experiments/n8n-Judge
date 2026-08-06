@@ -18,6 +18,7 @@
 import { emailTriage } from './email-triage/index.js';
 import { expenseApprovals } from './expense-approvals/index.js';
 import { trialSignupDesk } from './trial-signup-desk/index.js';
+import { opsRequestDesk } from './ops-request-desk/index.js';
 
 export const problems = {
   [emailTriage.id]: emailTriage,
@@ -30,6 +31,11 @@ export const problems = {
   // branching), but it lands after the ones a learner has already met rather than being
   // pushed to the front of a list they are part-way through.
   [trialSignupDesk.id]: trialSignupDesk,
+  // Appended last, same reasoning. The heaviest of the four (31 scored decisions across
+  // seven nodes and three ways out), and the only one whose AI step has to produce the
+  // fields a later node maps — which is the idea it exists to teach, and the reason it
+  // reads as harder than expense-approvals despite the same decision count.
+  [opsRequestDesk.id]: opsRequestDesk,
 };
 
 export const problemList = Object.values(problems);

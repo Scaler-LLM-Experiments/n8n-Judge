@@ -66,6 +66,98 @@ function authored(setup, key) {
 }
 
 /**
+ * A value from the case's LOCKED panel — the fields a case shows at real n8n
+ * defaults but does not grade.
+ *
+ * Locked rows are the only place some real parameters exist, because they are
+ * context rather than decisions: the form's questions, an email subject, a model
+ * name, an extractor's attribute list. `form-trigger` already recovered its form
+ * fields this way; this is the same trick, named, so the other specs can use it.
+ *
+ * Takes several labels because cases word the same row differently ("Body" /
+ * "Message"), and returns the first that is present and non-empty.
+ */
+function lockedValue(setup, ...labels) {
+  for (const label of labels) {
+    const row = (setup?.locked ?? []).find((l) => l.label === label);
+    const value = String(row?.value ?? '').trim();
+    if (value) return value;
+  }
+  return '';
+}
+
+/**
+ * The authored answer for a field, but ONLY when n8n could actually use it.
+ *
+ * A select's `label` is usually the real thing the learner picked
+ * (`{{ $json.subject_email }}`, `#ops-desk`), which is exactly what the parameter
+ * wants. But a case may legitimately phrase an option as prose — "The one-line
+ * summary the reading step wrote" is a perfectly good thing to ask a learner and a
+ * terrible thing to put in an email body. Emitting that label produces a file that
+ * imports cleanly and then mails an English sentence to a customer, which is the
+ * exact failure mode this whole module exists to prevent.
+ *
+ * So: take the label when it is an expression, or a single bare token (an address,
+ * a channel name, a mode). Prose has spaces and no braces, and gets nothing — a
+ * blank required field in n8n is honest, and the learner can see and fill it.
+ */
+function usableValue(setup, key) {
+  const hint = authored(setup, key);
+  const raw = hint?.label ?? hint?.value;
+  if (typeof raw !== 'string') return '';
+  const value = raw.trim();
+  if (!value) return '';
+  if (value.includes('{{') || value.startsWith('=')) return expr(value);
+  return /\s/.test(value) ? '' : value;
+}
+
+/**
+ * The body of an outgoing message, for Gmail and Slack alike.
+ *
+ * A case that writes the body as locked copy has already said the real thing; a
+ * case that grades WHICH value goes in the body has usually written its options as
+ * prose, and `usableValue` correctly refuses those. Falling through to empty is
+ * deliberate — see the note on `usableValue`.
+ */
+function messageBody(setup, key) {
+  return expr(lockedValue(setup, 'Body', 'Message', 'Message body', 'Text')) || usableValue(setup, key);
+}
+
+/**
+ * An Information Extractor's attributes, parsed out of the case's locked panel.
+ *
+ * A case writes them as one textarea, one attribute per line, `name — what it
+ * means`. Only a line that really looks like `identifier` or `identifier <sep>
+ * description` is taken: anything else is prose about the panel, and inventing an
+ * attribute called "Extracts" from it would be worse than emitting nothing.
+ */
+function extractorAttributes(setup) {
+  const block = lockedValue(setup, 'Attributes', 'Attribute Descriptions', 'Fields to extract');
+  const rows = [];
+  for (const line of block.split('\n')) {
+    const text = line.trim();
+    if (!text) continue;
+    const withDescription = text.match(/^([A-Za-z_][\w]*)\s*[—–:-]\s*(.+)$/);
+    const bare = text.match(/^([A-Za-z_][\w]*)$/);
+    if (withDescription) rows.push({ name: withDescription[1], type: 'string', description: withDescription[2].trim() });
+    else if (bare) rows.push({ name: bare[1], type: 'string', description: '' });
+  }
+  return rows;
+}
+
+/** n8n's Gmail `emailType`, from however the case worded its locked row. */
+function emailTypeOf(locked) {
+  return /html/i.test(locked) ? 'html' : 'text';
+}
+
+/** Slack addresses a channel by `#name` in `name` mode; an expression names it at run time. */
+function channelName(value) {
+  if (!value) return '';
+  if (value.startsWith('=') || value.includes('{{')) return value;
+  return value.startsWith('#') ? value : `#${value}`;
+}
+
+/**
  * The authored rows of an assignmentList/ruleList field, with each row's real n8n
  * expression resolved.
  *
@@ -427,6 +519,54 @@ export const N8N_NODE_SPECS = {
     credentials: () => CRED('googlePalmApi', 'Google Gemini account'),
   },
 
+  'information-extractor': {
+    /**
+     * Information Extractor v1.2, in `fromAttributes` mode.
+     *
+     * The schema is the whole node, and it lives in the case's LOCKED panel rather
+     * than in a graded field — a case grades which text to read and what the model
+     * should do with a request that fits nothing, not the list of attributes, which
+     * is context. So the attribute list has to be parsed back out of that panel, the
+     * same way `form-trigger` recovers its form fields from `Form Fields`.
+     *
+     * Without this the node exports as `attributes: []`, which imports as an
+     * extractor that extracts nothing and hands an empty item to everything
+     * downstream — a whole workflow that runs and produces blanks.
+     *
+     * n8n's real shape is a fixedCollection: `attributes.attributes[]`, each row
+     * `{ name, type, description }`. `required` is left off because false is n8n's
+     * own default and this file stays sparse.
+     */
+    parameters: ({ setup }) => ({
+      text: usableValue(setup, 'text'),
+      schemaType: 'fromAttributes',
+      attributes: { attributes: extractorAttributes(setup) },
+      options: {},
+    }),
+  },
+
+  'openai-chat-model': {
+    // A sub-node: it supplies capability over ai_languageModel and never sits on
+    // the main wire.
+    //
+    // `model` is a resourceLocator, not a string. The catalog's default is whatever
+    // n8n ships as the current default, which is not necessarily the model the case
+    // put in front of the learner — so the locked panel wins when it names one.
+    // Temperature is carried across because a case that grades it grades it for a
+    // reason: at anything above 0 the same input can be read two ways, and a flow
+    // that writes to a spreadsheet on the strength of that is a different flow.
+    parameters: ({ setup }) => {
+      const fallback = NODE_CATALOG['openai-chat-model'].params.find((p) => p.key === 'model')?.value?.value;
+      const model = lockedValue(setup, 'Model') || fallback || 'gpt-4.1-mini';
+      const temperature = Number(authored(setup, 'temperature')?.value);
+      return {
+        model: rl(model, model, 'list'),
+        options: Number.isFinite(temperature) ? { temperature } : {},
+      };
+    },
+    credentials: () => CRED('openAiApi', 'OpenAI account'),
+  },
+
   // --- actions --------------------------------------------------------------
 
   action: {
@@ -481,6 +621,56 @@ export const N8N_NODE_SPECS = {
       select: 'channel',
       channelId: rl('', '', 'name'),
       text: '={{ $json.text }}',
+      otherOptions: {},
+    }),
+    credentials: () => CRED('slackApi', 'Slack account'),
+  },
+
+  gmail: {
+    /**
+     * Gmail v2.2 send — the canonical node, where `action` is the legacy alias.
+     *
+     * The translation this exists to do: a case authors TEACHING keys (`sendTo`,
+     * `message`) while the descriptor's own keys are `messageSendSendTo` and
+     * `messageReplyOrsendMessage`, both scoped by `showWhen`. The generic fallback
+     * only applies an authored answer when its key is already a descriptor key, so
+     * without this spec every graded answer on the node is dropped and the node
+     * exports with an empty recipient — the one field that makes the difference
+     * between the reference solution and the mistake the case is about.
+     *
+     * `resource`/`operation` are emitted explicitly rather than relying on defaults,
+     * because which one is the default has changed between versions and a wrong
+     * guess opens the node on the wrong operation.
+     */
+    parameters: ({ setup }) => ({
+      resource: 'message',
+      operation: 'send',
+      sendTo: usableValue(setup, 'sendTo'),
+      subject: expr(lockedValue(setup, 'Subject')),
+      emailType: emailTypeOf(lockedValue(setup, 'Email Type', 'Send as')),
+      message: messageBody(setup, 'message'),
+      options: {},
+    }),
+    credentials: () => CRED('gmailOAuth2', 'Gmail account'),
+  },
+
+  slack: {
+    /**
+     * Slack v2.6 message:post — the canonical node, where `slack-message` is the
+     * legacy alias that hardcodes an empty channel.
+     *
+     * Here the channel is a graded answer, so it can actually be emitted. It goes in
+     * as `name` mode (`#ops-desk`) rather than `list` mode, because a list-mode
+     * locator stores an internal channel ID belonging to one workspace and we are
+     * exporting into the learner's own.
+     */
+    parameters: ({ setup }) => ({
+      resource: 'message',
+      operation: 'post',
+      select: 'channel',
+      channelId: rl(channelName(usableValue(setup, 'channelId') || usableValue(setup, 'channel')), '', 'name'),
+      messageType: 'text',
+      text: messageBody(setup, 'text'),
       otherOptions: {},
     }),
     credentials: () => CRED('slackApi', 'Slack account'),

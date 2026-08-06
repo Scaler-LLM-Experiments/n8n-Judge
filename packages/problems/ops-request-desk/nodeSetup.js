@@ -301,7 +301,7 @@ export const nodeSetup = {
           categories: {
             correct: 'This output is named after one of the three answers the reading step gives, so something real can arrive on it.',
             wrong:
-              'An output only ever fires if the reading step produces the value this rule tests for. Read the attribute list on the panel above and name this one after something that appears there.',
+              'An output only ever fires if the reading step produces the value this rule tests for. Name this one after a value the reading step is actually asked to produce — the list of those lives on that node, not on this one.',
           },
           conditions: {
             correct: 'This rule tests the decision the reading step already made, matched exactly, which is what makes one request take one path.',
