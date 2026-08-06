@@ -85,36 +85,62 @@ branch table. That is a legitimate shape and it makes for an easier case.
 
 ---
 
-## 4. Node vocabulary — pick from these 23, or the run halts
+## 4. Node vocabulary
 
-**This is the hard gate.** Adding a node type is a code change in two files
-(`packages/catalog/catalog.js` and `apps/web/src/nodes/nodeIcons.js`), which is outside
-what an authoring run may do. If this case needs something that is not on this list, the
-pipeline **stops and tells you** rather than substituting a near-miss node — a case built
-on the wrong node teaches the wrong thing while passing every test.
+### The menu lives in one place
 
-| Category | Types |
-|---|---|
-| **trigger** | `trigger` (New Email) · `chat-trigger` (On chat message) · `webhook` (On webhook call) · `schedule` (On a schedule) · `manual` (Trigger manually) |
-| **ai** | `classify` (Classify with AI) · `summarize` (Summarize with AI) — both need a model sub-node |
-| **model** | `chat-gemini` (Gemini Chat Model) |
-| **core** | `parse` (Parse Result) · `switch` (Switch — **the only branching node**) · `if` · `code` · `merge` · `filter` · `remove-duplicates` · `wait` · `http-request` · `web-search` |
-| **action** | `action` (Send Reply) · `slack-message` · `google-docs` · `calendar-event` · `notion-page` |
+**[docs/node-library-catalog.md](node-library-catalog.md)** is the list to choose from, and it
+is the only list. **200 registered types**, grouped by triggers, app/action nodes, and core /
+data / AI building blocks, each row giving the **catalog `type`** you write into this spec and a
+one-line description of what the node does. It also carries a "How to choose" table of
+recommended node sets per case shape (form intake, email triage, scheduled sync, incoming API,
+file pipeline, database changes, app event routing) — start there.
 
-**Nodes this case needs** (the ones that get placed, configured and run):
+Do **not** work from the node list any older document gives you; the library grew from 23 types
+to 200 and every inline list is stale by construction.
+
+### Two rules the catalog itself states
+
+1. **Prefer canonical types. Never pick one of the 10 compatibility aliases.** `trigger`,
+   `parse`, `action`, `classify`, `chat-gemini`, `summarize`, `slack-message`, `notion-page`,
+   `calendar-event` and `web-search` exist **only** so the three already-authored cases keep
+   working. A new case uses the real thing: `gmail-trigger`, `edit-fields`, `gmail`,
+   `text-classifier`, `google-gemini-chat-model`, `basic-llm-chain`, `slack`, `notion`,
+   `google-calendar`.
+2. **Never pick a deprecated descriptor** — the catalog lists five, all retained for
+   compatibility only.
+
+### The hard gate, and it has moved
+
+Adding a *new* node type is still outside what an authoring run may do. But with 200 types
+registered, the far more likely stop is different:
+
+> **A type may exist in the catalog and still have no n8n export spec.** Every case owes a
+> workflow file that imports into real n8n (§6c of the authoring skill), and that needs an entry
+> in `packages/engine/n8nNodeSpecs.js`. **Only 14 types have one today, and 7 of those are the
+> legacy aliases above.** So a case built entirely on canonical types will currently fail
+> `npm run workflows:generate`.
+
+That failure is deliberate and loud, not silent — but it means the node set you choose here
+decides whether the case can finish. Check the spec table before committing to a node set, and
+expect the pipeline to stop and tell you if a spec is missing rather than shipping a workflow
+file that imports and then does nothing.
+
+**Nodes this case needs** (the ones that get placed, configured and run) — give the catalog
+`type` for each, not the display name:
 
 > `TODO`
 
 **Distractors worth offering** *(optional)* — plausible wrong nodes you want the learner
-tempted by, each of which earns a probe explaining what it actually does. A distractor
-that is only ever probed and removed does not need a catalog entry, so you have more
-freedom here.
+tempted by, each of which earns a probe explaining what it actually does. A distractor that is
+only ever probed and removed needs no export spec, so you have more freedom here.
 
 > `TODO`
 
-> **Note for the author agent, not for you:** every build phase must declare its own
-> `pickable`. The picker's fallback offers only 9 of the 23 types, so an omitted
-> `pickable` can make a required node unpickable.
+> **Notes for the author agent, not for you.** Every build phase must declare its own
+> `pickable`: the picker's fallback offers only a fraction of the library, so an omitted
+> `pickable` can make a required node unpickable. Icons are already in the repo — see the
+> authoring skill — so a new case never needs to fetch or add one.
 
 ---
 

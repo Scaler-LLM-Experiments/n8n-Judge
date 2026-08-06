@@ -238,6 +238,63 @@ at the API boundary; it never reaches a browser.
 
 ---
 
+## 6a. The node library — where to look, and what is safe to pick
+
+**[docs/node-library-catalog.md](../../../docs/node-library-catalog.md) is the menu.** Read it
+before choosing a node set; do not work from a list in any other document, including older
+sections of this one. The library went from 23 types to **200**, so every inline list is stale by
+construction.
+
+Each row gives the **catalog `type`** — the string you write into `nodePalette`, `dissection`
+options, `flow`, `buildPhases.pickable`, `nodeSetup` keys and `referenceGraph.nodes[].type`. The
+doc opens with a "How to choose" table of recommended node sets per case shape, which is the
+fastest way to a sane set.
+
+### Three lists in that file you must not pick from
+
+| List | Why |
+|---|---|
+| **10 compatibility aliases** | `trigger`, `parse`, `action`, `classify`, `chat-gemini`, `summarize`, `slack-message`, `notion-page`, `calendar-event`, `web-search` exist **only** so the three already-authored cases keep working. New cases use `gmail-trigger`, `edit-fields`, `gmail`, `text-classifier`, `google-gemini-chat-model`, `basic-llm-chain`, `slack`, `notion`, `google-calendar`. |
+| **5 deprecated descriptors** | Registered for source parity only. |
+| **3 deferred triggers** | Listed but not registered — picking one fails validation. |
+
+### The gate that actually stops a case now
+
+`validateProblem()` still requires every configured or executed type to be in `NODE_CATALOG`, and
+with 200 types that is rarely the blocker. **The n8n export spec is.** §6c requires every case to
+produce an importable workflow, which needs an entry in `packages/engine/n8nNodeSpecs.js`:
+
+```bash
+npx vite-node -e "import {N8N_NODE_SPECS} from '@judge/engine'; console.log(Object.keys(N8N_NODE_SPECS).join(', '))"
+```
+
+**14 types have a spec today, and 7 of those are legacy aliases** — so a case built purely on
+canonical types will currently fail `npm run workflows:generate`. That is loud, not silent, but
+it means the node set decides whether the case can finish. Either pick types that have a spec,
+or add the spec as part of the case (it is the same file, one entry per type, and
+`exportWorkflow.test.js` will hold you to a stated reason if you override a catalog type).
+
+### Icons and logos are already in the repo — never fetch one
+
+`apps/web/public/node-icons/*.svg` holds the marks, wired through `nodeImageIcons` in
+`apps/web/src/nodes/nodeIcons.js`. Verified state: **200 of 200 types render an icon**: 190
+catalog descriptors provide local assets (104 image-mode and 86 semantic), six brand aliases
+reuse those assets, and four compatibility aliases use Phosphor glyphs. There are **zero broken
+file references and zero remote URLs.**
+
+So an authoring run never downloads, generates or hotlinks an asset — everything it needs is on
+disk, which is the point of keeping them in-repo. Two consequences:
+
+- If a node renders a blank chip, check its catalog asset and the shared `NodeIcon` path; types
+  without a dedicated asset already fall back to their category glyph.
+- **Never introduce a remote URL.** It would work in dev and fail behind the login in
+  production, and it puts a third-party request on a learner's page.
+
+Adding a genuinely new node type is therefore **four** things: a `packages/catalog/` descriptor
+that points at its icon · the local asset in `public/node-icons/` · an `n8nNodeSpecs.js` entry if
+a case will place it · a row in `node-library-catalog.md`. Catalog descriptors automatically
+populate the picker category and shared icon map.
+
 ## 6b. Learned the hard way on `trial-signup-desk`
 
 The first case authored end to end by the `/author-case` pipeline (2026-08-05, PR #3). Every
