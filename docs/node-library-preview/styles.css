@@ -412,6 +412,12 @@ main {
   border-radius: 50%;
 }
 
+.port-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
 .node-icon,
 .node-icon img,
 .node-icon-mask {
