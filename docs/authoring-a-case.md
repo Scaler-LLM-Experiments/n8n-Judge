@@ -8,7 +8,8 @@ A practical runbook for adding a new challenge **by hand**, verified against the
 > agent that blind-solves it, draws the cover, writes and renders the narration, verifies
 > every step from outside the agent, and finishes at a draft PR. See
 > [.claude/skills/author-case/SKILL.md](../.claude/skills/author-case/SKILL.md) and fill in
-> [case-spec-template.md](case-spec-template.md).
+> [case-authoring/TEMPLATE.md](case-authoring/TEMPLATE.md) (authors fill it in with
+> [case-authoring/STARTER-PROMPT.md](case-authoring/STARTER-PROMPT.md)).
 >
 > Read this file anyway. It is what the pipeline automates, and when a run blocks, this is
 > the ground truth for finishing the job by hand.

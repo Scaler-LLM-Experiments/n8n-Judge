@@ -38,7 +38,7 @@ automated honestly, so the run ends with a human holding it.
 /author-case --resume                        # pick up the run in progress
 ```
 
-The spec template is [docs/case-spec-template.md](../../../docs/case-spec-template.md). If
+The spec template is [docs/case-authoring/TEMPLATE.md](../../../docs/case-authoring/TEMPLATE.md), and authors fill it in using [STARTER-PROMPT.md](../../../docs/case-authoring/STARTER-PROMPT.md). If
 you were given a brief rather than a spec, **write the spec file first** from what you were
 given, save it to `docs/case-specs/<slug>.md`, and proceed from it — the spec is what the
 author agent reads, and having it on disk is what makes the run reproducible.
