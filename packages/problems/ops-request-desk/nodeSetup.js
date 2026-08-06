@@ -363,6 +363,19 @@ export const nodeSetup = {
   // The Ops Log. Six columns from two different places, which is the decision this whole
   // case is built around.
   'google-sheets': {
+    // What the OUTPUT pane shows after Verify. The catalog sample is
+    // trial-signup-desk's row (Full Name / Plan / USD_INR_Rate), which appeared right
+    // after the learner had carefully mapped THESE six columns — a different case's
+    // spreadsheet presented as the result of their own work.
+    sampleOutput: {
+      'Requested By': 'Arjun Mehta',
+      'Requester Email': 'arjun@fernwoodrobotics.com',
+      Type: 'log',
+      'Subject Name': 'Riya Kapoor',
+      'Subject Email': 'riya@kapoorautomation.in',
+      Detail: 'distributor lead, interested in the Pro plan',
+      updates: { updatedRows: 1 },
+    },
     credential: 'Google Sheets — Fernwood Ops',
     locked: [
       { label: 'Document', value: 'Fernwood Ops Log' },
@@ -494,6 +507,14 @@ export const nodeSetup = {
 
   // The send-it-on path. One job, and the one decision on it is the case's second-best.
   gmail: {
+    // The catalog sample is `{}`, so the OUTPUT pane said nothing at all about what
+    // this node did. Naming the recipient is the point: it is the one the request was
+    // ABOUT, not the one who filled the form in.
+    sampleOutput: {
+      sent: true,
+      to: 'riya@kapoorautomation.in',
+      subject: 'From the Fernwood ops desk',
+    },
     credential: 'Gmail — Fernwood Ops',
     locked: [
       { label: 'Resource', value: 'Message' },
@@ -565,6 +586,13 @@ export const nodeSetup = {
   // The needs-a-person path. Notice how little it does — that restraint is the lesson,
   // not an omission.
   slack: {
+    // Same as Gmail: an empty catalog sample told the learner nothing about the one
+    // path whose whole lesson is how little it does.
+    sampleOutput: {
+      ok: true,
+      channel: '#ops-desk',
+      text: 'Arjun Mehta: Log a new distributor lead — Riya Kapoor at Kapoor Automation, she’s interested in the Pro plan. riya@kapoorautomation.in',
+    },
     credential: 'Slack — Fernwood',
     locked: [
       { label: 'Resource', value: 'Message' },

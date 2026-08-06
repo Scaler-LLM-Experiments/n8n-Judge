@@ -9,6 +9,7 @@ import { shuffledEvalOptions } from '../lib/shuffle.js';
 import { useVoiceActions } from '../lib/VoiceContext.jsx';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
 import { useMascotAskClick } from '../lib/AskIrisContext.jsx';
+import { NODE_CATALOG, isRouterEntry } from '@judge/catalog';
 import { scoreEval } from '@judge/engine/evalScore.js';
 import { checkAnswer } from '../lib/grader.js';
 import { resolveServerVerdict, UNVERIFIED_MESSAGE } from '../lib/verdict.js';
@@ -17,9 +18,8 @@ const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 // One column now, so this is a reading width rather than the old two-column grid.
 const COLUMN_WIDTH = 720;
 
-// The fixed reference path, shown as real connected nodes for questions with
-// no matching sample case to replay (e.g. a design-reasoning question).
-const REFERENCE_PATH = [
+// Last-resort path, only for a problem with no usable `referenceGraph`.
+const FALLBACK_PATH = [
   { type: 'trigger', label: 'New Email' },
   { type: 'classify', label: 'Classify with AI' },
   { type: 'parse', label: 'Parse Result' },
@@ -27,12 +27,49 @@ const REFERENCE_PATH = [
   { type: 'action', label: 'Send Reply' },
 ];
 
-// The shared, pre-branch stretch of the build — shown as the question's own
-// context before answering. It stops at Switch, before the case-specific
-// outcome, so it grounds the question in the learner's real build without
-// giving away the answer: the outcome is described in the written verdict, not
-// acted out on the canvas.
-const BASE_PATH = REFERENCE_PATH.slice(0, 4);
+/**
+ * The flow this question is about, read from THIS problem's reference graph.
+ *
+ * It used to be the constant above — email-triage's nodes, hardcoded — so every
+ * other case asked its Stress Testing questions over a picture of a different
+ * workflow. ops-request-desk showed "New Email · Classify with AI · Parse Result"
+ * to a learner who had just built a form trigger and an Information Extractor,
+ * on the screen that says "Your build".
+ *
+ * Walks the main wire from the trigger, ignoring `ai_model` attachments (a Chat
+ * Model hangs off the side, it is not a step in the story) and taking the first
+ * branch at a router, since the strip is one line.
+ */
+function mainPath(problem, catalog) {
+  const graph = problem?.referenceGraph;
+  if (!graph?.nodes?.length) return FALLBACK_PATH;
+  const byId = Object.fromEntries(graph.nodes.map((n) => [n.id, n]));
+  const mainEdges = (graph.edges ?? []).filter((e) => e.targetHandle !== 'ai_model');
+  const start =
+    graph.nodes.find((n) => catalog[n.type]?.category === 'trigger') ?? graph.nodes[0];
+
+  const path = [];
+  const seen = new Set();
+  let cur = start;
+  while (cur && !seen.has(cur.id)) {
+    seen.add(cur.id);
+    path.push({ type: cur.type, label: catalog[cur.type]?.label ?? cur.type });
+    const next = mainEdges.find((e) => e.source === cur.id);
+    cur = next ? byId[next.target] : null;
+  }
+  return path.length ? path : FALLBACK_PATH;
+}
+
+/**
+ * The shared, pre-branch stretch — the question's context before answering. It
+ * stops at the router, before the case-specific outcome, so it grounds the
+ * question in the learner's real build without giving away the answer: the
+ * outcome is described in the written verdict, not acted out on the canvas.
+ */
+function basePath(path, catalog) {
+  const at = path.findIndex((n) => isRouterEntry(catalog[n.type] ?? {}));
+  return at === -1 ? path.slice(0, -1) : path.slice(0, at + 1);
+}
 
 // Turn a checkAnswer() response into the verdict this screen renders. The
 // local `q.correctIndex` / `q.explanation` fields are only a fallback for when
@@ -103,6 +140,10 @@ export function EvalScreen({ problem, sessionId, onDecision, onSubmit, resume })
   // Still resolved, because it decides whether the strip shows the learner's own
   // build or the fixed reference path. It no longer drives a replay.
   const sampleCase = q.caseId ? problem.sampleCases.find((c) => c.id === q.caseId) : null;
+
+  // This problem's own flow, not a constant. Memoised on the graph, since it walks it.
+  const shownPath = useMemo(() => mainPath(problem, NODE_CATALOG), [problem]);
+  const shownBasePath = useMemo(() => basePath(shownPath, NODE_CATALOG), [shownPath]);
 
   // staggered entrance — same pattern as DissectionScreen's QuizBody: head,
   // then options, then the canvas, each easing in in turn on every question.
@@ -206,7 +247,7 @@ export function EvalScreen({ problem, sessionId, onDecision, onSubmit, resume })
             <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--fg-3)', fontWeight: 700, marginBottom: 4 }}>
               {sampleCase ? 'Your build' : 'The fixed path'}
             </div>
-            <NodeFlowRow items={sampleCase ? BASE_PATH : REFERENCE_PATH} />
+            <NodeFlowRow items={sampleCase ? shownBasePath : shownPath} />
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>

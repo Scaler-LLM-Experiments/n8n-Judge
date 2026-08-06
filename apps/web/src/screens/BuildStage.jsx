@@ -1109,7 +1109,11 @@ function RunCelebration({ onContinue }) {
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--status-success)' }}>
           <CheckCircle size={15} weight="fill" /> All test cases passed
         </div>
-        <div style={{ fontFamily: 'var(--font-headline)', fontSize: 22, fontWeight: 600, color: 'var(--fg-1)', lineHeight: 1.35 }}>Your agent handled every email correctly.</div>
+        {/* "every email" was email-triage's word for it, and it is wrong for every case
+            whose work does not arrive as mail — ops-request-desk's requests come off a
+            form, trial-signup-desk's off a signup. "Test case" is what the stepper
+            above already calls them. */}
+        <div style={{ fontFamily: 'var(--font-headline)', fontSize: 22, fontWeight: 600, color: 'var(--fg-1)', lineHeight: 1.35 }}>Your agent handled every test case correctly.</div>
         <div style={{ fontSize: 13.5, color: 'var(--fg-2)', lineHeight: 1.5 }}>Now let’s stress-test how well you understand what it does.</div>
         <Button variant="primary" size="lg" iconRight={<ArrowRight size={16} />} onClick={onContinue} style={{ marginTop: 2 }}>Move to Stress Testing</Button>
       </div>
