@@ -22,6 +22,19 @@ export const nodeSetup = {
   // The way in. It publishes the Ops Desk request form, so the three questions on that
   // form are the three named values everything downstream maps from.
   'form-trigger': {
+    // What the INPUT pane of the NEXT node shows, and what its "Insert field…"
+    // dropdown is built from. Authored here because the catalog carries one sample
+    // per type shared by every case, so without this the learner is offered
+    // trial-signup-desk's form (Full Name / Email / Plan / Referral Source) on the
+    // exact screen where they must write an expression against THIS form's three
+    // questions — every option in the dropdown wrong, the field unanswerable from
+    // the pane. Keys must match the Form Fields above exactly.
+    sampleOutput: {
+      'Your name': 'Arjun Mehta',
+      'Your email': 'arjun@fernwoodrobotics.com',
+      'What do you need?':
+        'Log a new distributor lead — Riya Kapoor at Kapoor Automation, she’s interested in the Pro plan. riya@kapoorautomation.in',
+    },
     locked: [
       { label: 'Form Title', value: 'Ops Desk request' },
       { label: 'Form Description', value: 'Anything that is not engineering or sales. Priya picks these up.' },
@@ -67,6 +80,24 @@ export const nodeSetup = {
   // The one AI step, and it does two jobs in one call: it decides the route AND produces
   // the values the spreadsheet and the email need. That is why it is an extractor.
   'information-extractor': {
+    // The four attributes, as the Switch and the Sheets node downstream will see them.
+    // The catalog sample is `{ output: {} }`, which showed those two nodes an empty
+    // input pane and gave their dropdowns nothing to offer — on the screens where the
+    // learner maps four of the Ops Log's six columns.
+    // The form's three answers travel WITH the four extracted ones, because that is
+    // the item the Ops Log row is built from: two of its six columns are typed into
+    // the form and four are worked out from the sentence. A learner mapping that row
+    // has to be able to reach both from the same pane.
+    sampleOutput: {
+      'Your name': 'Arjun Mehta',
+      'Your email': 'arjun@fernwoodrobotics.com',
+      'What do you need?':
+        'Log a new distributor lead — Riya Kapoor at Kapoor Automation, she’s interested in the Pro plan. riya@kapoorautomation.in',
+      request_type: 'log',
+      subject_name: 'Riya Kapoor',
+      subject_email: 'riya@kapoorautomation.in',
+      detail: 'distributor lead, interested in the Pro plan',
+    },
     locked: [
       { label: 'Schema Type', value: 'From Attribute Descriptions' },
       {
@@ -167,6 +198,22 @@ export const nodeSetup = {
 
   // The split. Its rules are what turn one value into three paths.
   switch: {
+    // A router passes its item straight through, so this is the extractor's output
+    // again — and it is what the Sheets, Gmail and Slack panes show, since all three
+    // hang off this node. Without it they inherited the catalog's shared sample
+    // (email-triage's `category` / `urgency`) and offered a learner two fields that
+    // do not exist in this case, on the screens where they map six columns and pick
+    // an address.
+    sampleOutput: {
+      'Your name': 'Arjun Mehta',
+      'Your email': 'arjun@fernwoodrobotics.com',
+      'What do you need?':
+        'Log a new distributor lead — Riya Kapoor at Kapoor Automation, she’s interested in the Pro plan. riya@kapoorautomation.in',
+      request_type: 'log',
+      subject_name: 'Riya Kapoor',
+      subject_email: 'riya@kapoorautomation.in',
+      detail: 'distributor lead, interested in the Pro plan',
+    },
     // Graded on a node where the setting has a visible consequence: the Run streams a
     // request the rules do not claim, and this toggle changes what that request does.
     // The correct answer is to leave it alone, so "flip every toggle" loses just as

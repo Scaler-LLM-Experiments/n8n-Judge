@@ -74,7 +74,10 @@ export function ProblemNote({ problem, onHide }) {
 
       <div style={{ padding: 14, overflowY: 'auto', flex: 1 }}>
         <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, color: 'var(--fg-1)' }}>{problem.title}</div>
-        <div style={{ fontSize: 12.5, lineHeight: 1.55, color: 'var(--fg-2)' }}>{problem.statement}</div>
+        {/* `pre-line` so a statement authored in paragraphs reads as paragraphs. A
+            wall of prose in a ~330px sticky note is the one place a learner has to
+            re-read while building; single-paragraph statements are unaffected. */}
+        <div style={{ fontSize: 12.5, lineHeight: 1.55, color: 'var(--fg-2)', whiteSpace: 'pre-line' }}>{problem.statement}</div>
 
         <button
           type="button"

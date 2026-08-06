@@ -63,7 +63,7 @@ const nextId = () => `n${(idc += 1)}`;
 //     what they had actually done. Defaulting that to true marked every restored node
 //     as set up and let them walk past configuration they never did, skipping the
 //     field decisions that carry a quarter of the marks.
-function seedNodes(ig) {
+function seedNodes(ig, nodeSetup) {
   if (!ig) return [];
   return ig.nodes.map((n) => {
     const entry = NODE_CATALOG[n.type] || {};
@@ -85,10 +85,30 @@ function seedNodes(ig) {
         settings: n.data?.settings ?? {},
         configured: n.data ? !!n.data.configured : true,
         wrong: n.data ? !!n.data.wrong : false,
-        output: entry.output,
+        output: sampleOutputFor(n.type, entry, nodeSetup),
       },
     };
   });
+}
+
+/**
+ * What this node hands downstream, for the NDV's INPUT pane and the "Insert field…"
+ * dropdown built from its keys.
+ *
+ * The catalog's `output` is ONE sample per type, shared by every case — so a form
+ * trigger showed whichever case was authored last. ops-request-desk's learner opened
+ * the extractor and was offered `Full Name` / `Email` / `Plan` / `Referral Source`
+ * from trial-signup-desk, on the exact screen where they have to write an expression
+ * against *this* form's three questions. Every option in that dropdown was wrong, so
+ * the field could not be answered from the pane at all.
+ *
+ * A case may therefore author `nodeSetup[type].sampleOutput` and own what its own
+ * nodes emit. The catalog stays the fallback, so nothing that does not author one
+ * changes. It survives `toPublicProblem()` because that spreads unknown setup keys
+ * (only `fields` and `settings` are rebuilt).
+ */
+function sampleOutputFor(type, entry, nodeSetup) {
+  return nodeSetup?.[type]?.sampleOutput ?? entry.output;
 }
 function seedEdges(ig) {
   if (!ig) return [];
@@ -134,7 +154,7 @@ function expectedNext(ctx, nodes, flow) {
 }
 
 const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, nodeSetup, onDecision, flow, branches, runActiveId, initialGraph, onWrongPick, onPlaceCorrect, sessionId }, ref) {
-  const [nodes, setNodes] = useState(() => seedNodes(initialGraph));
+  const [nodes, setNodes] = useState(() => seedNodes(initialGraph, nodeSetup));
   const [edges, setEdges] = useState(() => seedEdges(initialGraph));
   const [picker, setPicker] = useState(null); // {sourceId, triggerSlot, modelSlot, branch, branchIndex}
   const [ndvId, setNdvId] = useState(null);
@@ -206,7 +226,7 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
       id,
       type: catalogType,
       position,
-      data: { nodeType: catalogType, label: entry.label, params: entry.params, catalogParams: entry.source ? entry.params : [], values: {}, configured: false, wrong: isWrong, output: entry.output },
+      data: { nodeType: catalogType, label: entry.label, params: entry.params, catalogParams: entry.source ? entry.params : [], values: {}, configured: false, wrong: isWrong, output: sampleOutputFor(catalogType, entry, nodeSetup) },
     };
     setNodes((ns) => ns.concat(node));
 

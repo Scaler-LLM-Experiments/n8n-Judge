@@ -32,7 +32,7 @@ export function ProblemStatementPanel({ problem, onClose, side, sticky }) {
           </div>
           <div style={{ padding: '18px 20px 28px', overflowY: 'auto' }}>
             <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 10, color: 'var(--fg-1)' }}>{problem.title}</div>
-            <div style={{ fontSize: 13.5, lineHeight: 1.6, color: 'var(--fg-2)' }}>{problem.statement}</div>
+            <div style={{ fontSize: 13.5, lineHeight: 1.6, color: 'var(--fg-2)', whiteSpace: 'pre-line' }}>{problem.statement}</div>
             <div style={{ marginTop: 22, marginBottom: 6, fontSize: 12, fontWeight: 700, color: '#8A7B2E', display: 'flex', alignItems: 'center', gap: 6 }}>Flow diagram</div>
             <div style={{ display: 'flex', justifyContent: 'center', marginTop: 8 }}>
               <ConceptFlow direction="column" size="md" problem={problem} />
@@ -52,7 +52,7 @@ export function ProblemStatementPanel({ problem, onClose, side, sticky }) {
         </button>
       </div>
       <div style={{ padding: 20, overflowY: 'auto' }}>
-        <div style={{ fontSize: side ? 14.5 : 13.5, lineHeight: 1.65, color: 'var(--fg-1)', background: 'var(--surface-soft-blue)', border: '1px solid var(--brand-blue-100)', padding: 16, marginBottom: 20 }}>
+        <div style={{ fontSize: side ? 14.5 : 13.5, lineHeight: 1.65, color: 'var(--fg-1)', background: 'var(--surface-soft-blue)', border: '1px solid var(--brand-blue-100)', padding: 16, marginBottom: 20, whiteSpace: 'pre-line' }}>
           {problem.statement}
         </div>
         <div style={{ fontSize: 11, textTransform: 'uppercase', color: 'var(--fg-2)', fontWeight: 700, marginBottom: 8, letterSpacing: '0.04em' }}>
