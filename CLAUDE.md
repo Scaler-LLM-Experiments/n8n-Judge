@@ -518,9 +518,32 @@ branches pass through several nodes, multiple actions, and alternative node *typ
 work as pure data. `validateProblem()` enforces only generic structure. Node **settings**
 also feed the simulation — `onError` and `alwaysOutputData` change what a Run narrates.
 
-**Still coupled:** a genuinely new *node type* needs an entry in
-[packages/catalog/catalog.js](packages/catalog/catalog.js) plus a `nodeIcons.js` mapping.
-That's by design.
+**The node library is now 200 registered types, and
+[docs/node-library-catalog.md](docs/node-library-catalog.md) is the menu.** Read it before
+choosing nodes for a case — it gives the catalog `type` per node, a "how to choose" table per
+case shape, and three lists a new case must NOT pick from: **10 compatibility aliases**
+(`trigger`, `parse`, `action`, `classify`, `chat-gemini`, `summarize`, `slack-message`,
+`notion-page`, `calendar-event`, `web-search` — they exist only so the three authored cases keep
+working; use `gmail-trigger`, `edit-fields`, `gmail`, `text-classifier`,
+`google-gemini-chat-model`, `basic-llm-chain`, `slack`, `notion`, `google-calendar` instead), 5
+deprecated descriptors, and 3 deferred triggers. Any inline node list elsewhere is stale — the
+library grew from 23 types.
+
+**Icons are all in the repo:** `apps/web/public/node-icons/*.svg`, wired through
+`nodeImageIcons`. 200 of 200 types covered, no remote URLs — an authoring run never fetches an
+asset, and must never introduce a hotlink.
+
+**Still coupled:** a genuinely new *node type* is **five** things — a descriptor under
+[packages/catalog/](packages/catalog/), a `typeCategory` **and** icon entry in `nodeIcons.js`
+(missing the former makes it invisible in the picker, which *filters* on that map rather than
+falling back), the SVG asset, an `n8nNodeSpecs.js` export spec if a case will place it, and a row
+in the catalogue doc. That's by design.
+
+> **The export spec table is the tightest constraint on authoring right now.** Every case owes an
+> importable n8n workflow (see *Problem-as-data*), and only 14 of the 200 types have a spec in
+> [packages/engine/n8nNodeSpecs.js](packages/engine/n8nNodeSpecs.js) — 7 of them legacy aliases.
+> So a case authored purely on canonical types currently fails `npm run workflows:generate`. It
+> fails loudly, not silently, but check the table before committing to a node set.
 
 ### Packages
 | Package | What |

@@ -31,14 +31,45 @@ system: |
 
   ## Hard limits — violating one of these is worse than failing
 
-  **The node vocabulary is closed.** Every node type you use must already exist in
-  `packages/catalog/catalog.js`. There are 23. Adding one is a code change in two files and
-  is outside what you may do.
+  **The node vocabulary is closed, and the menu is one file.**
+  **Read [docs/node-library-catalog.md](../../docs/node-library-catalog.md) before choosing
+  anything.** It lists all **200 registered types** with the catalog `type` string to use, plus a
+  "How to choose" table of recommended sets per case shape. Do not work from a node list in any
+  other document — the library grew from 23 types to 200 and every inline list is stale.
 
-  > If the spec needs a node type that does not exist, **STOP**. Report
-  > `blocked: true` with `blockedReason` naming the node the spec needs and the closest
-  > catalog types. Do **not** substitute a near-miss — a case built on the wrong node
-  > teaches the wrong thing while passing every test.
+  Three lists in that file are **off limits for a new case**:
+
+  - **the 10 compatibility aliases** — `trigger`, `parse`, `action`, `classify`, `chat-gemini`,
+    `summarize`, `slack-message`, `notion-page`, `calendar-event`, `web-search`. They exist only so
+    the three already-authored cases keep working. Use the canonical node instead:
+    `gmail-trigger`, `edit-fields`, `gmail`, `text-classifier`, `google-gemini-chat-model`,
+    `basic-llm-chain`, `slack`, `notion`, `google-calendar`.
+  - **the 5 deprecated descriptors** — source parity only.
+  - **the 3 deferred triggers** — listed but not registered; picking one fails validation.
+
+  > If the spec needs a node type that is not registered, **STOP**. Report `blocked: true` with
+  > `blockedReason` naming the node the spec needs and the closest registered types. Do **not**
+  > substitute a near-miss — a case built on the wrong node teaches the wrong thing while passing
+  > every test.
+
+  **Check the n8n export spec table before you commit to a node set.** This is now the likelier
+  stop, because the catalog is large and the export table is small:
+
+  ```bash
+  npx vite-node -e "import {N8N_NODE_SPECS} from '@judge/engine'; console.log(Object.keys(N8N_NODE_SPECS).join(', '))"
+  ```
+
+  Every case owes a workflow file that imports into real n8n, which needs an entry in
+  `packages/engine/n8nNodeSpecs.js`. **14 types have one today and 7 of those are legacy aliases**,
+  so a set built purely on canonical types will fail `npm run workflows:generate`. If the set you
+  want has no spec, say so in `thingsAHumanShouldCheck` and report which types are missing — do not
+  quietly fall back to a legacy alias to make the export pass, because that is choosing the wrong
+  node for a tooling reason.
+
+  **Never fetch, generate or hotlink a node icon.** They are all in the repo already:
+  `apps/web/public/node-icons/*.svg`, wired through `nodeImageIcons` in
+  `apps/web/src/nodes/nodeIcons.js` — 200 of 200 types covered, no remote URLs. A blank chip means
+  a missing map entry, not a missing file, and adding either is outside your remit.
 
   **Files you may create or edit — this list is exhaustive:**
 
@@ -98,8 +129,9 @@ system: |
        is drawn on the same screen that then asks which node does each job, so
        `Classify with AI` hands over the answer to a graded question. Write `read and label`.
        Enforced by `validateProblem()`.
-     - **Every phase must declare its own `pickable`.** The picker's fallback offers only 9
-       of the 23 types, so an omitted `pickable` can make a required node unpickable.
+     - **Every phase must declare its own `pickable`.** The picker's fallback offers only a
+       fraction of the 200-type library, so an omitted `pickable` can make a required node
+       unpickable.
   3. **`dissection.js`** — one node-pick per decision the flow needs. Each correct pick
      `unlocks` the node types the build then offers. 30% of the score.
   4. **`nodeSetup.js`** — the NDV, keyed by node **TYPE, not instance**. Two traps:

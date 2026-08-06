@@ -30,7 +30,14 @@ in that folder reaches a learner until you register it in
 `packages/problems/index.js` **and** run `npm run db:seed` — the web app reads
 problems from Postgres, never from the repo. Adding a case is therefore a
 data-authoring job, not an engine change, *provided* you reuse the existing node
-vocabulary in `packages/catalog/catalog.js`.
+vocabulary.
+
+**That vocabulary is [node-library-catalog.md](node-library-catalog.md) — 200 registered
+types, and it is the list to choose from.** It gives the catalog `type` per node plus a
+"how to choose" table per case shape, and it marks three groups a new case must not pick:
+10 compatibility aliases (kept only for the three already-authored cases), 5 deprecated
+descriptors, and 3 deferred triggers. Node icons are all committed under
+`apps/web/public/node-icons/`, so nothing needs fetching.
 
 ---
 
