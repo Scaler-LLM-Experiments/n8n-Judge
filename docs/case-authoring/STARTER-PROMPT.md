@@ -100,6 +100,7 @@ Three challenges already exist. They are useful as a sense of scale:
 | **Email triage** | email arrives → AI sorts into 3 categories → routes → 3 different replies | The awkward example is an email matching no category. Learners must predict where it goes. |
 | **Expense approvals** | email arrives → AI reads the claim → routes by amount and policy → replies | The interesting decisions are about *thresholds*, not about which node. |
 | **Free-trial signup desk** | form submitted → fetch today's exchange rate → log a row → welcome email | No AI at all. The whole lesson is which form field goes under which spreadsheet column. |
+| **Ops request desk** | form submitted → AI reads it and pulls four fields → routes 3 ways → sheet / email / Slack | One AI step doing two jobs, and six spreadsheet columns coming from *two different sources*. |
 
 Two patterns worth copying from those:
 
@@ -116,6 +117,15 @@ Two patterns worth copying from those:
 - [ ] No name from the "Never use these names" table
 - [ ] The **awkward example** in §5 is filled in and is genuinely awkward
 - [ ] If you used a splitting node, §3 says where every path ends
+- [ ] **§3's "five shapes the simulator cannot build" checked against your flow** — this is the
+      one that has forced a rewrite most often. No path doing two things, no shared or merging
+      wires, no catch-all exit, no node reused with different settings.
 - [ ] Anything you were unsure about is written down as a question, not a guess
+
+**On questions: ask them, but do not make them a blocker.** Write what you would do if nobody
+answers. A spec that says "do not build this until someone answers Q1" stops the pipeline dead;
+a spec that says "assume X unless told otherwise, and here is why" gets built. Every open
+question on the ops-request-desk spec was answerable from the code in ten minutes — but the case
+sat blocked until a human read them.
 
 Save as `<your-slug>.md` — e.g. `trial-signup-desk.md` — and send it over.

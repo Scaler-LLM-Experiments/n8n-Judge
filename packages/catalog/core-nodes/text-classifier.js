@@ -27,7 +27,10 @@ const textClassifier = {
   description: 'Classify your text into distinct categories',
   details:
     'Author categories and optional classification behavior, with one output branch per category. This catalog entry never classifies or routes input.',
-  category: 'core',
+  // Cluster node: the editor resolves the Chat Model port and the picker group from
+  // this. See the authoring skill, "adding a catalog type".
+  category: 'ai',
+  needsModel: true,
   libraryCategory: 'ai',
   categories: ['AI'],
   subcategory: 'Chains',

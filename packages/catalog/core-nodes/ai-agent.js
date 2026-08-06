@@ -89,7 +89,10 @@ const aiAgent = {
   description: 'Generates an action plan and executes it. Can use external tools.',
   details:
     'Configure the current tools-based AI Agent prompt, optional structured output, fallback model, memory, tools, tracing metadata, streaming, and batching. This catalog entry performs no agent work.',
-  category: 'core',
+  // Cluster node: the editor resolves the Chat Model port and the picker group from
+  // this. See the authoring skill, "adding a catalog type".
+  category: 'ai',
+  needsModel: true,
   libraryCategory: 'ai',
   categories: ['AI'],
   subcategory: 'Agents',

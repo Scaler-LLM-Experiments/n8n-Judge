@@ -53,6 +53,21 @@ route however the job requires — linear, one router with several branches, sev
 actions, an AI step with a chat-model sub-node attached over the ai_model handle. Choose
 the shape the JOB needs, and do not add a router to a linear job to look sophisticated.
 
+FOUR SHAPES THE SIMULATOR CANNOT BUILD. Each one has forced a designed case to be
+rewritten, so check the flow against them before you draft anything:
+
+- A branch that does TWO things. The Run walk ends at a branch's first action node, so
+  "append a row AND send a mail" on one exit narrates only the row. Give each exit one job.
+- Fan-out or fan-in — one exit feeding two nodes, or two exits feeding one. The editor
+  adds every node from a "+" on one exit, creating exactly one edge, and cannot wire two
+  existing nodes together. These are unbuildable, not merely ugly.
+- A Switch fallback / catch-all exit. A router has exactly the branches you declare; an
+  unmatched item is silently dropped and reaches nothing. Model "needs a human" as an
+  ORDINARY declared branch plus an explicit category the AI is instructed to return, and
+  put the "unmatched items vanish" lesson in evalQuestions instead.
+- Two actions chained in series (\`flow.next\` is keyed by TYPE, so it also puts an "add
+  next" cue on every other node of that type).
+
 ## Hard constraints
 
 1. Only node types from the editor catalog below. Never invent one.
@@ -94,6 +109,27 @@ the shape the JOB needs, and do not add a router to a linear job to look sophist
 12. \`evalQuestions\`: 2-4 questions about BEHAVIOUR at the edges — what the fall-through
     case does, what a setting changes, what happens when something upstream fails. Not
     recall, and never something the dissection already asked. Graded on \`correctIndex\`.
+13. \`flow.branchNext\` is EITHER a flat array (every exit accepts the same types) OR a
+    record keyed by branch id. If the exits end at DIFFERENT node types you must use the
+    record — \`{ log: ["google-sheets"], email: ["gmail"] }\` — or the editor can only ask
+    "is this a destination at all?", and the right node on the wrong exit is accepted, the
+    phase goes green, and the mistake only surfaces later as a failing Run.
+14. Author \`nodeSetup[type].sampleOutput\` for every node whose output another node's NDV
+    Input pane displays, AND for each terminal. \`catalogEntry.output\` is ONE sample shared
+    by every case, so without this a learner is shown another challenge's data — and the
+    "Insert field…" dropdown is built from those keys, so every option it offers is a field
+    that does not exist. A router passes its item through: give it the same sample as the
+    step before it.
+15. Expressions over a key that is not a plain identifier MUST use bracket notation:
+    \`{{ $json["What do you need?"] }}\`, never \`{{ $json.What do you need? }}\`. A form
+    trigger's keys are the questions the form asked, so this is the normal case.
+16. Never grade a \`resourceLocator\` field. Its answer arrives as \`{ __rl, mode, value }\`
+    and the explanation lookup matches on option value, so it can never return a "why" —
+    Iris appears and has nothing to say. Use a plain \`select\`.
+17. \`statement\` is rendered in FULL on the Understand screen, so write it as short
+    paragraphs separated by blank lines, not one block. It must not name a tool that is
+    also the label of a graded option, and must not enumerate which columns an
+    \`assignmentList\` maps — both hand over a graded answer before it is asked.
 
 ## Copy
 

@@ -29,6 +29,19 @@ npm run case:verify -- <check> <slug>
 the journey, listening to the clips, agreeing that each question is worth asking — cannot be
 automated honestly, so the run ends with a human holding it.
 
+**A diagnosis is a claim too, not just a status.** An agent reported the model-picker bug and
+named the fix as "one entry in `typeCategory`". That map ends with a `NODE_CATALOG` spread, so an
+entry added above it is dead code — the real fix was the catalog descriptor's `category`. The
+report was right about the *symptom* and wrong about the *file*. Read the code the agent points
+at before you edit it; a confident wrong location costs a full cycle and looks like a fix.
+
+**And the gate does not cover the build.** `npm test`, `typecheck` and `smoke` were all green on
+a case where the learner could not attach a chat model, could not answer a field from the only
+control offered, and got no reason when a phase refused to advance. Smoke opens the NDV and never
+fills a field or places a node, so the entire build interaction is untested. Until that changes,
+**the human walkthrough in the PR checklist is not a formality — it is the only coverage that
+exists for the thing learners actually do.** Say so when you hand the PR over.
+
 ## Invocation
 
 ```
@@ -57,6 +70,23 @@ npm run case:preflight            # add --fake in rehearsal
 Everything a run needs, checked cheaply, **before** the stages that spend money. A blocking
 failure here means stop and tell the user — the worst ordering is discovering a missing `gh`
 login after paying for audio. Fix what it names, or report and halt.
+
+### Resolve the spec's open questions against the CODE, first — do not hand them to an agent
+
+A good spec ends with questions its author could not answer. **Answer them yourself, from the
+engine, before `author_case` starts.** They are almost always facts, not judgement calls, and
+each one changes what "correct" means — so an agent that guesses builds a case around the wrong
+answer and every later stage validates the wrong thing.
+
+The ops-request-desk spec asked seven. Three came back *against* the design and forced the case
+from four outcomes to three: there is no Switch fallback exit, `nodeSetup` is keyed by node type,
+and fan-out is unbuildable. All three were readable in `simulate.js`, `answerCheck.ts` and
+`N8nEditor.jsx` in about ten minutes. The authoring skill's *"what the engine can and cannot
+express"* table is the checklist — walk the spec's flow against it.
+
+Then **rewrite the spec file on disk** to record the resolution, and commit it. The author agent
+reads the spec, not this conversation; a spec still carrying the unresolved design is how the
+wrong case gets built twice.
 
 Then open the run:
 

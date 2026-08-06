@@ -181,7 +181,9 @@ const googleVertexChatModel = {
   description: 'Chat Model Google Vertex',
   details:
     'Configure a Gemini model on Google Vertex AI with project, location, generation, safety, and thinking settings. This catalog entry never authenticates, lists projects, or invokes Vertex.',
-  category: 'core',
+  // Cluster node: the editor resolves the Chat Model port and the picker group from
+  // this. See the authoring skill, "adding a catalog type".
+  category: 'model',
   libraryCategory: 'ai',
   categories: ['AI'],
   subcategory: 'Language Models',

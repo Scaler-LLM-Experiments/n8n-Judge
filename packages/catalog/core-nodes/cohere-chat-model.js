@@ -65,7 +65,9 @@ const cohereChatModel = {
   description: 'For advanced usage with an AI chain',
   details:
     'Configure a Cohere Command chat model with temperature and retry options. This catalog entry never reads credentials, lists models, or invokes Cohere.',
-  category: 'core',
+  // Cluster node: the editor resolves the Chat Model port and the picker group from
+  // this. See the authoring skill, "adding a catalog type".
+  category: 'model',
   libraryCategory: 'ai',
   categories: ['AI'],
   subcategory: 'Language Models',

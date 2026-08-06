@@ -100,7 +100,10 @@ const summarizationChain = {
   description: 'Transforms text into a concise summary',
   details:
     'Configure JSON, binary, or document-loader input; chunking; summarization prompts; and batch settings. This catalog entry never loads documents, calls a model, or produces a summary.',
-  category: 'core',
+  // Cluster node: the editor resolves the Chat Model port and the picker group from
+  // this. See the authoring skill, "adding a catalog type".
+  category: 'ai',
+  needsModel: true,
   libraryCategory: 'ai',
   categories: ['AI'],
   subcategory: 'Chains',

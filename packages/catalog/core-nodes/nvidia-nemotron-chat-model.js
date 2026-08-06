@@ -148,7 +148,9 @@ const nvidiaNemotronChatModel = {
   details:
     'Choose a supported NVIDIA Nemotron model and author completion controls for build.nvidia.com or a self-hosted NIM. This catalog entry never reads credentials, lists models, or invokes NVIDIA.',
   clusterRole: 'sub',
-  category: 'core',
+  // Cluster node: the editor resolves the Chat Model port and the picker group from
+  // this. See the authoring skill, "adding a catalog type".
+  category: 'model',
   libraryCategory: 'ai',
   categories: ['AI'],
   subcategory: 'Language Models',

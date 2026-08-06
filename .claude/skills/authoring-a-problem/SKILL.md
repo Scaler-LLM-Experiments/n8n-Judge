@@ -431,22 +431,99 @@ about what the previous node really returned. Two failures found here, both grad
 it.** Judge's model is that the item accumulates fields; each `output` has to be consistent with
 that or the pane teaches the opposite of the field.
 
-### Adding a catalog type is three files, not two
+**The fix is `nodeSetup[type].sampleOutput`, and most cases need it.** `catalogEntry.output` is
+**one sample per type, shared by every case**, so the moment two cases use the same type one of
+them is showing the other's data. Author your own and the catalog becomes the fallback:
 
-`packages/catalog/catalog.js` **plus** two maps in `apps/web/src/nodes/nodeIcons.js`:
+```js
+'form-trigger': {
+  sampleOutput: {                       // keys must match the Form Fields you authored
+    'Your name': 'Arjun Mehta',
+    'Your email': 'arjun@fernwoodrobotics.com',
+    'What do you need?': 'Log a new distributor lead — Riya Kapoor …',
+  },
+  locked: [ … ], fields: [ … ],
+},
+```
 
-- **`typeCategory`** — `NodePickerDrawer` *filters* on it (`typeCategory[n.type] === cat`) rather
-  than falling back, so a missing entry makes the type **invisible in the picker**: offered by
-  the options list and impossible to click. `remove-duplicates`, `wait` and `http-request` were
-  all in that state and nothing caught it.
+It survives `toPublicProblem()` (only `fields` and `settings` are rebuilt), and it feeds two
+surfaces, both of which a learner reads:
+
+- **The next node's INPUT pane, and its `Insert field…` dropdown**, which is built from
+  `Object.keys(inputData)`. Get this wrong and **every option in the dropdown is a field that
+  does not exist** — the discoverable control writes an answer that can never be right. On
+  ops-request-desk the extractor offered trial-signup-desk's `Full Name` / `Plan` / `Referral
+  Source` on the exact screen where the learner must write an expression against *this* form.
+- **This node's own OUTPUT pane after Verify.** Sheets showed another case's row moments after
+  the learner had mapped six columns by hand.
+
+Author one for **every node whose output another node's pane shows** — including the router,
+which passes the item straight through — **and for each terminal**, whose Output pane is the only
+confirmation the learner gets that their node did the right thing. `{}` is not neutral; it reads
+as "this did nothing".
+
+### Adding a catalog type: the descriptor's `category` is authoritative
+
+`packages/catalog/catalog.js` **plus** the icon map in `apps/web/src/nodes/nodeIcons.js`:
+
+- **`category` on the descriptor** — this is what the editor reads. `typeCategory` in
+  `nodeIcons.js` ends with `...Object.fromEntries(Object.entries(NODE_CATALOG).map(…node.category))`,
+  and **that spread is last**, so for any type the catalog knows about the catalog wins and a
+  hand-written line above it is dead code. Adding a line there to "fix" a category does nothing.
+  `NodePickerDrawer` *filters* on the resolved map (`typeCategory[n.type] === cat`) rather than
+  falling back, so a wrong category makes the type **invisible in the picker** — offered by the
+  options list and impossible to click.
 - **`nodeIcons`** or **`nodeImageIcons`** — a missing entry renders a blank chip.
+
+**Get the category right for cluster nodes, or the case is unbuildable:**
+
+| Kind | Needs | If wrong |
+|---|---|---|
+| AI root (`information-extractor`, `text-classifier`, `ai-agent`, `basic-llm-chain`) | `category: 'ai'` **and** `needsModel: true` | `variantOf()` → `'action'`, so the **Chat Model port never renders** and `openPicker({modelSlot:true})` — its only call site — is unreachable. The model cannot be attached and the phase can never clear. |
+| Chat model (`openai-chat-model`, `anthropic-chat-model`, …) | `category: 'model'` | Not offered in the Chat Model drawer, and grouped wrongly in the picker. |
+
+This cost a whole authoring run: `information-extractor` and `openai-chat-model` were both
+`'core'`, and the case was blocked at the first AI node. **Most of the catalog is still in that
+state** — 12 more AI roots and 23 more chat models. Check before designing a case around one.
 
 `catalog.test.js` now asserts both for every catalog type. Also add the type to
 `TRIGGER_OPTIONS`/`NODE_OPTIONS` if a case is expected to place it, since those are the picker's
 fallback when a phase omits `pickable` — and **declare `pickable` on every phase**, because that
 fallback offers only a subset.
 
-### Two platform gaps a case cannot work around
+### What the engine can and cannot express — check BEFORE writing the spec
+
+Every one of these was discovered *after* a case had been specified around it, and each forced a
+redesign. Read this list against your flow before you write anything down.
+
+| You want | Can Judge do it? |
+|---|---|
+| A branch that does **two** things (write a row *and* send a mail) | **No.** The Run walk ends at the branch's first `action` node. Chaining is worse — see below. |
+| One exit feeding two nodes, or two exits feeding one | **No.** The editor has no `onConnect`; every node arrives through the picker, which creates exactly one node and one edge. A learner can never wire two existing nodes together. Fan-out and fan-in are **unbuildable**, not merely unnarratable. |
+| A Switch **fallback / catch-all exit** | **No.** A router's exits are exactly the branches you declare. An item matching none hits `switchNoMatch` and the walk dead-ends — it cannot reach any node. Model a catch-all as a **normal declared branch** plus an explicit category the AI is instructed to return (`needs_human`), and teach "unmatched items vanish silently" in Stress Testing instead. |
+| Two nodes of the same type, configured **differently** | **No.** `nodeSetup` and `nodeProbes` are keyed by node **TYPE**. Both instances open the same NDV, ask the same question and share one answer key — so a case with "email the subject" and "reply to the requester" grades one of them backwards. Reusing a type is fine only when the config is *genuinely identical everywhere* (email-triage's three `action` instances). |
+| Exits that end at **different** node types | **Yes, but you must scope them.** See below. |
+
+**`flow.branchNext` takes two shapes, and picking the wrong one silently weakens the case:**
+
+```js
+branchNext: ['action']                                     // every exit accepts the same thing
+branchNext: { log: ['google-sheets'], email: ['gmail'] }    // each exit scoped separately
+```
+
+The array can only ask *"is this a destination at all?"*. With exits ending at different types
+that is not enough: the spreadsheet on the escalation exit is accepted, `allBranchesWired` is
+satisfied (it reached *a* terminal), the phase goes green, and the mistake only surfaces later as
+a failing Run. **If your exits end at different types, use the record form.** A wrong-exit pick
+then gets its own probe — "right destination, wrong exit" is a different mistake from "that is
+not a destination", and the generated sequence probe is the wrong question for it.
+
+Also know: `flow.next` is keyed by **type**, so declaring `google-sheets → gmail` puts an "add
+next" cue on *every* Sheets node and lets a learner satisfy the same `requiredEdge` by chaining
+Gmail onto the wrong branch — a wrong build that passes. That is why chaining two actions is not
+the escape hatch it looks like.
+
+### Two more platform gaps a case cannot work around
 
 Know these before designing a flow around them:
 
@@ -460,7 +537,60 @@ Know these before designing a flow around them:
   no node-reference syntax at all. Putting an HTTP Request mid-chain makes the divergence visible.
   Stay consistent with the platform; do not invent `$('Node').item.json` in one case.
 
-## 6c. Every case owes a real n8n workflow file
+## 6c. Learned the hard way on `ops-request-desk`
+
+Everything here was found by a human **walking the journey**, not by `npm test`, `typecheck` or
+`smoke`. All of it looked green until somebody clicked.
+
+### Field names with spaces need bracket notation, and so does your answer key
+
+A form trigger's keys **are the questions the form asked**, so spaces and punctuation are the
+norm. Dot notation is invalid for them in real n8n:
+
+```js
+correct: '{{ $json["What do you need?"] }}'   // right
+correct: '{{ $json.What do you need? }}'      // never valid
+```
+
+`expressionFor()` now brackets any key that is not a plain identifier, so the `Insert field…`
+picker and drag-and-drop both write the correct form. It used to emit dot notation
+unconditionally — which meant the *discoverable* control wrote an answer that could never match,
+and the learner had no way to clear the node. Author the bracketed form and it lines up.
+
+### Never grade a `resourceLocator` field
+
+`answerCheck.ts` looks the explanation up with `options.find(o => o.value === answer)` while a
+locator answer arrives as `{ __rl, mode, value }`, so **no option ever matches and `why` is
+`undefined` on both verdicts** — Iris appears and has nothing to say. Grading also reads
+`field.correct`, not `options[].correct`, and `validateProblem()` cannot see either problem. Use
+a plain `select` until that lookup unwraps the locator.
+
+### The `statement` is now the Understand hero, so write it as paragraphs
+
+`DissectionScreen` renders the **full `statement`** (not `brief`) at the top of Understand, and
+`ProblemNote` / `ProblemStatementPanel` render it with `white-space: pre-line`. So author it in
+short paragraphs separated by blank lines — one wall of prose is what it looked like before, and
+it reads as a spec sheet. `brief` still owns the Home card, where the 125-char cap and two-line
+clamp are the point.
+
+Two leak rules that bit here, on top of §6b's:
+
+- **The statement must not name a tool that is a graded option's label.** It said "the Slack
+  channel Priya already watches", and `escalate`'s four options contain exactly one channel tool.
+  "the channel Priya already watches" keeps the requirement and drops the answer.
+- **Nor may it enumerate an `assignmentList`'s mapping.** Saying *which* of the six columns come
+  from the form hands over the answer key to the richest config surface in the case. State that
+  they come from two places and that keeping them apart is the job.
+
+### Say what a phase is still waiting on
+
+A build phase can be blocked by three independent things at once and used to report none of them,
+so a canvas that looked finished simply refused to advance. There is a **Still to do** panel now.
+It deliberately does *not* name an unplaced node type — that is the graded decision — so it gives
+a count; nodes already on the canvas and exits already drawn are named freely. If you add a new
+completion condition, add it there too, or you have rebuilt the dead end.
+
+## 6d. Every case owes a real n8n workflow file
 
 A learner who scores **80 or more** is offered the case's flow as a file they import into their
 own n8n and run. So a case is not finished until it exports one.
@@ -479,11 +609,18 @@ you drag into n8n to test, with no dev server or session needed.
 
 **What this asks of you as an author:**
 
-- **Use node types that have an export spec.** `problem:check` and `case:verify workflow` both
-  fail on a type with no entry in `packages/engine/n8nNodeSpecs.js`. That is deliberate: a partial
-  export is a file that imports into n8n and then does not work, which is worse than no file. If a
-  case needs a new type, the spec is part of adding it — see §6b, "adding a catalog type is three
-  files", now four.
+- **Use node types that have an export spec.** `exportWorkflow.js` falls back to
+  `genericNodeSpec()`, so a missing entry does **not** fail `problem:check` or
+  `case:verify workflow` — but `packages/engine/exportWorkflow.test.js` ("covers every type any
+  reference graph places") is a hard gate and turns red the moment you **register** the case.
+  Expect that, and add the specs as part of the case. `information-extractor`,
+  `openai-chat-model`, `gmail` and `slack` all had none; the generic fallback also drops any
+  answer whose authored key is not the catalog's real n8n key (`sendTo` vs
+  `messageSendSendTo`), so it exports an empty parameter rather than a wrong one.
+  See §6b, "adding a catalog type", now four files.
+- **A clean `workflows:generate` is not evidence the file would run.** It is a structural check.
+  Read the emitted JSON and ask whether n8n would actually execute it — `case:verify workflow`
+  passed on a file where every item fell to an unwired fallback output.
 - **A `valueOptions` label should be a real n8n expression.** The exporter resolves each
   `expect.assignments` token back through `valueOptions` to that option's **label**, because the
   token (`form.name`) is a Judge id and the label (`{{ $json["Full Name"] }}`) is the thing the

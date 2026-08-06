@@ -19,7 +19,10 @@ const questionAnswerChain = {
   description: 'Answer questions about retrieved documents',
   details:
     'Configure a prompt, retrieval context, language model, system prompt, and optional batch settings for question answering. This catalog entry models authoring metadata only.',
-  category: 'core',
+  // Cluster node: the editor resolves the Chat Model port and the picker group from
+  // this. See the authoring skill, "adding a catalog type".
+  category: 'ai',
+  needsModel: true,
   libraryCategory: 'ai',
   categories: ['AI'],
   subcategory: 'Chains',

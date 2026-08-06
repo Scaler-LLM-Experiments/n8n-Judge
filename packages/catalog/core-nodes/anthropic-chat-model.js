@@ -107,7 +107,9 @@ const anthropicChatModel = {
   description: 'Language Model Anthropic',
   details:
     'Configure an Anthropic Claude chat model and current thinking, sampling, token, and streaming options. This catalog entry never reads credentials, lists models, or invokes Claude.',
-  category: 'core',
+  // Cluster node: the editor resolves the Chat Model port and the picker group from
+  // this. See the authoring skill, "adding a catalog type".
+  category: 'model',
   libraryCategory: 'ai',
   categories: ['AI'],
   subcategory: 'Language Models',

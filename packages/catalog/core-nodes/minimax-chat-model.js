@@ -103,7 +103,9 @@ const minimaxChatModel = {
   description: 'For advanced usage with an AI chain',
   details:
     'Configure a MiniMax M2 chat model with reasoning visibility, token, sampling, timeout, and retry settings. This catalog entry never reads credentials or invokes MiniMax.',
-  category: 'core',
+  // Cluster node: the editor resolves the Chat Model port and the picker group from
+  // this. See the authoring skill, "adding a catalog type".
+  category: 'model',
   libraryCategory: 'ai',
   categories: ['AI'],
   subcategory: 'Language Models',

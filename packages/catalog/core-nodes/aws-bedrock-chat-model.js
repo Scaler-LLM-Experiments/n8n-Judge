@@ -31,7 +31,9 @@ const awsBedrockChatModel = {
   details:
     'Choose an AWS Bedrock model or inference profile and author request controls for a Language Model sub-node. This catalog entry never resolves AWS credentials, lists models, or invokes Bedrock.',
   clusterRole: 'sub',
-  category: 'core',
+  // Cluster node: the editor resolves the Chat Model port and the picker group from
+  // this. See the authoring skill, "adding a catalog type".
+  category: 'model',
   libraryCategory: 'ai',
   categories: ['AI'],
   subcategory: 'Language Models',

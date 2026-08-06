@@ -96,7 +96,9 @@ const openRouterChatModel = {
   details:
     'Choose an OpenRouter model and author completion controls for a Language Model sub-node. This catalog entry never reads credentials, discovers models, sends prompts, or rewrites responses.',
   clusterRole: 'sub',
-  category: 'core',
+  // Cluster node: the editor resolves the Chat Model port and the picker group from
+  // this. See the authoring skill, "adding a catalog type".
+  category: 'model',
   libraryCategory: 'ai',
   categories: ['AI'],
   subcategory: 'Language Models',

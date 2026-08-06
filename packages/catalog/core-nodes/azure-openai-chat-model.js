@@ -196,7 +196,9 @@ const azureOpenAiChatModel = {
   details:
     'Choose API-key or Azure Entra authentication, enter an Azure model deployment, and author completion controls for a Language Model sub-node. Nothing authenticates or invokes Azure OpenAI here.',
   clusterRole: 'sub',
-  category: 'core',
+  // Cluster node: the editor resolves the Chat Model port and the picker group from
+  // this. See the authoring skill, "adding a catalog type".
+  category: 'model',
   libraryCategory: 'ai',
   categories: ['AI'],
   subcategory: 'Language Models',

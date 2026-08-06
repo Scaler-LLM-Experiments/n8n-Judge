@@ -40,7 +40,10 @@ const basicLlmChain = {
   description: 'A simple chain to prompt a large language model',
   details:
     'Author a prompt, optional chat messages, model fallback, output parser, and batch settings. This catalog entry never invokes any of them.',
-  category: 'core',
+  // Cluster node: the editor resolves the Chat Model port and the picker group from
+  // this. See the authoring skill, "adding a catalog type".
+  category: 'ai',
+  needsModel: true,
   libraryCategory: 'ai',
   categories: ['AI'],
   subcategory: 'Chains',

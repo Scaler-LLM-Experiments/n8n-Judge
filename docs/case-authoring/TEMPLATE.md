@@ -78,6 +78,24 @@ message posted, a page created. A path that leads nowhere will block the learner
 
 >
 
+### ⚠ Five shapes the simulator cannot build — check your flow against these now
+
+These are not preferences. Each one has forced a case to be redesigned *after* it was written,
+because the answer only becomes obvious once someone tries to build it on the canvas.
+
+| If your flow… | …it will not work |
+|---|---|
+| has **one path that does two things** ("save it *and* email them") | A path ends at its **first** action. The second never happens in the story. Split it into two paths that each do one thing, or drop one. |
+| has **one exit feeding two nodes**, or **two exits feeding one node** | Impossible to build. Every node is added from a `+` on one specific exit, and there is no way to draw a wire between two nodes that already exist. |
+| relies on a **catch-all / "everything else" exit** | There isn't one. Anything that matches no path is silently dropped. Instead: make "needs a human" an **ordinary named path**, and have the AI return it as one of its normal answers. |
+| uses **the same node twice, set up differently** (two emails to different people) | Both copies share one set of questions and one answer key, so one of them gets graded wrong. Either give the two jobs different tools, or drop one. |
+| has paths ending at **different kinds of node** | Fine — but say so explicitly here, so each exit gets scoped to its own destination. |
+
+If your scenario genuinely needs one of the first four, **say so in your answer rather than
+working around it**. A note here is cheap; discovering it after the case is written is not.
+
+>
+
 ---
 
 ## 4. The nodes — **Required**
@@ -134,7 +152,13 @@ so in your answer and the pipeline will tell us rather than substituting somethi
 | Let the AI choose its own tools | `ai-agent` |
 
 Any AI step also needs a brain attached — pick one: `google-gemini-chat-model` or
-`openai-chat-model`.
+`openai-chat-model`. (Any `*-chat-model` works; those two are the ones learners recognise.)
+
+**One AI step can do two jobs, and that is often the better case.** An extractor both *decides*
+the route and *produces* the fields the destinations need. If your paths end at nodes that need
+details — a spreadsheet row, an email body — say so here, because it changes which AI step is
+right: a classifier hands back a label and nothing else, and the learner only discovers that
+three nodes later with nothing to map.
 
 ### Finish with a real side effect (actions)
 

@@ -28,7 +28,10 @@ const sentimentAnalysis = {
   description: 'Analyze the sentiment of your text',
   details:
     'Author text, sentiment categories, prompt behavior, detailed-result preferences, and batching, with one output per comma-separated category. This entry never analyzes or routes text.',
-  category: 'core',
+  // Cluster node: the editor resolves the Chat Model port and the picker group from
+  // this. See the authoring skill, "adding a catalog type".
+  category: 'ai',
+  needsModel: true,
   libraryCategory: 'ai',
   categories: ['AI'],
   subcategory: 'Chains',

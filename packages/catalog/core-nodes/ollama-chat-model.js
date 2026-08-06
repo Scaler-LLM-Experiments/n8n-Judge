@@ -77,7 +77,9 @@ const ollamaChatModel = {
   details:
     'Choose an Ollama model and author local inference controls for a Language Model sub-node. This catalog entry never resolves credentials, lists models, or invokes Ollama.',
   clusterRole: 'sub',
-  category: 'core',
+  // Cluster node: the editor resolves the Chat Model port and the picker group from
+  // this. See the authoring skill, "adding a catalog type".
+  category: 'model',
   libraryCategory: 'ai',
   categories: ['AI'],
   subcategory: 'Language Models',

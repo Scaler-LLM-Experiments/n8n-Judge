@@ -1806,4 +1806,30 @@ describe('agent-facing node library catalog', () => {
       expect(node.clusterRole === 'root' ? rootLine : subLine, `${node.type} has no documented cluster role`).toContain(`\`${node.type}\``);
     }
   });
+  // The bug this pins cost a whole authoring run. `variantOf()` in the editor reads a
+  // node's `category` (via typeCategory, whose NODE_CATALOG spread is last and therefore
+  // wins). An AI root left at 'core' resolves to 'action', so its Chat Model port never
+  // renders and `openPicker({ modelSlot: true })` — the port's only call site — is
+  // unreachable: the model cannot be attached and the build phase can never clear.
+  // A chat model left at 'core' is never offered in that drawer.
+  //
+  // Both were true of almost the whole AI vocabulary while three cases shipped, because
+  // nothing placed one of these on a canvas.
+  it('gives every placeable AI root and chat model the category the editor needs', () => {
+    const ROOTS = [
+      'ai-agent', 'basic-llm-chain', 'question-answer-chain', 'summarization-chain',
+      'information-extractor', 'text-classifier', 'sentiment-analysis',
+    ];
+    for (const type of ROOTS) {
+      expect(NODE_CATALOG[type], `${type} is missing from the catalog`).toBeDefined();
+      expect(NODE_CATALOG[type].category, `${type} must be category 'ai' or its Chat Model port never renders`).toBe('ai');
+      expect(NODE_CATALOG[type].needsModel, `${type} must declare needsModel so the Run narrates a missing brain`).toBe(true);
+    }
+
+    const chatModels = Object.keys(NODE_CATALOG).filter((t) => t.endsWith('-chat-model'));
+    expect(chatModels.length, 'expected the chat-model family to still exist').toBeGreaterThan(10);
+    for (const type of chatModels) {
+      expect(NODE_CATALOG[type].category, `${type} must be category 'model' to be offered in the Chat Model drawer`).toBe('model');
+    }
+  });
 });

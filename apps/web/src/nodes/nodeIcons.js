@@ -164,9 +164,13 @@ export const typeCategory = {
   // options list and impossible to click. Found 2026-08-04 while adding `http-request`
   // to NODE_OPTIONS, which would otherwise have been silently unpickable.
   //
-  // Every entry here duplicates `category` in packages/catalog/catalog.js. The real fix
-  // is for the picker to fall back to the catalog rather than requiring this map to be
-  // kept in step by hand; until then, a new catalog type needs a line here.
+  // Every entry here duplicates `category` in packages/catalog/catalog.js — and the
+  // spread BELOW is last, so for any type the catalog knows about, the catalog wins and
+  // the hand-written line is dead. Adding a line here for a catalog type therefore does
+  // nothing: set `category` on its descriptor instead. That cost real time — an AI root
+  // was "fixed" here and stayed broken, because `variantOf()` reads this map and the
+  // spread had already put it back to 'core'. These entries survive only for types the
+  // catalog does not carry.
   'remove-duplicates': 'core',
   wait: 'core',
   'http-request': 'core',
