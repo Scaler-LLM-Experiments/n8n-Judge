@@ -110,21 +110,18 @@ to 200 and every inline list is stale by construction.
 2. **Never pick a deprecated descriptor** — the catalog lists five, all retained for
    compatibility only.
 
-### The hard gate, and it has moved
+### The hard gate
 
-Adding a *new* node type is still outside what an authoring run may do. But with 200 types
-registered, the far more likely stop is different:
+Adding a *new* node type is outside what an authoring run may do, so the one thing that stops a
+run here is asking for a node the catalogue does not list. Everything registered is fair game.
 
-> **A type may exist in the catalog and still have no n8n export spec.** Every case owes a
-> workflow file that imports into real n8n (§6c of the authoring skill), and that needs an entry
-> in `packages/engine/n8nNodeSpecs.js`. **Only 14 types have one today, and 7 of those are the
-> legacy aliases above.** So a case built entirely on canonical types will currently fail
-> `npm run workflows:generate`.
+You do **not** need to worry about whether a node can be exported to real n8n: every case ships a
+workflow file, and the exporter derives n8n parameters from the node's own descriptor plus the
+answers you author, so any registered type produces one.
 
-That failure is deliberate and loud, not silent — but it means the node set you choose here
-decides whether the case can finish. Check the spec table before committing to a node set, and
-expect the pipeline to stop and tell you if a spec is missing rather than shipping a workflow
-file that imports and then does nothing.
+What you *should* know is that "it exported" is not the same as "it would run". A handful of nodes
+whose real n8n shape is unusual carry a hand-written override, and a node set built on unusual
+nodes may need a new one — which is engineering work, not authoring. The pipeline will say so.
 
 **Nodes this case needs** (the ones that get placed, configured and run) — give the catalog
 `type` for each, not the display name:

@@ -146,14 +146,20 @@ wrong node teaches the wrong thing while passing every test.
 
 The menu is [docs/node-library-catalog.md](../../../docs/node-library-catalog.md): **200
 registered types**, with 10 compatibility aliases, 5 deprecated descriptors and 3 deferred
-triggers that a new case must not pick. Adding a genuinely new type is five things (descriptor,
-`typeCategory` + icon map, the SVG, an export spec, a catalog row) and is outside an authoring run.
+triggers that a new case must not pick. Adding a genuinely new type is four things (descriptor,
+`typeCategory` + icon map, the SVG, a catalog row) and is outside an authoring run.
 
-**The likelier block now is the n8n export spec, not the catalog.** With 200 types registered and
-only 14 carrying an entry in `packages/engine/n8nNodeSpecs.js` — 7 of them legacy aliases — a case
-authored on canonical types will fail `npm run workflows:generate`. Treat that the same way: stop
-and report which types need a spec. Do **not** accept a fallback to a legacy alias to make the
-export pass, because that picks the wrong node for a tooling reason.
+**The export no longer blocks on an unmapped type**, so do not expect it to. `exportWorkflow.js`
+falls back to `genericNodeSpec()`, which derives n8n parameters from the catalog descriptor plus
+the authored answers — every registered type produces a file, and
+`packages/engine/n8nNodeSpecs.js` is a table of ~14 **overrides** for the types where that
+derivation is not faithful.
+
+That moves your job from "did it fail?" to "is it right?": a clean `workflows:generate` is not
+evidence the workflow would run. Read what the author agent reports about the emitted parameters,
+and treat "node X's parameters look wrong for real n8n" as a finding for the PR rather than a
+blocker. Do **not** accept a swap from a canonical type to a legacy alias to make an export look
+tidier — that picks the wrong node for a tooling reason.
 
 ```bash
 npm run case:run -- stage author_case blocked --note "needs <type>, not in the catalog"

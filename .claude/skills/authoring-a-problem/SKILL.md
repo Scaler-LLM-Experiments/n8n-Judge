@@ -260,19 +260,32 @@ fastest way to a sane set.
 
 ### The gate that actually stops a case now
 
-`validateProblem()` still requires every configured or executed type to be in `NODE_CATALOG`, and
-with 200 types that is rarely the blocker. **The n8n export spec is.** §6c requires every case to
-produce an importable workflow, which needs an entry in `packages/engine/n8nNodeSpecs.js`:
+`validateProblem()` requires every configured or executed type to be in the catalog, and with 200
+types registered that is rarely the blocker. **The export hard-fails only on a type that is not
+registered at all** — `exportWorkflow.js` falls back to `genericNodeSpec()`, which derives n8n
+parameters from the catalog descriptor's own `params` plus your authored correct answers, so any
+registered type produces a file.
+
+`packages/engine/n8nNodeSpecs.js` is therefore a table of **overrides**, not a whitelist. An entry
+exists for the ~14 types where the generic derivation is not faithful enough:
+
+| Needs an override because | Example |
+|---|---|
+| the real parameter shape is structurally different | `switch` needs `rules.values[]` with `outputKey` + `renameOutput`, which no descriptor implies |
+| a value must be a resourceLocator | `google-sheets` needs `documentId` / `sheetName` as `{ __rl }` |
+| the node's real n8n identity differs from the catalog's | `classify` exports as `chainLlm`, not `textClassifier` (see the reason in that file) |
+
+**So the duty has moved from "will it export?" to "is the export faithful?"** Generic is not
+verified. After choosing a node set, run the export and *read the parameters it produced for your
+nodes*:
 
 ```bash
-npx vite-node -e "import {N8N_NODE_SPECS} from '@judge/engine'; console.log(Object.keys(N8N_NODE_SPECS).join(', '))"
+npm run workflows:generate -- <slug>
 ```
 
-**14 types have a spec today, and 7 of those are legacy aliases** — so a case built purely on
-canonical types will currently fail `npm run workflows:generate`. That is loud, not silent, but
-it means the node set decides whether the case can finish. Either pick types that have a spec,
-or add the spec as part of the case (it is the same file, one entry per type, and
-`exportWorkflow.test.js` will hold you to a stated reason if you override a catalog type).
+If a node's parameters look thin, wrongly-shaped, or would not actually run in n8n, that node
+needs an override in `n8nNodeSpecs.js`. `exportWorkflow.test.js` will hold you to a stated reason
+if the override changes a node's n8n type.
 
 ### Icons and logos are already in the repo — never fetch one
 
@@ -290,10 +303,47 @@ disk, which is the point of keeping them in-repo. Two consequences:
 - **Never introduce a remote URL.** It would work in dev and fail behind the login in
   production, and it puts a third-party request on a learner's page.
 
-Adding a genuinely new node type is therefore **four** things: a `packages/catalog/` descriptor
-that points at its icon · the local asset in `public/node-icons/` · an `n8nNodeSpecs.js` entry if
-a case will place it · a row in `node-library-catalog.md`. Catalog descriptors automatically
-populate the picker category and shared icon map.
+Adding a genuinely new node type is therefore **three** things: a `packages/catalog/` descriptor
+that points at its icon · the local asset in `public/node-icons/` · a row in
+`node-library-catalog.md`. Catalog descriptors automatically populate the picker category and the
+shared icon map, and the workflow exporter derives parameters from the descriptor — so no
+`n8nNodeSpecs.js` entry is needed unless the generic derivation is not faithful (see the gate
+above).
+
+**A type may only be defined once.** `NODE_CATALOG` is assembled from `BASE_NODE_CATALOG` +
+`CORE_NODE_CATALOG` + `APP_NODE_CATALOG`, and `catalog.test.js` asserts the three are pairwise
+disjoint. The guard exists because object spread is last-wins and silent: a `core-nodes/switch.js`
+once replaced the hand-authored `switch` and dropped its `branches`, which stopped it resolving as
+a router — 15 tests failed, and a learner with a *correct* branching flow could not finish a build
+phase.
+
+### A node with more than one output IS a router — plan for it
+
+`isRouterEntry()` resolves a router from an explicit `router` flag, a `branches` list, **or more
+than one `main` output**. So `if`, `loop-over-items`, `compare-datasets`,
+`sentiment-analysis` and `guardrails` are all routers now, not just `switch`. Derive the list
+rather than trusting this one, because it follows from the descriptors:
+
+```bash
+# vite-node has no -e flag — write a file, like the decision-count snippet in §5
+cat > /tmp/routers.mjs <<'EOF'
+import { NODE_CATALOG, isRouterEntry } from '@judge/catalog';
+console.log(Object.entries(NODE_CATALOG).filter(([, v]) => isRouterEntry(v)).map(([k]) => k).join(', '));
+EOF
+npx vite-node /tmp/routers.mjs
+```
+
+`filter` is deliberately **not** one: it has a single `Kept` output, because real n8n's Filter drops
+non-matching items rather than routing them.
+
+That decides real authoring behaviour, so choose deliberately:
+
+- the Run walks it as a router, taking one output per case;
+- **every branch must reach a configured terminal or the build phase will not complete** —
+  `branchReach.js` enforces it, walking through passthrough nodes to find one;
+- a case that picks a multi-output node and wires only one output has authored a dead end.
+
+If you want a two-way node without routing semantics, do not reach for `if`.
 
 ## 6b. Learned the hard way on `trial-signup-desk`
 

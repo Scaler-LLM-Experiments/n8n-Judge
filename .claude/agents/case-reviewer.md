@@ -105,12 +105,14 @@ Load the `authoring-a-problem` skill for the full rules. Check at least:
 - `referenceGraph` actually satisfies the flow, and `simulateAll` passes on it. Verify,
   do not assume:
   ```bash
-  npx vite-node -e "
-    import { simulateAll } from '@judge/engine';
-    const m = await import('./packages/problems/<slug>/index.js');
-    const p = Object.values(m).find(v => v?.dissection);
-    console.log(JSON.stringify(simulateAll(p.referenceGraph, p), null, 2));
-  "
+  # vite-node has no -e flag; write a file and run it
+  cat > /tmp/sim-<slug>.mjs <<'EOF'
+  import { simulateAll } from '@judge/engine';
+  const m = await import('./packages/problems/<slug>/index.js');
+  const p = Object.values(m).find((v) => v?.dissection);
+  console.log(JSON.stringify(simulateAll(p.referenceGraph, p), null, 2));
+  EOF
+  npx vite-node /tmp/sim-<slug>.mjs
   ```
 - Every branch reaches a configured terminal. A branch that dead-ends cannot complete its
   phase, and the learner sees a correct-looking flow that refuses to advance.

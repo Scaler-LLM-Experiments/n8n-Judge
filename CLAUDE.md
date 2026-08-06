@@ -536,14 +536,23 @@ asset, and must never introduce a hotlink.
 **Still coupled:** a genuinely new *node type* is **five** things — a descriptor under
 [packages/catalog/](packages/catalog/), a `typeCategory` **and** icon entry in `nodeIcons.js`
 (missing the former makes it invisible in the picker, which *filters* on that map rather than
-falling back), the SVG asset, an `n8nNodeSpecs.js` export spec if a case will place it, and a row
-in the catalogue doc. That's by design.
+falling back), the SVG asset, and a row in the catalogue doc. That's by design.
 
-> **The export spec table is the tightest constraint on authoring right now.** Every case owes an
-> importable n8n workflow (see *Problem-as-data*), and only 14 of the 200 types have a spec in
-> [packages/engine/n8nNodeSpecs.js](packages/engine/n8nNodeSpecs.js) — 7 of them legacy aliases.
-> So a case authored purely on canonical types currently fails `npm run workflows:generate`. It
-> fails loudly, not silently, but check the table before committing to a node set.
+**A type may only be defined once.** `NODE_CATALOG` is assembled from `BASE_NODE_CATALOG` plus
+`CORE_NODE_CATALOG` plus `APP_NODE_CATALOG`, and `catalog.test.js` asserts those three are pairwise
+disjoint. That guard exists because object spread is last-wins and silent: a `core-nodes/switch.js`
+once replaced the hand-authored `switch` and dropped its `branches`, which stopped it resolving as
+a router — 15 tests failed and a learner with a *correct* branching flow could not finish a build
+phase. A router is now recognised by `isRouterEntry()` (an explicit `router` flag, `branches`, or
+more than one `main` output), so a multi-output node is a router automatically.
+
+> **Every case owes an importable n8n workflow**, and the exporter no longer needs a per-type
+> entry: `exportWorkflow.js` falls back to `genericNodeSpec()`, which derives real n8n parameters
+> from the descriptor plus the authored answers. So
+> [packages/engine/n8nNodeSpecs.js](packages/engine/n8nNodeSpecs.js) is a table of ~14 **overrides**
+> for the nodes whose real shape the descriptor cannot imply — `switch`'s `rules.values[].outputKey`,
+> `google-sheets`'s `{ __rl }` locators, `classify` exporting as `chainLlm`. The remaining duty is
+> to read what a case actually emitted, because a clean export is not proof it would run.
 
 ### Packages
 | Package | What |

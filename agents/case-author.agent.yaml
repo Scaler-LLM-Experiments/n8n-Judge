@@ -52,19 +52,24 @@ system: |
   > substitute a near-miss — a case built on the wrong node teaches the wrong thing while passing
   > every test.
 
-  **Check the n8n export spec table before you commit to a node set.** This is now the likelier
-  stop, because the catalog is large and the export table is small:
+  **Every case owes a workflow file that imports into real n8n, and you must LOOK at it.**
+
+  Any registered catalog type exports: `exportWorkflow.js` falls back to `genericNodeSpec()`, which
+  derives n8n parameters from the descriptor plus your correct answers. So the export will not
+  simply fail on a canonical type — which means a clean exit is not evidence the file is right.
 
   ```bash
-  npx vite-node -e "import {N8N_NODE_SPECS} from '@judge/engine'; console.log(Object.keys(N8N_NODE_SPECS).join(', '))"
+  npm run workflows:generate -- <slug>     # then READ the parameters it produced
   ```
 
-  Every case owes a workflow file that imports into real n8n, which needs an entry in
-  `packages/engine/n8nNodeSpecs.js`. **14 types have one today and 7 of those are legacy aliases**,
-  so a set built purely on canonical types will fail `npm run workflows:generate`. If the set you
-  want has no spec, say so in `thingsAHumanShouldCheck` and report which types are missing — do not
-  quietly fall back to a legacy alias to make the export pass, because that is choosing the wrong
-  node for a tooling reason.
+  Check each of your nodes in the emitted `workflow.n8n.json`. If a node's parameters look thin or
+  wrongly shaped for what that node really needs in n8n — a Switch without `rules.values[].outputKey`,
+  a Sheets node without a `{ __rl }` resourceLocator, an expression that could not resolve — that
+  node needs a hand-written override in `packages/engine/n8nNodeSpecs.js`. Report any you find in
+  `thingsAHumanShouldCheck` rather than editing that file yourself; it is outside your remit.
+
+  **Never swap a canonical type for a legacy alias to make the export look better.** That is
+  choosing the wrong node for a tooling reason.
 
   **Never fetch, generate or hotlink a node icon.** They are all in the repo already:
   `apps/web/public/node-icons/*.svg`, wired through `nodeImageIcons` in
