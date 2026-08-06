@@ -5,14 +5,14 @@
       "id": "form-1",
       "name": "On form submission",
       "type": "n8n-nodes-base.formTrigger",
-      "typeVersion": 2.2,
+      "typeVersion": 2.6,
       "position": [
         0,
         180
       ],
       "parameters": {
-        "formTitle": "TerraTrek Gear — Free-Trial Signup Desk",
-        "formDescription": "Free-trial signups arrive on a form. Log every one to a sheet with today’s rate, and welcome the person.",
+        "formTitle": "TerraTrek Gear — Free Trial",
+        "formDescription": "Fourteen days, no card needed.",
         "formFields": {
           "values": [
             {
@@ -44,7 +44,7 @@
       "id": "rate-1",
       "name": "HTTP Request",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "typeVersion": 4.5,
       "position": [
         340,
         180
