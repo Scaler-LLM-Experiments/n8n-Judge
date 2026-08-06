@@ -18,7 +18,18 @@ const informationExtractor = {
   description: 'Extract information from text in a structured format',
   details:
     'Configure text, an extraction schema, optional system instructions, and batching metadata. This catalog entry never parses or extracts anything.',
-  category: 'core',
+  // An AI ROOT, not a plain core node. This drives three separate things and
+  // 'core' broke all of them: `roleOf()` in simulate.js walks it as a
+  // passthrough, `variantOf()` in the editor resolves it to 'action' so the
+  // Chat Model port and its `+` never render (the only call site of
+  // openPicker({modelSlot:true})), and NodePickerDrawer groups on the same map.
+  // The result was a node that declares a required ai_languageModel input and
+  // gives the learner no way to attach one.
+  category: 'ai',
+  // Its ai_languageModel input is `required: true`, so a run without a model
+  // cannot work — this is what makes simulate.js narrate that instead of
+  // silently walking past it.
+  needsModel: true,
   libraryCategory: 'ai',
   categories: ['AI'],
   subcategory: 'Chains',

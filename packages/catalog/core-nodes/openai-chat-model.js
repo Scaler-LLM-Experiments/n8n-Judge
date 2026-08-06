@@ -133,7 +133,11 @@ const openAiChatModel = {
   details:
     'Choose an OpenAI chat model and author Chat Completions or Responses API controls, including response formats and built-in tools. This catalog entry never reads credentials, discovers models, executes tools, or invokes OpenAI.',
   clusterRole: 'sub',
-  category: 'core',
+  // A chat model sub-node, not a core node. `variantOf()` reads this (via
+  // typeCategory, whose NODE_CATALOG spread is last and therefore wins), and
+  // only a 'model' variant can be offered in an AI root's Chat Model slot or
+  // grouped under Models in the picker.
+  category: 'model',
   libraryCategory: 'ai',
   categories: ['AI'],
   subcategory: 'Language Models',

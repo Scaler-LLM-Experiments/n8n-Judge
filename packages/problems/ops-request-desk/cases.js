@@ -193,12 +193,22 @@ export const sampleCases = [
  * placeholder is filled from the sample case above, so this is wording only; the walk
  * itself is unchanged.
  *
- * The reading step narrates through `parse`, not `aiRead`: its catalog category is core,
- * so the engine walks it as a passthrough rather than as an AI node.
+ * The reading step narrates through `aiRead`, because Information Extractor is an AI root
+ * (catalog `category: 'ai'`, `needsModel: true`). `parse` is kept as well: it costs one
+ * line and it is what the walk falls back to if that node is ever re-categorised.
+ *
+ * `aiNoModel` matters here — the extractor's ai_languageModel input is required, so a
+ * flow missing the brain has to say so rather than walking silently past it.
  */
 export const simulation = {
   onNew: 'New Ops Desk request from {from} — "{subject}"',
   trigger: '{label} fires the moment they press submit.',
+  aiRead: '{label} reads the box and calls it {category}.',
+  aiNoModel: '{label} has no brain plugged in, so it cannot read anything — the request stops here.',
+  aiNoModelContinue:
+    '{label} has no brain plugged in, but On Error says carry on — so everything downstream works from nothing.',
+  aiNoModelErrorOutput:
+    '{label} has no brain plugged in, so it fails to its error output. Nothing is wired there, so the request stops — but at least it is visible.',
   parse: '{label} reads the box and calls it {category}.',
   switchNoMatch: '"{category}" matches none of the rules, so this request stops right here.',
   switchUnwired: 'The {reply} way out is the right one, but nothing is wired to it — this request goes nowhere.',
