@@ -53,6 +53,8 @@ and the full-screen smoke journey, including the `resume` check.
   it models n8n's authoring surface without API calls, execution, polling, webhooks, or voice.
   Source catalogs are collision-tested, and priority mid-chain nodes carry realistic sample
   outputs for downstream field mapping and workflow export.
+  The standalone [node library preview](docs/node-library-preview/index.html) renders all 200
+  catalog entries with n8n-style shapes, local icons, search, and family/status filters.
   All canvas and detail surfaces now share the catalog icon renderer: official app/provider
   marks are stored locally and render as images, while core concepts use accessible
   monochrome glyphs. No logo is fetched at runtime.

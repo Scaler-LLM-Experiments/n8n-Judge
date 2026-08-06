@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>n8n Node Library Preview</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="module" src="./app.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#node-grid">Skip to nodes</a>
+
+    <header class="page-header">
+      <div class="brand-lockup">
+        <span class="brand-mark" aria-hidden="true">
+          <img src="../../apps/web/public/node-icons/n8n.svg" alt="" />
+        </span>
+        <div>
+          <p>Simulation library</p>
+          <h1>n8n nodes</h1>
+        </div>
+      </div>
+
+      <p class="catalog-count" aria-live="polite">
+        <strong id="visible-count">0</strong>
+        <span>of <span id="total-count">0</span> nodes</span>
+      </p>
+    </header>
+
+    <main>
+      <section class="toolbar" aria-label="Node library filters">
+        <div class="search-field">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="6.5"></circle>
+            <path d="m16 16 4 4"></path>
+          </svg>
+          <label class="visually-hidden" for="node-search">Search nodes</label>
+          <input
+            id="node-search"
+            type="search"
+            autocomplete="off"
+            placeholder="Search by node, purpose, or n8n type"
+          />
+          <kbd aria-hidden="true">/</kbd>
+          <button id="clear-search" type="button" hidden>Clear</button>
+        </div>
+
+        <div class="filter-row">
+          <div id="family-filters" class="filter-group" role="group" aria-label="Node family"></div>
+          <label class="deprecated-filter">
+            <input id="hide-deprecated" type="checkbox" />
+            <span aria-hidden="true"></span>
+            Hide deprecated
+          </label>
+        </div>
+      </section>
+
+      <section class="canvas" aria-labelledby="result-summary">
+        <div class="canvas-heading">
+          <p id="result-summary">Loading catalog…</p>
+          <p>Click a node to preview its selected state</p>
+        </div>
+
+        <div id="node-grid" class="node-grid" aria-live="polite" aria-busy="true"></div>
+
+        <div id="empty-state" class="empty-state" hidden>
+          <span aria-hidden="true">⌕</span>
+          <h2>No nodes found</h2>
+          <p>Try another name or clear a filter.</p>
+          <button id="reset-filters" type="button">Show all nodes</button>
+        </div>
+
+        <div id="load-error" class="load-error" role="alert" hidden>
+          <strong>The catalog could not load.</strong>
+          Serve the repository root over HTTP, then open this preview again.
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      Live from <code>packages/catalog/catalog.js</code>. Icons are loaded only from this repository.
+    </footer>
+
+    <template id="node-template">
+      <article class="node-preview">
+        <button class="canvas-node" type="button" aria-pressed="false">
+          <span class="node-icon" aria-hidden="true"></span>
+          <span class="port-layer" aria-hidden="true"></span>
+          <span class="deprecated-mark" title="Deprecated" aria-hidden="true">!</span>
+        </button>
+        <div class="node-description">
+          <strong class="node-label"></strong>
+          <span class="node-subtitle"></span>
+        </div>
+      </article>
+    </template>
+  </body>
+</html>
