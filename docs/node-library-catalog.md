@@ -2,7 +2,7 @@
 
 Use this file when choosing nodes for a new case. Use the catalog `type` in the case build, dissection, flow, and `nodeSetup`; the descriptor supplies the real simulated settings screen. The catalog contains **200 registered types**: 185 current canonical nodes for new cases, five deprecated descriptors retained only for compatibility, and 10 compatibility aliases. Three additional live app triggers remain deferred.
 
-Icons follow the pinned n8n source: app and provider nodes use their official marks, while generic workflow concepts use semantic monochrome icons (including Phosphor fallbacks). Add an external brand asset only when the pinned source has no usable mark; never commit asset-service credentials.
+Icons follow the pinned n8n source: app and provider nodes use official marks committed under `apps/web/public/node-icons`, while generic workflow concepts use semantic monochrome icons (including Phosphor fallbacks). The UI never fetches logos at runtime. Add an external brand asset only when the pinned source has no usable mark; never commit asset-service credentials.
 
 ## How to choose
 

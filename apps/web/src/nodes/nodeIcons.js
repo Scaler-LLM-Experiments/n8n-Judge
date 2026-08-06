@@ -2,16 +2,12 @@ import React from 'react';
 import { Sparkle, BracketsCurly, ArrowsSplit, ChatCircle, Lightning, Plug, FlowArrow, Brain, Clock, Code, GitBranch, ArrowsMerge, FunnelSimple, Prohibit, Broadcast, CopySimple, HourglassMedium, Globe, Table, ClipboardText } from '@phosphor-icons/react';
 import { NODE_CATALOG } from '@judge/catalog/catalog.js';
 
-// Real, full-color app icons (favicons / product branding), background stripped
-// with ImageMagick. Preferred over abstract glyphs for any node that maps to a
-// real product — see nodeImageIcons below.
-const gmailIcon = '/node-icons/gmail.png';
-const geminiIcon = '/node-icons/gemini.png';
-const slackIcon = '/node-icons/slack.png';
-const notionIcon = '/node-icons/notion.png';
-const calendarIcon = '/node-icons/calendar.png';
-const docsIcon = '/node-icons/docs.png';
-const googleIcon = '/node-icons/google.png';
+// Official n8n assets used by compatibility aliases that predate the catalog.
+const gmailIcon = '/node-icons/gmail.svg';
+const geminiIcon = '/node-icons/google-gemini-chat-model.svg';
+const slackIcon = '/node-icons/slack.svg';
+const notionIcon = '/node-icons/notion.svg';
+const calendarIcon = '/node-icons/google-calendar.svg';
 
 // Per-category visual identity. Kept deliberately calm: the loud colour in the
 // UI comes from the real brand logos, so category accents are muted and the node
@@ -39,8 +35,6 @@ export const nodeImageIcons = {
   'slack-message': slackIcon,
   'calendar-event': calendarIcon,
   'notion-page': notionIcon,
-  'web-search': googleIcon,
-  'google-docs': docsIcon,
   ...Object.fromEntries(
     Object.entries(NODE_CATALOG)
       .filter(([, node]) => node.icon)
@@ -68,6 +62,7 @@ export const nodeIcons = {
   'remove-duplicates': CopySimple,
   wait: HourglassMedium,
   'http-request': Globe,
+  'web-search': Globe,
   // Compatibility fallbacks; canonical catalog assets take priority.
   'google-sheets': Table,
   'form-trigger': ClipboardText,
