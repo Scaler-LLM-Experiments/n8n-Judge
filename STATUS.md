@@ -27,7 +27,7 @@ Milestones have been completed out of order. What is actually true, per mileston
 | **M5 authoring** | ⚠️ mostly done — the CLI pipeline (`problem:new/check/draft`) plus the **agent pipeline** (`/author-case`, see below); no admin editor |
 | M6 voice · M7 SQS | M6 largely done in practice (see Voice); M7 not started |
 
-Verified 2026-08-06: **694/694 unit tests**, both typecheck halves, the production build,
+Verified 2026-08-06: **707/707 unit tests**, both typecheck halves, the production build,
 and the full-screen smoke journey, including the `resume` check.
 
 ---
