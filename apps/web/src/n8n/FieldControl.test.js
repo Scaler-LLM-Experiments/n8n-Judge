@@ -73,6 +73,23 @@ describe('expressionFor', () => {
   it('writes what n8n writes when you drag a field in', () => {
     expect(expressionFor('body')).toBe('{{ $json.body }}');
   });
+
+  // A form trigger's keys ARE the questions the form asked, so spaces and
+  // punctuation are the norm, not the edge case. Dot notation there is invalid
+  // in real n8n and never matches the authored answer — which left the learner
+  // stuck on a field whose only discoverable control wrote a wrong value.
+  it('brackets any key that is not a plain identifier', () => {
+    expect(expressionFor('What do you need?')).toBe('{{ $json["What do you need?"] }}');
+    expect(expressionFor('Your name')).toBe('{{ $json["Your name"] }}');
+    expect(expressionFor('request-type')).toBe('{{ $json["request-type"] }}');
+    expect(expressionFor('2ndChoice')).toBe('{{ $json["2ndChoice"] }}');
+  });
+
+  it('keeps dot notation for keys that are valid identifiers', () => {
+    for (const key of ['request_type', '$node', '_private', 'subjectEmail']) {
+      expect(expressionFor(key)).toBe(`{{ $json.${key} }}`);
+    }
+  });
 });
 
 // The bug: the same answer graded correct sometimes and wrong other times, with

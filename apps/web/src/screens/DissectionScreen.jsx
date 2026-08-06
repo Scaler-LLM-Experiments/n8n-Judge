@@ -460,18 +460,41 @@ function ProblemBeat({ problem, onContinue }) {
   return (
     <div ref={root} style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <TopBar activeStage="statement" problem={problem} />
-      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 32px', textAlign: 'center' }}>
+      {/* `safe center` because this pane scrolls: with the full statement the content
+          can be taller than the viewport, and plain `center` overflows EQUALLY in both
+          directions — so the eyebrow and title get cut off above the scroll origin and
+          cannot be reached. `safe` falls back to flex-start exactly when that would
+          happen, and behaves identically when it fits. */}
+      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'safe center', padding: '40px 32px', textAlign: 'center' }}>
         <div data-a="r" style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--fg-3)', fontWeight: 700, marginBottom: 14 }}>
           Today’s problem
         </div>
         <h1 data-a="r" style={{ fontFamily: 'var(--font-headline)', fontSize: 52, fontWeight: 600, margin: '0 0 20px', lineHeight: 1.05, maxWidth: 820 }}>
           {problem.title}
         </h1>
-        {/* The two-line `brief`, not the full `statement`. A learner opening this
-            screen needs the situation, not the spec; the complete brief is one
-            click away in the problem panel (and is what Ask-AI is grounded in).
-            Falls back to the statement only for problems authored before `brief`. */}
-        <p data-a="r" style={{ fontSize: 17, lineHeight: 1.6, color: 'var(--fg-2)', maxWidth: 640, margin: '0 0 30px' }}>{problem.brief || problem.statement}</p>
+        {/* The FULL `statement`, not the two-line `brief`. This is the screen where a
+            learner decides what the flow has to do, and sending them to the problem
+            panel for the requirements made the decision harder than the question is.
+            `brief` still owns the Home card, where two lines is the whole point.
+
+            Left-aligned inside a centred column, and `pre-line` so an authored
+            paragraph break survives: centred multi-paragraph prose is unreadable, and
+            the statement is now several paragraphs. Falls back to `brief` for any
+            problem whose statement is somehow missing. */}
+        <div
+          data-a="r"
+          style={{
+            fontSize: 16,
+            lineHeight: 1.65,
+            color: 'var(--fg-2)',
+            maxWidth: 680,
+            margin: '0 0 32px',
+            textAlign: 'left',
+            whiteSpace: 'pre-line',
+          }}
+        >
+          {problem.statement || problem.brief}
+        </div>
 
         <div data-a="r" style={{ background: 'var(--surface-2)', border: '1px solid var(--border-subtle)', padding: '26px 28px', marginBottom: 32, maxWidth: '100%', overflowX: 'auto' }}>
           <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--fg-3)', fontWeight: 700, marginBottom: 16 }}>The shape of it</div>

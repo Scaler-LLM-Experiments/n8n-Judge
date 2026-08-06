@@ -87,9 +87,27 @@ export function isCorrectValue(field, value) {
   return norm(field.correct) === norm(value);
 }
 
-/** The expression a dragged INPUT field should produce. */
+/** A key `$json.x` can address directly — anything else needs brackets. */
+const PLAIN_IDENTIFIER = /^[A-Za-z_$][A-Za-z0-9_$]*$/;
+
+/**
+ * The expression a dragged INPUT field — or the "Insert field…" picker — should
+ * produce.
+ *
+ * Dot notation only works for keys that are valid JS identifiers. This used to
+ * emit it unconditionally, so a form field called "What do you need?" produced
+ * `{{ $json.What do you need? }}`: invalid in real n8n, and never equal to the
+ * authored `{{ $json["What do you need?"] }}`. The learner had no way forward —
+ * the picker is the discoverable path, and every answer it wrote was wrong.
+ *
+ * Field names with spaces are the norm the moment a case uses a form trigger,
+ * because the key IS the question the form asked.
+ */
 export function expressionFor(inputKey) {
-  return `{{ $json.${inputKey} }}`;
+  const path = PLAIN_IDENTIFIER.test(inputKey)
+    ? `.${inputKey}`
+    : `[${JSON.stringify(inputKey)}]`;
+  return `{{ $json${path} }}`;
 }
 
 /**
