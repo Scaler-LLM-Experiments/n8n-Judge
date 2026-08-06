@@ -793,7 +793,7 @@ const aiAgent = {
     runtimeHooks: false,
     voice: false,
   },
-  output: {},
+  output: { output: 'Refund eligibility confirmed; escalate to billing.' },
 };
 
 export default aiAgent;

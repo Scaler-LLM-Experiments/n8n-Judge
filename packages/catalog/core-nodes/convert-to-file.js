@@ -726,7 +726,11 @@ const convertToFile = {
       ],
     },
   ],
-  output: {},
+  output: {
+    binary: {
+      data: { fileName: 'customers.csv', mimeType: 'text/csv', fileExtension: 'csv' },
+    },
+  },
 };
 
 export default convertToFile;

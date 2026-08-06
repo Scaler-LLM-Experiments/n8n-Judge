@@ -1290,7 +1290,7 @@ const wait = {
     runtime: false,
     voice: false,
   },
-  output: {},
+  output: { requestId: 'REQ-2048', status: 'pending', submittedAt: '2026-08-06T09:30:00Z' },
 };
 
 export default wait;

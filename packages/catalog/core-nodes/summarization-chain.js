@@ -675,7 +675,9 @@ const summarizationChain = {
     polling: false,
     voice: false,
   },
-  output: {},
+  output: {
+    response: { text: 'Customer reported a duplicate charge and requested a refund.' },
+  },
 };
 
 export default summarizationChain;

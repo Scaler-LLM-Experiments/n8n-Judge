@@ -1,15 +1,17 @@
 import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
-import { NODE_CATALOG, AI_SUB_NODE_PORTS, TRIGGER_OPTIONS, NODE_OPTIONS } from './catalog.js';
+import { BASE_NODE_CATALOG, NODE_CATALOG, AI_SUB_NODE_PORTS, TRIGGER_OPTIONS, NODE_OPTIONS } from './catalog.js';
 import {
   CLUSTER_NODE_INVENTORY,
   COMPLETE_CLUSTER_NODE_TYPES,
+  CORE_NODE_CATALOG,
   CORE_NODE_INVENTORY,
   COMPLETE_CORE_NODE_TYPES,
   SOURCE_COMMIT,
 } from './core-nodes/index.js';
 import {
   APP_NODE_INVENTORY,
+  APP_NODE_CATALOG,
   APP_SOURCE_COMMIT,
   APP_TRIGGER_NODE_INVENTORY,
   COMPLETE_APP_NODE_TYPES,
@@ -44,6 +46,32 @@ const containsFunction = (value, seen = new Set()) => {
   seen.add(value);
   return Object.values(value).some((child) => containsFunction(child, seen));
 };
+
+describe('catalog assembly', () => {
+  it('fails loudly when two source catalogs define the same type', () => {
+    const sources = [
+      ['base', BASE_NODE_CATALOG],
+      ['core', CORE_NODE_CATALOG],
+      ['app', APP_NODE_CATALOG],
+    ];
+    const collisions = sources.flatMap(([leftName, left], index) =>
+      sources.slice(index + 1).flatMap(([rightName, right]) =>
+        Object.keys(left)
+          .filter((type) => Object.hasOwn(right, type))
+          .map((type) => `${type} (${leftName} + ${rightName})`)));
+
+    expect(collisions, `Catalog type collisions: ${collisions.join(', ')}`).toEqual([]);
+  });
+
+  it.each([
+    'code', 'if', 'merge', 'filter', 'wait', 'edit-fields', 'sort', 'summarize',
+    'extract-from-file', 'convert-to-file', 'basic-llm-chain', 'text-classifier',
+    'summarization-chain', 'ai-agent',
+  ])('%s has a useful sample output for downstream authoring', (type) => {
+    expect(NODE_CATALOG[type].output).toBeTypeOf('object');
+    expect(Object.keys(NODE_CATALOG[type].output), `${type} has an empty sample output`).not.toHaveLength(0);
+  });
+});
 
 describe('essential app-node completion inventory', () => {
   it('tracks the deliberately curated app scope without Webex or duplicates', () => {

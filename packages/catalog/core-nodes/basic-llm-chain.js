@@ -596,7 +596,7 @@ const basicLlmChain = {
     polling: false,
     voice: false,
   },
-  output: {},
+  output: { text: 'The refund request is valid and should be prioritised.' },
 };
 
 export default basicLlmChain;

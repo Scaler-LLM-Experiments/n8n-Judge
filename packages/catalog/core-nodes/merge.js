@@ -724,7 +724,7 @@ const merge = {
     evaluatesExpressions: false,
     executesSql: false,
   },
-  output: {},
+  output: { customerId: 'CUS-101', email: 'aarav@example.com', plan: 'Pro' },
 };
 
 export default merge;

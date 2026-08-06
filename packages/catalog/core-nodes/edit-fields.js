@@ -350,7 +350,7 @@ const editFields = {
     convertsTypes: false,
     duplicatesItems: false,
   },
-  output: {},
+  output: { customerId: 'CUS-101', status: 'qualified', score: 92 },
 };
 
 export default editFields;

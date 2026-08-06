@@ -181,7 +181,7 @@ const code = {
       showWhen: { language: ['python', 'pythonNative'] },
     },
   ],
-  output: {},
+  output: { customerId: 'CUS-101', total: 129.5, processed: true },
 };
 
 export default code;

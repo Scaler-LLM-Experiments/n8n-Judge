@@ -586,7 +586,7 @@ const extractFromFile = {
   ],
   unsupportedVisibleTypes: [],
   simulationNote: 'This catalog entry never reads, decodes, parses, or converts file data.',
-  output: {},
+  output: { customerId: 'CUS-101', amount: 129.5, status: 'paid' },
 };
 
 export default extractFromFile;

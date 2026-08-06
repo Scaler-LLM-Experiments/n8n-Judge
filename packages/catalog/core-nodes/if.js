@@ -403,7 +403,7 @@ const ifNode = {
     },
   ],
   simulationNote: 'This node never resolves expressions, validates types, tests regexes, or routes items.',
-  output: {},
+  output: { customerId: 'CUS-101', total: 129.5, status: 'approved' },
 };
 
 export default ifNode;

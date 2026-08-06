@@ -325,7 +325,7 @@ e.g.: { combinator: 'and', options: { caseSensitive: true, leftValue: '', typeVa
     executes: false,
     voice: false,
   },
-  output: {},
+  output: { customerId: 'CUS-101', status: 'active', score: 92 },
 };
 
 export default filter;

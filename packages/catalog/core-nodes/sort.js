@@ -258,7 +258,7 @@ const sort = {
     network: false,
     voice: false,
   },
-  output: {},
+  output: { customerId: 'CUS-101', priority: 1, status: 'open' },
 };
 
 export default sort;

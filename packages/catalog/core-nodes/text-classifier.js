@@ -412,7 +412,7 @@ const textClassifier = {
     polling: false,
     voice: false,
   },
-  output: {},
+  output: { message: 'I was charged twice', customerId: 'CUS-101', channel: 'email' },
 };
 
 export default textClassifier;
