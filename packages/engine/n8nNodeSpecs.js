@@ -123,6 +123,32 @@ function messageBody(setup, key) {
   return expr(lockedValue(setup, 'Body', 'Message', 'Message body', 'Text')) || usableValue(setup, key);
 }
 
+/** n8n's Schedule Trigger numbers the week 0=Sunday … 6=Saturday. */
+const WEEKDAY_NUMBERS = { sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6 };
+
+/** "Monday, Tuesday, Wednesday, Thursday, Friday" → [1, 2, 3, 4, 5]. */
+function weekdayNumbers(text) {
+  const found = String(text ?? '').toLowerCase().split(/[^a-z]+/).filter(Boolean)
+    .map((word) => WEEKDAY_NUMBERS[word])
+    .filter((n) => n !== undefined);
+  return [...new Set(found)];
+}
+
+/**
+ * A Judge operator token (`'number:lt'`) as n8n's condition operator object.
+ *
+ * Resolved from the CATALOG's own option list rather than a mapping table here,
+ * because the descriptor already carries each option's `sourceValue`
+ * (`{ type, operation, singleValue }`) read out of n8n's source. A second table
+ * would be a copy that silently drifts from the first.
+ */
+function conditionOperator(token) {
+  const conditions = (NODE_CATALOG.filter?.params ?? []).find((p) => p.key === 'conditions');
+  const operators = (conditions?.fields ?? []).find((f) => f.key === 'operatorId');
+  const option = (operators?.options ?? []).find((o) => o.value === token);
+  return option?.sourceValue ?? { type: 'string', operation: 'equals' };
+}
+
 /**
  * An Information Extractor's attributes, parsed out of the case's locked panel.
  *
@@ -366,10 +392,103 @@ export const N8N_NODE_SPECS = {
   },
 
   schedule: {
-    parameters: () => ({ rule: { interval: [{ field: 'hours', hoursInterval: 1 }] } }),
+    /**
+     * Hourly is only the fallback. A case that grades *when* the sweep runs has
+     * said something the export has to carry: "every weekday at 07:30" exported
+     * as "every hour" is a workflow that does a different job from the one the
+     * learner was graded on.
+     *
+     * Weekdays are the one part a case states as locked prose rather than as an
+     * answer, so they are parsed leniently and simply omitted when they do not
+     * parse — a weekly trigger that fires on n8n's default day is wrong by a day,
+     * where a malformed `triggerAtDay` is wrong by not importing.
+     */
+    parameters: ({ setup }) => {
+      const field = authored(setup, 'interval')?.value ?? 'hours';
+      const at = (key) => {
+        const value = Number(authored(setup, key)?.value);
+        return Number.isFinite(value) ? value : undefined;
+      };
+      const hour = at('triggerAtHour');
+      const minute = at('triggerAtMinute');
+      if (field === 'hours' && hour === undefined && minute === undefined) {
+        return { rule: { interval: [{ field: 'hours', hoursInterval: 1 }] } };
+      }
+      const entry = { field };
+      const countKey = { weeks: 'weeksInterval', days: 'daysInterval', months: 'monthsInterval', hours: 'hoursInterval' }[field];
+      if (countKey) entry[countKey] = Number(lockedValue(setup, 'Weeks Between Triggers', 'Days Between Triggers', 'Months Between Triggers')) || 1;
+      if (field === 'weeks') {
+        const days = weekdayNumbers(lockedValue(setup, 'Trigger on weekdays', 'Trigger on Weekdays'));
+        if (days.length) entry.triggerAtDay = days;
+      }
+      if (hour !== undefined) entry.triggerAtHour = hour;
+      if (minute !== undefined) entry.triggerAtMinute = minute;
+      return { rule: { interval: [entry] } };
+    },
   },
 
   // --- core -----------------------------------------------------------------
+
+  filter: {
+    /**
+     * Filter v2.2 — one condition, in n8n's v2 condition-builder shape.
+     *
+     * A case grades the three parts separately (`leftValue` / `operatorId` /
+     * `rightValue`) because n8n's real control is a `fixedCollection`, which is
+     * not a gradeable field kind. Reassembling them here is what turns those
+     * three answers back into the parameter n8n actually stores.
+     *
+     * `looseTypeValidation: false` is the strict default and is emitted because
+     * it is the whole point of a numeric comparison against a spreadsheet column:
+     * a blank or `"8 kg"` must not quietly coerce.
+     */
+    parameters: ({ setup }) => {
+      const left = usableValue(setup, 'leftValue');
+      const right = usableValue(setup, 'rightValue');
+      const operator = conditionOperator(authored(setup, 'operatorId')?.value);
+      return {
+        conditions: {
+          options: { caseSensitive: true, leftValue: '', typeValidation: 'strict', version: 2 },
+          combinator: (authored(setup, 'conditionsCombinator')?.value) ?? 'and',
+          conditions: [{ id: rowId('condition', 0), leftValue: left, rightValue: right, operator }],
+        },
+        looseTypeValidation: false,
+        options: {},
+      };
+    },
+  },
+
+  aggregate: {
+    /**
+     * Aggregate v1 — many items into one, which is the node this whole shape of
+     * case exists to teach.
+     *
+     * `destinationFieldName` is the field every downstream expression then reads,
+     * so a default of `data` against a case that says `low_stock` exports a Slack
+     * message referring to a field that does not exist. It is stated as a locked
+     * row rather than graded (the learner is asked to choose the MODE, not to name
+     * the field), which is exactly what `lockedValue` is for.
+     */
+    parameters: ({ setup }) => {
+      const mode = authored(setup, 'aggregate')?.value ?? 'aggregateAllItemData';
+      if (mode !== 'aggregateAllItemData') {
+        const rows = expectedRows(setup, 'fieldsToAggregate');
+        return {
+          aggregate: mode,
+          fieldsToAggregate: {
+            fieldToAggregate: rows.map((r) => ({ fieldToAggregate: r.name ?? r.key ?? '' })),
+          },
+          options: {},
+        };
+      }
+      const destination = lockedValue(setup, 'Put Output in Field', 'Output Field', 'Destination Field Name');
+      return {
+        aggregate: 'aggregateAllItemData',
+        ...(destination ? { destinationFieldName: destination } : {}),
+        options: {},
+      };
+    },
+  },
 
   'http-request': {
     // Sparse on purpose: GET is the default method, so omitting it is what a real
@@ -597,18 +716,30 @@ export const N8N_NODE_SPECS = {
      * node that looks configured and fails on execute.
      */
     parameters: ({ setup }) => {
-      const rows = expectedRows(setup, 'columns');
-      return {
+      // The OPERATION is the graded answer wherever a case asks for it, and
+      // getting it from the case matters more here than anywhere else in this
+      // file: hardcoding `append` on a case whose answer is `read` exports a
+      // workflow that writes blank rows into the learner's own spreadsheet the
+      // first time they press Execute. Rule 1 of this module, in its worst form.
+      const operation = authored(setup, 'sheetOperation')?.value ?? 'append';
+      const base = {
         resource: 'sheet',
-        operation: 'append',
+        operation,
         documentId: rl('', '', 'url'),
         sheetName: rl('', '', 'url'),
+        options: {},
+      };
+      // A read has no column mapper — n8n does not display those parameters for
+      // it, so storing them would be both wrong (§4) and a claim to write.
+      if (operation === 'read' || operation === 'clear' || operation === 'remove' || operation === 'delete') return base;
+      const rows = expectedRows(setup, 'columns');
+      return {
+        ...base,
         columns: {
           mappingMode: 'defineBelow',
           matchingColumns: [],
           value: Object.fromEntries(rows.map((r) => [r.name ?? r.key, expr(r.expression ?? r.value ?? '')])),
         },
-        options: {},
       };
     },
     credentials: () => CRED('googleSheetsOAuth2Api', 'Google Sheets account'),
@@ -668,7 +799,15 @@ export const N8N_NODE_SPECS = {
       resource: 'message',
       operation: 'post',
       select: 'channel',
-      channelId: rl(channelName(usableValue(setup, 'channelId') || usableValue(setup, 'channel')), '', 'name'),
+      // Graded first, then locked. A case whose STATEMENT names the channel has
+      // to lock it rather than grade it — asking would hand over an answer the
+      // learner just read — but the channel is still known, and an export with an
+      // empty destination is a workflow that cannot run.
+      channelId: rl(
+        channelName(usableValue(setup, 'channelId') || usableValue(setup, 'channel') || lockedValue(setup, 'Channel', 'Send Message To Channel')),
+        '',
+        'name'
+      ),
       messageType: 'text',
       text: messageBody(setup, 'text'),
       otherOptions: {},
