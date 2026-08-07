@@ -108,8 +108,13 @@ export const nodeProbes = {
       {
         text: 'Register a Google Cloud project, mint credentials, and hand-build the API call and the parsing',
         correct: true,
+        // Never point at the answer. This phase's pickable list contains exactly one
+        // Google-named node, so "what has Google's name on it?" was the answer key
+        // phrased as a question. The concept — a dedicated node exists for a named
+        // product, and it owns the auth and the parsing so you do not — is the thing
+        // worth asking about, and it does not identify anything on the list.
         response:
-          'Exactly, and that is real work you would then own forever. n8n already ships a node that does all of it for this exact app. What is on the picker list that has Google\'s name on it?',
+          'Exactly, and that is real work you would then own forever — the token, the range, the parsing, and every change Google makes to any of them. Generic HTTP is what you reach for when nothing better exists. Does that hold here, for a product this well known?',
       },
       {
         text: 'Point it at the sheet and let n8n work out the authentication from the credential list',

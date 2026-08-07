@@ -41,11 +41,24 @@ export const nodeSetup = {
       Minute: 30,
       Timezone: 'Asia/Kolkata (+05:30)',
     },
-    locked: [
-      { label: 'Weeks Between Triggers', value: '1' },
-      { label: 'Trigger on weekdays', value: 'Monday, Tuesday, Wednesday, Thursday, Friday' },
-      { label: 'Timezone', value: 'Asia/Kolkata (workflow default)' },
-    ],
+    // ONE locked row, and it is deliberately the only one that is true whatever the
+    // learner picks below.
+    //
+    // This panel used to carry "Weeks Between Triggers: 1" and "Trigger on weekdays:
+    // Monday…Friday" as well, and both had to go: in real n8n neither parameter exists
+    // until the Trigger Interval is set to Weeks, so displaying them above an
+    // ungraded-yet Trigger Interval answers it. "Weeks Between Triggers" was the worse
+    // of the two — the word "Weeks" is the correct option's label, printed verbatim, so
+    // it was free to a learner who had never opened n8n.
+    //
+    // Cost of removing them, stated because it is real: `n8nNodeSpecs.js` reads BOTH
+    // labels when it exports the Schedule Trigger. `Weeks Between Triggers` falls back
+    // to 1, which is the same file. `Trigger on weekdays` does not — without it the
+    // export omits `triggerAtDay`, so the imported workflow runs weekly on n8n's own
+    // default day rather than Monday to Friday. That is a wrong day in a convenience
+    // file; the alternative was a free answer on a graded field, which is a wrong mark
+    // on a learner. Flagged for a human: the fix belongs in the export spec, not here.
+    locked: [{ label: 'Timezone', value: 'Asia/Kolkata (workflow default)' }],
     fields: [
       {
         // The interval decides WHICH other fields the node even shows you, which is
@@ -77,7 +90,7 @@ export const nodeSetup = {
             value: 'weeks',
             label: 'Weeks',
             correct: true,
-            why: 'The only interval that offers "Trigger on weekdays". Pick it and you get the day checkboxes plus an hour and a minute, which is the whole rule: Monday to Friday, once, at a fixed time.',
+            why: 'Weeks is the only one of the four that lets you name the days at all: pick it in n8n and the node adds a row of weekday checkboxes alongside the hour and the minute. Tick Monday to Friday and that is the whole rule — once a week, on five of its days, at a fixed time.',
           },
         ],
       },
@@ -238,10 +251,27 @@ export const nodeSetup = {
       supplier: 'Kerehaklu Estates',
       last_counted: '2026-08-08',
     },
-    locked: [
-      { label: 'Combine Conditions', value: 'AND — every condition must be true' },
-      { label: 'Ignore Case', value: 'On' },
-    ],
+    // The combinator row is gone, and it is not cosmetic. It read "Combine Conditions:
+    // AND — every condition must be true", which is a claim about a control real n8n
+    // does not even show until there are two conditions to combine — and this node has
+    // one. Worse, the `uncounted` Stress Testing question's correct answer proposes
+    // widening the rule to "below its level OR blank or not a number", so a learner who
+    // read this panel literally had been told, on the screen where they configured it,
+    // that this node only does AND. That is a graded question argued against by the
+    // author's own locked copy. The OR is a redesign of the condition, and nothing in
+    // the node forbids it; the panel should not imply otherwise.
+    //
+    // Nothing in `n8nNodeSpecs.js` reads this row — the exporter takes the combinator
+    // from a graded `conditionsCombinator` field, which this case does not author, so
+    // it exports n8n's default. Removing the row changes no exported parameter.
+    //
+    // Nothing replaces it, deliberately. The obvious substitutes — "Type Validation:
+    // Strict", "Convert types where required: Off" — are all statements about the
+    // mechanism `uncounted` explicitly asks the learner to set aside, and a panel that
+    // names it invites exactly the reading ("strict, so it must error, so stop the run")
+    // that the question marks wrong. One true row is better than two, one of which
+    // argues with a graded answer.
+    locked: [{ label: 'Ignore Case', value: 'On' }],
     fields: [
       {
         key: 'leftValue',
@@ -275,9 +305,13 @@ export const nodeSetup = {
         ],
       },
       {
-        // The `<` versus `<=` argument. Cheap to get wrong, and worth arguing about:
-        // the reorder level is the point at which you order, so sitting exactly on it
-        // means the system is working, not failing.
+        // The `<` versus `<=` argument. Cheap to get wrong, and worth arguing about —
+        // but the argument is about the BRIEF, not about inventory theory. A reorder
+        // point is conventionally the level at which you place the order, which makes
+        // `<=` the domain-normal rule; the `why` below used to claim the opposite ("a
+        // bean sitting on its level has a full reorder's worth of runway"), which told
+        // any supply-chain-literate learner something false in order to win an
+        // argument the brief had already won. The brief says *below*. That is enough.
         key: 'operatorId',
         label: 'Condition — operator',
         subtitle: 'How the two sides are compared. Read the rule in the brief very carefully.',
@@ -286,7 +320,7 @@ export const nodeSetup = {
             value: 'number:lte',
             label: 'is less than or equal to',
             correct: false,
-            why: 'This also keeps a bean sitting exactly on its reorder level. Reasonable instinct — that feels like "getting low" — but the reorder level is the point at which a reorder covers you, so a bean sitting on it has a full reorder\'s worth of runway and the buyer does not need to see it yet.',
+            why: 'This also keeps a bean sitting exactly on its reorder level. It is a defensible rule — plenty of stock systems order the moment you touch the line — so this is not a silly answer. It is just not the one you were given: the brief says the row has to have *dropped below* its reorder level, and a bean sitting exactly on it has not dropped below it. When the rule and your instinct disagree, implement the rule and raise the instinct with Ritika.',
           },
           {
             value: 'number:gt',
@@ -355,15 +389,34 @@ export const nodeSetup = {
         { bean: 'Decaf Colombia', location: 'Baner', kg_on_hand: 0, reorder_level: 4, supplier: 'Cafe Granja' },
       ],
     },
-    locked: [
-      { label: 'Put Output in Field', value: 'low_stock' },
-      { label: 'Include', value: 'All Fields' },
-    ],
+    // THERE IS NO `locked` BLOCK ON THIS NODE, and that is the fix for a real defect
+    // rather than a tidy-up. `Ndv.jsx` runs `compatibleCatalogParams()`, which renders
+    // the node's full native catalog surface whenever every authored key is also a
+    // native catalog key. `aggregate` is the only node in this case where that is true,
+    // so the live catalog controls appear alongside the authored ones — and this panel
+    // used to carry a locked, disabled row reading "Put Output in Field: low_stock"
+    // three inches from the live catalog control of the same name sitting at its n8n
+    // default, `data`. Two controls, one label, contradicting each other, on the exact
+    // field name the graded Slack answer `{{ $json.low_stock }}` depends on.
+    //
+    // Authored fields merge over catalog params BY KEY, so grading `destinationFieldName`
+    // collapses the pair into one control and the contradiction is gone. It is also a
+    // better question than the locked row was: the name typed here is the name the post
+    // has to read, which is the one piece of coupling in this flow that a learner can
+    // get wrong in a way nothing complains about.
     fields: [
       {
-        // Real n8n offers exactly these two and no more, so this is a two-option field
-        // rather than a padded one. Inventing a third would teach a UI that does not
-        // exist, which is worse than a short list.
+        // Real n8n offers two modes here and no more, so this field has two options
+        // and decays 100/0 — the second attempt is forced by elimination and earns
+        // nothing. An invented third option would soften that curve, and was tried
+        // and rejected: this product's value is that the panel is the real panel, and
+        // one fabricated control costs more than a harsh decay on one item.
+        //
+        // Worth knowing when reading this panel: the live catalog surface means this
+        // field opens PRE-FILLED at n8n's own default (`aggregateIndividualFields`,
+        // which is wrong here) rather than blank. `destinationFieldName` below opens
+        // unanswered and pulsing, so the panel does not read as already complete —
+        // which is what makes the pre-fill survivable.
         key: 'aggregate',
         label: 'Aggregate',
         subtitle: 'What shape the collected items come out in.',
@@ -372,13 +425,63 @@ export const nodeSetup = {
             value: 'aggregateIndividualFields',
             label: 'Individual Fields',
             correct: false,
-            why: 'This gathers each named column into a list of its own — all the bean names in one list, all the quantities in another. Nothing then ties a bean to its own shortfall, and the message would have to line the lists back up by position and hope.',
+            why: 'This gathers each named column into a list of its own — all the bean names in one list, all the quantities in another. Nothing then ties a bean to its own shortfall, and the message would have to line the lists back up by position and hope. It is also what this node is set to before you touch it, so it is the answer you get for not answering.',
           },
           {
             value: 'aggregateAllItemData',
             label: 'All Item Data (Into a Single List)',
             correct: true,
             why: 'Every item that reached this step is handed on inside one item, each row still whole — bean, location, quantity and level together. That is the shape the message needs.',
+          },
+        ],
+      },
+      {
+        // Graded, not locked, for the reason above — and it earns its place. In real
+        // n8n this field defaults to `data`, and whatever goes in it is the name the
+        // next node must read. Get it wrong and nothing complains: the run is green,
+        // the post is empty, and the expression in the Slack step points at a field
+        // that was never created.
+        //
+        // n8n shows this field only once the mode above is All Item Data (the catalog
+        // descriptor carries that `showWhen`), so the two questions arrive in the right
+        // order on their own: choose the shape, then name what comes out.
+        key: 'destinationFieldName',
+        label: 'Put Output in Field',
+        // `kind` is REQUIRED here, and it is the whole reason this field works.
+        // Aggregate is the one node whose native catalog surface renders live (all
+        // its graded keys are native keys), and `mergeCatalogFields` spreads the
+        // authored overlay over the catalog param — so without an explicit kind the
+        // catalog's `text` wins, the four options below never render, and the field
+        // becomes a free-text box demanding an exact string nothing on the panel
+        // shows. A learner who typed a perfectly sensible `shortlist` would be
+        // marked wrong and get an EMPTY Iris bubble, because there is no matching
+        // option to take a `why` from.
+        kind: 'select',
+        subtitle: 'The name the gathered list arrives under. Whatever you choose here is what the next step has to read.',
+        options: [
+          {
+            value: 'Stock',
+            label: 'Stock',
+            correct: false,
+            why: 'That is the name of the tab the rows came from, and this is not the tab — it is the three rows out of forty that failed the comparison. Naming a value after where it came from rather than what it is reads fine on the day you write it and misleads everybody after that.',
+          },
+          {
+            value: 'data',
+            label: 'data',
+            correct: false,
+            why: 'n8n\'s own default, so this is what you get for leaving the field alone — and it is why the field is worth a question. Every Aggregate node in every workflow calls its output `data`, so the expression in the post would say `data` and tell the next person nothing about what is in it. Name it for what it holds and the message step reads like a sentence.',
+          },
+          {
+            value: 'bean',
+            label: 'bean',
+            correct: false,
+            why: 'Two problems. It holds a list of rows, not one bean — and `bean` is already a column name inside every one of those rows, so the flow would now have two different things reachable by that word and you would have to keep track of which one you meant.',
+          },
+          {
+            value: 'low_stock',
+            label: 'low_stock',
+            correct: true,
+            why: 'Names what is actually in it: the beans that came out under their reorder level. Look at this node\'s Output pane after you verify, and then at the next node\'s Input pane — this is the field name that appears in both, and it is the word the message step has to reach for. That is the coupling worth noticing here: nothing checks that the two agree, so if you change this name you have to change the post with it.',
           },
         ],
       },
@@ -392,12 +495,25 @@ export const nodeSetup = {
     credential: 'Slack — Brightleaf Roasters',
     // What Slack answers with. Nothing downstream reads it — this is the confirmation
     // the learner gets that their node did the right thing.
+    //
+    // `message.text` is what the GRADED answer actually posts, which is not the same as
+    // what a finished ops flow would post. The correct value here is the whole gathered
+    // shortlist in one go, so what lands in the channel is the shortlist raw — every
+    // row, every column, unformatted. This pane used to show three hand-formatted lines
+    // that no authored answer produces, which quietly told the learner their correct
+    // answer did something it does not do. Formatting the lines is explicitly not the
+    // skill under test (see the `text` field below); showing the raw dump is honest
+    // about where the case stops, and it is the natural opening for "so how would you
+    // make that readable?".
     sampleOutput: {
       ok: true,
       channel: 'C08SUPPLYCH',
       ts: '1786501800.000200',
       message: {
-        text: 'Ethiopia Guji · Kalyani Nagar · 1.2 kg on hand · reorder at 6\nBrazil Cerrado Ho. · Roastery · 18 kg on hand · reorder at 25\nDecaf Colombia · Baner · 0 kg on hand · reorder at 4',
+        text:
+          '[{"bean":"Ethiopia Guji","location":"Kalyani Nagar","kg_on_hand":1.2,"reorder_level":6,"supplier":"Kerehaklu Estates"},' +
+          '{"bean":"Brazil Cerrado Ho.","location":"Roastery","kg_on_hand":18,"reorder_level":25,"supplier":"Fazenda Rio Verde"},' +
+          '{"bean":"Decaf Colombia","location":"Baner","kg_on_hand":0,"reorder_level":4,"supplier":"Cafe Granja"}]',
         username: 'Brightleaf Ops',
       },
     },
@@ -440,7 +556,7 @@ export const nodeSetup = {
             value: 'low_stock',
             label: '{{ $json.low_stock }}',
             correct: true,
-            why: 'The gathered shortlist, every row of it, in one value. That is the only thing on the item that reaches this node, and it is what the buyer needs to read.',
+            why: 'The gathered shortlist, every row of it, in one value — and it is the only thing on the item that reaches this node. Look at what lands in the channel, though: the whole list goes in raw, columns and all. Getting the right value into the message is the decision here; turning it into four tidy lines is a separate job, and one you now know exactly where to do.',
           },
           {
             value: 'kg_on_hand',

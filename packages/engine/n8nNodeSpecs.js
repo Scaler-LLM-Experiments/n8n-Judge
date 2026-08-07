@@ -398,10 +398,13 @@ export const N8N_NODE_SPECS = {
      * as "every hour" is a workflow that does a different job from the one the
      * learner was graded on.
      *
-     * Weekdays are the one part a case states as locked prose rather than as an
-     * answer, so they are parsed leniently and simply omitted when they do not
-     * parse — a weekly trigger that fires on n8n's default day is wrong by a day,
-     * where a malformed `triggerAtDay` is wrong by not importing.
+     * Weekdays are the one part a case can only state as locked prose, and a case
+     * may legitimately not state them at all: `triggerAtDay` only appears under a
+     * Weeks interval in real n8n, so a case that GRADES the interval cannot show
+     * the weekday row without handing over its own answer. When it is absent the
+     * day is simply omitted — the import then runs weekly at the right time on
+     * n8n's default day, which the learner can see and change. A wrong day in a
+     * convenience file is a smaller cost than a free answer on a graded field.
      */
     parameters: ({ setup }) => {
       const field = authored(setup, 'interval')?.value ?? 'hours';
@@ -438,9 +441,15 @@ export const N8N_NODE_SPECS = {
      * not a gradeable field kind. Reassembling them here is what turns those
      * three answers back into the parameter n8n actually stores.
      *
-     * `looseTypeValidation: false` is the strict default and is emitted because
-     * it is the whole point of a numeric comparison against a spreadsheet column:
-     * a blank or `"8 kg"` must not quietly coerce.
+     * `looseTypeValidation: false` is emitted rather than left to default,
+     * because n8n's default for it is version-dependent (§ the If/Filter notes in
+     * docs/n8n-reference) and a comparison a case grades should not change
+     * meaning with the typeVersion.
+     *
+     * What strict validation then DOES with a value it cannot parse — raise a
+     * type error, or evaluate false and drop the row — is not settled here, and
+     * no case should be authored as though it were. It could not be verified
+     * against n8n's source from this repo.
      */
     parameters: ({ setup }) => {
       const left = usableValue(setup, 'leftValue');
@@ -481,7 +490,14 @@ export const N8N_NODE_SPECS = {
           options: {},
         };
       }
-      const destination = lockedValue(setup, 'Put Output in Field', 'Output Field', 'Destination Field Name');
+      // Graded answer first, locked row second. A case may either grade the field
+      // name (it is the name every downstream expression then has to read, which
+      // is worth teaching) or state it as context — but it must not do both: the
+      // catalog surface renders `destinationFieldName` live whenever every graded
+      // key on this node is a native one, so a locked row saying `low_stock`
+      // beside a live control defaulting to `data` contradicts itself on the panel.
+      const destination = authored(setup, 'destinationFieldName')?.value
+        ?? lockedValue(setup, 'Put Output in Field', 'Output Field', 'Destination Field Name');
       return {
         aggregate: 'aggregateAllItemData',
         ...(destination ? { destinationFieldName: destination } : {}),

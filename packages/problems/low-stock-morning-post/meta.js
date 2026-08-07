@@ -23,7 +23,10 @@ export const title = 'Low-Stock Morning Post';
 export const statement =
   'Brightleaf Coffee Roasters roasts in Pune and runs three cafés — Koregaon Park, Baner and Kalyani Nagar — plus the roastery itself. Green bean stock for all four sits in one Google Sheet, "Bean Inventory 2026", on a tab called Stock: one row per bean per location, about forty rows, with the columns bean, location, kg_on_hand, reorder_level, supplier and last_counted.\n\n' +
   'Every weekday morning Ritika, the roastery\'s ops coordinator, opens that sheet before the first roast and reads down it looking for any row where kg_on_hand has dropped below that row\'s own reorder_level. The levels differ per bean — the house Brazil moves fast and sits at 25 kg, a single-lot Ethiopia Guji sits at 6 — so she cannot simply look for small numbers, she has to compare two columns on every line. She then types the shortlist into the #supply-chain Slack channel so the buyer can raise purchase orders before the suppliers\' 10 a.m. cut-off.\n\n' +
-  'Build the flow that does it for her. At 07:30, Monday to Friday, it should read the whole Stock tab, keep only the rows that have dropped below their own reorder level, and put the shortlist in front of the buyer as a single message giving bean, location, kg on hand and reorder level — rather than one message per bean.\n\n' +
+  // "pull the whole Stock tab into the flow", not "read the whole Stock tab". `read` is
+  // the value of the graded Operation field, and this string is on screen for the whole
+  // session — the same reason the flow sketch does not say it either.
+  'Build the flow that does it for her. At 07:30, Monday to Friday, it should pull the whole Stock tab into the flow, keep only the rows that have dropped below their own reorder level, and put the shortlist in front of the buyer as a single message giving bean, location, kg on hand and reorder level — rather than one message per bean.\n\n' +
   'Nobody opens the sheet, and getting it wrong by hand is invisible: nobody notices the line Ritika skipped until a café runs out of Ethiopia Guji mid-service on a Saturday.';
 
 export const tagline =
@@ -34,8 +37,8 @@ export const tagline =
 export const brief =
   'Forty rows of coffee stock, one sheet, 07:30 every weekday. Find what is running low and post it once.';
 
-// Sized from this problem's real decision count (27: 5 understand, 5 placements,
-// 13 config, 4 stress). Fewer nodes than email-triage and no AI, but three of the
+// Sized from this problem's real decision count (28: 5 understand, 5 placements,
+// 14 config, 4 stress). Fewer nodes than email-triage and no AI, but three of the
 // decisions are genuinely arguable, so it lands in the same band.
 export const difficulty = 'moderate';
 

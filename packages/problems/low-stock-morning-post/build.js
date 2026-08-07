@@ -45,7 +45,11 @@ export const branches = [];
 export const flowSummary = {
   steps: [
     { type: 'schedule', label: 'each weekday morning' },
-    { type: 'google-sheets', label: 'read the stock' },
+    // NOT "read the stock". `read` is the value of the graded Operation field on this
+    // node, and "read" is that answer in plain language printed on the screen before the
+    // quiz — the same class of leak the node-name rule exists to stop. This says what
+    // the flow gains (the counts are now inside it) without naming what the node does.
+    { type: 'google-sheets', label: 'the counts arrive' },
     { type: 'filter', label: 'keep only shortages' },
     { type: 'aggregate', label: 'gather into one' },
     { type: 'slack', label: 'tell the buyer' },
@@ -99,8 +103,14 @@ export const buildPhases = [
   {
     id: 'post',
     label: 'Put it in front of the buyer',
+    // The coach line used to state the per-item rule outright ("n8n runs a node once for
+    // every item that reaches it"), which is the answer to the `fan-out` Stress Testing
+    // question in the author's own words, on a screen every learner sees. It now points
+    // at the thing to count and leaves the consequence to be worked out — the rule is
+    // still taught, in the `loop-over-items` probe, where it is the reward for a wrong
+    // pick rather than a freebie.
     coach:
-      'Last part. Remember that n8n runs a node once for every item that reaches it — so think about how many things are arriving here before you decide what goes next.',
+      'Last part. Three rows survived the narrowing, and they are still three separate things travelling one behind the other. Count what is arriving here before you decide what goes next.',
     nodeTypes: ['aggregate', 'slack'],
     pickable: ['aggregate', 'slack', 'split-out', 'merge', 'remove-duplicates', 'stop-and-error', 'basic-llm-chain'],
   },

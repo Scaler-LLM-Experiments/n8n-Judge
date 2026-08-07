@@ -159,23 +159,41 @@ export const simulation = {
  * Two of these exist because the engine cannot model them as Run cases — it has no
  * notion of item counts anywhere, so "eleven rows became eleven posts" and "nothing
  * qualified" can only be asked about. They are also the two best questions in the case.
- * The other two are the mornings the data is not clean and the morning somebody changes
+ * The other two are the morning the data is not clean and the morning somebody changes
  * the sheet after the sweep has already happened.
+ *
+ * Two rules were applied to this list on revision, and both are worth keeping:
+ *
+ *   1. NOTHING HERE MAY BE ANSWERED BY RECITING EARLIER COPY. `fan-out` used to ask
+ *      "which part of n8n produced eleven messages?", whose answer — nodes run once per
+ *      item — was printed in the dissection prompt, the build coach line and a probe.
+ *      It now asks why the SAME bug is invisible on a quiet morning, which needs the
+ *      rule applied rather than repeated. `late-correction` had the same problem and
+ *      got the same treatment. The earlier copy was tightened as well; both halves were
+ *      needed.
+ *   2. NO QUESTION MAY REST ON A MECHANISM WE CANNOT VERIFY. `uncounted` used to assert
+ *      that a blank cell and the text "8 kg" both fall out of a strict numeric
+ *      comparison silently, with no error. n8n's condition builder with "Convert types
+ *      where required" OFF plausibly raises a type error instead, and nobody here can
+ *      run real n8n to settle it. The lesson does not need it settled: the design point
+ *      — one condition cannot express "never counted" — is true under either reading,
+ *      and it is the better question anyway. Every option below is worded so that its
+ *      outcome-claim holds whichever way n8n behaves.
  */
 export const evalQuestions = [
   {
     id: 'fan-out',
     prompt:
-      'A colleague built this same flow without the step that gathers the rows together — the keep-only-shortages step wires straight into the post. On Monday eleven beans were below their level, and eleven separate messages landed in the channel. Nothing errored. Which part of n8n produced eleven messages out of one run?',
+      'A colleague built this flow with one step left out: the keep-only-shortages step wires straight into the post. On Monday eleven beans were low and eleven separate messages landed in the channel — nothing errored. On Friday one bean was low, and their flow and yours put the same single message in the channel. Why did Friday look identical?',
     options: [
-      'The trigger fired eleven times, once for each row that turned out to be low',
-      'The reading step called Slack once for each of the forty rows it pulled out of the sheet',
-      'Every step after the sheet runs once per item, and the eleven rows were still eleven separate items when they reached the post',
-      'Slack broke one long message into eleven, because of its length limit',
+      'Slack groups messages sent to one channel seconds apart, so on a quiet morning the difference is hidden rather than absent',
+      'One run can only ever produce one message — Monday\'s eleven must have come from the trigger firing eleven times',
+      'With one row there was nothing to gather. The missing step turns many into one, and one is already one',
+      'The step they left out tidies the message rather than controlling how many go out, so Monday\'s eleven had another cause',
     ],
     correctIndex: 2,
     explanation:
-      'One run, one trigger, one read. What multiplies is items: the sheet hands its rows on one at a time, and every node after it is executed once for each item that reaches it — without anybody asking. Forty rows went into the comparison and eleven came out, so eleven items arrived at the post and the post ran eleven times. The step that gathers them turns those eleven items into one, and everything after it then runs once. That is the whole reason it is in the flow, and it is why the same default that quietly does the comparison forty times for free is what floods the channel at the end.',
+      'One run, one trigger, one read — none of those multiply. Items do. The sheet hands its rows on one at a time, and every node after it is executed once for each item that reaches it, without anybody asking for a loop. Monday: forty rows in, eleven out of the comparison, eleven items at the post, eleven posts. Friday: one item, one post — the same rule producing a result that looks perfectly fine. That is the shape of this bug and the reason it is worth a question of its own. It is not that the flow is broken; it is that it is broken in proportion to how bad the morning is, so it ships, behaves for a fortnight, and floods the channel on the first Monday anybody actually needed it. The gathering step turns however many arrive into one, and everything after it then runs exactly once whatever the day looks like.',
   },
   {
     id: 'quiet-friday',
@@ -183,40 +201,59 @@ export const evalQuestions = [
       'Friday. Every one of the forty rows is comfortably above its reorder level, so nothing survives the comparison. The flow runs exactly as you built it. What does the buyer see in #supply-chain?',
     options: [
       'Nothing at all — and nothing tells the buyer whether that means full shelves or a workflow that never ran',
-      'A short message saying no beans are low this morning',
-      'An empty message, because the post still runs with nothing in it',
-      'A failed run, so somebody is alerted that there was nothing to send',
+      'A short message saying no beans are below their level this morning, so the buyer knows the sweep ran',
+      'An empty message, because the post still runs and simply has nothing in it to list',
+      'A failed run, so whoever watches failures is told there was nothing to send',
     ],
     correctIndex: 0,
     explanation:
       'A node with no items reaching it is not executed at all, so the gather step and the post never run and the channel stays quiet. That is correct behaviour and it is also the flow\'s weakest point, because silence is ambiguous: full shelves, an expired Google credential, a workflow somebody switched off after a demo and a broken comparison all produce exactly the same nothing. Ops flows that people come to rely on usually post an "all clear" on quiet days for precisely this reason — not because anyone needs to read it, but so that the absence of a message becomes evidence rather than a guess.',
   },
   {
+    // REWRITTEN. The previous version graded an assertion about n8n's strict type
+    // validation — that a blank cell and the text "8 kg" both fall out of the
+    // comparison with no error and no trace. That may well be backwards: with "Convert
+    // types where required" off, n8n's condition builder plausibly raises a type error
+    // rather than quietly evaluating false, and this repo cannot run n8n to find out.
+    // Grading a disputed mechanism is how a correct learner gets marked down.
+    //
+    // So the question no longer depends on it in either direction. The prompt brackets
+    // the mechanism explicitly, and every option's outcome-claim is true whichever way
+    // n8n behaves: three of the four are PROPOSALS (do nothing / default to zero / stop
+    // the run) whose consequences follow from the proposal itself, and the correct
+    // answer is a statement about what one condition can and cannot express, which no
+    // amount of type validation changes. The lesson from the brief survives whole — it
+    // was always a design lesson wearing a mechanism as a costume.
     id: 'uncounted',
     prompt:
-      'Wednesday. Friday\'s count was rushed, so two rows are not clean numbers. Ethiopia Guji at Koregaon Park has a completely blank kg_on_hand, against a reorder level of 6 — nobody weighed it. And somebody typed "8 kg", with the unit, into Sumatra Mandheling\'s kg_on_hand, against a level of 10. Two other rows are ordinary, clearly-below matches. What reaches the channel?',
+      'Wednesday. Friday\'s count was rushed: Ethiopia Guji at Koregaon Park has a blank kg_on_hand against a reorder level of 6, and somebody typed "8 kg" — with the unit — into Sumatra Mandheling\'s cell. Your flow asks one question of every row: is kg_on_hand below reorder_level? Set aside what n8n does with those two cells. What is wrong with asking only that?',
     options: [
-      'All four rows: a blank cell counts as zero, and zero is below six',
-      'All four rows: n8n reads "8 kg" as 8, and treats a blank as a missing value worth flagging',
-      'The two ordinary rows only. Neither odd cell gives the comparison a number it can call below the level, so both fall out — and the post looks entirely correct',
-      'None of them. A filter refuses to run while a column it compares has gaps in it',
+      'Nothing. Two bad cells are a counting problem, and a workflow should report what the sheet says rather than second-guess it',
+      'Default kg_on_hand to 0 wherever it is blank or unreadable, so every row has a number and an uncounted bean is reported as having none',
+      'Stop the run whenever any kg_on_hand is blank or not a number, so nobody acts on a shortlist drawn from a sheet that is not clean',
+      'One condition can only say "low" or "fine", never "nobody counted this". Rewrite the rule so a row qualifies on either arm — below its level, or blank or not a number',
     ],
-    correctIndex: 2,
+    correctIndex: 3,
     explanation:
-      'The naive comparison — is this number below that number — silently swallows both. A blank is not a number, so it is never below anything; "8 kg" is text, so there is nothing for the comparison to weigh. Neither row raises an error, neither row is kept, and the message that lands looks perfectly correct. That is the worst kind of wrong: the one bean nobody counted is the one that disappears from view, which is precisely the failure Ritika was doing this by hand to avoid. A production version of this flow does not use one condition — it uses "below its reorder level, OR the quantity is blank or not a number" — so an uncounted bean is put in front of the buyer as needing a physical count, rather than quietly assumed to be fine.',
+      'The two odd cells look like a parsing problem and are really a design problem: the rule you wrote can only say two things. "Is kg_on_hand below reorder_level" sorts every row into counted-and-low or counted-and-fine, and there is no third answer for "nobody counted this". Whatever the comparison ends up doing with a blank cell, it cannot tell you that — and the bean nobody weighed is exactly the one that runs out mid-service on a Saturday, which is the failure Ritika was doing this by hand to avoid. Defaulting the blank to zero is not the fix: zero means "I counted and there is none", blank means "I do not know", and turning one into the other puts a shortfall in front of the buyer that nobody measured — and it would do the same to the 8 kg that somebody really did weigh. Stopping the run is not the fix either; one hurried cell should not cost the other thirty-nine rows their morning. A production version asks two questions instead of one — below its reorder level, OR the quantity is blank or not a number — and marks the second group as needing a physical count. The point is not that blanks are dangerous. It is that a single numeric condition has no vocabulary for "unknown", so if unknown matters to you, you have to give it one.',
   },
   {
+    // Reframed. The old version ("what does the flow do?") was answerable straight from
+    // the dissection explanation and the google-sheets-trigger probe, both of which
+    // said a clock trigger ignores the data. This one puts the correction on a Friday
+    // and asks for the next opportunity, which needs three facts held together: the
+    // trigger is a clock, the clock skips the weekend, and each sweep re-reads the tab.
     id: 'late-correction',
     prompt:
-      'At 09:15 a barista at Baner realises Monday\'s count was wrong and corrects Decaf Colombia from 12 kg down to 0.5. Its reorder level is 4. What does the flow do?',
+      'Friday, 09:15. A barista at Baner corrects Decaf Colombia from 12 kg down to 0.5 — this morning\'s count was wrong. Its reorder level is 4, so it belongs on the shortlist, and the 07:30 post went out without it. The buyer orders before the 10 a.m. cut-off. When does your flow next get a chance to tell them?',
     options: [
-      'It errors on the next run, because the row it already read no longer matches the sheet',
-      'Nothing today. The correction is picked up at 07:30 tomorrow, and only if tomorrow is a weekday',
-      'It runs again within a few minutes, because a row it reads has changed',
-      'It posts a correction to the channel, because Slack keeps the message thread open',
+      'Within a few minutes. The sheet is where this flow gets its data, so a row changing underneath it brings it round again',
+      'Monday at 07:30. The next sweep is the next chance there is, and there is no sweep at the weekend',
+      'Saturday at 07:30. The schedule keeps its own time whether or not the cafés are open',
+      'Never on its own. That row has already been read once, so the next sweep treats it as seen and moves past it',
     ],
     correctIndex: 1,
     explanation:
-      'A clock trigger is deaf to the data. That is mostly what you want here — it makes the post arrive at a predictable time and stops the channel filling with noise every time a barista adjusts a count — but it also means the flow\'s picture of the store room is exactly as old as this morning\'s sweep, and a bean that ran out at nine is news at half past seven tomorrow. If a same-day correction genuinely has to reach the buyer, that is a second run or a second workflow, not a change to this one. And note what "tomorrow" means on a Friday afternoon: the next sweep is Monday.',
+      'A clock trigger is deaf to the data, and that is mostly what you want here — it makes the post arrive at a predictable time and stops the channel filling with noise every time a barista adjusts a count. The price is that the flow\'s picture of the store room is exactly as old as the last sweep, and nothing in the flow knows the picture has gone stale. Each sweep does read the whole tab afresh, so the corrected row will be there in full when the next one runs; it is the waiting that costs, and it is worth noticing how much the weekday rule adds to it. The same correction on a Tuesday morning is about twenty-two hours late. On a Friday morning it is two and a half days late, straight through the weekend the cafés are busiest. If a same-day correction genuinely has to reach the buyer, that is a second run or a second workflow — not a change to this one.',
   },
 ];

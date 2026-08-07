@@ -25,8 +25,12 @@ export const dissection = [
     correctType: 'schedule',
     wrongHint:
       'Ritika does this at the same time every weekday whether or not anybody has touched anything. What event is that, exactly?',
+    // Deliberately does NOT add "…whether the sheet changed overnight or not". That
+    // clause is the `late-correction` Stress Testing answer stated outright, three
+    // screens before the question is asked. What a clock trigger ignores is the thing
+    // the learner should have to work out.
     explanation:
-      'A Schedule Trigger treats time itself as the event. 07:30, Monday to Friday, whether the sheet changed overnight or not — which is what "before the first roast, every weekday" actually means.',
+      'A Schedule Trigger treats time itself as the event: the clock reaching 07:30 is the thing that happens. That is what "before the first roast, every weekday" actually is — a time, not an arrival.',
     unlocks: ['schedule'],
   },
   {
@@ -42,8 +46,15 @@ export const dissection = [
     correctType: 'google-sheets',
     wrongHint:
       'There is a node in n8n for the app the data is actually in, and it already knows how to talk to it. Is this that node?',
+    // The reward for a correct PICK, so it may only talk about the node — never about
+    // the dropdown inside it. It used to say the node "is not only for writing rows —
+    // pointed at a tab and asked for its rows…", which is the Operation field's four
+    // options sorted into three wrong ones and the right one, handed over before the
+    // build starts. Same leak the flowSummary label and the statement were both scrubbed
+    // for; this surface was missed. What is left says what the node IS and what shape
+    // its output has, both of which the prompt already presupposes.
     explanation:
-      'The Google Sheets node is not only for writing rows — pointed at a tab and asked for its rows, it is the data source that starts the real work. Each row it returns becomes one item flowing on to the next step.',
+      'The Google Sheets node already speaks Google Sheets — the credential, the document, the tab and the column names are all things it understands — so getting at a spreadsheet Brightleaf already keeps takes no code and no hand-built API call. What it hands on arrives as items, one per line of the table, which is the shape every step after it works in.',
     unlocks: ['google-sheets'],
   },
   {
@@ -65,8 +76,12 @@ export const dissection = [
   },
   {
     id: 'gather',
+    // The prompt used to state the per-item rule ("n8n runs every node after this once
+    // per item"), which is what `fan-out` asks about in Stress Testing. It now states
+    // the REQUIREMENT — three things arrive, the buyer wants one — and leaves the
+    // mechanism to be learned where it costs something: the `loop-over-items` probe.
     prompt:
-      'Forty rows went in and three came out. They are still three separate items, and n8n runs every node after this once per item. What turns those three into one thing?',
+      'Forty rows went in and three came out. They are still three separate items, travelling one behind the other, and the buyer wants one message rather than three. What turns those three into one thing?',
     options: [
       { label: 'Aggregate', type: 'aggregate' },
       { label: 'Merge', type: 'merge' },
