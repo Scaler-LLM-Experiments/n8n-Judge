@@ -36,6 +36,15 @@ export const referenceGraphSchema = z.object({
       type: z.string().min(1),
       position: z.object({ x: z.number(), y: z.number() }),
       requiredLabel: z.string().optional(),
+      /**
+       * The correct build's own configuration, for the parameters that change a
+       * node's STRUCTURAL role rather than just its answer — today that is the
+       * operation on an app node, which decides whether it ends the flow or
+       * hands data on (see `passthroughWhen` in the catalog). Optional, and only
+       * worth setting when the topology depends on it: everything else the
+       * learner configures is graded through `nodeSetup`, not asserted here.
+       */
+      values: z.record(z.string(), z.unknown()).optional(),
     })
   ),
   edges: z.array(

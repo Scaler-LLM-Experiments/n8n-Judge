@@ -498,7 +498,8 @@ redesign. Read this list against your flow before you write anything down.
 
 | You want | Can Judge do it? |
 |---|---|
-| A branch that does **two** things (write a row *and* send a mail) | **No.** The Run walk ends at the branch's first `action` node. Chaining is worse — see below. |
+| A branch that does **two** things (write a row *and* send a mail) | **No.** The Run walk ends at the branch's first `action` node that writes. Chaining is worse — see below. |
+| An app node as a data SOURCE mid-flow (`schedule → sheets read → filter → slack`) | **Yes**, if its descriptor declares `passthroughWhen` and the node is configured for the read. See *Two more platform gaps* below — the configuration is what does it, so the reference graph must carry it. |
 | One exit feeding two nodes, or two exits feeding one | **No.** The editor has no `onConnect`; every node arrives through the picker, which creates exactly one node and one edge. A learner can never wire two existing nodes together. Fan-out and fan-in are **unbuildable**, not merely unnarratable. |
 | A Switch **fallback / catch-all exit** | **No.** A router's exits are exactly the branches you declare. An item matching none hits `switchNoMatch` and the walk dead-ends — it cannot reach any node. Model a catch-all as a **normal declared branch** plus an explicit category the AI is instructed to return (`needs_human`), and teach "unmatched items vanish silently" in Stress Testing instead. |
 | Two nodes of the same type, configured **differently** | **No.** `nodeSetup` and `nodeProbes` are keyed by node **TYPE**. Both instances open the same NDV, ask the same question and share one answer key — so a case with "email the subject" and "reply to the requester" grades one of them backwards. Reusing a type is fine only when the config is *genuinely identical everywhere* (email-triage's three `action` instances). |
@@ -527,11 +528,22 @@ the escape hatch it looks like.
 
 Know these before designing a flow around them:
 
-- **`simulate.js` ends the walk at the first `action`-category node.** So a linear flow with
-  **two terminals in series** — "log it *and* notify" — narrates only up to the first, and the
-  second never lights up during the Run. `google-sheets` is category `action`, so a
-  log-then-email flow hides the email. Order the chain so the more important artefact is first,
-  and know the later node's `simulation` copy is dead.
+- **`simulate.js` ends the walk at the first `action`-category node that WRITES.** So a linear
+  flow with **two write-terminals in series** — "log it *and* notify" — narrates only up to the
+  first, and the second never lights up during the Run. Order the chain so the more important
+  artefact is first, and know the later node's `simulation` copy is dead.
+
+  **An app node configured to READ is the exception, and it is opt-in.** A descriptor may declare
+  `passthroughWhen` (today: `google-sheets` with `sheetOperation: 'read'`), which makes that node
+  a step rather than an ending — so `schedule → sheets(read) → filter → aggregate → slack` walks
+  all five nodes. Two rules come with it:
+  - **The role follows the CONFIGURED operation, never the catalog default.** A Sheets node with
+    no `sheetOperation` in its values stays a terminal, because cases declare the operation in
+    `locked` display rows rather than as a graded value and their branches must keep ending.
+  - **So the correct build has to say so.** Put `values: { sheetOperation: 'read' }` on that node
+    in `referenceGraph`, or `simulateAll` on the reference build truncates while the learner's own
+    graph works — and grade the operation as a real field, since it is what decides whether the
+    flow continues.
 - **Judge's expressions accumulate; real n8n's HTTP Request replaces the item.** Every shipped
   case relies on accumulation (`$json.from` two nodes downstream of the trigger), and Judge has
   no node-reference syntax at all. Putting an HTTP Request mid-chain makes the divergence visible.

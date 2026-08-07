@@ -132,8 +132,16 @@ export function toWorkflow(graph: EditorGraph | null | undefined, opts: ToWorkfl
       typeVersion: (n as { typeVersion?: number }).typeVersion ?? DEFAULT_TYPE_VERSION,
       position: [pos.x ?? 0, pos.y ?? 0],
     };
+    // A node's configuration. In n8n this IS `parameters`; the editor keeps the
+    // learner's answers on `data.values`, so fold them in rather than losing
+    // them at the boundary — the simulator needs them to tell a Sheets node set
+    // to READ (a step) from one set to APPEND (an ending). An explicit
+    // `parameters` wins, so a caller handing over an already-canonical node is
+    // never second-guessed.
+    const values = (n.data as { values?: Record<string, unknown> } | undefined)?.values
+      ?? (n as { values?: Record<string, unknown> }).values;
     const params = (n as { parameters?: Record<string, unknown> }).parameters;
-    if (params) node.parameters = params;
+    if (values || params) node.parameters = { ...values, ...params };
     // Node-level settings (onError, alwaysOutputData, …) are n8n node
     // properties, not parameters — the editor stores them on `data`.
     const settings = (n.data as { settings?: Record<string, unknown> } | undefined)?.settings

@@ -1,4 +1,4 @@
-import { NODE_CATALOG, isRouterEntry } from '@judge/catalog';
+import { NODE_CATALOG, entryIsPassthrough, isRouterEntry } from '@judge/catalog';
 
 // "Has every branch of the router been wired to something that actually replies?"
 //
@@ -27,8 +27,17 @@ import { NODE_CATALOG, isRouterEntry } from '@judge/catalog';
 // carrying the branch id), because that is what the Build stage holds. The
 // canonical conversion happens later, at the Run.
 
-/** A node that ends a path: anything the catalog files under `action`. */
-const isTerminal = (type) => NODE_CATALOG[type]?.category === 'action';
+/**
+ * A node that ends a path: anything the catalog files under `action` — unless it
+ * is configured as a read, in which case it is a data source mid-flow and the
+ * branch has not reached a reply yet. Must agree with `roleOf()` in simulate.js,
+ * or a phase goes green on a branch whose Run then walks straight past it.
+ */
+const isTerminal = (node) => {
+  const entry = NODE_CATALOG[node?.type];
+  if (entry?.category !== 'action') return false;
+  return !entryIsPassthrough(entry, node?.data?.values ?? node?.values);
+};
 
 /** The router: whichever node type the catalog says has branches. */
 const isRouter = (type) => isRouterEntry(NODE_CATALOG[type]);
@@ -85,7 +94,7 @@ export function branchReachesReply(graph, problem, branchId, maxHops = 12) {
     if (seen.has(node.id)) return false; // a loop never reaches a reply
     seen.add(node.id);
     if (!isConfigured(node, problem)) return false;
-    if (isTerminal(node.type)) return true;
+    if (isTerminal(node)) return true;
     node = mainSuccessor(graph, node.id);
   }
   return false;

@@ -12,7 +12,7 @@
 // Narration is templated: a problem may override any line via `problem.simulation`
 // (placeholders like {from}, {category}, {label}, {reply} are filled per step).
 
-import { NODE_CATALOG, isRouterEntry } from '@judge/catalog';
+import { NODE_CATALOG, entryIsPassthrough, isRouterEntry } from '@judge/catalog';
 import { outputsOf, subNodesOf, nodeByName } from '@judge/workflow';
 import { asWorkflow, inferBranches } from './asWorkflow.js';
 
@@ -52,10 +52,16 @@ const settingsOf = (node) => node?.settings ?? {};
 
 // Resolve a node's structural role from catalog metadata (never from a
 // hard-coded type string), so new node vocabularies work as pure data.
-export function roleOf(type) {
+//
+// `values` are the node's configured parameters, and they matter for exactly one
+// distinction: an `action` node is normally a terminal, but an app node set to a
+// READ operation is a data source in the middle of a flow. The catalog declares
+// that per descriptor (`passthroughWhen`); passing no values keeps the original
+// behaviour, so every caller that only knows a type still gets today's answer.
+export function roleOf(type, values) {
   const m = meta(type);
   if (m.category === 'trigger') return 'trigger';
-  if (m.category === 'action') return 'action';
+  if (m.category === 'action') return entryIsPassthrough(m, values) ? 'passthrough' : 'action';
   if (m.category === 'ai') return 'ai';
   if (isRouterEntry(m)) return 'router';
   return 'passthrough'; // core (parse, code, …); 'model' sub-nodes never enter the main walk
@@ -85,7 +91,7 @@ export function simulateCase(graph, c, sim = {}, branches = []) {
 
   steps.push({ iconType: 'email', status: 'ok', text: fill(t.onNew, ctx()) });
 
-  const trigger = wf.nodes.find((n) => roleOf(n.type) === 'trigger');
+  const trigger = wf.nodes.find((n) => roleOf(n.type, n.parameters) === 'trigger');
   if (!trigger) {
     steps.push({ iconType: 'dead', status: 'dead', text: fill(t.noTrigger, ctx()) });
     return { steps, delivered: false };
@@ -98,7 +104,7 @@ export function simulateCase(graph, c, sim = {}, branches = []) {
     if (visited.has(current.name)) break;
     visited.add(current.name);
     const label = current.name;
-    const role = roleOf(current.type);
+    const role = roleOf(current.type, current.parameters);
 
     if (role === 'trigger') {
       steps.push({ nodeId: current.id, iconType: current.type, status: 'ok', text: fill(t.trigger, ctx({ label })) });

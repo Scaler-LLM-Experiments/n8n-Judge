@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
-import { BASE_NODE_CATALOG, NODE_CATALOG, AI_SUB_NODE_PORTS, TRIGGER_OPTIONS, NODE_OPTIONS } from './catalog.js';
+import { BASE_NODE_CATALOG, NODE_CATALOG, AI_SUB_NODE_PORTS, TRIGGER_OPTIONS, NODE_OPTIONS, entryIsPassthrough } from './catalog.js';
 import {
   CLUSTER_NODE_INVENTORY,
   COMPLETE_CLUSTER_NODE_TYPES,
@@ -1831,5 +1831,40 @@ describe('agent-facing node library catalog', () => {
     for (const type of chatModels) {
       expect(NODE_CATALOG[type].category, `${type} must be category 'model' to be offered in the Chat Model drawer`).toBe('model');
     }
+  });
+});
+
+// An app node's role is not fixed by its category alone. `google-sheets` is
+// category 'action', which the engine reads as "this ends the flow" — true when
+// it appends a row, false when it reads one. `passthroughWhen` is how a
+// descriptor says which, and the default matters more than the feature: the
+// catalog's own default for `sheetOperation` is 'read', so anything that filled
+// defaults in would silently reclassify every Sheets node nobody configured.
+describe('entryIsPassthrough — an app node configured as a read is not a terminal', () => {
+  it('treats a Sheets node set to read as a passthrough', () => {
+    expect(entryIsPassthrough(NODE_CATALOG['google-sheets'], { sheetOperation: 'read' })).toBe(true);
+  });
+
+  it('treats every WRITE operation as a terminal', () => {
+    for (const op of ['append', 'appendOrUpdate', 'update', 'clear', 'create', 'remove', 'delete']) {
+      expect(
+        entryIsPassthrough(NODE_CATALOG['google-sheets'], { sheetOperation: op }),
+        `${op} writes, so it ends the flow`
+      ).toBe(false);
+    }
+  });
+
+  it('never infers a role from catalog DEFAULTS, only from an explicit answer', () => {
+    // The regression this guards: sheetOperation defaults to 'read', so a node
+    // the learner has not touched would become a passthrough and every case that
+    // ends a branch by appending a row would stop completing its build phase.
+    expect(NODE_CATALOG['google-sheets'].params.find((p) => p.key === 'sheetOperation').value).toBe('read');
+    expect(entryIsPassthrough(NODE_CATALOG['google-sheets'], undefined)).toBe(false);
+    expect(entryIsPassthrough(NODE_CATALOG['google-sheets'], {})).toBe(false);
+  });
+
+  it('is inert for a descriptor that never declares it', () => {
+    expect(NODE_CATALOG.slack.passthroughWhen).toBeUndefined();
+    expect(entryIsPassthrough(NODE_CATALOG.slack, { sheetOperation: 'read' })).toBe(false);
   });
 });

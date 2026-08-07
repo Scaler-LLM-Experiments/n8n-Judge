@@ -155,3 +155,32 @@ describe('round trip', () => {
     });
   }
 });
+
+// A node's configuration IS `parameters` in n8n; the editor keeps the learner's
+// answers on `data.values`. They used to be dropped at this boundary, which left
+// the simulator unable to tell an app node reading a row from one writing a row.
+describe('node configuration survives the conversion', () => {
+  it('carries data.values through as parameters', () => {
+    const graph = {
+      nodes: [{ id: 'gs', type: 'google-sheets', position: { x: 0, y: 0 }, data: { values: { sheetOperation: 'read' } } }],
+      edges: [],
+    } as unknown as EditorGraph;
+    expect(nodeByName(toWorkflow(graph), 'google-sheets')?.parameters).toEqual({ sheetOperation: 'read' });
+  });
+
+  it('accepts values at the top level too, the way an authored reference graph writes them', () => {
+    const graph = {
+      nodes: [{ id: 'gs', type: 'google-sheets', position: { x: 0, y: 0 }, values: { sheetOperation: 'read' } }],
+      edges: [],
+    } as unknown as EditorGraph;
+    expect(nodeByName(toWorkflow(graph), 'google-sheets')?.parameters).toEqual({ sheetOperation: 'read' });
+  });
+
+  it('leaves parameters off a node that has no configuration', () => {
+    const graph = {
+      nodes: [{ id: 'gs', type: 'google-sheets', position: { x: 0, y: 0 }, data: {} }],
+      edges: [],
+    } as unknown as EditorGraph;
+    expect(nodeByName(toWorkflow(graph), 'google-sheets')?.parameters).toBeUndefined();
+  });
+});

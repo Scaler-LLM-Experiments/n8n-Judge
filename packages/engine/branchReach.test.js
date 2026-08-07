@@ -154,3 +154,50 @@ describe('allBranchesWired / openBranchIds', () => {
     expect(allBranchesWired({ nodes: [], edges: [] }, { branches: [] })).toBe(true);
   });
 });
+
+// This walk decides whether a routing build phase is complete, so it has to agree
+// with the simulator about what counts as an ending. When it did not, a branch
+// wired to a Sheets node set to READ went green and the Run then walked straight
+// past it — the exact "phase passes, Run disagrees" class this module exists to
+// stop.
+describe('a branch has not replied just because it reached an app node', () => {
+  const sheets = (id, values) => ({ id, type: 'google-sheets', data: { configured: true, values } });
+
+  it('does not accept a Sheets node configured to READ as the reply', () => {
+    const graph = {
+      nodes: [node('sw', 'switch'), sheets('gs', { sheetOperation: 'read' })],
+      edges: [{ source: 'sw', sourceHandle: 'left', target: 'gs' }],
+    };
+    expect(branchReachesReply(graph, problem, 'left')).toBe(false);
+  });
+
+  it('accepts one configured to APPEND — writing a row does end the branch', () => {
+    const graph = {
+      nodes: [node('sw', 'switch'), sheets('gs', { sheetOperation: 'append' })],
+      edges: [{ source: 'sw', sourceHandle: 'left', target: 'gs' }],
+    };
+    expect(branchReachesReply(graph, problem, 'left')).toBe(true);
+  });
+
+  it('accepts one with no configured operation, exactly as before', () => {
+    // Cases declare the operation in `locked` display rows rather than as a graded
+    // value, so their Sheets nodes carry no `sheetOperation` at all. They must keep
+    // ending their branch.
+    const graph = {
+      nodes: [node('sw', 'switch'), sheets('gs', undefined)],
+      edges: [{ source: 'sw', sourceHandle: 'left', target: 'gs' }],
+    };
+    expect(branchReachesReply(graph, problem, 'left')).toBe(true);
+  });
+
+  it('follows a READ through to a real reply', () => {
+    const graph = {
+      nodes: [node('sw', 'switch'), sheets('gs', { sheetOperation: 'read' }), node('s', 'slack-message')],
+      edges: [
+        { source: 'sw', sourceHandle: 'left', target: 'gs' },
+        { source: 'gs', target: 's' },
+      ],
+    };
+    expect(branchReachesReply(graph, problem, 'left')).toBe(true);
+  });
+});

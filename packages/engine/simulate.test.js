@@ -125,3 +125,49 @@ describe('simulate', () => {
     expect(steps.some((s) => s.status === 'dead')).toBe(true);
   });
 });
+
+// The Run walk ends at the first `action`-category node, which made the shape the
+// authoring docs advertise as "Scheduled sync" unnarratable: `schedule → sheets
+// read → filter → aggregate → slack` returned `delivered` at the sheet and the
+// three nodes after it never lit up. A node's role now depends on the operation
+// it is configured for, not on its category alone.
+describe('an app node configured as a read is a step, not an ending', () => {
+  const chain = (values) => ({
+    nodes: [
+      { id: 'sc', type: 'schedule', data: { label: 'Schedule Trigger' } },
+      { id: 'gs', type: 'google-sheets', data: { label: 'Get row(s)', values } },
+      { id: 'fl', type: 'filter', data: { label: 'Filter' } },
+      { id: 'ag', type: 'aggregate', data: { label: 'Aggregate' } },
+      { id: 'sl', type: 'slack', data: { label: 'Slack' } },
+    ],
+    edges: [
+      { id: 'e1', source: 'sc', target: 'gs' },
+      { id: 'e2', source: 'gs', target: 'fl' },
+      { id: 'e3', source: 'fl', target: 'ag' },
+      { id: 'e4', source: 'ag', target: 'sl' },
+    ],
+  });
+  const sample = { id: 'sweep', from: 'Bean Inventory 2026', subject: '07:30 sweep' };
+
+  it('walks the whole chain and delivers at the LAST node when the read is configured', () => {
+    const { steps, delivered } = simulateCase(chain({ sheetOperation: 'read' }), sample, {}, []);
+    expect(delivered).toBe(true);
+    // every node on the canvas narrates, in order
+    expect(steps.filter((s) => s.nodeId).map((s) => s.nodeId)).toEqual(['sc', 'gs', 'fl', 'ag', 'sl']);
+    expect(steps.at(-1).status).toBe('done');
+  });
+
+  it('resolves the role from the configured operation', () => {
+    expect(roleOf('google-sheets', { sheetOperation: 'read' })).toBe('passthrough');
+    expect(roleOf('google-sheets', { sheetOperation: 'append' })).toBe('action');
+  });
+
+  it('is unchanged for a node with no configured operation', () => {
+    // The safety property of the whole change: knowing only a type must give
+    // exactly the answer it always gave, or every shipped case shifts under it.
+    expect(roleOf('google-sheets')).toBe('action');
+    const { steps, delivered } = simulateCase(chain(undefined), sample, {}, []);
+    expect(delivered).toBe(true);
+    expect(steps.filter((s) => s.nodeId).map((s) => s.nodeId)).toEqual(['sc', 'gs']);
+  });
+});

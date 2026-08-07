@@ -431,3 +431,29 @@ export function descriptorFieldIsVisible(field, values = {}) {
   return (!field.showWhen || matchesAll(field.showWhen))
     && (!field.hideWhen || !matchesAll(field.hideWhen));
 }
+
+/**
+ * Does this node, AS CONFIGURED, hand its data on rather than end the flow?
+ *
+ * Judge resolves a node's role from `category`, and `action` has always meant
+ * "terminal" — the Run walk stops there. That is right for sending a reply and
+ * wrong for reading a spreadsheet: an app node can equally be a data SOURCE in
+ * the middle of a flow, which is the shape the authoring docs advertise as
+ * "Scheduled sync" (`schedule → source app read → … → destination app`).
+ *
+ * Which it is depends on the node's configured operation, not on its type, so a
+ * descriptor declares the condition as `passthroughWhen` — the same map-of-
+ * key-to-accepted-values vocabulary as `showWhen`, and evaluated by the same
+ * predicate, so there is one condition language in the catalog rather than two.
+ *
+ * `values` are the learner's ACTUAL answers. Catalog defaults are deliberately
+ * not filled in: Google Sheets defaults `sheetOperation` to 'read', so defaulting
+ * would silently reclassify every Sheets node nobody has configured — including
+ * the ones whose whole job is to end a branch by appending a row.
+ */
+export function entryIsPassthrough(entry, values) {
+  const conditions = entry?.passthroughWhen;
+  if (!conditions || !values) return false;
+  return Object.entries(conditions).every(([key, accepted]) =>
+    descriptorConditionMatches(descriptorAtPath(values, key), accepted, descriptorHasPath(values, key)));
+}

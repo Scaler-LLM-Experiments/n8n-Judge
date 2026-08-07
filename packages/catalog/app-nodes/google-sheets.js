@@ -326,6 +326,17 @@ const googleSheets = {
   subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
   description: 'Read, update and write data to Google Sheets',
   category: 'action',
+  // A Sheets node set to READ is a data source in the middle of a flow, not a
+  // destination that ends one — `schedule → sheets(read) → filter → slack` is a
+  // shape the docs advertise ("Scheduled sync"). The engine resolves a terminal
+  // by category, so without this the Run walk returned `delivered` at the read
+  // and the three nodes after it never narrated.
+  //
+  // Keyed on the CONFIGURED operation, and deliberately only on an explicit one:
+  // the catalog default for `sheetOperation` is 'read', so falling back to
+  // defaults would turn every unconfigured Sheets node into a passthrough and
+  // break the cases that legitimately end a branch by appending a row.
+  passthroughWhen: { sheetOperation: ['read'] },
   categories: ['Data & Storage', 'Productivity'],
   group: ['input', 'output'],
   defaults: { name: 'Google Sheets' },

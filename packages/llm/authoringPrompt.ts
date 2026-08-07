@@ -56,8 +56,12 @@ the shape the JOB needs, and do not add a router to a linear job to look sophist
 FOUR SHAPES THE SIMULATOR CANNOT BUILD. Each one has forced a designed case to be
 rewritten, so check the flow against them before you draft anything:
 
-- A branch that does TWO things. The Run walk ends at a branch's first action node, so
-  "append a row AND send a mail" on one exit narrates only the row. Give each exit one job.
+- A branch that does TWO things. The Run walk ends at a branch's first action node that
+  WRITES, so "append a row AND send a mail" on one exit narrates only the row. Give each
+  exit one job. (An app node configured to READ is the exception — a Google Sheets node
+  with values { sheetOperation: 'read' } is a step, not an ending, so
+  schedule -> sheets read -> filter -> slack works. The role follows the configured
+  operation, so put that value on the node in referenceGraph too, and grade it as a field.)
 - Fan-out or fan-in — one exit feeding two nodes, or two exits feeding one. The editor
   adds every node from a "+" on one exit, creating exactly one edge, and cannot wire two
   existing nodes together. These are unbuildable, not merely ugly.
