@@ -51,9 +51,16 @@ export const coverImage = {
   // Motif reserved for this case only: three stacked horizontal bars of decreasing
   // length, shortest at the bottom — a level draining away. Not a chevron (email-triage),
   // not sparkles (expense-approvals), not a lattice.
-  // Palette reserved: deep amber / burnt orange. Nothing else in the set is warm.
+  // Palette: deep amber / burnt orange, measured at mean hue 24°.
+  //
+  // NOT reserved, and the next author should not assume otherwise: three of the five
+  // cards are now warm — ops-request-desk is amber-gold (38°) and expense-approvals
+  // runs coral into orange (17°). They still separate on the Home row because their
+  // compositions differ (half near-black, pink left half, uniform field) and every
+  // motif is distinct, but the warm end of the wheel is full. Take violet, teal or
+  // magenta next.
   prompt:
     'Deep amber and burnt-orange colour field — saturated warm amber into burnt orange, rich and glowing, not brown or muddy. Soft spray-paint grain. Three horizontal soft-edged pale bars stacked on the right half, each noticeably shorter than the one above it, the shortest at the bottom, lightly soft-focus, reading as a level draining away. Empty warm amber atmosphere on the left. No cups, no beans, no sacks, no chevrons, no sparkles, no text, no other symbols.',
-  src: null,
+  src: '/covers/low-stock-morning-post.png',
   alt: 'Deep amber spray field with three stacked bars, each shorter than the last',
 };

@@ -19,6 +19,7 @@ import { emailTriage } from './email-triage/index.js';
 import { expenseApprovals } from './expense-approvals/index.js';
 import { trialSignupDesk } from './trial-signup-desk/index.js';
 import { opsRequestDesk } from './ops-request-desk/index.js';
+import { lowStockMorningPost } from './low-stock-morning-post/index.js';
 
 export const problems = {
   [emailTriage.id]: emailTriage,
@@ -36,6 +37,12 @@ export const problems = {
   // fields a later node maps — which is the idea it exists to teach, and the reason it
   // reads as harder than expense-approvals despite the same decision count.
   [opsRequestDesk.id]: opsRequestDesk,
+  // Appended last, same reasoning. 28 scored decisions over five nodes, and the only
+  // case with no AI step at all — knowing when NOT to reach for a model is the thing
+  // it exists to teach, so `basic-llm-chain` is offered as a distractor rather than
+  // withheld. It is also the first case whose flow reads a data source mid-flow
+  // rather than only writing to one at the end.
+  [lowStockMorningPost.id]: lowStockMorningPost,
 };
 
 export const problemList = Object.values(problems);
