@@ -1,2 +1,2 @@
-export { NODE_CATALOG, AI_SUB_NODE_PORTS, TRIGGER_OPTIONS, NODE_OPTIONS, catalogEntry, descriptorFieldIsVisible, entryIsPassthrough, isRouterEntry } from './catalog.js';
+export { NODE_CATALOG, AI_SUB_NODE_PORTS, TRIGGER_OPTIONS, NODE_OPTIONS, LEGACY_ALIASES, catalogEntry, descriptorFieldIsVisible, entryIsPassthrough, isRouterEntry } from './catalog.js';
 export { CORE_NODE_INVENTORY, COMPLETE_CORE_NODE_TYPES, SOURCE_COMMIT } from './core-nodes/index.js';
