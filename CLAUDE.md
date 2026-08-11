@@ -447,6 +447,12 @@ answer. The **attempt count** lives inside the same lock too: unsynchronised, ev
 concurrent check of one id counted zero priors and all claimed `firstTry`.
 
 ### Resume — "Continue where you left off"
+**The offer is on the challenge's own card**: a card whose challenge has an attempt open
+swaps its Start for **Start over / Resume** (`HomeScreen`). The strip that used to sit above
+the grid was removed on 2026-08-11 — same title, same two buttons, second place to look, and
+it pushed the catalogue down the page. Anything describing a "Continue where you left off"
+banner is out of date; `resume` is still the prop, the cards are what read it.
+
 `GET /api/sessions` answers **where this learner was**, and every part of that answer is
 replayed from their own `TraceEvent` rows, never from `Session.currentScreen` /
 `builtGraphSnapshot` (nothing writes those until a session completes, so trusting them offers

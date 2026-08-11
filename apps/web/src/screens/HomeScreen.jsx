@@ -89,41 +89,13 @@ function Cover({ problem, Icon }) {
   );
 }
 
-// Where a half-finished attempt actually got to, in the learner's words. The
-// server sends the raw screen id from the trace; nobody calls it "dashboard".
-const RESUME_STAGE = {
-  statement: 'partway through Understand',
-  dashboard: 'partway through the build',
-  eval: 'partway through Stress Testing',
-  report: 'at your result',
-};
-
-function ContinueCard({ resume, onResume, onRestart }) {
-  const where = RESUME_STAGE[resume.screen] ?? 'partway through';
-  return (
-    <div style={{ marginBottom: 36 }}>
-      <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--fg-2)', fontWeight: 700, marginBottom: 12 }}>
-        Continue where you left off
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 20, padding: '18px 22px', background: 'var(--surface-soft-blue)', border: '1px solid var(--border-subtle)' }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--fg-1)', marginBottom: 4 }}>{resume.title}</div>
-          <div style={{ fontSize: 13.5, color: 'var(--fg-2)' }}>
-            You’re {where}. Your marks so far are safe.
-          </div>
-        </div>
-        <div style={{ display: 'flex', gap: 10, flex: 'none' }}>
-          <Button variant="outline" size="lg" onClick={() => onRestart(resume)}>
-            Start over
-          </Button>
-          <Button variant="primary" size="lg" iconRight={<ArrowRight size={16} weight="bold" />} onClick={() => onResume(resume)}>
-            Resume
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
+// There is deliberately no "Continue where you left off" strip above the grid
+// (removed 2026-08-11). It said the same thing twice: the card of the challenge
+// with an attempt open already swaps its Start for Start over / Resume, in the
+// place the learner looks for that challenge. A banner naming the same title with
+// the same two buttons is a second answer to a question already answered — and it
+// pushed the catalogue down the page to do it. `resume` is still a prop; the cards
+// are what read it.
 
 // Landing page: pick a challenge, each launches its own build journey.
 export function HomeScreen({ problems, onSelect, resume, onResume, onRestart }) {
@@ -173,10 +145,6 @@ export function HomeScreen({ problems, onSelect, resume, onResume, onRestart }) 
           Pick a challenge, wire it up on an n8n-style canvas, and test it against real cases - with Iris guiding you the whole way.
           </p>
         </div>
-
-        {/* An attempt already in progress comes first: it is the one thing on this
-            screen the learner has already invested in. */}
-        {resume && onResume && onRestart ? <ContinueCard resume={resume} onResume={onResume} onRestart={onRestart} /> : null}
 
         {/* problem cards */}
         <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--fg-2)', fontWeight: 700, marginBottom: 12 }}>Choose a challenge</div>

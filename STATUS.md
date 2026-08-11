@@ -566,9 +566,13 @@ Stress Testing exists yet. That review is the first thing to do next.
 ### Home
 
 1. ~~**"Continue where you left off"** section at the top of Home.~~ **Done, and it
-   restores the canvas too.** `GET /api/sessions` returns the open attempt; Home offers it
-   above the grid; taking the offer resumes the same session, lands on the screen they left
-   and seeds the editor with the graph they had built.
+   restores the canvas too.** `GET /api/sessions` returns the open attempt; taking the offer
+   resumes the same session, lands on the screen they left and seeds the editor with the
+   graph they had built.
+   - **The offer now lives on the challenge's own card, not in a strip above the grid**
+     (2026-08-11): a card with an attempt open swaps its Start for **Start over / Resume**.
+     The banner said the same thing a second time, in a second place, and pushed the
+     catalogue down the page to do it.
    - **Both halves are read from the TRACE, not from `Session.currentScreen` /
      `builtGraphSnapshot`.** Those columns exist and look authoritative but are only written
      when a session completes, so trusting them offers every learner screen one and an empty

@@ -216,9 +216,10 @@ function Landing() {
   // can name the next challenge. A ref, not state: it is read in a handler and
   // nothing re-renders when it changes.
   const catalogue = useRef(null);
-  // The attempt already open, for the "Continue where you left off" card. Fetched
-  // once on Home rather than passed down from anywhere: it is a property of the
-  // learner, not of the catalogue.
+  // The attempt already open. Its card on Home swaps Start for Start over /
+  // Resume; there is no banner above the grid any more. Fetched once on Home
+  // rather than passed down from anywhere: it is a property of the learner, not
+  // of the catalogue.
   const [resume, setResume] = useState(null);
   // Set only when the learner takes the offer, so a normal "start this challenge"
   // never restores a stale screen or canvas.
