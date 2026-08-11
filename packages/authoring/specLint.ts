@@ -48,20 +48,37 @@ function tokensIn(text: string): string[] {
     .filter((t) => !NOT_NODE_TYPES.has(t));
 }
 
+const LIST_ITEM = /^\s*>?\s*(?:\d+\.|[-*])\s+\*{0,2}`([a-z][a-z0-9-]{2,})`/;
+const TABLE_ROW = /^\s*\|/;
+const TABLE_SEPARATOR_ROW = /^\s*\|[\s|:-]+\|\s*$/;
+
 /**
- * The FIRST backticked token on each nodes-section list-item LINE — numbered (`1.`, `2.`) or
- * bulleted (`-`, `*`), with or without a leading `>` blockquote marker and any `**bold**` wrapper
- * around the token. This is the node a list item is ABOUT; anything after it on the same line, or
- * on a later item's line, is that item's description, not a second placement. A continuation
- * line (no list marker) is not an item at all, so it can name the same node again in prose — "the
- * brain attached to the `information-extractor` step" — without counting as reuse.
+ * The node each nodes-section PLACEMENT is about — one entry per list item or table row, not one
+ * per backtick. Two shapes, because a spec expresses its answer as one or the other:
+ *  - A list item — numbered (`1.`, `2.`) or bulleted (`-`, `*`), with or without a leading `>`
+ *    blockquote marker and any `**bold**` wrapper — contributes its FIRST backticked token.
+ *    Anything after it on the same line, or on a later item's line, is that item's description,
+ *    not a second placement: "the brain attached to the `information-extractor` step" does not
+ *    count `information-extractor` again.
+ *  - A table row (a line starting with `|`, excluding the `|---|---|` separator row) contributes
+ *    the first backticked token in the row that is a real `NODE_CATALOG` entry — the Type column
+ *    is what a table names the node; other columns can carry their own unrelated backticked text.
+ * A continuation line (no list marker, not a table row) contributes nothing, so prose is always
+ * free to refer back to an already-placed node without that reading as reuse.
  */
-function firstTokenOfListItems(text: string): string[] {
-  const itemRe = /^\s*>?\s*(?:\d+\.|[-*])\s+\*{0,2}`([a-z][a-z0-9-]{2,})`/;
+function placements(text: string): string[] {
   const heads: string[] = [];
   for (const line of text.split('\n')) {
-    const m = line.match(itemRe);
-    if (m) heads.push(m[1]);
+    const li = line.match(LIST_ITEM);
+    if (li) {
+      heads.push(li[1]);
+      continue;
+    }
+    if (TABLE_ROW.test(line) && !TABLE_SEPARATOR_ROW.test(line)) {
+      const cellTokens = (line.match(/`[a-z][a-z0-9-]{2,}`/g) ?? []).map((t) => t.slice(1, -1));
+      const known = cellTokens.find((t) => t in NODE_CATALOG);
+      if (known) heads.push(known);
+    }
   }
   return heads.filter((t) => !NOT_NODE_TYPES.has(t));
 }
@@ -109,28 +126,68 @@ function findSection(md: string, matches: (headingText: string) => boolean, head
   return md.slice(bodyStart, bodyEnd);
 }
 
+/**
+ * A markdown heading OR a bold paragraph lead-in ("**Label** …") at the start of a line — the two
+ * shapes a spec uses to introduce a labelled block within a section. Sorted by position, so the
+ * caller can strip "from this block's start to the next block's start" regardless of which kind
+ * either one is — a real spec mixes `### Sub-heading` and bare `**Bold label**` freely.
+ */
+function blockStarts(text: string): { index: number; text: string }[] {
+  const out: { index: number; text: string }[] = allHeadings(text).map((h) => ({ index: h.index, text: h.text }));
+  const boldLeadIn = /^\s*\*\*([^*]+)\*\*/;
+  let pos = 0;
+  for (const line of text.split('\n')) {
+    const m = line.match(boldLeadIn);
+    if (m) out.push({ index: pos, text: m[1] });
+    pos += line.length + 1;
+  }
+  return out.sort((a, b) => a.index - b.index);
+}
+
+/** Strip every block (see `blockStarts`) whose own label text satisfies `matches`, from its start
+ * to the next block's start, or to the end of `text`. */
+function stripBlocks(text: string, matches: (blockText: string) => boolean): string {
+  const blocks = blockStarts(text);
+  let result = text;
+  for (let i = blocks.length - 1; i >= 0; i--) {
+    if (!matches(blocks[i].text)) continue;
+    const end = i + 1 < blocks.length ? blocks[i + 1].index : text.length;
+    result = result.slice(0, blocks[i].index) + result.slice(end);
+  }
+  return result;
+}
+
 const ALIAS_HEADING = /never use|alias/i;
 
 /**
  * Strip the two regions a nodes section can contain that name node types WITHOUT using them:
  * a "never use these names" / aliases sub-heading (verbatim from `TEMPLATE.md`, or a spec's own
  * pre-send checklist quoting it back), and checklist lines (`- [ ]` / `- [x]`) generally, which
- * attest to a rule rather than declare a node.
+ * attest to a rule rather than declare a node. This feeds `unknown-token` and `legacy-alias`,
+ * which stay section-wide: an alias offered anywhere in the nodes section, including as a
+ * distractor, is a real defect (see `stripDistractors` below for why that is NOT true of every
+ * rule that reads this section).
  */
 function stripQuotedNodeNames(text: string): string {
-  const local = allHeadings(text);
-  let result = text;
-  for (let i = local.length - 1; i >= 0; i--) {
-    const h = local[i];
-    if (!ALIAS_HEADING.test(h.text)) continue;
-    const next = local.find((o, j) => j > i && o.level <= h.level);
-    const end = next ? next.index : text.length;
-    result = result.slice(0, h.index) + result.slice(end);
-  }
-  return result
+  const headingStripped = stripBlocks(text, (t) => ALIAS_HEADING.test(t));
+  return headingStripped
     .split('\n')
     .filter((line) => !/^\s*-\s\[[ xX]\]/.test(line))
     .join('\n');
+}
+
+// A distractor block — "Distractors worth offering", "Tempting wrong nodes" — deliberately names
+// nodes that must NOT be placed, so it must not feed anything that infers a placement from a
+// mention: splitter-without-paths, ai-without-model, type-reused. It stays visible to
+// unknown-token/legacy-alias (an alias offered as bait is still a bait node with the wrong name).
+const DISTRACTOR_BLOCK = /distractor|tempting wrong|wrong pick|worth offering/i;
+
+/** Strip distractor blocks from an (already alias/checklist-stripped) nodes section, leaving only
+ * the text placement-derived rules (`type-reused`, `splitter-without-paths`, `ai-without-model`)
+ * should read. A mention inside "Distractors worth offering" is bait, not a placement — the
+ * document says so explicitly ("reaching for a router in a flow that has nothing to route"). */
+function stripDistractors(text: string): string {
+  return stripBlocks(text, (t) => DISTRACTOR_BLOCK.test(t));
 }
 
 // A heading counts as the nodes section if it names nodes at all, UNLESS it is the "never use
@@ -146,7 +203,7 @@ const examplesHeadingMatches = (text: string): boolean => /\b(example|examples|c
  * Every rule here has already forced a case to be redesigned AFTER it was written, which is the
  * most expensive failure this pipeline has. All of them are decidable from the text.
  *
- * Two things this deliberately is NOT:
+ * Three things this deliberately is NOT:
  *  - A whole-document token scan. A spec's own slug, its schema/column field names, and prose
  *    about OTHER cases' aliases are indistinguishable from a real node id by shape alone, and the
  *    only place node ids are actually placed is the nodes section — so every node-token rule is
@@ -157,6 +214,13 @@ const examplesHeadingMatches = (text: string): boolean => /\b(example|examples|c
  *    gets tested on"), so each section is found by a broad keyword match, and a section this rule
  *    needs but genuinely cannot find degrades to a `section-not-found` warning naming which check
  *    it skipped, rather than guessing or erroring on the absence.
+ *  - A per-backtick reuse count. `type-reused`, `splitter-without-paths` and `ai-without-model`
+ *    read the PLACEMENT set — one entry per list item or table row (see `placements`), with
+ *    distractor blocks excluded (see `stripDistractors`) — because a node named in prose, or
+ *    offered only as bait, was never actually put on the canvas. `unknown-token` and
+ *    `legacy-alias` read the wider, distractor-INCLUSIVE section text, because a real node
+ *    mentioned anywhere in the nodes section — bait or answer — is still that node, correctly or
+ *    incorrectly named.
  */
 export function lintSpec(md: string): SpecIssue[] {
   const issues: SpecIssue[] = [];
@@ -195,16 +259,14 @@ export function lintSpec(md: string): SpecIssue[] {
       }
     }
 
-    const knownNamed = named.filter((t) => t in NODE_CATALOG);
-    hasSplitterToken = knownNamed.some((t) => SPLITTERS.includes(t));
+    // Placement-derived rules read the distractor-excluded text: a node named only as bait was
+    // never actually put on the canvas, so it must not look like a splitter, a model-less AI
+    // step, or a reused type.
+    const placed = placements(stripDistractors(nodesSection)).filter((t) => t in NODE_CATALOG);
+    hasSplitterToken = placed.some((t) => SPLITTERS.includes(t));
 
-    // Reuse is counted over the node each list item is ABOUT — its first backticked token —
-    // not every backtick in the section. A later item's prose is free to refer back to an
-    // already-placed node ("the brain attached to the `information-extractor` step") without
-    // that counting as a second instance.
-    const heads = firstTokenOfListItems(nodesSection).filter((t) => t in NODE_CATALOG);
     const seen = new Set<string>();
-    for (const t of heads) {
+    for (const t of placed) {
       if (seen.has(t)) {
         err(
           'type-reused',
@@ -215,7 +277,7 @@ export function lintSpec(md: string): SpecIssue[] {
       seen.add(t);
     }
 
-    if (knownNamed.some((t) => AI_ROOTS.includes(t)) && !knownNamed.some(isModel)) {
+    if (placed.some((t) => AI_ROOTS.includes(t)) && !placed.some(isModel)) {
       err(
         'ai-without-model',
         'an AI step is named with no chat model — pick `google-gemini-chat-model` or `openai-chat-model`'

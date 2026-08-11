@@ -2,8 +2,10 @@ import { describe, it, expect } from 'vitest';
 import { lintSpec, nodeTokens } from './specLint.ts';
 
 /** A minimal spec that passes every rule, so each test can break exactly one thing. Node items
- * are numbered list entries, like a real filled-in spec, so type-reused has real list items to
- * count reuse over. */
+ * are numbered list entries, like a real filled-in spec, and the AI model gets its OWN item
+ * (item 3) rather than being mentioned inline on the classifier's line — that is how the two real
+ * specs with an AI step actually write it, and it is what makes the model a PLACEMENT rather than
+ * just prose on someone else's line. */
 const GOOD = `
 ## 3. The shape of the flow
 | Path name | What lands here |
@@ -14,10 +16,11 @@ const GOOD = `
 ## 4. The nodes
 **Nodes this case needs**, in the order they run:
 > 1. \`form-trigger\` — captures the request.
-> 2. \`text-classifier\` with \`google-gemini-chat-model\` — sorts it into a path.
-> 3. \`switch\` — routes on the category.
-> 4. \`slack\` — flags urgent ones.
-> 5. \`gmail\` — replies to everything else.
+> 2. \`text-classifier\` — sorts it into a path.
+> 3. \`google-gemini-chat-model\` — the brain attached to the classifier.
+> 4. \`switch\` — routes on the category.
+> 5. \`slack\` — flags urgent ones.
+> 6. \`gmail\` — replies to everything else.
 
 ## 5. Examples to test it with
 **The awkward one — Required.**
@@ -81,8 +84,8 @@ describe('lintSpec', () => {
 
   it('rejects the same node type used twice, because nodeSetup is keyed by type', () => {
     const twice = GOOD.replace(
-      '> 5. `gmail` — replies to everything else.',
-      '> 5. `slack` — replies to everything else.'
+      '> 6. `gmail` — replies to everything else.',
+      '> 6. `slack` — replies to everything else.'
     );
     expect(lintSpec(twice)).toContainEqual(
       expect.objectContaining({ level: 'error', rule: 'type-reused' })
@@ -90,7 +93,7 @@ describe('lintSpec', () => {
   });
 
   it('rejects an AI step with no model attached', () => {
-    const noBrain = GOOD.replace(' with `google-gemini-chat-model`', '');
+    const noBrain = GOOD.replace('> 3. `google-gemini-chat-model` — the brain attached to the classifier.\n', '');
     expect(lintSpec(noBrain)).toContainEqual(
       expect.objectContaining({ level: 'error', rule: 'ai-without-model' })
     );
@@ -155,12 +158,88 @@ describe('lintSpec', () => {
 
   it('does not flag type-reused when a later item only refers back to an earlier node in prose', () => {
     const backref = GOOD.replace(
-      '> 3. `switch` — routes on the category.',
-      '> 3. `switch` — routes on the category the `text-classifier` step already decided.'
+      '> 4. `switch` — routes on the category.',
+      '> 4. `switch` — routes on the category the `text-classifier` step already decided.'
     );
     expect(lintSpec(backref).find((i) => i.rule === 'type-reused')).toBeUndefined();
   });
 
   // A genuine reuse — two list items whose first token is the same node type — is covered above
   // by "rejects the same node type used twice, because nodeSetup is keyed by type".
+
+  // --- Round 3 regression coverage: `trial-signup-desk.md` expresses its answer as a markdown
+  // TABLE, not list items, so placement extraction found nothing to protect there; and `switch`
+  // named only inside "Distractors worth offering" — explicit bait for a flow the spec itself
+  // calls linear — was read as a real placement and wrongly demanded a path table for it.
+
+  it('sees a node placed in a table row as a placement (a genuine table-based splitter with no paths still errors)', () => {
+    const tableSpec = `
+## 3. The shape of the flow
+| Path name | What lands here |
+|---|---|
+| urgent | anything on fire |
+
+## 4. The nodes
+| Stage | Node | Type |
+|---|---|---|
+| 1 | Trigger | \`form-trigger\` |
+| 2 | Router | \`switch\` |
+
+## 5. Examples to test it with
+**The awkward one — Required.**
+> A submission naming a product nobody stocks, which matches no path.
+`;
+    expect(lintSpec(tableSpec)).toContainEqual(
+      expect.objectContaining({ level: 'error', rule: 'splitter-without-paths' })
+    );
+  });
+
+  it('rejects the same node type used twice across two table rows', () => {
+    const tableReuse = `
+## 4. The nodes
+| Stage | Node | Type |
+|---|---|---|
+| 1 | Trigger | \`form-trigger\` |
+| 2 | Notify | \`gmail\` |
+| 3 | Notify again | \`gmail\` |
+
+## 5. Examples to test it with
+**The awkward one — Required.**
+> A submission naming a product nobody stocks, which matches no path.
+`;
+    expect(lintSpec(tableReuse)).toContainEqual(
+      expect.objectContaining({ level: 'error', rule: 'type-reused' })
+    );
+  });
+
+  it('does not flag splitter-without-paths or type-reused for a node named only inside a distractor list', () => {
+    const distractorSpec = `
+## 3. The shape of the flow
+Linear.
+
+## 4. The nodes
+> 1. \`form-trigger\` — captures the request.
+> 2. \`gmail\` — replies.
+
+**Distractors worth offering**
+
+> - \`switch\` — reaching for a router in a flow that has nothing to route.
+> - \`gmail\` — tempting to add a second reply node here, but one is enough.
+
+## 5. Examples to test it with
+**The awkward one — Required.**
+> A submission naming a product nobody stocks, which matches no path.
+`;
+    const issues = lintSpec(distractorSpec);
+    expect(issues.find((i) => i.rule === 'splitter-without-paths')).toBeUndefined();
+    expect(issues.find((i) => i.rule === 'type-reused')).toBeUndefined();
+  });
+
+  it('still flags a legacy alias even when it is only offered as a distractor', () => {
+    const aliasDistractor = GOOD.replace(
+      '## 5. Examples to test it with',
+      '**Distractors worth offering**\n\n> - `classify` — a plausible wrong pick.\n\n## 5. Examples to test it with'
+    );
+    expect(lintSpec(aliasDistractor).find((i) => i.rule === 'legacy-alias')).toBeDefined();
+  });
 });
