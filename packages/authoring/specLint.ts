@@ -48,40 +48,63 @@ function tokensIn(text: string): string[] {
     .filter((t) => !NOT_NODE_TYPES.has(t));
 }
 
+/**
+ * The FIRST backticked token on each nodes-section list-item LINE — numbered (`1.`, `2.`) or
+ * bulleted (`-`, `*`), with or without a leading `>` blockquote marker and any `**bold**` wrapper
+ * around the token. This is the node a list item is ABOUT; anything after it on the same line, or
+ * on a later item's line, is that item's description, not a second placement. A continuation
+ * line (no list marker) is not an item at all, so it can name the same node again in prose — "the
+ * brain attached to the `information-extractor` step" — without counting as reuse.
+ */
+function firstTokenOfListItems(text: string): string[] {
+  const itemRe = /^\s*>?\s*(?:\d+\.|[-*])\s+\*{0,2}`([a-z][a-z0-9-]{2,})`/;
+  const heads: string[] = [];
+  for (const line of text.split('\n')) {
+    const m = line.match(itemRe);
+    if (m) heads.push(m[1]);
+  }
+  return heads.filter((t) => !NOT_NODE_TYPES.has(t));
+}
+
 interface Heading {
   index: number;
   level: number;
+  text: string;
 }
 
-/** Every markdown heading in `md`, any level, in document order. */
+/** Every markdown heading in `md`, any level, in document order, with its own text. */
 function allHeadings(md: string): Heading[] {
-  const re = /^(#{1,6})[ \t]+.*$/gm;
+  const re = /^(#{1,6})[ \t]+(.*)$/gm;
   const list: Heading[] = [];
   let m: RegExpExecArray | null;
   while ((m = re.exec(md)) !== null) {
-    list.push({ index: m.index, level: m[1].length });
+    list.push({ index: m.index, level: m[1].length, text: m[2] });
   }
   return list;
 }
 
 /**
- * The body of the first heading (any level, anywhere) whose line matches `keywordRe`, running to
+ * The body of the first heading (in document order) whose TEXT satisfies `matches`, running to
  * the next heading of the SAME OR HIGHER level (fewer or equal `#`s) — or to the end of the
  * document. Returns null when nothing matches.
+ *
+ * Only headings at level 2 or deeper are candidates: every case spec carries exactly one level-1
+ * heading, the document's own title ("# Case spec — …" / "# Case brief — …"), and that title
+ * always contains the word "case" — which the examples-section keyword list below also matches.
+ * Without this floor, the title would win every examples-section lookup (it is always the FIRST
+ * heading in the document) and "the examples section" would become the entire rest of the file.
  *
  * This replaces indexing on `TEMPLATE.md`'s pristine `## N.` numbering, because a spec that has
  * already been resolved into a real case rewrites its own headings ("Node vocabulary" instead of
  * "The nodes", a different heading level, extra sections appended after §10) — the numbering is a
  * fill-in-the-blank convention, not something a finished document is obliged to keep.
  */
-function findSection(md: string, keywordRe: RegExp, headings: Heading[]): string | null {
-  const m = keywordRe.exec(md);
-  if (!m) return null;
-  const hashes = md.slice(m.index).match(/^#{1,6}/);
-  const level = hashes ? hashes[0].length : (headings.find((h) => h.index === m.index)?.level ?? 6);
-  const lineEnd = md.indexOf('\n', m.index);
+function findSection(md: string, matches: (headingText: string) => boolean, headings: Heading[]): string | null {
+  const heading = headings.find((h) => h.level >= 2 && matches(h.text));
+  if (!heading) return null;
+  const lineEnd = md.indexOf('\n', heading.index);
   const bodyStart = lineEnd === -1 ? md.length : lineEnd + 1;
-  const next = headings.find((h) => h.index > m.index && h.level <= level);
+  const next = headings.find((h) => h.index > heading.index && h.level <= heading.level);
   const bodyEnd = next ? next.index : md.length;
   return md.slice(bodyStart, bodyEnd);
 }
@@ -99,9 +122,7 @@ function stripQuotedNodeNames(text: string): string {
   let result = text;
   for (let i = local.length - 1; i >= 0; i--) {
     const h = local[i];
-    const lineEnd = text.indexOf('\n', h.index);
-    const headingLine = text.slice(h.index, lineEnd === -1 ? text.length : lineEnd);
-    if (!ALIAS_HEADING.test(headingLine)) continue;
+    if (!ALIAS_HEADING.test(h.text)) continue;
     const next = local.find((o, j) => j > i && o.level <= h.level);
     const end = next ? next.index : text.length;
     result = result.slice(0, h.index) + result.slice(end);
@@ -112,9 +133,12 @@ function stripQuotedNodeNames(text: string): string {
     .join('\n');
 }
 
-const NODES_HEADING = /^#{1,6}.*\b(the nodes|nodes this case needs)\b/im;
-const FLOW_HEADING = /^#{1,6}.*\b(shape of the flow|the flow)\b/im;
-const EXAMPLES_HEADING = /^#{1,6}.*\b(examples|test it with)\b/im;
+// A heading counts as the nodes section if it names nodes at all, UNLESS it is the "never use
+// these names" warning — that heading also says "names" and would otherwise self-match.
+const NEVER_USE_OR_ALIAS = /\b(never use|alias(es)?)\b/i;
+const nodesHeadingMatches = (text: string): boolean => /\bnodes?\b/i.test(text) && !NEVER_USE_OR_ALIAS.test(text);
+const flowHeadingMatches = (text: string): boolean => /\bflow\b/i.test(text);
+const examplesHeadingMatches = (text: string): boolean => /\b(example|examples|case|cases|test|tested)\b/i.test(text);
 
 /**
  * Lint one filled-in case spec.
@@ -128,10 +152,11 @@ const EXAMPLES_HEADING = /^#{1,6}.*\b(examples|test it with)\b/im;
  *    only place node ids are actually placed is the nodes section — so every node-token rule is
  *    scoped to it, and an unrecognised token is a WARNING (`unknown-token`), never an error,
  *    because a field name shaped like a node id is the common case, not the rare one.
- *  - Reliant on `TEMPLATE.md`'s exact `## N.` heading shape. A resolved spec keeps whatever
- *    heading wording and level it ended up with, so each section is found by keyword, and a
- *    section this rule needs but cannot find degrades to a `section-not-found` warning naming
- *    which check it skipped, rather than guessing or erroring on the absence.
+ *  - Reliant on `TEMPLATE.md`'s exact `## N.` heading shape or wording. A resolved spec keeps
+ *    whatever heading wording and level it ended up with ("Node vocabulary", "The cases the flow
+ *    gets tested on"), so each section is found by a broad keyword match, and a section this rule
+ *    needs but genuinely cannot find degrades to a `section-not-found` warning naming which check
+ *    it skipped, rather than guessing or erroring on the absence.
  */
 export function lintSpec(md: string): SpecIssue[] {
   const issues: SpecIssue[] = [];
@@ -144,7 +169,7 @@ export function lintSpec(md: string): SpecIssue[] {
 
   // --- The nodes section: unknown-token, legacy-alias, type-reused and ai-without-model all
   // read from here, and nowhere else.
-  const nodesSectionRaw = findSection(md, NODES_HEADING, headings);
+  const nodesSectionRaw = findSection(md, nodesHeadingMatches, headings);
   if (nodesSectionRaw === null) {
     sectionSkipped(
       'could not find the nodes section — skipping unknown-token, legacy-alias, type-reused, ai-without-model'
@@ -170,14 +195,16 @@ export function lintSpec(md: string): SpecIssue[] {
       }
     }
 
-    // The node list answers the nodes section, so a type appearing twice there means the case
-    // wants one node type configured two ways. `nodeSetup` is keyed by TYPE, so both instances
-    // share one answer key and one of them gets graded wrong.
     const knownNamed = named.filter((t) => t in NODE_CATALOG);
     hasSplitterToken = knownNamed.some((t) => SPLITTERS.includes(t));
 
+    // Reuse is counted over the node each list item is ABOUT — its first backticked token —
+    // not every backtick in the section. A later item's prose is free to refer back to an
+    // already-placed node ("the brain attached to the `information-extractor` step") without
+    // that counting as a second instance.
+    const heads = firstTokenOfListItems(nodesSection).filter((t) => t in NODE_CATALOG);
     const seen = new Set<string>();
-    for (const t of knownNamed) {
+    for (const t of heads) {
       if (seen.has(t)) {
         err(
           'type-reused',
@@ -199,7 +226,7 @@ export function lintSpec(md: string): SpecIssue[] {
   // --- The flow section: only consulted when a splitter was actually named in the nodes
   // section, because a linear case has no exits to check.
   if (hasSplitterToken) {
-    const flowSection = findSection(md, FLOW_HEADING, headings);
+    const flowSection = findSection(md, flowHeadingMatches, headings);
     if (flowSection === null) {
       sectionSkipped('could not find the flow section — skipping splitter-without-paths');
     } else {
@@ -216,7 +243,7 @@ export function lintSpec(md: string): SpecIssue[] {
   }
 
   // --- The examples section: the awkward row is what Stress Testing is built from.
-  const examplesSection = findSection(md, EXAMPLES_HEADING, headings);
+  const examplesSection = findSection(md, examplesHeadingMatches, headings);
   if (examplesSection === null) {
     sectionSkipped('could not find the examples section — skipping no-awkward-example');
   } else {

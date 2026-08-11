@@ -196,16 +196,53 @@ The most expensive failure the pipeline has is a flow that must be redesigned *a
 > demoted to a warning (`unknown-token`) because a field name shaped like a node id is the common
 > case, not the rare one. The code blocks and Step 7 below reflect the corrected version.
 >
-> One residual is known and deliberately not patched over: `type-reused` still fires on
-> `ops-request-desk.md` (`information-extractor`, mentioned once as the node and once more in
-> "the brain attached to the `information-extractor` step") and on `low-stock-morning-post.md`
-> (`schedule`, mentioned once as the node and once more in a parenthetical about the template's
-> own worked example). Both are a node id named a second time in explanatory prose about a
-> decision already made, not a second placement — but neither sits inside a "never use"/aliases
-> heading or a checklist line, the only two exclusions this task authorises, so the rule correctly
-> fires by its own stated rules. Fixing it needs a third heuristic (e.g. only counting a token
-> inside the actual answer list, not prose that merely refers back to it) that was deliberately
-> left for a follow-up rather than added unreviewed.
+> **Revised again 2026-08-11, round 2.** The coordinator confirmed the residual above was real
+> and identified a second defect the first revision missed: the `type-reused` residual was one
+> class of bug — reuse must be counted over the node each list item is ABOUT (its FIRST
+> backticked token), not every backtick in the section, so a later item's prose can refer back to
+> an already-placed node ("the brain attached to the `information-extractor` step"; a
+> parenthetical citing the template's own worked `schedule` example) without that counting as
+> reuse. `firstTokenOfListItems()` implements this: a list-item line (numbered `1.`/`2.` or
+> bulleted `-`/`*`, with an optional leading `>` and an optional `**bold**` wrapper) contributes
+> only its first backticked token; a continuation line with no list marker contributes nothing.
+> Both `ops-request-desk.md` and `low-stock-morning-post.md` now pass.
+>
+> The second defect was the heading-keyword lists themselves being too narrow:
+> `trial-signup-desk.md` uses "Node vocabulary" and "The cases the flow gets tested on", neither
+> of which matched "the nodes"/"nodes this case needs" or "examples"/"test it with" — so all four
+> node-token rules silently skipped on it, which is worse than erroring. The keyword lists are now
+> broad word-boundaried matches: nodes on `node`/`nodes` (excluding a heading that also says
+> "never use"/"alias", which also talks about node names), flow on `flow` alone, examples on
+> `example(s)`/`case(s)`/`test`/`tested`. One correctness fix this required: every case spec
+> carries exactly one level-1 heading, its own title ("# Case spec — …" / "# Case brief — …"),
+> and that title always contains the word "case" — so without excluding level-1 headings from
+> candidates, the title would win the examples-section lookup on every spec (it is always the
+> first heading in the document) and "the examples section" would silently become the entire rest
+> of the file. `findSection()` now only considers headings at level 2 or deeper.
+>
+> **With both fixes, `ops-request-desk.md` and `low-stock-morning-post.md` exit 0.
+> `trial-signup-desk.md` does not — and the reason is now a genuine, different finding, not a
+> linter bug in either fix above.** Its "Node vocabulary" section, previously never scanned
+> because its heading didn't match, is now found and read, and it contains two things that were
+> always true of the document and are only now visible:
+>
+> 1. **`legacy-alias` on `action`.** Row 4 of the vocabulary table gives the "Send Reply (Gmail)"
+>    node's Type as `` `action` `` instead of `` `gmail` `` — a real, stale value in the spec
+>    text (the case was almost certainly built correctly against the real catalog; the `.md`
+>    documentation simply never got the type name updated). This is out of scope to fix here:
+>    `docs/case-specs/` is a fixture this task must not edit.
+> 2. **`splitter-without-paths` on `switch`.** The document's own "Distractors worth offering"
+>    list includes `` `switch` `` with the note "reaching for a router in a flow that has nothing
+>    to route" — i.e. `switch` is named ONLY as a wrong-answer bait node; the flow is explicitly
+>    linear. `hasSplitterToken` reads from the full nodes-section token scan (unchanged by this
+>    round's fix, which only narrowed `type-reused`'s source), so it cannot tell a distractor
+>    mention from a real placement, and the flow section correctly has no path table for a
+>    splitter that isn't actually in the flow. This is the SAME class of problem as the
+>    `type-reused` fix above — a token that quotes a node without the case using it — just
+>    surfacing through a different rule (`hasSplitterToken`) that this round's instructions did
+>    not authorise touching ("keep every other rule ... exactly as it is now"). Flagged as a
+>    known, reported, unresolved residual rather than fixed by widening scope beyond what was
+>    specified.
 
 **Files:**
 - Create: `packages/authoring/package.json`
@@ -262,7 +299,9 @@ Run `npm install` so the workspace symlink exists.
 import { describe, it, expect } from 'vitest';
 import { lintSpec, nodeTokens } from './specLint.ts';
 
-/** A minimal spec that passes every rule, so each test can break exactly one thing. */
+/** A minimal spec that passes every rule, so each test can break exactly one thing. Node items
+ * are numbered list entries, like a real filled-in spec, so type-reused has real list items to
+ * count reuse over. */
 const GOOD = `
 ## 3. The shape of the flow
 | Path name | What lands here |
@@ -272,7 +311,11 @@ const GOOD = `
 
 ## 4. The nodes
 **Nodes this case needs**, in the order they run:
-> \`form-trigger\` then \`text-classifier\` with \`google-gemini-chat-model\`, then \`switch\`, ending at \`slack\` or \`gmail\`.
+> 1. \`form-trigger\` — captures the request.
+> 2. \`text-classifier\` with \`google-gemini-chat-model\` — sorts it into a path.
+> 3. \`switch\` — routes on the category.
+> 4. \`slack\` — flags urgent ones.
+> 5. \`gmail\` — replies to everything else.
 
 ## 5. Examples to test it with
 **The awkward one — Required.**
@@ -335,7 +378,10 @@ describe('lintSpec', () => {
   });
 
   it('rejects the same node type used twice, because nodeSetup is keyed by type', () => {
-    const twice = GOOD.replace('ending at `slack` or `gmail`', 'ending at `slack`, then another `slack`');
+    const twice = GOOD.replace(
+      '> 5. `gmail` — replies to everything else.',
+      '> 5. `slack` — replies to everything else.'
+    );
     expect(lintSpec(twice)).toContainEqual(
       expect.objectContaining({ level: 'error', rule: 'type-reused' })
     );
@@ -363,9 +409,8 @@ describe('lintSpec', () => {
     expect(nodeTokens('use `switch` when `moderate` difficulty')).not.toContain('moderate');
   });
 
-  // --- Regression coverage for the two defects the first cut of this linter shipped with:
-  // a document-wide token scan, and a section parser that assumed TEMPLATE.md's pristine
-  // `## N.` structure instead of tolerating a spec that has already been resolved into a case.
+  // --- Round 1 regression coverage: a document-wide token scan, and a section parser that
+  // assumed TEMPLATE.md's pristine `## N.` structure instead of tolerating a resolved spec.
 
   it('produces zero errors on a resolved-shaped spec whose field names look like node ids', () => {
     expect(lintSpec(RESOLVED).filter((i) => i.level === 'error')).toEqual([]);
@@ -378,6 +423,44 @@ describe('lintSpec', () => {
     );
     expect(lintSpec(withAliasNote).find((i) => i.rule === 'legacy-alias')).toBeUndefined();
   });
+
+  // --- Round 2 regression coverage: `type-reused` was counting a node named again in prose
+  // describing an already-placed item (not a second instance), and the nodes/examples heading
+  // keywords were too narrow to find either real spec's actual heading wording.
+
+  it('finds a nodes section headed "Node vocabulary" and actually runs its rules', () => {
+    const vocab = GOOD.replace('## 4. The nodes', '## 4. Node vocabulary');
+    const notFound = lintSpec(vocab).find(
+      (i) => i.rule === 'section-not-found' && i.message.includes('nodes section')
+    );
+    expect(notFound).toBeUndefined();
+
+    // Prove the rules actually run under this heading, not just that lookup succeeds.
+    const vocabWithAlias = vocab.replace('`text-classifier`', '`classify`');
+    expect(lintSpec(vocabWithAlias).find((i) => i.rule === 'legacy-alias')).toBeDefined();
+  });
+
+  it('finds an examples section headed "The cases the flow gets tested on"', () => {
+    const cases = GOOD.replace(
+      '## 5. Examples to test it with',
+      '## 5. The cases the flow gets tested on'
+    );
+    const notFound = lintSpec(cases).find(
+      (i) => i.rule === 'section-not-found' && i.message.includes('examples section')
+    );
+    expect(notFound).toBeUndefined();
+  });
+
+  it('does not flag type-reused when a later item only refers back to an earlier node in prose', () => {
+    const backref = GOOD.replace(
+      '> 3. `switch` — routes on the category.',
+      '> 3. `switch` — routes on the category the `text-classifier` step already decided.'
+    );
+    expect(lintSpec(backref).find((i) => i.rule === 'type-reused')).toBeUndefined();
+  });
+
+  // A genuine reuse — two list items whose first token is the same node type — is covered above
+  // by "rejects the same node type used twice, because nodeSetup is keyed by type".
 });
 ```
 
@@ -439,40 +522,63 @@ function tokensIn(text: string): string[] {
     .filter((t) => !NOT_NODE_TYPES.has(t));
 }
 
+/**
+ * The FIRST backticked token on each nodes-section list-item LINE — numbered (`1.`, `2.`) or
+ * bulleted (`-`, `*`), with or without a leading `>` blockquote marker and any `**bold**` wrapper
+ * around the token. This is the node a list item is ABOUT; anything after it on the same line, or
+ * on a later item's line, is that item's description, not a second placement. A continuation
+ * line (no list marker) is not an item at all, so it can name the same node again in prose — "the
+ * brain attached to the `information-extractor` step" — without counting as reuse.
+ */
+function firstTokenOfListItems(text: string): string[] {
+  const itemRe = /^\s*>?\s*(?:\d+\.|[-*])\s+\*{0,2}`([a-z][a-z0-9-]{2,})`/;
+  const heads: string[] = [];
+  for (const line of text.split('\n')) {
+    const m = line.match(itemRe);
+    if (m) heads.push(m[1]);
+  }
+  return heads.filter((t) => !NOT_NODE_TYPES.has(t));
+}
+
 interface Heading {
   index: number;
   level: number;
+  text: string;
 }
 
-/** Every markdown heading in `md`, any level, in document order. */
+/** Every markdown heading in `md`, any level, in document order, with its own text. */
 function allHeadings(md: string): Heading[] {
-  const re = /^(#{1,6})[ \t]+.*$/gm;
+  const re = /^(#{1,6})[ \t]+(.*)$/gm;
   const list: Heading[] = [];
   let m: RegExpExecArray | null;
   while ((m = re.exec(md)) !== null) {
-    list.push({ index: m.index, level: m[1].length });
+    list.push({ index: m.index, level: m[1].length, text: m[2] });
   }
   return list;
 }
 
 /**
- * The body of the first heading (any level, anywhere) whose line matches `keywordRe`, running to
+ * The body of the first heading (in document order) whose TEXT satisfies `matches`, running to
  * the next heading of the SAME OR HIGHER level (fewer or equal `#`s) — or to the end of the
  * document. Returns null when nothing matches.
+ *
+ * Only headings at level 2 or deeper are candidates: every case spec carries exactly one level-1
+ * heading, the document's own title ("# Case spec — …" / "# Case brief — …"), and that title
+ * always contains the word "case" — which the examples-section keyword list below also matches.
+ * Without this floor, the title would win every examples-section lookup (it is always the FIRST
+ * heading in the document) and "the examples section" would become the entire rest of the file.
  *
  * This replaces indexing on `TEMPLATE.md`'s pristine `## N.` numbering, because a spec that has
  * already been resolved into a real case rewrites its own headings ("Node vocabulary" instead of
  * "The nodes", a different heading level, extra sections appended after §10) — the numbering is a
  * fill-in-the-blank convention, not something a finished document is obliged to keep.
  */
-function findSection(md: string, keywordRe: RegExp, headings: Heading[]): string | null {
-  const m = keywordRe.exec(md);
-  if (!m) return null;
-  const hashes = md.slice(m.index).match(/^#{1,6}/);
-  const level = hashes ? hashes[0].length : (headings.find((h) => h.index === m.index)?.level ?? 6);
-  const lineEnd = md.indexOf('\n', m.index);
+function findSection(md: string, matches: (headingText: string) => boolean, headings: Heading[]): string | null {
+  const heading = headings.find((h) => h.level >= 2 && matches(h.text));
+  if (!heading) return null;
+  const lineEnd = md.indexOf('\n', heading.index);
   const bodyStart = lineEnd === -1 ? md.length : lineEnd + 1;
-  const next = headings.find((h) => h.index > m.index && h.level <= level);
+  const next = headings.find((h) => h.index > heading.index && h.level <= heading.level);
   const bodyEnd = next ? next.index : md.length;
   return md.slice(bodyStart, bodyEnd);
 }
@@ -490,9 +596,7 @@ function stripQuotedNodeNames(text: string): string {
   let result = text;
   for (let i = local.length - 1; i >= 0; i--) {
     const h = local[i];
-    const lineEnd = text.indexOf('\n', h.index);
-    const headingLine = text.slice(h.index, lineEnd === -1 ? text.length : lineEnd);
-    if (!ALIAS_HEADING.test(headingLine)) continue;
+    if (!ALIAS_HEADING.test(h.text)) continue;
     const next = local.find((o, j) => j > i && o.level <= h.level);
     const end = next ? next.index : text.length;
     result = result.slice(0, h.index) + result.slice(end);
@@ -503,9 +607,12 @@ function stripQuotedNodeNames(text: string): string {
     .join('\n');
 }
 
-const NODES_HEADING = /^#{1,6}.*\b(the nodes|nodes this case needs)\b/im;
-const FLOW_HEADING = /^#{1,6}.*\b(shape of the flow|the flow)\b/im;
-const EXAMPLES_HEADING = /^#{1,6}.*\b(examples|test it with)\b/im;
+// A heading counts as the nodes section if it names nodes at all, UNLESS it is the "never use
+// these names" warning — that heading also says "names" and would otherwise self-match.
+const NEVER_USE_OR_ALIAS = /\b(never use|alias(es)?)\b/i;
+const nodesHeadingMatches = (text: string): boolean => /\bnodes?\b/i.test(text) && !NEVER_USE_OR_ALIAS.test(text);
+const flowHeadingMatches = (text: string): boolean => /\bflow\b/i.test(text);
+const examplesHeadingMatches = (text: string): boolean => /\b(example|examples|case|cases|test|tested)\b/i.test(text);
 
 /**
  * Lint one filled-in case spec.
@@ -519,10 +626,11 @@ const EXAMPLES_HEADING = /^#{1,6}.*\b(examples|test it with)\b/im;
  *    only place node ids are actually placed is the nodes section — so every node-token rule is
  *    scoped to it, and an unrecognised token is a WARNING (`unknown-token`), never an error,
  *    because a field name shaped like a node id is the common case, not the rare one.
- *  - Reliant on `TEMPLATE.md`'s exact `## N.` heading shape. A resolved spec keeps whatever
- *    heading wording and level it ended up with, so each section is found by keyword, and a
- *    section this rule needs but cannot find degrades to a `section-not-found` warning naming
- *    which check it skipped, rather than guessing or erroring on the absence.
+ *  - Reliant on `TEMPLATE.md`'s exact `## N.` heading shape or wording. A resolved spec keeps
+ *    whatever heading wording and level it ended up with ("Node vocabulary", "The cases the flow
+ *    gets tested on"), so each section is found by a broad keyword match, and a section this rule
+ *    needs but genuinely cannot find degrades to a `section-not-found` warning naming which check
+ *    it skipped, rather than guessing or erroring on the absence.
  */
 export function lintSpec(md: string): SpecIssue[] {
   const issues: SpecIssue[] = [];
@@ -535,7 +643,7 @@ export function lintSpec(md: string): SpecIssue[] {
 
   // --- The nodes section: unknown-token, legacy-alias, type-reused and ai-without-model all
   // read from here, and nowhere else.
-  const nodesSectionRaw = findSection(md, NODES_HEADING, headings);
+  const nodesSectionRaw = findSection(md, nodesHeadingMatches, headings);
   if (nodesSectionRaw === null) {
     sectionSkipped(
       'could not find the nodes section — skipping unknown-token, legacy-alias, type-reused, ai-without-model'
@@ -561,14 +669,16 @@ export function lintSpec(md: string): SpecIssue[] {
       }
     }
 
-    // The node list answers the nodes section, so a type appearing twice there means the case
-    // wants one node type configured two ways. `nodeSetup` is keyed by TYPE, so both instances
-    // share one answer key and one of them gets graded wrong.
     const knownNamed = named.filter((t) => t in NODE_CATALOG);
     hasSplitterToken = knownNamed.some((t) => SPLITTERS.includes(t));
 
+    // Reuse is counted over the node each list item is ABOUT — its first backticked token —
+    // not every backtick in the section. A later item's prose is free to refer back to an
+    // already-placed node ("the brain attached to the `information-extractor` step") without
+    // that counting as a second instance.
+    const heads = firstTokenOfListItems(nodesSection).filter((t) => t in NODE_CATALOG);
     const seen = new Set<string>();
-    for (const t of knownNamed) {
+    for (const t of heads) {
       if (seen.has(t)) {
         err(
           'type-reused',
@@ -590,7 +700,7 @@ export function lintSpec(md: string): SpecIssue[] {
   // --- The flow section: only consulted when a splitter was actually named in the nodes
   // section, because a linear case has no exits to check.
   if (hasSplitterToken) {
-    const flowSection = findSection(md, FLOW_HEADING, headings);
+    const flowSection = findSection(md, flowHeadingMatches, headings);
     if (flowSection === null) {
       sectionSkipped('could not find the flow section — skipping splitter-without-paths');
     } else {
@@ -607,7 +717,7 @@ export function lintSpec(md: string): SpecIssue[] {
   }
 
   // --- The examples section: the awkward row is what Stress Testing is built from.
-  const examplesSection = findSection(md, EXAMPLES_HEADING, headings);
+  const examplesSection = findSection(md, examplesHeadingMatches, headings);
   if (examplesSection === null) {
     sectionSkipped('could not find the examples section — skipping no-awkward-example');
   } else {
@@ -639,7 +749,7 @@ export function lintSpec(md: string): SpecIssue[] {
 - [ ] **Step 5: Run the test to green**
 
 Run: `npx vitest run packages/authoring/specLint.test.ts`
-Expected: PASS, 10 tests.
+Expected: PASS, 13 tests.
 
 - [ ] **Step 6: Add the CLI**
 
@@ -686,28 +796,36 @@ Add to `package.json` scripts:
 
 Run: `for s in trial-signup-desk ops-request-desk low-stock-morning-post; do npm run case:spec-check -- docs/case-specs/$s.md; done`
 
-Expected, with the corrected implementation above:
+Expected, with the round-2 implementation above:
 
-- `trial-signup-desk.md` exits **0** with two `section-not-found` warnings — its nodes section
-  is headed "Node vocabulary" rather than "The nodes"/"nodes this case needs", and its examples
-  section is headed "The cases the flow gets tested on" rather than "examples"/"test it with", so
-  neither keyword matches and the node-token and no-awkward-example checks are skipped rather than
-  guessing.
-- `ops-request-desk.md` and `low-stock-morning-post.md` each exit **1**, on `type-reused`
-  (`information-extractor` and `schedule` respectively). Both are the same residual: the node id
-  is named once as the actual placement and once more in explanatory prose referring back to it
-  ("the brain attached to the `information-extractor` step"; a parenthetical about the template's
-  own worked example using `schedule`) — not a second instance. Neither sits inside a "never
-  use"/aliases heading or a checklist line, the only two exclusions this task authorises, so by
-  its own stated rules the check is correct to fire. **This is a known, reported limitation, not
-  silently patched over** — see the revision note at the top of this task. A fix needs a third
-  heuristic (distinguish "named in the answer list" from "referred back to in prose") that was
-  deliberately left for a follow-up rather than added unreviewed under this task's scope.
+- `ops-request-desk.md` exits **0** — the round-1 `type-reused` residual on `information-extractor`
+  is gone now that reuse is counted over each list item's first token only; two `unknown-token`
+  warnings on `` `detail` `` remain (a genuine AI-output field name mentioned twice in the answer
+  text) but a warning never blocks.
+- `low-stock-morning-post.md` exits **0**, clean — no output at all. The round-1 `type-reused`
+  residual on `schedule` is gone for the same reason.
+- `trial-signup-desk.md` still exits **1**, and finding its nodes section (via the broadened
+  "node"/"nodes" heading match, fixing the section-not-found problem this round set out to fix)
+  is exactly what surfaces it. Two genuine, different findings, neither a bug in this round's two
+  fixes:
+  1. **`legacy-alias` on `` `action` ``.** Row 4 of the "Node vocabulary" table gives the "Send
+     Reply (Gmail)" node's Type as `` `action` `` instead of `` `gmail` `` — real, stale text in
+     the spec (the built case almost certainly uses the real catalog type; the `.md` documentation
+     was never updated). Out of scope to fix here — `docs/case-specs/` is a fixture this task must
+     not edit.
+  2. **`splitter-without-paths` on `` `switch` ``.** The document's own "Distractors worth
+     offering" list names `` `switch` `` as bait ("reaching for a router in a flow that has
+     nothing to route") — it is not part of the actual answer, and the flow is explicitly linear.
+     `hasSplitterToken` reads the full nodes-section token scan (this round's fix only narrowed
+     `type-reused`'s source, per "keep every other rule ... exactly as it is now"), so it cannot
+     tell a distractor mention from a real placement. This is the same class of problem as the
+     `type-reused` fix — a token that quotes a node without the case using it — surfacing through
+     a different rule this round did not authorise touching. Known, reported, unresolved residual.
 
-**If a NEW error appears here that is not one of the two above**, read it before changing the
-linter — all three specs were built successfully, so a new error is either a real latent defect
-worth reporting or a false positive worth fixing. Never silence a rule to make a fixture pass
-without saying which of the two it was.
+**If a NEW error appears here that is not one of the two above on `trial-signup-desk.md`**, or any
+error at all on the other two, read it before changing the linter — all three specs were built
+successfully, so a new finding is either a real latent defect worth reporting or a false positive
+worth fixing. Never silence a rule to make a fixture pass without saying which of the two it was.
 
 - [ ] **Step 8: Full gate and commit**
 

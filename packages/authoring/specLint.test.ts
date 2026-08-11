@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { lintSpec, nodeTokens } from './specLint.ts';
 
-/** A minimal spec that passes every rule, so each test can break exactly one thing. */
+/** A minimal spec that passes every rule, so each test can break exactly one thing. Node items
+ * are numbered list entries, like a real filled-in spec, so type-reused has real list items to
+ * count reuse over. */
 const GOOD = `
 ## 3. The shape of the flow
 | Path name | What lands here |
@@ -11,7 +13,11 @@ const GOOD = `
 
 ## 4. The nodes
 **Nodes this case needs**, in the order they run:
-> \`form-trigger\` then \`text-classifier\` with \`google-gemini-chat-model\`, then \`switch\`, ending at \`slack\` or \`gmail\`.
+> 1. \`form-trigger\` — captures the request.
+> 2. \`text-classifier\` with \`google-gemini-chat-model\` — sorts it into a path.
+> 3. \`switch\` — routes on the category.
+> 4. \`slack\` — flags urgent ones.
+> 5. \`gmail\` — replies to everything else.
 
 ## 5. Examples to test it with
 **The awkward one — Required.**
@@ -74,7 +80,10 @@ describe('lintSpec', () => {
   });
 
   it('rejects the same node type used twice, because nodeSetup is keyed by type', () => {
-    const twice = GOOD.replace('ending at `slack` or `gmail`', 'ending at `slack`, then another `slack`');
+    const twice = GOOD.replace(
+      '> 5. `gmail` — replies to everything else.',
+      '> 5. `slack` — replies to everything else.'
+    );
     expect(lintSpec(twice)).toContainEqual(
       expect.objectContaining({ level: 'error', rule: 'type-reused' })
     );
@@ -102,9 +111,8 @@ describe('lintSpec', () => {
     expect(nodeTokens('use `switch` when `moderate` difficulty')).not.toContain('moderate');
   });
 
-  // --- Regression coverage for the two defects the first cut of this linter shipped with:
-  // a document-wide token scan, and a section parser that assumed TEMPLATE.md's pristine
-  // `## N.` structure instead of tolerating a spec that has already been resolved into a case.
+  // --- Round 1 regression coverage: a document-wide token scan, and a section parser that
+  // assumed TEMPLATE.md's pristine `## N.` structure instead of tolerating a resolved spec.
 
   it('produces zero errors on a resolved-shaped spec whose field names look like node ids', () => {
     expect(lintSpec(RESOLVED).filter((i) => i.level === 'error')).toEqual([]);
@@ -117,4 +125,42 @@ describe('lintSpec', () => {
     );
     expect(lintSpec(withAliasNote).find((i) => i.rule === 'legacy-alias')).toBeUndefined();
   });
+
+  // --- Round 2 regression coverage: `type-reused` was counting a node named again in prose
+  // describing an already-placed item (not a second instance), and the nodes/examples heading
+  // keywords were too narrow to find either real spec's actual heading wording.
+
+  it('finds a nodes section headed "Node vocabulary" and actually runs its rules', () => {
+    const vocab = GOOD.replace('## 4. The nodes', '## 4. Node vocabulary');
+    const notFound = lintSpec(vocab).find(
+      (i) => i.rule === 'section-not-found' && i.message.includes('nodes section')
+    );
+    expect(notFound).toBeUndefined();
+
+    // Prove the rules actually run under this heading, not just that lookup succeeds.
+    const vocabWithAlias = vocab.replace('`text-classifier`', '`classify`');
+    expect(lintSpec(vocabWithAlias).find((i) => i.rule === 'legacy-alias')).toBeDefined();
+  });
+
+  it('finds an examples section headed "The cases the flow gets tested on"', () => {
+    const cases = GOOD.replace(
+      '## 5. Examples to test it with',
+      '## 5. The cases the flow gets tested on'
+    );
+    const notFound = lintSpec(cases).find(
+      (i) => i.rule === 'section-not-found' && i.message.includes('examples section')
+    );
+    expect(notFound).toBeUndefined();
+  });
+
+  it('does not flag type-reused when a later item only refers back to an earlier node in prose', () => {
+    const backref = GOOD.replace(
+      '> 3. `switch` — routes on the category.',
+      '> 3. `switch` — routes on the category the `text-classifier` step already decided.'
+    );
+    expect(lintSpec(backref).find((i) => i.rule === 'type-reused')).toBeUndefined();
+  });
+
+  // A genuine reuse — two list items whose first token is the same node type — is covered above
+  // by "rejects the same node type used twice, because nodeSetup is keyed by type".
 });
