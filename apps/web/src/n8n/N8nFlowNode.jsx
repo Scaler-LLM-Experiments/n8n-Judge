@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Handle, Position } from 'reactflow';
-import { Plus, Warning, Wrench, Trash } from '@phosphor-icons/react';
+import { Plus, Warning, Wrench } from '@phosphor-icons/react';
 import { N8nNodeView, variantOf } from './N8nNodeView.jsx';
 import { categoryMeta } from '../nodes/nodeIcons.js';
 import { AI_SUB_NODE_PORTS } from '@judge/catalog';
@@ -20,7 +20,7 @@ const normalizePorts = (ports = []) => (ports ?? []).map((port) =>
 );
 
 export function N8nFlowNode({ id, type, data, selected }) {
-  const { openPicker, openNdv, branches, removeNode } = useEditor();
+  const { openPicker, openNdv, branches } = useEditor();
   // The node's OWN outputs when it has a rule list (derived from what the learner
   // built), otherwise the problem's declared branches.
   const ROUTER_BRANCHES = data.branches ?? branches ?? [];
@@ -80,26 +80,12 @@ export function N8nFlowNode({ id, type, data, selected }) {
         </button>
       ) : null}
 
-      {/* Delete. n8n lets you remove any node; without it a misplaced node was
-          permanent, and the only recovery was starting the phase again.
-          Safe for grading: the placement was recorded when it happened and
-          `recordDecision` keeps the EARLIEST decision per id, so deleting and
-          re-placing cannot walk back a wrong first attempt. Hidden on a wrong
-          pick (Iris removes those herself once she has probed it) and while the
-          flow is running. */}
-      {hover && !data.wrong && !data.running ? (
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); removeNode?.(id); }}
-          title={`Delete ${data.label}`}
-          aria-label={`Delete ${data.label}`}
-          style={{ position: 'absolute', top: -10, right: -10, zIndex: 7, width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface-0)', border: '1px solid var(--border-strong)', color: 'var(--fg-2)', cursor: 'pointer', boxShadow: '0 2px 6px rgba(1,24,69,0.14)', padding: 0 }}
-          onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--status-danger)'; e.currentTarget.style.borderColor = 'var(--status-danger)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--fg-2)'; e.currentTarget.style.borderColor = 'var(--border-strong)'; }}
-        >
-          <Trash size={13} weight="regular" />
-        </button>
-      ) : null}
+      {/* No delete affordance, deliberately (removed 2026-08-11). A node the
+          learner should not have placed is not theirs to quietly remove: a wrong
+          pick is taken away by Iris herself, after she has probed it, and that
+          probe is the teaching. Everything else on the canvas is something the
+          phase asked for, so deleting it only loses work. `removeNode` still
+          exists on the editor's ref — that is how BuildStage clears a wrong pick. */}
 
       {/* unconfigured warning (n8n shows a red triangle). The tooltip names the
           CAUSE rather than restating the icon — n8n does the same, listing the

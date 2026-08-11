@@ -4,9 +4,10 @@ import { createContext, useContext } from 'react';
 export const EditorContext = createContext({
   openPicker: () => {},
   openNdv: () => {},
-  // Nodes need to delete themselves from their hover affordance. The editor also
-  // exposes removeNode over its ref, which is how BuildStage clears a wrong pick.
-  removeNode: () => {},
+  // Deliberately NOT a `removeNode`. Nodes used to delete themselves from a hover
+  // affordance; that affordance is gone, and the only remover left is BuildStage
+  // clearing a wrong pick over the editor's ref. Putting it back on the context
+  // would put the button back within reach of any node component.
 });
 
 export const useEditor = () => useContext(EditorContext);

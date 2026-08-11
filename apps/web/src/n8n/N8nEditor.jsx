@@ -49,8 +49,30 @@ function aiModelEdge(id, source, target) {
   };
 }
 
-let idc = 0;
-const nextId = () => `n${(idc += 1)}`;
+/**
+ * The id for the next node the learner places, derived from the canvas itself.
+ *
+ * This was a module-level counter (`let idc = 0`), which is only safe while the
+ * canvas starts empty. A RESUMED canvas does not: it is seeded with the learner's
+ * own nodes, ids and all, while the reload reset the counter — so the next node
+ * they placed was handed `n1`, an id already on screen. React Flow keys its
+ * internals by id and keeps the last one it sees, so the restored node vanished
+ * from the canvas while still sitting in React state, its wires re-routed to the
+ * impostor, `removeNode` deleted both, and `nodes.find(byId)` handed the NDV the
+ * wrong one. That is the "come back and nodes are missing and the wiring is a
+ * mess" bug.
+ *
+ * Deriving it instead of counting means the id space cannot drift from the canvas,
+ * whatever seeded it. Ids outside the `n<N>` space are ignored rather than parsed:
+ * the dev routes seed `referenceGraph`, whose ids are authored (`classify-1`).
+ */
+export function nextNodeId(nodes) {
+  const highest = (nodes || []).reduce((max, n) => {
+    const m = /^n(\d+)$/.exec(String(n?.id ?? ''));
+    return m ? Math.max(max, Number(m[1])) : max;
+  }, 0);
+  return `n${highest + 1}`;
+}
 
 // Build editor node/edge state from a problem's referenceGraph (used to seed a
 // finished flow, e.g. the #run-story preview).
@@ -110,13 +132,30 @@ function seedNodes(ig, nodeSetup) {
 function sampleOutputFor(type, entry, nodeSetup) {
   return nodeSetup?.[type]?.sampleOutput ?? entry.output;
 }
-function seedEdges(ig) {
+/**
+ * Rebuild the wires, in EITHER dialect.
+ *
+ * A branch is an output handle, and the two callers name it differently:
+ * authored reference graphs say `branch`, the editor — and therefore
+ * `traceableGraph`, which is what a resumed learner's canvas is rebuilt from —
+ * says `sourceHandle`. Reading only `branch` dropped the handle off every
+ * restored branch wire, and the handle is the routing:
+ *
+ *   - React Flow's `getHandle()` falls back to the node's FIRST handle when the
+ *     edge names none, so a three-way Switch came back with all three wires
+ *     leaving one exit;
+ *   - `asWorkflow()` and `branchReach()` read `branch ?? sourceHandle`, so with
+ *     no handle no branch reaches its reply — a learner whose routing was
+ *     CORRECT before the reload was refused the phase and mis-simulated on the Run.
+ */
+export function seedEdges(ig) {
   if (!ig) return [];
   return ig.edges.map((e, i) => {
-    const base = { id: `seed-e${i}`, source: e.source, target: e.target };
-    if (e.targetHandle === 'ai_model') return aiModelEdge(`seed-e${i}`, e.source, e.target);
-    if (e.branch) return { ...base, sourceHandle: e.branch };
-    return base;
+    const id = `seed-e${i}`;
+    if (e.targetHandle === 'ai_model') return aiModelEdge(id, e.source, e.target);
+    const base = { id, source: e.source, target: e.target };
+    const branch = e.branch ?? e.sourceHandle;
+    return branch ? { ...base, sourceHandle: branch } : base;
   });
 }
 
@@ -248,7 +287,8 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
     const isWrong = expected ? !expected.includes(catalogType) : false;
 
     const entry = NODE_CATALOG[catalogType];
-    const id = nextId();
+    // From the canvas, not a counter — a resumed canvas already holds n1…nN.
+    const id = nextNodeId(nodes);
     const source = ctx.sourceId ? nodes.find((n) => n.id === ctx.sourceId) : null;
 
     let position = { x: 220, y: 180 };
@@ -377,7 +417,8 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
     return { data: src?.data.output || null, label: src?.data.label || null };
   })();
 
-  const ctxValue = useMemo(() => ({ openPicker, openNdv, removeNode, branches: branches || [] }), [openPicker, openNdv, removeNode, branches]);
+  // `removeNode` is NOT on here — see EditorContext.js. It stays on the ref only.
+  const ctxValue = useMemo(() => ({ openPicker, openNdv, branches: branches || [] }), [openPicker, openNdv, branches]);
 
   return (
     <EditorContext.Provider value={ctxValue}>
@@ -390,6 +431,12 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           defaultEdgeOptions={defaultEdgeOptions}
+          /* No keyboard delete. React Flow's default is Backspace, which removed
+             the selected node — and with the node's own delete button gone
+             (N8nFlowNode), leaving that in place would keep deletion available as
+             an accident with nothing on screen to explain it. Iris is the only
+             thing that removes a node, and only a wrong pick she has probed. */
+          deleteKeyCode={null}
           proOptions={{ hideAttribution: true }}
           fitView
         >

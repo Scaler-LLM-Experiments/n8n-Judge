@@ -12,24 +12,38 @@ and was deleted rather than maintained twice.
 
 "n8n Judge" is a simulator that teaches non-technical Scaler learners to build AI-agent
 workflows in n8n **and grades them while they do it**. Per challenge the learner walks
-**Home → Understand → Build → Stress Testing → Result**. **One challenge ships:
-`email-triage`** — the fully-authored reference (voice, cover art, difficulty, brief).
+**Home → Understand → Build → Stress Testing → Result**.
+
+**Five cases ship**, in registry order (which *is* catalogue order — see
+[packages/problems/index.js](packages/problems/index.js), whose own header comment still
+claims email-triage is the only one and is stale):
+
+| Case | Why it exists |
+|---|---|
+| `email-triage` | The fully-authored reference — voice, cover art, difficulty, brief. Copy its shape, not an older one. |
+| `expense-approvals` | Same weight as email-triage (31 scored decisions), new judgement. |
+| `trial-signup-desk` | Easiest (20 decisions), no AI step, no branching. |
+| `ops-request-desk` | Heaviest (31 decisions, seven nodes, three ways out); its AI step must produce fields a later node maps. |
+| `low-stock-morning-post` | 28 decisions, five nodes, **no AI step at all** — knowing when *not* to reach for a model, and the first case that reads a data source mid-flow. |
+
 `lead-triage`, `meeting-notes` and `order-desk` were removed on 2026-07-31 so
-`packages/problems/_template/` could be extracted from one complete problem rather than
-four of unequal age. They live in git history, but the same commit deleted their database
-rows, so restoring one means re-registering **and** re-seeding. Anything describing "four
-challenges" is out of date.
+`packages/problems/_template/` could be extracted from one complete problem. They live in
+git history, but the same commit deleted their database rows, so restoring one means
+re-registering **and** re-seeding. Anything describing "four challenges" or "one challenge"
+is out of date.
 
 The repo root **is** the monorepo — `apps/web` plus ten `@judge/*` packages. It was
 restructured on 2026-07-27; anything referring to an `innate/` folder or an `app/` Vite
 prototype is out of date, and both are gone.
 
-**Two project skills hold the detail this file only summarises.** Read the matching one
-before touching those paths, because both encode rules that are test-enforced:
+**Three project skills hold the detail this file only summarises.** Read the matching one
+before touching those paths, because they encode rules that are test-enforced:
 [.claude/skills/authoring-a-problem/SKILL.md](.claude/skills/authoring-a-problem/SKILL.md)
-for `packages/problems/**`, and
+for `packages/problems/**`,
 [.claude/skills/iris-voice/SKILL.md](.claude/skills/iris-voice/SKILL.md) for anything under
-`voice*` or `packages/voice-scripts`.
+`voice*` or `packages/voice-scripts`, and
+[.claude/skills/author-case/SKILL.md](.claude/skills/author-case/SKILL.md) to author a whole
+new case end to end (see *The agent authoring pipeline* below).
 
 ## Commands
 
@@ -48,6 +62,12 @@ npm run typecheck  # BOTH halves: typecheck:packages (root tsconfig) + typecheck
 **There is no linter.** No eslint, no prettier, no `lint` script in either
 `package.json` — `test` + `typecheck` + `smoke` are the entire gate. Don't go looking for
 one, and match the surrounding file's style by reading it.
+
+**And the gate does not cover the build interaction.** All three were green on a case where
+the learner could not attach a chat model, could not answer a field from the only control
+offered, and got no reason when a phase refused to advance: `smoke` opens the NDV but never
+fills a field or places a node. So for anything touching the Build stage or the NDV, walking
+the journey in a browser is the only coverage that exists — see *Design conventions*.
 
 **`npm run typecheck` only recently covered the web app.** The root tsconfig *excludes*
 `apps`, so for a while an app-level type error was invisible to every check safe to run
@@ -92,8 +112,17 @@ removes them (they're marked by the `demo.judge.local` email domain).
 Other db scripts: `db:down`, `db:migrate:dev` (new migration from schema changes),
 `db:generate`, `db:studio`.
 
-Authoring: `problem:new`, `problem:check`, `problem:draft` — see *Problem-as-data* below.
-`problem:check` is offline and safe to run on anything, including an unregistered draft.
+Authoring, by hand: `problem:new`, `problem:check`, `problem:draft` — see *Problem-as-data*
+below. `problem:check` is offline and safe to run on anything, including an unregistered
+draft.
+
+Authoring, as a pipeline: `case:preflight`, `case:verify`, `case:run`, `case:cma` — the
+checks and run-state that `/author-case` drives. See *The agent authoring pipeline* below;
+`case:verify` is the one to know, because it is how a stage's claim gets checked rather
+than believed.
+
+`npm run workflows:generate` exports each case as an importable n8n workflow JSON. A clean
+export is not proof it would run — read what it emitted.
 
 `npm run covers:generate` draws the Home cards' cover art **on this machine** (OpenAI
 `gpt-image-1`, needs `OPENAI_API_KEY`), writing `apps/web/public/covers/<id>.png`. Same
@@ -102,12 +131,14 @@ committed and served as a static file. It skips what already exists; `-- --force
 `-- --only <id>` does one. The per-problem *subject* is authored in the problem data
 (`coverImage.prompt`) so art can be redrawn from the description that produced it; the
 shared *style* lives once in [scripts/generate-covers.mjs](scripts/generate-covers.mjs),
-because four cards in a row have to look like one set. After drawing, set
-`coverImage.src` and re-seed.
+because a row of cards has to look like one set. After drawing, set `coverImage.src` and
+re-seed. All five shipped cases have art; a null `src` is a normal state for a new one.
 
-`npm run voice:generate` renders Iris's narration **on this machine**, and
-`npm run voice:sync` uploads it. Neither the app nor a dry run ever polls the bucket — see
-*Voice* below, and read it before touching anything under `voice*`.
+`npm run voice:generate` renders Iris's narration **on this machine**,
+`npm run voice:sync` uploads it, and `npm run voice:verify` lists the bucket back to prove
+the upload landed (`railway bucket info` lies — see *Deployment*). Neither the app nor a dry
+run ever polls the bucket — see *Voice* below, and read it before touching anything under
+`voice*`.
 
 **`npm run smoke` is not optional after touching components.** There are no component
 tests, so a render-time bug passes both `npm test` and `next build`. Smoke drives system
@@ -197,7 +228,8 @@ Removing a problem is `node packages/db/remove-problem.mjs <slug>` (`--dry-run`,
 every relation to `Problem` is `Restrict`, so the deletion order *is* the job and it lives
 in that script rather than as ad-hoc SQL.
 
-**The authoring pipeline is three npm scripts** (the skill is the long version):
+**The by-hand authoring pipeline is three npm scripts** (the skill is the long version; the
+agent pipeline below wraps these rather than replacing them):
 
 | Command | Does |
 |---|---|
@@ -223,6 +255,30 @@ reversed before anything used it (it demanded the retired fixed topology, and *r
 "I added it by mistake" escape hatch that `validateProblem()` now rejects), which is why
 `authoringPrompt.test.ts` pins them. Change the skill, change this, or drafts will validate and
 teach the wrong thing.
+
+### The agent authoring pipeline — `/author-case`
+The four cases after `email-triage` were authored this way, so it is the normal route now, not
+an experiment. [.claude/skills/author-case/SKILL.md](.claude/skills/author-case/SKILL.md) is
+the procedure; the stages run as the five subagents in [.claude/agents/](.claude/agents/)
+(`case-author`, `case-reviewer`, `case-voice-author`, `case-voice-reviewer`,
+`case-art-reviewer`), and the orchestrator's job is to **check their claims, not collect them**.
+
+- **A case starts as a spec, on disk.** `docs/case-authoring/TEMPLATE.md` +
+  `STARTER-PROMPT.md` are what an author fills in; the result lands in
+  `docs/case-specs/<slug>.md` and is what `case-author` reads. Given only a brief, write the
+  spec first — that is what makes a run reproducible.
+- **Never advance on an agent's word.** `npm run case:verify -- <check> <slug>` is the cheap
+  check on our side for each stage's claim, and `case:preflight` runs everything a run needs
+  *before* the stages that spend money (cover render, voice render, S3 upload, PR).
+  `npm run case:run` is the run-state. `-- --fake` rehearses the whole chain with no spend.
+- **A diagnosis is a claim too.** An agent correctly reported the model-picker bug and named
+  the wrong file. Read the code it points at before editing.
+- **Automation stops at a draft PR.** Nothing merges, because the human walkthrough is the
+  *only* coverage the build interaction has (see the gate note in *Commands*).
+
+Stage names, statuses and failure classes deliberately match the hosted design in
+[docs/cma-authoring-pipeline-handoff.md](docs/cma-authoring-pipeline-handoff.md) — the port is
+meant to be a change of *where* a stage runs, not a redesign.
 
 Key fields: `branches`, `flow` (`start`/`next`/`branchNext`/`modelNext` — the last two
 optional), `flowSummary`, `buildPhases`, `nodeSetup` (per-node NDV: `credential` +
@@ -438,13 +494,36 @@ Rules worth keeping:
 - **Verdicts are deliberately NOT restored.** `results` starts null, so Verify must be pressed
   again. A green tick is the server's to give, and re-checking an answer that was already
   right cannot cost marks.
+- **Seeding is the other half of tracing, and it broke twice in the same place — the editor's
+  id space and its edge dialect.** Both shipped as one reported symptom: *come back to a build
+  and nodes have vanished and the wiring is a mess.* Fixed 2026-08-11, tested in
+  [seedGraph.test.js](apps/web/src/n8n/seedGraph.test.js):
+  - **Node ids must come from the canvas, not a counter.** `nextNodeId(nodes)` reads the
+    highest `n<N>` already present. It used to be a module-level `let idc = 0`, which a reload
+    reset while the restored nodes kept `n1…nN` — so the next node placed was a **duplicate
+    id**. React Flow keys `nodeInternals` by id and keeps the last, so the restored node
+    disappeared from the canvas while still in React state, wires re-routed to the impostor,
+    `removeNode` deleted **both**, and `nodes.find(byId)` handed the NDV the wrong one.
+  - **`seedEdges` must read both dialects.** A branch is an output handle, and authored graphs
+    call it `branch` while the editor — and therefore `traceableGraph` — calls it
+    `sourceHandle`. Reading only `branch` dropped the handle off every restored branch wire:
+    React Flow's `getHandle()` then falls back to the node's first handle (all exits collapse
+    onto one), and `asWorkflow`/`branchReach` see no branch at all, so a learner whose routing
+    was **correct** before the reload was refused the phase and mis-simulated on the Run.
+  - The lesson generalises: anything `traceGraph.js` records, `seedNodes`/`seedEdges` must be
+    able to read back **in the editor's own vocabulary**. The dev routes seed `referenceGraph`,
+    which speaks the authored one, so testing only those hides every resume bug.
 - **Guarded by `npm run smoke`** (the `resume` check, which is stateful and runs after the
   page checks). It builds a mid-quiz and a mid-Build state through `/check` and `/events`,
   then asserts the quiz reopens at the next unanswered question and Build reopens on the right
   phase with no celebration replay, that a restored node's selects still hold the learner's
-  answers, and that a node placed **by clicking** comes back at all (the API-seeded scenarios
-  cannot see the position bug above). Every part was verified to fail when its fix is reverted;
-  keep it that way, and keep every wait condition-based.
+  answers, that a node placed **by clicking** comes back at all (the API-seeded scenarios
+  cannot see the position bug above), and that **placing a node after resuming adds one**
+  rather than silently replacing a restored one. Every part was verified to fail when its fix
+  is reverted; keep it that way, and keep every wait condition-based.
+  - The mid-Build state is seeded with a **learner's** node id (`n1`), not an authored one.
+    With `trigger-1` there the id spaces cannot overlap, so the duplicate-id bug above was
+    unreachable from the check that existed to catch exactly this.
   - Two traps cost real time in that check, both worth knowing before adding to it:
     `getByText(x).first()` is first in **DOM order, not the first visible** match, and the NDV's
     fields are real `<select>` elements whose `<option>`s Playwright counts as invisible — so
@@ -560,7 +639,7 @@ more than one `main` output), so a multi-output node is a router automatically.
 | `@judge/engine` | Pure, unit-tested `(studentGraph, problem)` logic: `validateGraph` (gates the Run), `simulateCase`/`simulateAll`, `scoreEval`, `grading`, `asWorkflow`/`inferBranches`, `hasConnection`, `branchReach` (does every branch reach a reply), and the **rubric** (`scoreSession`, `attemptsFromTrace`, `phaseBreakdown`, `scoreBand`, `problemComplexity`, `enumerateItems`) |
 | `@judge/workflow` | The canonical n8n workflow model (TS) + React Flow ⇄ n8n conversion |
 | `@judge/catalog` | `NODE_CATALOG` — node vocabulary, params, sample I/O |
-| `@judge/problems` | `email-triage` (seven files) + `_template/` + registry + tests (seed source). **Registry order is the catalogue order** |
+| `@judge/problems` | The five shipped cases (seven files each) + `_template/` + registry + tests (seed source). **Registry order is the catalogue order** |
 | `@judge/problem-schema` | zod `Problem` schema, `validateProblem()`, `toPublicProblem()`, `checkAnswer()`, `ruleList.ts` (rule/assignment lists) |
 | `@judge/trace` | `TraceEvent` contract + `ingest.ts` — decision, screen/phase transition, ndv_open, graph_mutation, run_result, ask_ai_turn; `CLIENT_FORBIDDEN_TYPES` |
 | `@judge/queue` | Queue interface + pg-boss driver + SQS stub |
@@ -626,7 +705,14 @@ Built from scratch (not n8n's assets), on `reactflow` v11.
 - `N8nEditor` — `forwardRef` exposing `removeNode`/`fitAll`; `initialGraph` seeds a
   finished flow; a `displayNodes` memo injects per-node cue flags (`needsSetup`,
   `awaitingNext`, `hasModel`, `openBranches`, `running`, `dimmed`). `EditorContext`
-  provides `openPicker`/`openNdv`/`branches`.
+  provides `openPicker`/`openNdv`/`branches` — **not `removeNode`**, on purpose.
+- **A learner cannot delete a node** (removed 2026-08-11). The per-node hover trash button is
+  gone and `deleteKeyCode={null}` turns off React Flow's Backspace, because hiding the button
+  while leaving the key would keep deletion as an accident with nothing on screen to explain
+  it. The only remover is `BuildStage` clearing a wrong pick over the editor's ref, *after*
+  Iris has probed it — that probe is the teaching, so a learner quietly deleting the node
+  skips it. Keep `removeNode` off `EditorContext`; putting it back puts the button back in
+  reach of any node component.
 - `N8nFlowNode` / `N8nNodeView` — the **AI node is identified by `variantOf === 'ai'`** and
   **router branches come from `problem.branches`** via context. Neither is hardcoded.
 - `Ndv` — INPUT | Parameters/Settings | OUTPUT. A node is configured in **two ordered
@@ -697,11 +783,12 @@ The two rules that matter most, in case the skill is not loaded:
 Design: [docs/superpowers/specs/2026-07-30-voice-clip-pipeline-design.md](docs/superpowers/specs/2026-07-30-voice-clip-pipeline-design.md).
 Copy proposal and rationale: [docs/voice-copy-email-triage.md](docs/voice-copy-email-triage.md).
 
-**Coverage today:** `email-triage` only — its authored lines in
-`packages/problems/email-triage/voice.js`, rendered into
-`packages/voice-scripts/email-triage.json` (533 clips: every line the catalogue says can
-*ever* be spoken, authored plus generic). It is the only clip table in the package, so a
-new problem starts on the generic phrase book until `voice:generate` runs for it.
+**Coverage today: all five cases are narrated.** Each one's authored lines live in
+`packages/problems/<slug>/voice.js` and are rendered into
+`packages/voice-scripts/<slug>.json` — every line the catalogue says can *ever* be spoken,
+authored plus generic: email-triage 533, ops-request-desk 533, low-stock-morning-post 543,
+expense-approvals 447, trial-signup-desk 365. A case with no table falls back to the generic
+phrase book until `voice:generate` runs for it.
 
 ### Legacy inside apps/web/src
 `nodes/*.jsx` (`ActionNode`, `ChatModelNode`, `ClassifyNode`, `ProcessNode`, `TriggerNode`,

@@ -294,6 +294,19 @@ async function waitForVisibleText(page, text, timeout = 10000) {
   return false;
 }
 
+/** Click the VISIBLE match, for the same reason `waitForVisibleText` waits on one. */
+async function clickVisibleText(page, text) {
+  const target = page.getByText(text, { exact: false });
+  const n = await target.count().catch(() => 0);
+  for (let i = 0; i < n; i += 1) {
+    if (await target.nth(i).isVisible().catch(() => false)) {
+      await target.nth(i).click().catch(() => {});
+      return true;
+    }
+  }
+  return false;
+}
+
 async function resumeCheck() {
   const problem = problemList[0];
   const errs = [];
@@ -369,7 +382,12 @@ async function resumeCheck() {
         .filter(([, v]) => v !== undefined)
     );
     const node = {
-      id: seed.id,
+      // A LEARNER's id, not the authored one — `nextNodeId` hands out `n<N>`, so
+      // that is what a real trace holds, and it is the id space the next node the
+      // learner places is drawn from. Seeding `trigger-1` here made the placement
+      // below unable to collide, which is how the duplicate-id bug survived: the
+      // restored node vanished from the canvas the moment they added another.
+      id: 'n1',
       type: seed.type,
       position: seed.position,
       data: { configured: true, values: seedValues, settings: {} },
@@ -447,6 +465,23 @@ async function resumeCheck() {
     await page.locator('button[title="Add next node"]').first().click().catch(() => {});
     if (!(await waitForVisibleText(page, expected))) {
       errs.push(`resumed Build is not on "${secondPhase.label}" — its picker never offered "${expected}"`);
+    } else {
+      // ---- placing a node AFTER resuming must not eat the restored one -------
+      // The id counter was a module global that a reload reset to zero, while the
+      // restored node kept `n1`. The next node placed was therefore a duplicate
+      // id: React Flow keys its internals by id and keeps the last, so the count
+      // stayed at one — the learner watched their node disappear as they added
+      // another, and every wire to it re-routed. Counting is the whole assertion.
+      const before = await page.locator('.react-flow__node').count();
+      await clickVisibleText(page, expected);
+      let after = before;
+      for (let waited = 0; waited <= 10000 && after <= before; waited += 250) {
+        await page.waitForTimeout(250);
+        after = await page.locator('.react-flow__node').count();
+      }
+      if (after <= before) {
+        errs.push(`placing a node after resume did not add one (${before} before, ${after} after) — the new node collided with a restored id`);
+      }
     }
   }
 
