@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
-import { NODE_CATALOG } from './catalog.js';
+import { NODE_CATALOG, LEGACY_ALIASES } from '@judge/catalog';
 
 // The authoring template hands a node menu to people who cannot check it.
 //
@@ -18,16 +18,6 @@ import { NODE_CATALOG } from './catalog.js';
 // So the menu is pinned. If you rename or remove a node type, this test tells you the
 // handout needs updating in the same change.
 const TEMPLATE = path.join(process.cwd(), 'docs/case-authoring/TEMPLATE.md');
-
-/**
- * Compatibility aliases. They appear in the template ON PURPOSE, inside its "never use
- * these names" table, so they must be allowed here — but see the second test, which
- * asserts they appear ONLY there.
- */
-const LEGACY_ALIASES = [
-  'trigger', 'parse', 'action', 'classify', 'chat-gemini', 'summarize',
-  'slack-message', 'notion-page', 'calendar-event', 'web-search',
-];
 
 /** Backticked words in the template that are prose or examples, not node types. */
 const NOT_NODE_TYPES = new Set(['easy', 'moderate', 'difficult', 'linear', 'trial-signup-desk']);
@@ -54,7 +44,7 @@ describe('the authoring template menu matches the catalog', () => {
   it('mentions a legacy alias only inside the "never use" warning', () => {
     const md = templateText();
     const warning = md.slice(md.indexOf('Never use these names'));
-    for (const alias of LEGACY_ALIASES) {
+    for (const alias of Object.keys(LEGACY_ALIASES)) {
       const everywhere = (md.match(new RegExp('`' + alias + '`', 'g')) ?? []).length;
       const inWarning = (warning.match(new RegExp('`' + alias + '`', 'g')) ?? []).length;
       // Recommending an alias anywhere else would teach the wrong node, which is the
@@ -75,7 +65,7 @@ describe('the authoring template menu matches the catalog', () => {
   it('lists every registered action, since a case has to end somewhere real', () => {
     const tokens = new Set(backtickedTokens(templateText()));
     const missing = Object.entries(NODE_CATALOG)
-      .filter(([type, entry]) => entry.category === 'action' && !LEGACY_ALIASES.includes(type))
+      .filter(([type, entry]) => entry.category === 'action' && !Object.keys(LEGACY_ALIASES).includes(type))
       .map(([type]) => type)
       .filter((type) => !tokens.has(type));
     // Actions are the small, complete list an author picks an ending from — 24 today.

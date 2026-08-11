@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
-import { BASE_NODE_CATALOG, NODE_CATALOG, AI_SUB_NODE_PORTS, TRIGGER_OPTIONS, NODE_OPTIONS, entryIsPassthrough } from './catalog.js';
+import { BASE_NODE_CATALOG, NODE_CATALOG, AI_SUB_NODE_PORTS, TRIGGER_OPTIONS, NODE_OPTIONS, entryIsPassthrough, LEGACY_ALIASES } from './catalog.js';
 import {
   CLUSTER_NODE_INVENTORY,
   COMPLETE_CLUSTER_NODE_TYPES,
@@ -1866,5 +1866,23 @@ describe('entryIsPassthrough — an app node configured as a read is not a termi
   it('is inert for a descriptor that never declares it', () => {
     expect(NODE_CATALOG.slack.passthroughWhen).toBeUndefined();
     expect(entryIsPassthrough(NODE_CATALOG.slack, { sheetOperation: 'read' })).toBe(false);
+  });
+});
+
+describe('LEGACY_ALIASES', () => {
+  it('names ten aliases, each mapping to a canonical type that exists', () => {
+    const entries = Object.entries(LEGACY_ALIASES);
+    expect(entries).toHaveLength(10);
+    for (const [alias, canonical] of entries) {
+      expect(NODE_CATALOG[alias], `alias ${alias} is not in the catalog`).toBeTruthy();
+      expect(NODE_CATALOG[canonical], `${alias} → ${canonical}, which is not in the catalog`).toBeTruthy();
+      expect(canonical, `${alias} maps to itself`).not.toBe(alias);
+    }
+  });
+
+  it('never maps an alias to another alias', () => {
+    for (const [alias, canonical] of Object.entries(LEGACY_ALIASES)) {
+      expect(LEGACY_ALIASES[canonical], `${alias} → ${canonical}, which is itself an alias`).toBeUndefined();
+    }
   });
 });

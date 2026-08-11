@@ -384,6 +384,28 @@ export const NODE_OPTIONS = [...new Set([
   ...COMPLETE_APP_NODE_TYPES,
 ])];
 
+/**
+ * Types that exist only so the already-authored cases keep working, mapped to the
+ * node a new case should use instead.
+ *
+ * This list used to live in `authoringTemplate.test.js` and in prose inside three
+ * agent prompts, which meant nothing could check a case spec against it — the one
+ * place it matters, because picking an alias builds a case on a node the learner
+ * will never meet in real n8n.
+ */
+export const LEGACY_ALIASES = Object.freeze({
+  trigger: 'gmail-trigger',
+  parse: 'edit-fields',
+  action: 'gmail',
+  classify: 'text-classifier',
+  'chat-gemini': 'google-gemini-chat-model',
+  summarize: 'basic-llm-chain',
+  'slack-message': 'slack',
+  'notion-page': 'notion',
+  'calendar-event': 'google-calendar',
+  'web-search': 'http-request',
+});
+
 export function catalogEntry(type) {
   return NODE_CATALOG[type];
 }

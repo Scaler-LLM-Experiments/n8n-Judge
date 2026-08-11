@@ -1,0 +1,16 @@
+{
+  "name": "@judge/authoring",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./*": "./*"
+  },
+  "dependencies": {
+    "@judge/catalog": "*",
+    "@judge/engine": "*",
+    "@judge/problem-schema": "*"
+  }
+}
