@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { seedEdges, nextNodeId } from './N8nEditor.jsx';
+import { seedEdges, seedNodes, nextNodeId } from './N8nEditor.jsx';
 import { traceableGraph } from '../lib/traceGraph.js';
 
 // Seeding the canvas serves two callers that speak DIFFERENT dialects, and the
@@ -54,6 +54,48 @@ describe('seedEdges — the dialect a resumed graph is recorded in', () => {
   it('leaves a plain main wire without a handle', () => {
     const [edge] = seedEdges({ nodes: [], edges: [{ source: 'n1', target: 'n2' }] });
     expect(edge.sourceHandle).toBeUndefined();
+  });
+});
+
+describe('seedNodes — a trace already holding a duplicate id must not poison the canvas', () => {
+  // Production really did record this (session cmsoibwsi…, seq 37, 2026-08-11):
+  // `[{id:'n2',type:'trigger'}, {id:'n2',type:'chat-gemini'}]`, written by the
+  // counter bug before it was fixed. Those rows are immutable, so seeding has to
+  // cope: React Flow keeps the LAST node per id, so two entries render as one
+  // while both sit in React state — and one removeNode then deletes both.
+  const corrupt = {
+    nodes: [
+      { id: 'n2', type: 'trigger', position: { x: 0, y: 0 }, data: { configured: true } },
+      { id: 'n2', type: 'chat-gemini', position: { x: 100, y: 200 }, data: { configured: false } },
+    ],
+    edges: [],
+  };
+
+  it('keeps one node per id', () => {
+    const seeded = seedNodes(corrupt, {});
+    expect(seeded.map((n) => n.id)).toEqual(['n2']);
+  });
+
+  it('keeps the LAST one, which is what React Flow rendered', () => {
+    // Anything else would move the canvas out of step with what the learner saw
+    // before the reload.
+    expect(seedNodes(corrupt, {})[0].type).toBe('chat-gemini');
+  });
+
+  it('leaves a clean graph exactly as it was', () => {
+    const clean = {
+      nodes: [
+        { id: 'n1', type: 'trigger', position: { x: 0, y: 0 }, data: {} },
+        { id: 'n2', type: 'chat-gemini', position: { x: 10, y: 20 }, data: {} },
+      ],
+      edges: [],
+    };
+    expect(seedNodes(clean, {}).map((n) => `${n.id}:${n.type}`)).toEqual(['n1:trigger', 'n2:chat-gemini']);
+  });
+
+  it('and the surviving node is still what the next id is computed from', () => {
+    // The dedupe must not hide an id from nextNodeId, or the collision comes back.
+    expect(nextNodeId(seedNodes(corrupt, {}))).toBe('n3');
   });
 });
 
