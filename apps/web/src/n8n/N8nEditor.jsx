@@ -85,9 +85,19 @@ export function nextNodeId(nodes) {
 //     what they had actually done. Defaulting that to true marked every restored node
 //     as set up and let them walk past configuration they never did, skipping the
 //     field decisions that carry a quarter of the marks.
-function seedNodes(ig, nodeSetup) {
+//
+// It also DEDUPES BY ID, because a trace written before `nextNodeId` existed can
+// hold two nodes sharing one — production has such a row (session cmsoibwsi…, seq
+// 37: `n2:trigger` and `n2:chat-gemini`). Those rows are immutable, so the seed is
+// the only place left to cope, and seeding them as-is reproduces the whole failure
+// on a fixed build: React Flow keys its internals by id and keeps the last, so the
+// canvas shows one node while React state holds two, and a single `removeNode`
+// deletes both. Keeping the LAST is deliberate — that is the one the learner was
+// looking at before the reload.
+export function seedNodes(ig, nodeSetup) {
   if (!ig) return [];
-  return ig.nodes.map((n) => {
+  const byId = new Map(ig.nodes.map((n) => [n.id, n]));
+  return [...byId.values()].map((n) => {
     const entry = NODE_CATALOG[n.type] || {};
     return {
       id: n.id,
