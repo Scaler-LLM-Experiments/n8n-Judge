@@ -18,15 +18,44 @@ const GOOD = `
 > A submission naming a product nobody stocks, which matches no path.
 `;
 
+/**
+ * A "resolved" spec shaped like `trial-signup-desk.md`: no `## 3.`/`## 4.` numbering, no `>`
+ * blockquote answer format, and backticked field names sitting right next to real node names —
+ * exactly the shape that turned a whole-document, TEMPLATE.md-shaped scan into a false-positive
+ * machine on every already-shipped case.
+ */
+const RESOLVED = `
+# Case spec — Ferry Booking Desk
+
+## 1. Identity
+| Field | Value |
+|---|---|
+| **Slug** | \`ferry-booking-desk\` |
+
+## 2. The scenario
+Passengers submit \`subject\` and \`urgency\` values; the sheet also carries a \`bean\` column left
+over from a copy-pasted template — none of these are nodes.
+
+## 3. Node vocabulary
+
+| Stage | Node | Type | Purpose |
+|---|---|---|---|
+| 1 | Trigger | \`form-trigger\` | Captures the booking |
+| 2 | Notify | \`gmail\` | Confirms the booking |
+
+## 4. The cases the flow gets tested on
+Nothing unusual.
+`;
+
 describe('lintSpec', () => {
   it('passes a spec that names real, canonical nodes and gives every path an ending', () => {
     expect(lintSpec(GOOD).filter((i) => i.level === 'error')).toEqual([]);
   });
 
-  it('rejects a node type that does not exist', () => {
+  it('flags a node type that does not exist as a warning, not an error', () => {
     const issues = lintSpec(GOOD.replace('`slack`', '`slack-notifier`'));
-    const unknown = issues.find((i) => i.rule === 'unknown-node');
-    expect(unknown?.level).toBe('error');
+    const unknown = issues.find((i) => i.rule === 'unknown-token');
+    expect(unknown?.level).toBe('warning');
     expect(unknown?.message).toContain('slack-notifier');
   });
 
@@ -71,5 +100,21 @@ describe('lintSpec', () => {
   it('finds node tokens and ignores prose backticks', () => {
     expect(nodeTokens('use `switch` when `moderate` difficulty')).toContain('switch');
     expect(nodeTokens('use `switch` when `moderate` difficulty')).not.toContain('moderate');
+  });
+
+  // --- Regression coverage for the two defects the first cut of this linter shipped with:
+  // a document-wide token scan, and a section parser that assumed TEMPLATE.md's pristine
+  // `## N.` structure instead of tolerating a spec that has already been resolved into a case.
+
+  it('produces zero errors on a resolved-shaped spec whose field names look like node ids', () => {
+    expect(lintSpec(RESOLVED).filter((i) => i.level === 'error')).toEqual([]);
+  });
+
+  it('does not flag a legacy alias quoted inside a "Never use these names" block', () => {
+    const withAliasNote = GOOD.replace(
+      '## 5. Examples to test it with',
+      '### Never use these names\n\nUsing `classify` instead of `text-classifier` produces a worse challenge.\n\n## 5. Examples to test it with'
+    );
+    expect(lintSpec(withAliasNote).find((i) => i.rule === 'legacy-alias')).toBeUndefined();
   });
 });
