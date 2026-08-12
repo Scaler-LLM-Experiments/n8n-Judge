@@ -179,11 +179,18 @@ export const evalQuestions = [
     id: 'blank-note',
     prompt:
       'Three weeks of green runs and a correct message every morning. Then one morning the post arrives with the temperature and nothing else: no conditions in words, and no advice. The run is green, the service answered normally, and the next morning it is fine again. What happened, and where does the fix belong?',
+    // Every option carries its own reason-why clause and they are within a few words of
+    // each other in length. They were not: the correct one ran 35 words against a 22-word
+    // maximum, so a learner who understood nothing could take all three of these questions
+    // — the whole edge-case weight — by picking the longest. That is the same class of
+    // defect as answer-position bias, and `balanceProblemOptions` deliberately does not
+    // touch `evalQuestions`, so length has to be authored flat. The correct option was NOT
+    // shortened to get there; the distractors were brought up into its register.
     options: [
-      'The send step is reading field names that do not exist, so the fix belongs in the message rather than anywhere earlier',
-      'The service was slow and answered after the message had gone out, so the fix is a longer timeout on the call',
+      'The send step is reading field names that were never created, so it has been posting whatever it could find — and the fix belongs in the message, which is the only place that decides what actually goes out',
+      'The service was slow and answered after the message had already gone out, so the values arrived too late to be used — and the fix is a longer timeout on the call, so it waits for a complete answer',
       'The service answered with a weather code the mapping does not list, so the lookup produced nothing — and the fix is another arm on the mapping, in the step that builds the two lines',
-      'The forecast service changed the shape of its response, so the fix is to call a different address',
+      'The forecast service changed the shape of its response, so the mapping is reading a field that has moved — and the fix is to call a different address that answers the way it used to',
     ],
     correctIndex: 2,
     explanation:
@@ -191,26 +198,37 @@ export const evalQuestions = [
   },
   {
     id: 'service-down',
+    // "Suppose Retry On Fail had been left off" rather than "is switched off": the learner
+    // has just verified that setting green at `true`, so stating it as fact contradicts the
+    // build they were graded on. It is a hypothetical, and it reads as one now.
     prompt:
-      'A Tuesday. The forecast service is having a bad morning and answers the 9:00 call with a 503. Retry On Fail is switched off on that call. What does he see, and why does that matter more than it sounds?',
+      'A Tuesday. The forecast service is having a bad morning and answers the 9:00 call with a 503. Suppose Retry On Fail had been left off on that call. What does he see, and why does that matter more than it sounds?',
+    // "nothing ON HIS PHONE tells him", not "nothing tells him". The failed execution really
+    // does appear in n8n's own list, and a hosted instance may mail the owner about it — so
+    // the unqualified claim was false about real n8n even though the explanation had it
+    // right. An option has to be true on its own; nobody reads the explanation first.
     options: [
-      'Nothing at all: the run stops at the failed call, no message is sent, and nothing tells him. The message arriving every morning is the only thing that could ever have told him something was wrong',
-      'The flow carries on with the values empty, so the message arrives with blanks where the weather should be',
-      'The run is marked failed, and n8n tries it again by itself, so the message arrives a few minutes late',
-      'He gets the error in the channel instead of the weather, because a failed run posts what it managed to produce',
+      'Nothing at all: the run stops at the failed call, no message is sent, and nothing on his phone tells him. The message arriving every morning is the only thing that could ever have told him something was wrong',
+      'The flow carries on with the values empty, because a node that cannot answer hands an empty item to the one after it — so the message still arrives on time, with blanks in it where the weather should be',
+      'The run is marked failed and n8n picks it up again by itself, the way a queue retries a failed job, so the message arrives a few minutes later than usual and he never notices the difference',
+      'He gets the error in the channel instead of the weather, because a run that fails part-way still posts whatever it managed to produce before it stopped — so the channel tells him something went wrong',
     ],
     correctIndex: 0,
     explanation:
-      'A node that errors ends the run, and everything after it never executes — so there is no message and no note explaining why. n8n records the failed execution, but he is not looking at n8n at ten to nine; he is looking at his phone. That is what the retry setting buys for the price of nothing: a service that blips is the ordinary case, this flow only gets one attempt a day, and two more tries a second apart turn a lost morning into a slightly slower one. The part worth carrying further is what the silence means. This flow posts every single morning, however dull the weather, so the absence of a message is information — it says something is wrong. Build it so that it only posts when the weather is worth mentioning and you throw that away: silence becomes the normal case, and a broken flow, an expired credential and a pleasant Tuesday all look identical from the outside. A daily message nobody strictly needs to read is also a heartbeat.',
+      'A node that errors ends the run, and everything after it never executes — so there is no message and no note explaining why. The failed execution is recorded in n8n\'s own list, and a hosted instance may even mail the owner about it, but he is not looking at either at ten past nine; he is looking at his phone. That is what the retry setting buys for the price of nothing: a service that blips is the ordinary case, this flow only gets one attempt a day, and two more tries a second apart turn a lost morning into a slightly slower one. The part worth carrying further is what the silence means. This flow posts every single morning, however dull the weather, so the absence of a message is information — it says something is wrong. Build it so that it only posts when the weather is worth mentioning and you throw that away: silence becomes the normal case, and a broken flow, an expired credential and a pleasant Tuesday all look identical from the outside. A daily message nobody strictly needs to read is also a heartbeat.',
   },
   {
     id: 'two-paths',
+    // "What do you tell them?", not "What is wrong with it?". The old wording presupposed a
+    // fault, which killed the strongest distractor — "Nothing at all…" — on grammar rather
+    // than on understanding. The near-miss has to stay a live answer, because choosing
+    // between "this is fine and readable" and "this is fine and will drift" IS the question.
     prompt:
-      'A colleague builds the same flow, then adds an If after the step that builds the two lines, to separate rainy mornings from clear ones. Each path ends at its own send, both to the same channel. Their Run passes every case, and the messages are correct. What is wrong with it?',
+      'A colleague builds the same flow, then adds an If after the step that builds the two lines, to separate rainy mornings from clear ones. Each path ends at its own send, both to the same channel. Their Run passes every case, and the messages are correct. They ask you to review it. What do you tell them?',
     options: [
-      'The clear-morning path never fires, because an If only sends items out of its true output',
-      'Both sends fire on every run, so he gets two messages every morning',
-      'Nothing at all. Separating the two situations makes the flow easier to read, and a little duplication is a fair price for that',
+      'The clear-morning path never fires, because an If only sends items out of its true output — so on a clear morning the item reaches the node and simply stops there, and he gets no message at all',
+      'Both sends fire on every run, because an If passes the item down both of its outputs and lets each side decide what to do with it, so he gets two messages every morning and has to work out for himself which of the two applies today',
+      'Nothing at all. Separating the two situations makes the flow easier to read for whoever inherits it, and either branch can be reworded on its own without disturbing the other, so a little duplication is a fair price to pay for that',
       'Nothing breaks — which is the trap. It is two sends to keep in step for a difference the message text already makes, so every wording change is now two edits, and the morning somebody makes only one of them, half the mornings are quietly wrong',
     ],
     correctIndex: 3,

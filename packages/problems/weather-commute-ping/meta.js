@@ -33,8 +33,16 @@ export const title = 'Commute Weather Ping';
 // ordinary mornings produce; nothing here says the list is complete.
 export const statement =
   'Sudhanva commutes across Bangalore to an office in Indiranagar, and every morning he does the same ten seconds of work. Half out the door, one shoe on, he opens a weather app and re-derives the same decision: is this a normal commute, or one to plan around — leave earlier for rain, carry water for the heat, go the long way round the underpass that floods.\n\n' +
-  'The decision never changes shape. Only its answer does. So at 9:00 every morning the flow should ask a forecast service for Bangalore\'s current conditions by itself, and put one short message somewhere he is already looking on his phone at ten to nine.\n\n' +
-  'The service does not answer in sentences. It answers with numbers: the temperature in degrees, and the conditions as a WMO weather code, which is an integer. 0 is a clear sky, 1 to 3 are increasing cloud, and 61 to 65 are rain from light to heavy. Turning those into something a person can read is this flow\'s job, not his.\n\n' +
+  // The timeline has to hold, because `triggerAtHour` is a free-entry number with no
+  // options to eliminate: the call goes out at 9:00 and he reads the message a few
+  // minutes AFTER that, on his way out. An earlier version had him reading it "at ten to
+  // nine", which made hour 8 the better-reasoned answer than the one the case grades.
+  'The decision never changes shape. Only its answer does. So at 9:00 every morning the flow should ask a forecast service for Bangalore\'s current conditions by itself, and put one short message somewhere he is already looking on his phone. He picks the phone up a few minutes past nine, on his way out of the door.\n\n' +
+  // "the codes he sees most mornings" is the one clause that makes the mapping decision
+  // fair on first read. Without it the legend reads as the complete set, and a learner
+  // has nothing to tell them a code outside it can arrive. It stops there deliberately:
+  // WHICH codes are missing, and what they mean, is the discovery the case is built on.
+  'The service does not answer in sentences. It answers with numbers: the temperature in degrees, and the conditions as a WMO weather code, which is an integer. 0 is a clear sky, 1 to 3 are increasing cloud, and 61 to 65 are rain from light to heavy — those are the codes he sees most mornings. Turning those into something a person can read is this flow\'s job, not his.\n\n' +
   'The message has two halves and both of them matter. One states the conditions in plain words with the temperature beside them. The other is a single line about what today\'s commute needs — and that line does not follow from the code on its own: a clear sky at 38°C is not the same commute as a clear sky at 24°C.\n\n' +
   'One message, once, every morning. He reads it, he does not look it up.';
 

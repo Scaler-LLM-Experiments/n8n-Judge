@@ -327,7 +327,7 @@ export const nodeProbes = {
         text: 'It arrives in his inbox, alongside everything else, and he has to open it to read it',
         correct: true,
         response:
-          'Right. It would work, and it would land in the one place he is trying not to open at ten to nine. He has thirty seconds and one hand free — where can one short line be read without opening anything?',
+          'Right. It would work, and it would land in the one place he is trying not to open at ten past nine. He has thirty seconds and one hand free — where can one short line be read without opening anything?',
       },
       {
         text: 'Mail is more dependable than a chat app, which makes it the safer choice for something daily',

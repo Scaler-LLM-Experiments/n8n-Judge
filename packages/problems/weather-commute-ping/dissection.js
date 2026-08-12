@@ -74,7 +74,7 @@ export const dissection = [
   {
     id: 'send',
     prompt:
-      'Last decision. It is ten to nine, he is standing up with one shoe on, and his phone is in his hand. Where does the message go?',
+      'Last decision. It is a few minutes past nine, the message has just gone out, and he is standing up with one shoe on and his phone in his hand. Where does it need to have landed?',
     options: [
       { label: 'Gmail', type: 'gmail' },
       { label: 'Slack', type: 'slack' },

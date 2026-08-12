@@ -67,10 +67,15 @@ export const nodeSetup = {
         correct: 9,
         placeholder: '0 – 23',
         subtitle: 'On a 24-hour clock, in the workflow timezone.',
+        // Both of these point at the CALL, never at his departure. The earlier wording
+        // closed with "What time does he leave?", which — on this case's own prose, where
+        // he picks his phone up on the way out — argues for the hour before the one the
+        // field grades. On a free-entry number with nothing to eliminate that is a careful
+        // learner marked down and then handed a hint agreeing with their wrong answer.
         whyCorrect:
-          'Right. The message has to be waiting when he picks his phone up, which is a few minutes before he actually walks out — not while he is already on the road.',
+          'Right — that is the hour the brief puts the call at, and he reads the result a few minutes later on his way out. Earlier would not be safer, either: this asks for conditions as of now, so an answer fetched an hour before he leaves is an hour out of date.',
         whyWrong:
-          'Read the hour back off the brief, and remember this is a 24-hour clock: 9 in the evening and 9 in the morning are not the same value in this field. What time does he leave?',
+          'Read the hour back off the brief, and remember this is a 24-hour clock: 9 in the evening and 9 in the morning are not the same value in this field. What time does the brief say the call goes out?',
       },
     ],
   },
@@ -256,7 +261,7 @@ export const nodeSetup = {
         kind: 'assignmentList',
         addLabel: 'Add Field',
         subtitle:
-          'One entry per value you are building. Name it, then say what it should hold. The Input pane shows exactly what the service answered, so read the shape off that.',
+          'One entry per value you are building. Name it, then say what it should hold. The Input pane shows what the service answered on the morning in the sample, so read the shape off that.',
         nameOptions: [
           {
             value: 'weather_code',
