@@ -110,9 +110,32 @@ if (!canCrop) {
 
 mkdirSync(OUT_DIR, { recursive: true });
 
-const targets = problemList.filter((p) => (only ? p.id === only : true));
+/**
+ * Load one case straight from its folder, registered or not.
+ *
+ * Art needs exactly one authored value — `coverImage.prompt` — which exists the
+ * moment the author stage finishes. Filtering `problemList` was the only thing
+ * making the cover wait for registration, and registration cannot move earlier
+ * (voice.js is still a scaffold full of TODOs at that point). So the cover stage
+ * reads the disk instead, and stops being on the critical path.
+ */
+async function fromDisk(slug) {
+  const file = path.resolve(`packages/problems/${slug}/index.js`);
+  if (!existsSync(file)) return null;
+  const mod = await import(`file://${file}`);
+  return Object.values(mod).find((v) => v && typeof v === 'object' && 'coverImage' in v) ?? null;
+}
+
+let targets = problemList.filter((p) => (only ? p.id === only : true));
+if (!targets.length && only) {
+  const unregistered = await fromDisk(only);
+  if (unregistered) {
+    console.log(`- ${only}: not registered yet, loaded from disk`);
+    targets = [unregistered];
+  }
+}
 if (!targets.length) {
-  console.error(only ? `No problem with id "${only}".` : 'No problems found.');
+  console.error(only ? `No problem with id "${only}", registered or on disk.` : 'No problems found.');
   process.exit(1);
 }
 
