@@ -48,39 +48,84 @@ function tokensIn(text: string): string[] {
     .filter((t) => !NOT_NODE_TYPES.has(t));
 }
 
-const LIST_ITEM = /^\s*>?\s*(?:\d+\.|[-*])\s+\*{0,2}`([a-z][a-z0-9-]{2,})`/;
-const TABLE_ROW = /^\s*\|/;
-const TABLE_SEPARATOR_ROW = /^\s*\|[\s|:-]+\|\s*$/;
+/** A list item: numbered (`1.`, `2.`) or bulleted (`-`, `*`). Group 1 is its indent, group 2 the
+ * rest of the line — the item's own text, where its tokens live. */
+const LIST_ITEM = /^([ \t]*)(?:\d+\.|[-*])[ \t]+(.*)$/;
+/** Leading `>` blockquote markers and one space per marker. A spec writes its answer inside a
+ * blockquote, so indentation has to be measured after these come off. */
+const BLOCKQUOTE = /^(?:[ \t]*>)+[ \t]?/;
+const TABLE_ROW = /^[ \t]*\|/;
+const TABLE_SEPARATOR_ROW = /^[ \t]*\|[\s|:-]+\|\s*$/;
+/** A table cell that is nothing but one backticked token, with or without a `**bold**` wrapper —
+ * the shape of a Type column, as opposed to a prose cell that happens to quote a node. */
+const TYPE_CELL = /^\*{0,2}`([a-z][a-z0-9-]{2,})`\*{0,2}$/;
+
+/** Every node-shaped backticked token on one line, in order, NOT deduplicated. */
+function lineTokens(line: string): string[] {
+  return (line.match(/`[a-z][a-z0-9-]{2,}`/g) ?? []).map((t) => t.slice(1, -1));
+}
+
+const isPlaceableType = (t: string): boolean => t in NODE_CATALOG && !NOT_NODE_TYPES.has(t);
+
+/**
+ * The node one table row places. The Type column is what names the node, so the row's own cells
+ * are read first and the FIRST cell whose entire content is a single backticked, catalog-known
+ * token wins — a description cell that mentions another node ("Notify (replaces the old `slack`
+ * step)") is prose, not a placement, and reading it as one produced a bogus `type-reused`.
+ * Only when no cell has that shape does the row fall back to a catalog-known token anywhere in
+ * it, and then the LAST one, because a type column sits to the RIGHT of a label column in every
+ * spec on disk.
+ */
+function tableRowPlacement(line: string): string | undefined {
+  const cells = line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|');
+  for (const cell of cells) {
+    const m = cell.trim().match(TYPE_CELL);
+    if (m && isPlaceableType(m[1])) return m[1];
+  }
+  const known = lineTokens(line).filter(isPlaceableType);
+  return known.length ? known[known.length - 1] : undefined;
+}
 
 /**
  * The node each nodes-section PLACEMENT is about — one entry per list item or table row, not one
  * per backtick. Two shapes, because a spec expresses its answer as one or the other:
- *  - A list item — numbered (`1.`, `2.`) or bulleted (`-`, `*`), with or without a leading `>`
- *    blockquote marker and any `**bold**` wrapper — contributes its FIRST backticked token.
- *    Anything after it on the same line, or on a later item's line, is that item's description,
- *    not a second placement: "the brain attached to the `information-extractor` step" does not
- *    count `information-extractor` again.
- *  - A table row (a line starting with `|`, excluding the `|---|---|` separator row) contributes
- *    the first backticked token in the row that is a real `NODE_CATALOG` entry — the Type column
- *    is what a table names the node; other columns can carry their own unrelated backticked text.
- * A continuation line (no list marker, not a table row) contributes nothing, so prose is always
- * free to refer back to an already-placed node without that reading as reuse.
+ *  - A TOP-LEVEL list item — numbered (`1.`, `2.`) or bulleted (`-`, `*`), with or without a
+ *    leading `>` blockquote marker and any `**bold**` wrapper — contributes the first
+ *    catalog-known backticked token in its own text. "First token, full stop" was wrong: an item
+ *    that leads with its label (`` 2. `category` (aka `switch`) — routes on category. ``)
+ *    contributed nothing at all, so a switch with no paths went undetected. A nested sub-item
+ *    (indented two or more spaces relative to its list's top level) is elaboration on the item
+ *    above it, not a second placement, so it contributes nothing.
+ *  - A table row — see `tableRowPlacement`.
+ * A continuation line (no list marker, not a table row) contributes nothing either, so prose is
+ * always free to refer back to an already-placed node without that reading as reuse.
  */
 function placements(text: string): string[] {
   const heads: string[] = [];
-  for (const line of text.split('\n')) {
-    const li = line.match(LIST_ITEM);
-    if (li) {
-      heads.push(li[1]);
+  let listBase: number | null = null;
+  for (const raw of text.split('\n')) {
+    const line = raw.replace(BLOCKQUOTE, '');
+    if (TABLE_ROW.test(line)) {
+      listBase = null;
+      if (!TABLE_SEPARATOR_ROW.test(line)) {
+        const placed = tableRowPlacement(line);
+        if (placed) heads.push(placed);
+      }
       continue;
     }
-    if (TABLE_ROW.test(line) && !TABLE_SEPARATOR_ROW.test(line)) {
-      const cellTokens = (line.match(/`[a-z][a-z0-9-]{2,}`/g) ?? []).map((t) => t.slice(1, -1));
-      const known = cellTokens.find((t) => t in NODE_CATALOG);
-      if (known) heads.push(known);
+    const li = line.match(LIST_ITEM);
+    if (li) {
+      const indent = li[1].replace(/\t/g, '  ').length;
+      if (listBase === null || indent < listBase) listBase = indent;
+      if (indent >= listBase + 2) continue;
+      const placed = lineTokens(li[2]).find(isPlaceableType);
+      if (placed) heads.push(placed);
+      continue;
     }
+    // A blank line separates the items of a loose list; unindented prose or a heading ends it.
+    if (line.trim() !== '' && /^[^ \t]/.test(line)) listBase = null;
   }
-  return heads.filter((t) => !NOT_NODE_TYPES.has(t));
+  return heads;
 }
 
 interface Heading {
@@ -240,7 +285,9 @@ export function lintSpec(md: string): SpecIssue[] {
     );
   } else {
     const nodesSection = stripQuotedNodeNames(nodesSectionRaw);
-    const named = tokensIn(nodesSection);
+    // One issue per DISTINCT token: a field name mentioned twice in the nodes section is one
+    // thing to look at, and printing the identical line twice reads as a bug in the linter.
+    const named = new Set(tokensIn(nodesSection));
 
     for (const t of named) {
       if (!(t in NODE_CATALOG)) {
@@ -262,7 +309,7 @@ export function lintSpec(md: string): SpecIssue[] {
     // Placement-derived rules read the distractor-excluded text: a node named only as bait was
     // never actually put on the canvas, so it must not look like a splitter, a model-less AI
     // step, or a reused type.
-    const placed = placements(stripDistractors(nodesSection)).filter((t) => t in NODE_CATALOG);
+    const placed = placements(stripDistractors(nodesSection));
     hasSplitterToken = placed.some((t) => SPLITTERS.includes(t));
 
     const seen = new Set<string>();
