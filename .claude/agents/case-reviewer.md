@@ -25,18 +25,10 @@ rules; nothing checks whether the case is *answerable* or whether the answer key
 The repo can hand you the exact payload a learner's browser receives, with every marker of
 correctness stripped. Generate it:
 
-Run this from the repo root, exactly as written — the relative import is resolved from the
-repo root by `vite-node`, and `vite-node` is required rather than `node` because the
-workspace packages ship raw TypeScript:
+Run this from the repo root, exactly as written:
 
 ```bash
-cat > /tmp/blind-<slug>.mjs <<'EOF'
-import { toPublicProblem } from '@judge/problem-schema';
-const mod = await import('./packages/problems/<slug>/index.js');
-const problem = Object.values(mod).find((v) => v && typeof v === 'object' && 'dissection' in v);
-console.log(JSON.stringify(toPublicProblem(problem), null, 2));
-EOF
-npx vite-node /tmp/blind-<slug>.mjs > /tmp/blind-<slug>.json
+npm run problem:blind -- <slug> --out /tmp/blind-<slug>.json
 ```
 
 `toPublicProblem()` strips `correct`, `correctIndex`, `correctType`, `explanation`,

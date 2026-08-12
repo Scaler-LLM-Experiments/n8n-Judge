@@ -32,6 +32,7 @@
     "problem:new": "node scripts/problem-new.mjs",
     "problem:check": "node scripts/problem-check.mjs",
     "problem:draft": "node --env-file=.env scripts/problem-draft.mjs",
+    "problem:blind": "node scripts/authoring/blind.mjs",
     "case:spec-check": "node scripts/authoring/spec-check.mjs",
     "case:audit": "node scripts/authoring/audit.mjs",
     "case:preflight": "node --env-file=.env scripts/authoring/preflight.mjs",
