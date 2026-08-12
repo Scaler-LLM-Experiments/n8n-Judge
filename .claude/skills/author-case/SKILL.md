@@ -470,7 +470,16 @@ PNG that passed its review. This is the one place that line is written, and this
 author cycle is finished by now, so `meta.js` has no other writer and the line cannot be reverted
 by one. Skip it if art was skipped or failed twice; the card draws its own placeholder.
 
+**Then commit it, before anything else in this stage.** The `case_audio` commit above ran
+*before* this edit, so `meta.js` is dirty in the working tree and nothing later stages it: every
+check in this section reads the working tree, `case:verify -- on-branch` only compares the branch
+NAME, and `git push` sends commits. Skip this and the PR arrives with the PNG on disk and no line
+pointing at it — the card draws its placeholder, and nothing in the run notices.
+
 ```bash
+npm run case:verify -- on-branch auto/case-<slug>
+git add packages/problems/<slug>/meta.js && git commit -m "<slug>: point the card at its cover"
+
 npm run case:verify -- cover <slug>              # prompt + src + a real PNG on disk (non-blocking)
 npm run db:seed                                  # nothing you wrote reaches the app until this
 npm run case:verify -- seeded <slug>             # Postgres serves THIS content, not an older version
