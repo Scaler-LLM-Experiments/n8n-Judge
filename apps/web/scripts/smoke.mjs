@@ -102,9 +102,20 @@ await signIn();
 const SETTLE_MS = Number(process.env.SMOKE_SETTLE_MS ?? 2200);
 // How many screens are checked at once. Each gets its own page in the shared
 // signed-in context, so they are independent.
-// Measured 2026-08-11: 36 checks take 1m59s at 4 and 1m39s at 8, on a machine
-// where the dev server is the shared bottleneck rather than the browser.
-const CONCURRENCY = Number(process.env.SMOKE_CONCURRENCY ?? 8);
+//
+// Default is 4, not 8. Measured 2026-08-11: 36 checks take 1m59s at 4 and
+// 1m39s at 8 — only 20s faster — but that 1m39s number was the THIRD attempt.
+// The first two full sweeps at 8 against a dev server that had not yet
+// compiled every route failed with 15, then 11, `networkidle` goto timeouts
+// (30s each), all on routes/problems not yet hit that session; concurrency 8
+// fires that many first-time compiles at once against a dev server that
+// compiles requests serially, and a slow compile reads as a hung page. Once
+// every route had been compiled once, three later full sweeps at 8 were all
+// green. CLAUDE.md's rule is that a flaky check on a grading surface is worse
+// than none, so 8 stays available as SMOKE_CONCURRENCY=8 — worth it on a dev
+// server that has already served every route this session, e.g. mid an
+// authoring run — but is not the default a cold `npm run dev &` should hit.
+const CONCURRENCY = Number(process.env.SMOKE_CONCURRENCY ?? 4);
 
 async function check(name, url, extra) {
   const page = await context.newPage();
@@ -325,7 +336,13 @@ async function clickVisibleText(page, text) {
 }
 
 async function resumeCheck() {
-  const problem = problemList[0];
+  // Scoped to match SMOKE_ONLY: resume is the only stateful check and the only
+  // one that drives a real Build interaction, so during an authoring run it is
+  // the single most valuable thing to point at the case just written. Falling
+  // back to problemList[0] (email-triage) for the unscoped/full-sweep case is
+  // deliberate — some concrete problem has to own the check when there is no
+  // ONLY, and email-triage is the fully-authored reference.
+  const problem = problemList.find((p) => p.id === ONLY) ?? problemList[0];
   const errs = [];
   const page = await context.newPage();
   page.on('pageerror', (e) => errs.push(`pageerror: ${e.message}`));
@@ -531,12 +548,15 @@ async function resumeCheck() {
   }
 
   await page.close();
+  // Name the problem in the output so a scoped run's log attributes itself —
+  // otherwise "✓ resume" looks like it covered whatever SMOKE_ONLY named, even
+  // when it silently fell back to email-triage.
   if (errs.length) {
-    failures.push({ name: 'resume', url: `${base}/`, errs });
-    console.log('✗ resume');
+    failures.push({ name: `resume (${problem.id})`, url: `${base}/`, errs });
+    console.log(`✗ resume (${problem.id})`);
     for (const e of errs) console.log(`    ${e}`);
   } else {
-    console.log('✓ resume');
+    console.log(`✓ resume (${problem.id})`);
   }
 }
 
