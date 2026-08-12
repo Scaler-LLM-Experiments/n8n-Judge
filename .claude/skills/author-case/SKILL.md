@@ -140,6 +140,11 @@ author_case ──┬──► case_review ×3 (understand · config · edges, c
   unregistered case from disk, so art and its review overlap everything instead of
   sitting in the tail. Still non-blocking; still never dead-ends a case.
 
+The `all three ▼ done` in the diagram is about review and narration only: **`case_art` never
+holds up REGISTER.** It is `blocking: false` in `run-state.mjs`, so if it is still drawing — or
+has failed twice — registration and the render half carry on without it, and art rejoins at
+`case_finalize`, which verifies whatever it produced.
+
 **Registration has not moved**, and the two reasons below are unchanged.
 
 - **Nothing before it may register.** Registering makes leftover `TODO`s blocking, and `voice.js`
@@ -278,15 +283,23 @@ judgement calls its slice owns. Tell each agent its slice and nothing about the 
 an agent that knows a surface is covered elsewhere starts reasoning about coverage instead of
 answering questions.
 
-**In the same message, launch `case_audio` step 1 and `case_art`** (below). Nothing they write
-overlaps: the reviewers have no write tools, `case-voice-author` touches only `voice.js`, and
-the cover is a PNG plus one line of `meta.js`.
+Tell each agent to put its slice in every path it writes (`/tmp/blind-<slug>-<slice>.json`,
+`/tmp/answers-<slug>-<slice>.md`). Three agents running the same steps on the same case share
+`/tmp`, and a clobbered answers file reads as a reviewer contradicting itself rather than as a
+collision.
+
+**In the same message, launch `case_audio` step 1 and `case_art`** (below). Their writes are
+disjoint with one exception to hold in mind: the reviewers have no write tools and
+`case-voice-author` touches only `voice.js`, but **`case_art` writes `coverImage.src` into
+`meta.js`, which `case-author` also owns** — so if a revision cycle starts, the cover line can
+be overwritten by it. `case_finalize` verifies the cover for exactly that reason.
 
 **Merge the three reports into one round before routing anything.** Concatenate their
 `blockers` (de-duplicated — two slices can land on the same `nodeSetup` entry from different
-directions), concatenate their `notes`, and record the union as this stage's result. The round
-fails if **any** slice failed. `blindSolve` fractions arrive per slice with the other surfaces
-`null`; keep them that way in the PR body rather than inventing a combined score.
+directions), concatenate their `notes`, and record the union as this stage's single result
+(`/tmp/case_review-result.json`). The round fails if **any** slice failed. `blindSolve`
+fractions arrive per slice with the other surfaces `null`; keep them that way in the PR body
+rather than inventing a combined score.
 
 **`blockers` route back to the author; `notes` travel to the PR.** That split is deliberate and
 load-bearing: every blocker costs a full author cycle, so a cosmetic nit must not spend one.
@@ -298,7 +311,7 @@ that, and it is the defect that marks a learner down for being right.
 **On any slice returning `verdict: "fail"`:**
 
 ```bash
-npm run case:run -- stage case_review failed --attempt --result @/tmp/review-merged.json
+npm run case:run -- stage case_review failed --attempt --result @/tmp/case_review-result.json
 npm run case:run -- set --revision
 ```
 
@@ -309,7 +322,9 @@ again. Then re-run `case_review` as **three fresh agents**, never the same ones.
 
 **Cap: 2 automatic revision cycles — per round, not per reviewer.** Three slices failing one
 round is one cycle, and one author pass fixes all of it; counting per reviewer would exhaust
-the cap on the first round. On the third failure, stop:
+the cap on the first round. **Expect more rounds to fail than before**: three independent
+judgements have three chances to find a blocker, which is the point of the fan-out — a run that
+blocks on the cap is the gate working, not a regression in the case. On the third failure, stop:
 
 ```bash
 npm run case:run -- set --status blocked --error "review blockers survived 2 revision cycles"
@@ -335,10 +350,10 @@ rest. Spawn **`case-art-reviewer`**, which opens the PNG and the covers already 
 judges whether it belongs to it — the check that matters is legible garbled text, which
 `gpt-image-1` adds despite being told not to.
 
-> **Re-check `coverImage.src` after the last author cycle.** `case-author` owns `meta.js`, and a
-> revision that rewrites it can drop the one line this stage added — the PNG is still on disk,
-> the card silently draws its placeholder, and every other check stays green. One `grep` on
-> `meta.js` before `case_finalize` settles it.
+> **`case-author` owns `meta.js` too**, so a revision cycle that rewrites it can drop the
+> `coverImage.src` line this stage added — the PNG is still on disk, the card silently draws its
+> placeholder, and every other check stays green. `case_finalize` re-checks it with
+> `case:verify cover`; do not rely on having set it here.
 
 `verdict: "redraw"` → adjust `coverImage.prompt` from its guidance and run
 `covers:generate -- --only <slug> --force` **once**. If the second attempt also fails:
@@ -361,6 +376,11 @@ registered.
 
 1. Spawn **`case-voice-author`**. It writes `packages/problems/<slug>/voice.js` and reports
    the `voice:generate --dry-run` numbers — clips to render, characters to bill.
+
+   > **Those numbers are provisional, because this runs before registration.** `voice:generate`
+   > iterates the registry, so a dry run on an unregistered case cannot be reporting this case's
+   > clips. Re-run `voice:generate -- --dry-run` after step 3 and quote **that** figure in the
+   > PR body — the earlier one is a sanity check on the writing, not a cost.
 2. Spawn **`case-voice-reviewer`** (fresh, read-only). Its blocking category is **leaks**: a
    line that names an answer to a question still open. `verdict: "fail"` → back to
    `case-voice-author` with the blockers, same 2-cycle cap.
@@ -428,10 +448,18 @@ git commit -m "<slug>: narration and cover"
 Where truth is established. Everything before this was advisory.
 
 ```bash
+npm run case:verify -- cover <slug>              # prompt + src + a real PNG on disk (non-blocking)
 npm run db:seed                                  # nothing you wrote reaches the app until this
 npm run case:verify -- seeded <slug>             # Postgres serves THIS content, not an older version
 npm test && npm run typecheck
 ```
+
+**`cover` runs first, and before the seed, for a reason.** `case_art` finished long ago, but
+`case-author` owns `meta.js` and a revision cycle after it can drop the `coverImage.src` line —
+leaving the PNG on disk, the card drawing its placeholder, and every other check green. Checking
+it before `db:seed` means the fix is one line plus a re-seed rather than a second published
+version. It is non-blocking: an unset `src` is a `case_art` outcome to report on the PR, not a
+reason to halt a good case.
 
 `seeded` compares byte-for-byte with the same key-sorted serialisation `publishProblem` uses,
 because "a PUBLISHED row exists" is not the same as "it holds what you just wrote" — a

@@ -161,6 +161,29 @@ describe('auditProblem', () => {
     );
   });
 
+  it('blocks a nodeSetup entry no build phase requires, because its decisions are unearnable', () => {
+    // The scoring consequence, not a tidiness rule: enumerateItems() builds the config
+    // denominator from every nodeSetup key, so a node the learner never places still
+    // asks for its fields and caps everyone below 100%.
+    const p = base();
+    const type = Object.keys(p.nodeSetup).find(
+      (t) => p.nodeSetup[t].fields?.length && p.buildPhases.some((ph: any) => (ph.nodeTypes ?? []).includes(t))
+    ) as string;
+    // The real slip: the phase stops naming the type, the nodeSetup entry stays behind.
+    for (const ph of p.buildPhases) ph.nodeTypes = (ph.nodeTypes ?? []).filter((t: string) => t !== type);
+    expect(auditProblem(p)).toContainEqual(
+      expect.objectContaining({ level: 'blocker', rule: 'nodesetup-orphan', where: `nodeSetup.${type}` })
+    );
+  });
+
+  it('exempts a Chat Model from that rule, because the slot places it rather than a phase', () => {
+    const p = base();
+    const model = p.flow.modelNext[0];
+    expect(p.nodeSetup[model]).toBeTruthy();
+    for (const ph of p.buildPhases) ph.nodeTypes = (ph.nodeTypes ?? []).filter((t: string) => t !== model);
+    expect(auditProblem(p).filter((f) => f.rule === 'nodesetup-orphan')).toEqual([]);
+  });
+
   it('blocks a node setting missing the `why` for its correct value', () => {
     const p = base();
     const type = Object.keys(p.nodeSetup).find((t) => p.nodeSetup[t].settings?.length) as string;

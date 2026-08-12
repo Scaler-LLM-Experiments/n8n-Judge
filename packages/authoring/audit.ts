@@ -222,6 +222,38 @@ export function auditProblem(problem: Problem): AuditFinding[] {
     }
   }
 
+  // --- every nodeSetup entry is a node the learner actually places
+  //
+  // The other direction of the rule above, and the one with a scoring consequence.
+  // `rubric.ts` (scoreSession → enumerateItems) builds the CONFIG denominator from
+  // every key in `nodeSetup`, while placements come from `buildPhases[].nodeTypes`.
+  // So a `nodeSetup` entry for a type no phase requires is never placed, never opened
+  // in the NDV, and never answered — its fields sit in the denominator as decisions
+  // nobody can earn, and every learner is capped below 100% by an authoring slip.
+  //
+  // `validateProblem()` does not catch this: it only asserts the key is a type the
+  // catalog knows (validateProblem.ts's `strictTypes`), which an orphan still is.
+  // Neither does the review round — this is exactly the kind of arithmetic a blind
+  // solve cannot see, because the learner-visible projection still carries the node.
+  const requiredForBuild = new Set(requiredTypes(problem));
+  const modelMenu = new Set<string>([
+    ...(problem.flow?.modelOptions ?? []),
+    ...(problem.flow?.modelNext ?? []),
+  ]);
+  for (const type of Object.keys(problem.nodeSetup ?? {})) {
+    if (requiredForBuild.has(type)) continue;
+    // Same exemption as `pickable` above, for the same reason: a model is placed
+    // through its parent node's Chat Model slot, so a model the slot offers IS
+    // reachable and its setup IS earnable, whether or not a phase names it.
+    if ((NODE_CATALOG as Record<string, any>)[type]?.category === 'model' && modelMenu.has(type)) continue;
+    const graded = (problem.nodeSetup[type].fields ?? []).length + (problem.nodeSetup[type].settings ?? []).length;
+    blocker(
+      'nodesetup-orphan',
+      `nodeSetup.${type}`,
+      `no build phase requires "${type}", so the learner never places it or opens its NDV — but the rubric counts its ${graded} graded decision(s) in the config denominator, capping every learner below 100%`
+    );
+  }
+
   // --- the reference solution actually works
   const sim = simulateAll(problem.referenceGraph, problem);
   if (!sim.success) {

@@ -52,11 +52,16 @@ system: |
   The repo can hand you the exact payload a learner's browser receives, with every marker of
   correctness stripped. Generate it:
 
-  Run this from the repo root, exactly as written:
+  Run this from the repo root, exactly as written — **with your own slice in the filename**:
 
   ```bash
-  npm run problem:blind -- <slug> --out /tmp/blind-<slug>.json
+  npm run problem:blind -- <slug> --out /tmp/blind-<slug>-<slice>.json
   ```
+
+  **Every path you write must carry your slice.** Two other reviewers are running the same steps
+  on the same case at the same time, and a shared `/tmp` path means one of you reads a file
+  another is half-way through rewriting. It would present as a reviewer contradicting itself, not
+  as a file collision — which is the expensive kind of bug.
 
   `toPublicProblem()` strips `correct`, `correctIndex`, `correctType`, `explanation`,
   `wrongHint`, `unlocks`, `isDistractor` and every per-option `why` — verified: on a real case
@@ -78,11 +83,16 @@ system: |
   Write your answers to a file before you look at anything else:
 
   ```bash
-  cat > /tmp/answers-<slug>.md <<'EOF'
+  cat > /tmp/answers-<slug>-<slice>.md <<'EOF'
   dissection q1: <your answer> — confidence high/medium/low — because <reason>
   ...
   EOF
   ```
+
+  Slice in this filename too, and for the sharper reason: this file is the whole blind-solve
+  discipline — it is what Step 2 grades against, and it is the only evidence you did not revise
+  an answer after seeing the key. A shared name means the slice that finishes last silently
+  overwrites everyone else's.
 
   **Confidence is as important as the answer.** A question you could only answer at "low"
   confidence is a question a learner cannot answer at all, even if you guessed right.
@@ -121,14 +131,21 @@ system: |
   npm run case:audit -- <slug>
   ```
 
-  Under a second, offline, and it already decides all of this: exactly one correct option per
-  graded list · every option carrying the `why`/`response` that teaches · every misconception
-  code having a `misconceptionLabels` entry · `flowSummary` labels ≤3 words and naming no node
-  · `dissection[].unlocks` covering every type the build phases require · every `nodeSetup` key
-  being a type the learner is offered, and every phase declaring `pickable` (the Chat Model
-  slot included) · exactly one `sampleCase` with `branch: null` · `simulateAll` passing on the
-  `referenceGraph` · no branch dead-ending · the scored-decision count against the authored
-  `difficulty`.
+  Under a second, offline. **`case:audit` itself decides:** exactly one correct option per graded
+  list · every option carrying the `why`/`response` that teaches · every misconception code
+  having a `misconceptionLabels` entry · `dissection[].unlocks` covering every type the build
+  phases require · every required type being pickable (through a phase's drawer, or through the
+  Chat Model slot for a model) · every `nodeSetup` key being a type some phase actually requires,
+  because the rubric counts its fields in the config denominator whether the learner can place
+  the node or not · exactly one `sampleCase` with `branch: null` · `simulateAll` passing on the
+  `referenceGraph` · no branch dead-ending.
+
+  **The rest of the mechanical set belongs to `npm run problem:check -- <slug>`**, which the
+  orchestrator runs before you are spawned: `validateProblem()` covers the `flowSummary` rules
+  (≤3 words, naming no node) and the graded-`settings` shape, and `problem:check` itself prints
+  the scored-decision count against the authored `difficulty` — as a **warning**, so read the
+  line rather than reading a clean exit as agreement. Both commands are free to re-run yourself
+  if you want the output in front of you.
 
   Report its output in `mechanicalAudit`, and take `simulateAllPasses` from it rather than
   re-running the simulation yourself. **Its blockers are blockers** — list them in your
