@@ -92,4 +92,82 @@ describe('auditProblem', () => {
     for (const probe of Object.values<any>(p.nodeProbes ?? {})) toFront(probe.options, (o: any) => o.correct);
     expect(auditProblem(p)).toContainEqual(expect.objectContaining({ level: 'note', rule: 'option-spread' }));
   });
+
+  // --- added after independent review of this task: the model exemption below was a
+  // whole-category skip, which hid a real defect, and several rules had no test at all.
+
+  it('blocks a required model type no Chat Model slot offers, even though it is a model-category exemption', () => {
+    const p = base();
+    // Rename the required model everywhere EXCEPT `flow.modelNext`, which is exactly
+    // the counterfactual independent review reproduced: the drawer's Chat Model slot
+    // still only offers the old model, `expectedNext()` grades the new one wrong, and
+    // the phase can never complete — a blanket `continue` on `category === 'model'`
+    // reported nothing here.
+    for (const phase of p.buildPhases) {
+      phase.nodeTypes = phase.nodeTypes.map((t: string) => (t === 'chat-gemini' ? 'openai-chat-model' : t));
+    }
+    for (const d of p.dissection) {
+      d.unlocks = (d.unlocks ?? []).map((t: string) => (t === 'chat-gemini' ? 'openai-chat-model' : t));
+    }
+    expect(auditProblem(p)).toContainEqual(
+      expect.objectContaining({ level: 'blocker', rule: 'not-pickable', where: 'flow.modelNext' })
+    );
+  });
+
+  it('blocks a branch whose referenceGraph edge is simply missing', () => {
+    // The rule this task changed (`branch-dead-end`) had no test of its own — only
+    // deleting the graph-shape adapter entirely was caught (by test 1, via a false
+    // "open" on every branch). An over-permissive adapter that never reports an open
+    // branch would pass silently. Dropping one branch's edge forces the real topology
+    // walk to fail, which only a faithful adapter reports correctly.
+    const p = base();
+    const branchId = p.branches[0].id;
+    p.referenceGraph.edges = p.referenceGraph.edges.filter((e: any) => e.branch !== branchId);
+    expect(auditProblem(p)).toContainEqual(expect.objectContaining({ level: 'blocker', rule: 'branch-dead-end' }));
+  });
+
+  it('blocks a wrong probe option that names no misconception at all', () => {
+    const p = base();
+    const probe = Object.values<any>(p.nodeProbes).find((pr: any) => pr.options.some((o: any) => !o.correct));
+    const wrong = probe.options.find((o: any) => !o.correct);
+    delete wrong.misconception;
+    expect(auditProblem(p)).toContainEqual(
+      expect.objectContaining({ level: 'blocker', rule: 'misconception-missing' })
+    );
+  });
+
+  it('blocks a field option list with no option marked correct', () => {
+    const p = base();
+    const type = Object.keys(p.nodeSetup).find((t) => p.nodeSetup[t].fields?.some((f: any) => f.options)) as string;
+    const field = p.nodeSetup[type].fields.find((f: any) => f.options);
+    for (const o of field.options) o.correct = false;
+    expect(auditProblem(p)).toContainEqual(expect.objectContaining({ level: 'blocker', rule: 'no-correct-option' }));
+  });
+
+  it('notes a case with too few scored decisions', () => {
+    const p = base();
+    p.dissection = [];
+    p.nodeSetup = {};
+    p.nodeProbes = {};
+    p.evalQuestions = [];
+    expect(auditProblem(p)).toContainEqual(expect.objectContaining({ level: 'note', rule: 'too-small' }));
+  });
+
+  it('blocks a dissection question missing wrongHint or explanation', () => {
+    const p = base();
+    delete p.dissection[0].wrongHint;
+    expect(auditProblem(p)).toContainEqual(
+      expect.objectContaining({ level: 'blocker', rule: 'why-missing', where: expect.stringContaining('dissection[0]') })
+    );
+  });
+
+  it('blocks a node setting missing the `why` for its correct value', () => {
+    const p = base();
+    const type = Object.keys(p.nodeSetup).find((t) => p.nodeSetup[t].settings?.length) as string;
+    const setting = p.nodeSetup[type].settings[0];
+    delete setting.why[String(setting.correct)];
+    expect(auditProblem(p)).toContainEqual(
+      expect.objectContaining({ level: 'blocker', rule: 'why-missing', where: `nodeSetup.${type}.settings.${setting.key}` })
+    );
+  });
 });

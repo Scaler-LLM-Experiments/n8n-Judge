@@ -28,12 +28,20 @@ function requiredTypes(problem: Problem): string[] {
  * correct — `e.sourceHandle` never equals `e.branch` — which is a graph-shape
  * mismatch, not a defect in the reference graph.
  *
- * `apps/web/src/n8n/N8nEditor.jsx`'s `seedNodes`/`seedEdges` do this exact
- * conversion for the app (reading `branch ?? sourceHandle`, defaulting `configured`
- * to `true` when a node carries no `data` at all — "everything on it is meant to be
- * set up" — because a referenceGraph node is the answer key, not a learner's
- * half-built canvas). This is the same conversion, kept local rather than imported
- * from the app: packages depend on packages, not on `apps/web`.
+ * `apps/web/src/n8n/N8nEditor.jsx`'s `seedNodes` (line 97) / `seedEdges` (line 161) do
+ * this exact conversion for the app (reading `branch ?? sourceHandle`, defaulting
+ * `configured` to `true` when a node carries no `data` at all — "everything on it is
+ * meant to be set up" — because a referenceGraph node is the answer key, not a
+ * learner's half-built canvas). This is the same conversion, kept local rather than
+ * imported from the app: packages depend on packages, not on `apps/web`.
+ *
+ * One deliberate divergence from `seedNodes`, and it does not bite today: `seedNodes`
+ * dedupes by id, keeping the LAST node (a real production trace once held two nodes
+ * sharing one id). This adapter keeps every node as authored — a referenceGraph is
+ * never replayed from a trace, so there is nothing to dedupe — and `branchReach.js`'s
+ * `.find()` for the router and for edge targets takes the FIRST match either way, so
+ * a referenceGraph that somehow repeated an id would resolve differently here than in
+ * the app. No shipped referenceGraph does.
  */
 function asBranchReachGraph(graph: Problem): { nodes: any[]; edges: any[] } {
   return {
@@ -188,9 +196,23 @@ export function auditProblem(problem: Problem): AuditFinding[] {
     // requiring it in `pickable` reported a defect against three of five shipped
     // cases (email-triage, expense-approvals, ops-request-desk) that were correct
     // as authored — verified against the app's own picker wiring
-    // (apps/web/src/n8n/N8nEditor.jsx, NodePickerDrawer.jsx), not weakened to make
-    // the fixtures pass.
-    if ((NODE_CATALOG as Record<string, any>)[type]?.category === 'model') continue;
+    // (apps/web/src/n8n/N8nEditor.jsx, NodePickerDrawer.jsx).
+    //
+    // BUT the exemption is not a free pass: the model still has to be reachable
+    // SOMEWHERE, and for a model type that "somewhere" is `flow.modelOptions ??
+    // flow.modelNext`, not `pickable`. Skipping the check outright (rather than
+    // redirecting it) hid a real defect: rename the required model in
+    // `buildPhases[].nodeTypes` while leaving `flow.modelNext` naming the old one,
+    // and the drawer would offer only the old model, `expectedNext()` would grade
+    // the new one wrong, and the phase could never complete — with this rule
+    // reporting nothing.
+    if ((NODE_CATALOG as Record<string, any>)[type]?.category === 'model') {
+      const modelMenu: string[] = problem.flow?.modelOptions ?? problem.flow?.modelNext ?? [];
+      if (!modelMenu.includes(type)) {
+        blocker('not-pickable', 'flow.modelNext', `"${type}" is required but no Chat Model slot offers it`);
+      }
+      continue;
+    }
     if (!(problem.buildPhases ?? []).some((p: any) => (p.pickable ?? []).includes(type))) {
       blocker(
         'not-pickable',

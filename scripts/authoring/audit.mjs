@@ -20,6 +20,10 @@ if (!fs.existsSync(file)) {
 }
 const mod = await import(`file://${file}`);
 const problem = Object.values(mod).find((v) => v && typeof v === 'object' && 'dissection' in v);
+if (!problem) {
+  console.error(`✗ ${file} exports no problem object — auditProblem(undefined) would throw a bare TypeError`);
+  process.exit(1);
+}
 
 const findings = auditProblem(problem);
 for (const f of findings) {

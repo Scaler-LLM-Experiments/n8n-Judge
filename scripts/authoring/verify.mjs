@@ -144,18 +144,35 @@ function checkProblemCheck(slug) {
   }
 }
 
-/** The mechanical review rules, so a reviewer's round is spent on judgement. */
+/**
+ * The mechanical review rules, so a reviewer's round is spent on judgement.
+ *
+ * Wrapped in try/catch for the same reason as `problem:check`'s own audit block: a
+ * partly-authored draft can make `simulateAll` throw (no `sampleCases` yet, say),
+ * and an audit that cannot run is not itself a blocking failure — the surrounding
+ * `all` bundle builds one array literal from every check in sequence, so an
+ * uncaught throw here would abort before anything already computed got printed.
+ */
 async function checkAudit(slug) {
   const problem = await loadFromDisk(slug);
   if (!problem) return [fail('audit', 'problem does not load from disk')];
-  const { auditProblem } = await import('@judge/authoring');
-  const findings = auditProblem(problem);
-  const blockers = findings.filter((f) => f.level === 'blocker');
-  if (blockers.length) {
-    return [fail('audit', `${blockers.length} mechanical defect(s): ${blockers[0].rule} at ${blockers[0].where}`)];
+  try {
+    const { auditProblem } = await import('@judge/authoring');
+    const findings = auditProblem(problem);
+    const blockers = findings.filter((f) => f.level === 'blocker');
+    if (blockers.length) {
+      return [
+        fail(
+          'audit',
+          `${blockers.length} mechanical defect(s): ${blockers[0].rule} at ${blockers[0].where} — run npm run case:audit -- ${slug}`
+        ),
+      ];
+    }
+    const notes = findings.length;
+    return [pass('audit', `no mechanical defects${notes ? ` (${notes} note(s) — read them)` : ''}`)];
+  } catch (err) {
+    return [fail('audit', `could not be checked (${err.message.split('\n')[0]})`, { blocking: false })];
   }
-  const notes = findings.length;
-  return [pass('audit', `no mechanical defects${notes ? ` (${notes} note(s) — read them)` : ''}`)];
 }
 
 /** Cover art: authored prompt, `src` set, and a real file behind it. Never blocking. */

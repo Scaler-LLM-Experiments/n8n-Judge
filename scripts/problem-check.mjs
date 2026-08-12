@@ -247,16 +247,26 @@ async function check(slug) {
   }
 
   // --- the mechanical half of review, so it never costs a revision cycle
-  const { auditProblem } = await import('@judge/authoring');
-  const findings = auditProblem(problem);
-  blocking += findings.filter((f) => f.level === 'blocker').length;
-  if (findings.length) {
-    for (const f of findings) {
-      const line = `${f.rule}: ${f.where} — ${f.message}`;
-      console.log(f.level === 'blocker' ? red(`  ✗ ${line}`) : yellow(`  ! ${line}`));
+  //
+  // Guarded the same way as the n8n export block above: a partly-authored draft (no
+  // `sampleCases` yet, say) makes `simulateAll` throw rather than return a tidy
+  // failure, and this command is meant to work on exactly that draft. An audit that
+  // cannot run is not proof of a blocking defect, so it is reported and skipped, not
+  // allowed to take the whole command down before anything else prints.
+  try {
+    const { auditProblem } = await import('@judge/authoring');
+    const findings = auditProblem(problem);
+    blocking += findings.filter((f) => f.level === 'blocker').length;
+    if (findings.length) {
+      for (const f of findings) {
+        const line = `${f.rule}: ${f.where} — ${f.message}`;
+        console.log(f.level === 'blocker' ? red(`  ✗ ${line}`) : yellow(`  ! ${line}`));
+      }
+    } else {
+      console.log(green('  ✓ audit: no mechanical defects'));
     }
-  } else {
-    console.log(green('  ✓ audit: no mechanical defects'));
+  } catch (err) {
+    console.log(yellow(`  ! audit: could not be checked (${err.message.split('\n')[0]})`));
   }
 
   // --- cover art
