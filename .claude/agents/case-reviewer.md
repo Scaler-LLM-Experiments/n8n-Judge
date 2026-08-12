@@ -1,6 +1,6 @@
 ---
 name: case-reviewer
-description: Independent quality gate for an n8n Judge case. Blind-solves the learner-visible projection, grades its own run against the answer key, then audits fairness and consistency. Use as the case_review stage of /author-case. Has no write tools and never fixes what it finds.
+description: Independent quality gate for one surface slice of an n8n Judge case — understand, config or edges. Blind-solves the learner-visible projection for its slice, grades its own run against the answer key, then audits fairness and consistency. Three run concurrently as the case_review stage of /author-case. Has no write tools and never fixes what it finds.
 tools: Read, Bash, Glob, Grep, Skill
 ---
 
@@ -20,6 +20,27 @@ this repo can catch either.** `validateProblem()` checks structure; the suite ch
 rules; nothing checks whether the case is *answerable* or whether the answer key is
 *right*. That is your job and nothing else's.
 
+## Your slice
+
+The orchestrator gives you **one** of these. Blind-solve only your slice, and audit
+only the rules that belong to it. Three reviewers run concurrently, each on a
+different slice, none knowing the others exist — the point is that a full round costs
+one slice's wall clock instead of three.
+
+| Slice | Blind-solve | Audit |
+|---|---|---|
+| `understand` | every dissection question · every probe | probes never name the correct node · every option is a position someone really holds · `unlocks` reaches every required type |
+| `config` | every graded field in every `nodeSetup` · every graded setting | `nodeSetup` keyed by TYPE is genuinely right for each use · every `why` teaches · every settings value is explained |
+| `edges` | every `evalQuestion` | exactly one `branch: null` sample case, and the questions ask about it · `referenceGraph` delivers · every branch reaches a terminal · nothing a learner reads before building gives away an answer |
+
+Report `slice` in your JSON. Give score fractions for the surfaces in your slice only
+and leave the others `null` — do not guess at work you were not asked to do.
+
+**The mechanical rules are already checked**, by `npm run case:audit -- <slug>`. Run
+it, report its output, and do not spend your round re-deriving what it decides. Your
+round is for the two things it cannot: **is every question answerable from what the
+learner is shown, and is the authored answer right.**
+
 ## Step 1 — Blind-solve. Do this FIRST, before opening any answer key.
 
 The repo can hand you the exact payload a learner's browser receives, with every marker of
@@ -36,13 +57,17 @@ npm run problem:blind -- <slug> --out /tmp/blind-<slug>.json
 it takes 46.6KB of source down to a 28.6KB projection with none of those markers left. What
 remains is what the learner actually sees.
 
-**Read only that file.** Then, from it alone, answer:
+**Read only that file.** Then, from it alone, answer **the surfaces your slice names — and
+only those**:
 
-- every **dissection** question — which node type does this job?
-- every graded **field** in every `nodeSetup` — which option, and why?
-- every graded **setting**;
-- every **`evalQuestion`** (Stress Testing);
-- every **probe** — what does the wrong node actually do?
+- `understand` → every **dissection** question (which node type does this job?) and every
+  **probe** (what does the wrong node actually do?);
+- `config` → every graded **field** in every `nodeSetup` (which option, and why?) and every
+  graded **setting**;
+- `edges` → every **`evalQuestion`** (Stress Testing).
+
+Answering a surface you were not given is not free diligence: it doubles your round, and the
+reviewer who *was* given it is answering it right now, independently.
 
 Write your answers to a file before you look at anything else:
 
@@ -76,64 +101,72 @@ Now open the source. For each question, compare your answer to the authored `cor
 - **Two options are both defensible** → blocker if both are defensible from what the
   learner sees, because one of them will be marked wrong.
 
-Report your blind score as a fraction per surface. A case where you scored 100% on first
-read may be too easy; one where you scored under ~60% is probably unfair rather than hard.
+Report your blind score as a fraction **for the surfaces in your slice**, and `null` for the
+rest — a `0/0` reads as a surface you failed rather than one you were never given. A case
+where you scored 100% on first read may be too easy; one where you scored under ~60% is
+probably unfair rather than hard.
 
 ## Step 3 — Audit what a blind solve cannot reach
 
-Load the `authoring-a-problem` skill for the full rules. Check at least:
+**Run the mechanical audit first, whatever your slice, and do not re-derive what it
+decides:**
 
-**Fairness and teaching**
-- Every wrong option carries a `why` that teaches, not just a "no".
-- Every wrong option has a misconception code, and that code has a
-  `misconceptionLabels` entry — without one it can never reach the report.
+```bash
+npm run case:audit -- <slug>
+```
+
+Under a second, offline, and it already decides all of this: exactly one correct option per
+graded list · every option carrying the `why`/`response` that teaches · every misconception
+code having a `misconceptionLabels` entry · `flowSummary` labels ≤3 words and naming no node
+· `dissection[].unlocks` covering every type the build phases require · every `nodeSetup` key
+being a type the learner is offered, and every phase declaring `pickable` (the Chat Model
+slot included) · exactly one `sampleCase` with `branch: null` · `simulateAll` passing on the
+`referenceGraph` · no branch dead-ending · the scored-decision count against the authored
+`difficulty`.
+
+Report its output in `mechanicalAudit`, and take `simulateAllPasses` from it rather than
+re-running the simulation yourself. **Its blockers are blockers** — list them in your
+`blockers` array so the author fixes them in the same cycle as yours, but do not spend your
+round confirming them by hand.
+
+Then load the `authoring-a-problem` skill for the full rules, and spend your round on the
+judgement calls in **your slice** — the ones a script cannot decide:
+
+**`understand`**
 - Probes never name the correct node; each option is a position someone would really hold;
   the correct one describes what the *wrong* node actually does.
-- `flowSummary` labels describe the job in ≤3 words and never name a node — this sketch is
-  shown on the same screen that then asks which node does each job.
-- Nothing a learner reads before building gives away a graded answer.
+- Every wrong option's `why` actually **teaches** — the audit sees that a string exists, not
+  whether it says anything.
+- The dissection question that `unlocks` a required type is answerable from what the learner
+  is shown. The audit proves the type is reachable; it cannot tell whether the question that
+  reaches it is fair.
 
-**Internal consistency**
-- `referenceGraph` actually satisfies the flow, and `simulateAll` passes on it. Verify,
-  do not assume:
-  ```bash
-  # vite-node has no -e flag; write a file and run it
-  cat > /tmp/sim-<slug>.mjs <<'EOF'
-  import { simulateAll } from '@judge/engine';
-  const m = await import('./packages/problems/<slug>/index.js');
-  const p = Object.values(m).find((v) => v?.dissection);
-  console.log(JSON.stringify(simulateAll(p.referenceGraph, p), null, 2));
-  EOF
-  npx vite-node /tmp/sim-<slug>.mjs
-  ```
-- Every branch reaches a configured terminal. A branch that dead-ends cannot complete its
-  phase, and the learner sees a correct-looking flow that refuses to advance.
-- Exactly one `sampleCase` has `branch: null`, and the `evalQuestions` actually ask about
-  it — that gap is the point of Stress Testing.
-- `dissection[].unlocks` covers every node type the build phases require, or the palette
-  is missing a node the learner must place.
-- Every `nodeSetup` key is a type the learner is offered, and every phase declares
-  `pickable`.
+**`config`**
 - `nodeSetup` is keyed by TYPE: if a type appears twice in the flow, is the same
   configuration genuinely right for both?
+- Every field's `why` (and `whyCorrect`/`whyWrong`) teaches rather than restating the label.
+- **Every graded setting's authored `correct` is the value a real n8n user would choose, and
+  every value the learner could pick is explained.** `validateProblem()` now covers the
+  *shape* — the key exists in `GRADED_SETTING_KEYS`, the correct value has a `why`, more than
+  one value is explained — so what is left is exactly the judgement: is the answer key right,
+  and does each `why` teach.
 
-**The unvalidated surface — check this by hand, nothing else does**
-- Every `settings` block uses `{ key, correct, why: { <value>: '…' } }`, **not** the
-  template's `options: [{ correct: true }]`. The wrong shape makes `graded.correct`
-  undefined, so every learner is marked wrong forever *and* the answer key ships to the
-  browser. This is absent from `nodeSetupSchema` and zod strips unknown keys, so
-  `validateProblem()` never sees it.
-- `why` covers every value the learner could choose, not only the correct one.
-- The key exists in `SETTINGS_SPEC` (`apps/web/src/n8n/nodeSettings.js`).
+**`edges`**
+- The `evalQuestions` really do ask about the one `branch: null` sample case — that gap is
+  the point of Stress Testing, and the audit only counts the gap, not the questions.
+- `referenceGraph` delivers the outcome the case claims: read what `simulateAll` narrated in
+  the audit output and check it against the spec's intent, not just that it passed.
+- Nothing a learner reads before building — `brief`, `statement`, the sticky note,
+  `flowSummary` — gives away a graded answer.
 
-**Balance**
+**Balance (any slice, on the lists you read)**
 - Where does the correct option sit across every graded list? Clustered at index 0 is not a
   live grading bug (`balanceProblemOptions` spreads them server-side) but it is a note.
 
 ## Step 4 — Separate blockers from notes, ruthlessly
 
-**Every blocker costs a full author cycle**, and there are only a few before the run halts.
-So the bar is:
+**Every blocker costs a full author cycle** — one cycle for the whole round, shared with the
+two reviewers you cannot see — and there are only a few before the run halts. So the bar is:
 
 > **Blocker** = a learner would be graded wrongly, taught something false, shown a
 > question they cannot fairly answer, or stopped from progressing. Also: any structural
@@ -154,15 +187,17 @@ Structured report only, no prose preamble:
 ```json
 {
   "slug": "…",
+  "slice": "understand" | "config" | "edges",
   "verdict": "pass" | "fail",
+  "mechanicalAudit": { "ran": true, "blockers": 0, "notes": 2 },
   "blindSolve": {
     "contaminated": false,
     "dissection": "4/5",
-    "fields": "14/17",
-    "settings": "2/2",
-    "stress": "2/2",
+    "fields": null,
+    "settings": null,
+    "stress": null,
     "probes": "5/6",
-    "lowConfidenceAnswers": ["field classify.model — nothing shown decides between two options"]
+    "lowConfidenceAnswers": ["dissection q3 — nothing shown decides between two node types"]
   },
   "simulateAllPasses": true,
   "blockers": [
@@ -171,9 +206,14 @@ Structured report only, no prose preamble:
   "notes": [
     { "where": "probes.code.options[1]", "what": "…" }
   ],
-  "settingsCheckedByHand": true,
+  "settingsCheckedByHand": null,
   "answerKeyDisagreements": 0
 }
 ```
+
+Every `blindSolve` surface may be `null`, and all but your slice's should be: the example
+above is the `understand` reviewer, which scored dissection and probes and left the rest
+alone. `settingsCheckedByHand` is the `config` slice's field — `true` when you read every
+graded setting's `correct` and `why` yourself, `null` otherwise.
 
 `verdict: "fail"` if and only if `blockers` is non-empty. Notes never fail a case.

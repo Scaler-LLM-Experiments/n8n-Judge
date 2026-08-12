@@ -108,29 +108,57 @@ git switch -c auto/case-<slug> main
 ## The chain
 
 ```
-author_case ──► case_review ──► case_audio (a) write + review narration
-                                     │
-                                     ▼
-                                REGISTER  ◄── the gate: nothing before it may register
-                                     │
-                        ┌────────────┴────────────┐
-                        ▼                         ▼
-              case_art (non-blocking)   case_audio (b) render + sync
-                        └────────────┬────────────┘
-                                     ▼
-                             case_finalize ──► draft PR
+author_case ──┬──► case_review ×3 (understand · config · edges, concurrent)
+              │
+              ├──► case_audio (a) write narration + review it
+              │
+              └──► case_art (non-blocking, unregistered-safe)
+                              │
+                    all three ▼ done
+                         REGISTER  ◄── still the gate: nothing before it may register
+                              │
+                              ▼
+                    case_audio (b) render + sync
+                              │
+                              ▼
+                      case_finalize ──► draft PR
 ```
 
-**Registration sits in the middle on purpose, and both halves of that matter:**
+**Three things now start at once, and the reason each is safe is different:**
+
+- **`case_review` fans out to three agents**, one per surface — `understand`, `config`,
+  `edges`. Each blind-solves only its slice, so a round costs one slice's wall clock
+  rather than the sum, and every blocker in the case surfaces in the *same* round
+  instead of a second batch appearing after the first fix. Still fresh agents, still no
+  write tools, still `verdict: fail` if and only if blockers exist. Merge the three
+  reports before routing: one author cycle fixes all of them.
+- **Narration is authored in parallel with review.** `case-voice-author` writes only
+  `voice.js`; the reviewers write nothing. Disjoint files, same inputs. A content
+  revision may invalidate a line, and that is cheap on purpose — nothing has been
+  rendered yet, and rendering still happens after registration.
+- **Cover art starts immediately.** `covers:generate -- --only <slug>` now loads an
+  unregistered case from disk, so art and its review overlap everything instead of
+  sitting in the tail. Still non-blocking; still never dead-ends a case.
+
+**Registration has not moved**, and the two reasons below are unchanged.
 
 - **Nothing before it may register.** Registering makes leftover `TODO`s blocking, and `voice.js`
   is a scaffold full of them until `case_audio` writes it.
 - **Nothing after it can work without it.** `voice:generate` looks the slug up in the registry
-  and hard-errors on `Unknown problem`; `covers:generate` filters `problemList` and would
-  silently draw nothing at all. An unregistered case makes both media stages report success
-  having done no work.
+  and hard-errors on `Unknown problem`, so an unregistered case renders no clips at all and
+  reports success having done nothing. (`covers:generate` used to have the same failure and no
+  longer does — it reads `packages/problems/<slug>/index.js` off the disk, which is what lets
+  art start at the top of the run.)
 
-Mark each stage `running` before you start it and record its outcome the moment you know it:
+**The revision cap is per ROUND, not per reviewer.** Three reviewers failing one round
+is one cycle, not three.
+
+**Spawn concurrent stages in ONE message, with one tool call each.** Sub-agents launched in
+separate messages run in series, which silently gives back everything this chain was rewired
+to save — and the run still looks correct, just slow.
+
+Mark each stage `running` before you start it — **all three of the concurrent ones, before you
+spawn any of them** — and record its outcome the moment you know it:
 
 ```bash
 npm run case:run -- stage <stage> running --attempt
@@ -141,7 +169,20 @@ npm run case:run -- stage <stage> passed --result @/tmp/<stage>-result.json
 
 ### 1. `author_case` — write the seven files
 
-Spawn **`case-author`** with the spec path. It scaffolds via `problem:new`, fills in
+**Lint the spec and build the briefing pack before you spawn anything:**
+
+```bash
+npm run case:spec-check -- docs/case-specs/<slug>.md   # 1s. A bad spec costs 33 minutes.
+npm run case:brief -- <slug> docs/case-specs/<slug>.md # the pack the author agent reads
+```
+
+`case:spec-check` decides from the spec text alone what used to be discovered after the case
+was written — an error is a redesign, so fix the spec on disk and re-run rather than passing it
+on. `case:brief` writes `.authoring-runs/brief-<slug>.md`: the ten-or-so nodes this case might
+use rather than all 200, plus the rules that apply to it. Hand the author agent **that path**
+alongside the spec.
+
+Then spawn **`case-author`** with the spec path. It scaffolds via `problem:new`, fills in
 `meta` · `dissection` · `build` · `nodeSetup` · `probes` · `cases` · `index`, and iterates
 against `problem:check`. It writes neither `voice.js` nor the registration.
 
@@ -149,10 +190,17 @@ against `problem:check`. It writes neither `voice.js` nor the registration.
 
 ```bash
 npm run case:verify -- check <slug>         # problem:check, run by us
+npm run case:audit -- <slug>                # the mechanical half of a review, in a second
 npm run workflows:generate -- <slug>        # every case owes an importable n8n file
 npm run case:verify -- workflow <slug>
 npm test && npm run typecheck
 ```
+
+Run `case:audit` **here**, before review is spawned: every blocker it names is one an agent
+would otherwise spend a 20-minute round finding, and fixing them now costs a re-run of a
+one-second command rather than a revision cycle. Send it back to `case-author` until it is
+clean, then start the fan-out. The reviewers run it too — that is deliberate, so a reviewer
+never has to trust that we did.
 
 `workflows:generate` **fails** when the case uses a node type with no entry in
 `packages/engine/n8nNodeSpecs.js`. Treat that as the same class of block as a missing catalog
@@ -211,34 +259,57 @@ git add packages/problems && git commit -m "<slug>: the case (not yet registered
 > created the branch earlier" is a self-report, and this file's whole rule is not to trust
 > those. It is one cheap command.
 
-### 2. `case_review` — the independent gate
+### 2. `case_review` — the independent gate, three slices at once
 
-Spawn **`case-reviewer`** — a *fresh* agent with no shared context, which is what stops it
-rubber-stamping. It blind-solves the `toPublicProblem()` projection (the exact payload a
-learner's browser gets, answer key stripped), writes its answers down, grades itself against
-the key, then audits fairness, consistency and the unvalidated `settings` surface.
+Spawn **three `case-reviewer` agents in one message**, each a *fresh* agent with no shared
+context — which is what stops any of them rubber-stamping — and each told **exactly one
+slice**:
 
-Read its report. **`blockers` route back to the author; `notes` travel to the PR.** That split
-is deliberate and load-bearing: every blocker costs a full author cycle, so a cosmetic nit
-must not spend one.
+| Slice | Blind-solves |
+|---|---|
+| `understand` | every dissection question · every probe |
+| `config` | every graded field in every `nodeSetup` · every graded setting |
+| `edges` | every `evalQuestion` |
 
-The finding to take most seriously is **`answerKeyDisagreements > 0`** — the reviewer solved
+Each one blind-solves its slice of the `toPublicProblem()` projection (the exact payload a
+learner's browser gets, answer key stripped) via `problem:blind`, writes its answers down,
+grades itself against the key, runs `case:audit` for the mechanical rules, then audits the
+judgement calls its slice owns. Tell each agent its slice and nothing about the other two:
+an agent that knows a surface is covered elsewhere starts reasoning about coverage instead of
+answering questions.
+
+**In the same message, launch `case_audio` step 1 and `case_art`** (below). Nothing they write
+overlaps: the reviewers have no write tools, `case-voice-author` touches only `voice.js`, and
+the cover is a PNG plus one line of `meta.js`.
+
+**Merge the three reports into one round before routing anything.** Concatenate their
+`blockers` (de-duplicated — two slices can land on the same `nodeSetup` entry from different
+directions), concatenate their `notes`, and record the union as this stage's result. The round
+fails if **any** slice failed. `blindSolve` fractions arrive per slice with the other surfaces
+`null`; keep them that way in the PR body rather than inventing a combined score.
+
+**`blockers` route back to the author; `notes` travel to the PR.** That split is deliberate and
+load-bearing: every blocker costs a full author cycle, so a cosmetic nit must not spend one.
+
+The finding to take most seriously is **`answerKeyDisagreements > 0`** — a reviewer solved
 it correctly and the authored `correct` disagrees. Nothing else in this pipeline can catch
 that, and it is the defect that marks a learner down for being right.
 
-**On `verdict: "fail"`:**
+**On any slice returning `verdict: "fail"`:**
 
 ```bash
-npm run case:run -- stage case_review failed --attempt --result @/tmp/review.json
+npm run case:run -- stage case_review failed --attempt --result @/tmp/review-merged.json
 npm run case:run -- set --revision
 ```
 
-Re-spawn `case-author` with a **revision** brief: say the work already exists on the branch,
-list the specific blockers verbatim, and warn that an independent reviewer will re-check from
-scratch — so a superficial patch bounces again. Then re-run `case_review` **with a fresh
-agent**, never the same one.
+Re-spawn `case-author` **once** with a **revision** brief carrying *all three* slices'
+blockers: say the work already exists on the branch, list the specific blockers verbatim, and
+warn that independent reviewers will re-check from scratch — so a superficial patch bounces
+again. Then re-run `case_review` as **three fresh agents**, never the same ones.
 
-**Cap: 2 automatic revision cycles.** On the third failure, stop:
+**Cap: 2 automatic revision cycles — per round, not per reviewer.** Three slices failing one
+round is one cycle, and one author pass fixes all of it; counting per reviewer would exhaust
+the cap on the first round. On the third failure, stop:
 
 ```bash
 npm run case:run -- set --status blocked --error "review blockers survived 2 revision cycles"
@@ -247,21 +318,27 @@ npm run case:run -- set --status blocked --error "review blockers survived 2 rev
 Report the surviving blockers to the user. An uncapped loop is an expensive oscillation, and
 a case that fails twice usually needs a human judgement the loop cannot supply.
 
-### 3. `case_art` — the cover (non-blocking, host-only)
+### 3. `case_art` — the cover (starts with review, non-blocking, host-only)
 
-**Runs after registration** (`case_audio` step 3), in parallel with the render half of
-`case_audio` — `covers:generate` filters `problemList`, so on an unregistered case it draws
-nothing and says so in a way that is easy to read as success. **This stage can never fail the
-run.**
+**Starts as soon as `author_case` is committed**, alongside the three reviewers and narration
+authoring. It needs exactly one authored value — `coverImage.prompt` — which exists the moment
+the seven files are written, and `covers:generate` now loads the case from
+`packages/problems/<slug>/index.js` rather than filtering `problemList`, so it no longer waits
+for registration. **This stage can never fail the run.**
 
 ```bash
 npm run covers:generate -- --only <slug>
 ```
 
 Then set `coverImage.src` to `/covers/<slug>.png` in `meta.js` and re-seed later with the
-rest. Spawn **`case-art-reviewer`**, which opens the PNG and the two existing covers and
-judges whether it belongs to the set — the check that matters is legible garbled text, which
+rest. Spawn **`case-art-reviewer`**, which opens the PNG and the covers already in the set and
+judges whether it belongs to it — the check that matters is legible garbled text, which
 `gpt-image-1` adds despite being told not to.
+
+> **Re-check `coverImage.src` after the last author cycle.** `case-author` owns `meta.js`, and a
+> revision that rewrites it can drop the one line this stage added — the PNG is still on disk,
+> the card silently draws its placeholder, and every other check stays green. One `grep` on
+> `meta.js` before `case_finalize` settles it.
 
 `verdict: "redraw"` → adjust `coverImage.prompt` from its guidance and run
 `covers:generate -- --only <slug> --force` **once**. If the second attempt also fails:
@@ -272,17 +349,31 @@ npm run case:run -- stage case_art skipped --note "art failed review twice; PR c
 
 and carry on. In `--fake` mode skip the render entirely and mark the stage `skipped`.
 
-### 4. `case_audio` — narration (host-only)
+### 4. `case_audio` — narration (words anywhere; audio host-only)
 
 **Author and review the copy before rendering a single clip.** A clip's filename is a hash of
 its text, so a line fixed after rendering costs a re-render, a re-upload, and an orphan in a
-shared bucket.
+shared bucket. That is also why the stage splits in two around registration: **(a) words**,
+which runs concurrently with review, and **(b) audio**, which cannot start until the case is
+registered.
+
+**(a) Words — launched in the same message as the three reviewers.**
 
 1. Spawn **`case-voice-author`**. It writes `packages/problems/<slug>/voice.js` and reports
    the `voice:generate --dry-run` numbers — clips to render, characters to bill.
 2. Spawn **`case-voice-reviewer`** (fresh, read-only). Its blocking category is **leaks**: a
    line that names an answer to a question still open. `verdict: "fail"` → back to
    `case-voice-author` with the blockers, same 2-cycle cap.
+
+   > **A content revision can invalidate a line, and that is the deal we took.** Narration
+   > authored against a case whose `nodeSetup` then changed may name a field that moved. It is
+   > cheap because nothing has been rendered: after the last author cycle, hand
+   > `case-voice-author` the merged blockers that changed learner-visible content and let it
+   > re-check its own lines. What it must never do is start again from scratch — Iris's tone
+   > has to stay consistent, and a rewrite costs the whole saving back.
+
+**(b) Audio — after everything above has landed.**
+
 3. **Register the case now** — narration exists, so the placeholders are gone and registration
    is finally safe. Append two lines to `packages/problems/index.js` (the import and the
    registry entry), **last**, using the `registrationLines` the author stage reported. Registry
@@ -356,6 +447,13 @@ and `next build`:
 SMOKE_CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" npm run smoke
 ```
 
+`SMOKE_ONLY=<slug>` scopes the sweep to one case, which is worth it for a fast first look
+during a run — the sweep grows with every case that has ever shipped, and only the new one can
+have changed. **The gate here is still the full sweep**: a new case can break a shared
+component for every other case, and that is exactly what this stage exists to catch. Read the
+header comment in `apps/web/scripts/smoke.mjs` for which checks scoping keeps rather than
+assuming.
+
 **On a smoke failure: one repair attempt, then halt.** A smoke failure on a new case is
 almost always a render-time bug in the authored data, so hand the output to `case-author` as a
 revision, re-run smoke once, and if it is still red:
@@ -414,8 +512,11 @@ Authored by the `/author-case` pipeline. Run `<runId>`, `<n>` revision cycle(s).
 **Cover:** /covers/<slug>.png
 
 ### Verified automatically
-- [x] `problem:check` clean · `npm test` · `npm run typecheck`
-- [x] Independent blind solve: <dissection> dissection, <fields> fields, <stress> stress
+- [x] `problem:check` clean · `case:audit` clean · `npm test` · `npm run typecheck`
+- [x] Independent blind solve, three concurrent reviewers:
+      `understand` <dissection> dissection + <probes> probes ·
+      `config` <fields> fields + <settings> settings · `edges` <stress> stress
+- [x] `settings` validated by `validateProblem()` (hand-checked until 2026-08-11)
 - [x] `simulateAll` passes on the reference graph
 - [x] `<n>` clips present on disk **and** in `s3://<bucket>/<prefix>/`
 - [x] Postgres serves v<n>, byte-identical to this branch
@@ -423,10 +524,9 @@ Authored by the `/author-case` pipeline. Run `<runId>`, `<n>` revision cycle(s).
 
 ### A human still has to do these — no test covers them
 - [ ] **Read every `correct` and every `why`.** A plausible-but-wrong answer key marks a
-      learner down for being right, and nothing here can catch it.
-- [ ] **Check node `settings` in the browser.** `settings` is absent from `nodeSetupSchema`
-      and zod strips unknown keys, so `validateProblem()` never sees it: no
-      exactly-one-correct check, no `why` coverage, no `SETTINGS_SPEC` key check.
+      learner down for being right, and nothing here can catch it. `validateProblem()` now
+      checks that a graded setting's key is real and that its values are explained — it still
+      cannot tell whether the value marked correct is the right one.
 - [ ] **Listen to the narration.** No test can tell whether `[excited]` sounds different
       from `[calm]`.
 - [ ] **Walk the journey start to finish.** The gate cannot tell you whether a question is
@@ -434,7 +534,8 @@ Authored by the `/author-case` pipeline. Run `<runId>`, `<n>` revision cycle(s).
 - [ ] Look at the Home card next to the others.
 
 ### Reviewer notes (non-blocking, for you to judge)
-<the `notes` arrays from case-reviewer, case-voice-reviewer and case-art-reviewer>
+<the merged `notes` arrays from all three case-reviewer slices, plus case-voice-reviewer and
+case-art-reviewer — labelled by which reviewer raised each one>
 
 ### Unchecked by the run
 <anything skipped: cover art that failed review twice, a stage marked skipped, and why>
@@ -455,8 +556,9 @@ Two details that make content routing work:
 - **Re-enter the chain where the failure was found, not at the start.** A smoke fix on a case
   that already passed review goes back to `case_finalize` — it does not need a second blind
   review or a second paid render. Record it with `set --revision` so the count is honest.
-- **Always re-review with a fresh agent.** Re-using the reviewer that already read the case
-  loses the independence the stage exists for.
+- **Always re-review with fresh agents** — all three of them. Re-using a reviewer that already
+  read the case loses the independence the stage exists for, and re-running only the slice that
+  failed loses the point of the fan-out: an author cycle can break a surface that passed.
 
 ## Cost and blast radius
 
@@ -464,7 +566,7 @@ Two details that make content routing work:
 |---|---|
 | `--fake` walks everything and spends nothing | The orchestration is the hard part; debug it for free |
 | One active run (`init` refuses a second) | Bounds concurrent spend |
-| 2 revision cycles per stage, then block | An uncapped loop is an expensive oscillation |
+| 2 revision cycles per stage — counted per **round**, not per reviewer | An uncapped loop is an expensive oscillation; three slices failing one round is one cycle |
 | `voice:generate --dry-run` before every real render | You see the character count before billing it |
 | Only `packages/problems`, `packages/voice-scripts`, `apps/web/public/covers` are ever committed | An unrelated edit in the tree can never ride into the PR |
 | Draft PR, never a merge | The human gate is structural, not procedural |
@@ -549,5 +651,7 @@ shared file underneath you before assuming the case is at fault.
 
 Say plainly: the PR URL, the scored-decision count and difficulty, what was rendered and what
 it cost, how many revision cycles each stage burned, **every stage that was skipped and why**,
+the wall clock from `author_case` starting to `case_finalize` finishing (the number the fan-out
+exists to move — a run that fell back to serial spawns looks correct and reads slow),
 and the checklist items that still need a human. If anything was left out, say so explicitly —
 scaling the work down is the user's call, not yours.
