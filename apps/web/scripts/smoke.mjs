@@ -19,7 +19,22 @@ if (out) mkdirSync(out, { recursive: true });
 // kept driving their screens and reported six failures that were really one edit it
 // had not been told about. The registry is the same source `db:seed` publishes from,
 // so smoke covers exactly what a learner can reach.
-const PROBLEMS = problemList.map((p) => p.id);
+/**
+ * Which problems to sweep.
+ *
+ * The journey is checked per problem, so the run grows by seven checks with every
+ * case authored — 36 at five cases, 50 at seven. During an authoring run only the
+ * new case can have changed, so `SMOKE_ONLY=<slug>` gates the sweep to it; home and
+ * the stateful resume check always run. The full sweep stays the default, and is
+ * what `case_finalize` and CI use.
+ */
+const ONLY = process.env.SMOKE_ONLY?.trim();
+const ALL_PROBLEMS = problemList.map((p) => p.id);
+const PROBLEMS = ONLY ? ALL_PROBLEMS.filter((id) => id === ONLY) : ALL_PROBLEMS;
+if (ONLY && !PROBLEMS.length) {
+  console.error(`SMOKE_ONLY="${ONLY}" matches no registered problem — refusing to run an empty sweep`);
+  process.exit(1);
+}
 const ROUTES = ['#build', '#run-story', '#eval-demo', '#report-demo'];
 
 // Ignore noise that isn't an app defect: the mascot wasm/asset fetches, and a
@@ -87,7 +102,9 @@ await signIn();
 const SETTLE_MS = Number(process.env.SMOKE_SETTLE_MS ?? 2200);
 // How many screens are checked at once. Each gets its own page in the shared
 // signed-in context, so they are independent.
-const CONCURRENCY = Number(process.env.SMOKE_CONCURRENCY ?? 4);
+// Measured 2026-08-11: 36 checks take 1m59s at 4 and 1m39s at 8, on a machine
+// where the dev server is the shared bottleneck rather than the browser.
+const CONCURRENCY = Number(process.env.SMOKE_CONCURRENCY ?? 8);
 
 async function check(name, url, extra) {
   const page = await context.newPage();
