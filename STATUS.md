@@ -324,9 +324,15 @@ Built to the architecture in
 hosted Claude Managed Agents is a config step, not a rewrite —
 [docs/cma-setup.md](docs/cma-setup.md) is that port.
 
-- **The chain:** `author_case → case_review → (case_art ∥ case_audio) → case_finalize → PR`,
+- **The chain:**
+  `author_case → (case_review ×3 ∥ case_audio words ∥ case_art) → REGISTER → case_audio audio → case_finalize → PR`,
   with the handoff doc's three failure classes (infra retries then blocks · config/policy
-  blocks immediately · **content routes back to the generating agent**, capped at 2 cycles).
+  blocks immediately · **content routes back to the generating agent**, capped at 2 cycles —
+  counted per *round*, so three slices failing together is one cycle).
+  **`case_review` fans out to three agents, one per surface slice** — `understand` · `config` ·
+  `edges` — each blind-solving only its own slice, so a round costs one slice's wall clock and
+  every blocker surfaces in the same round. `slice` is a required field of the reviewer's result:
+  a single reviewer would cover a third of the case and report it as a pass.
 - **Sub-agents** in `.claude/agents/`: `case-author`, `case-reviewer`, `case-voice-author`,
   `case-voice-reviewer`, `case-art-reviewer`. The reviewers have no write tools and run as
   fresh agents — a reviewer that shares the author's context rubber-stamps, and one that can

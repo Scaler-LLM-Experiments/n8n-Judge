@@ -31,7 +31,7 @@ one slice's wall clock instead of three.
 |---|---|---|
 | `understand` | every dissection question · every probe | probes never name the correct node · every option is a position someone really holds · `unlocks` reaches every required type |
 | `config` | every graded field in every `nodeSetup` · every graded setting | `nodeSetup` keyed by TYPE is genuinely right for each use · every `why` teaches · every settings value is explained |
-| `edges` | every `evalQuestion` | exactly one `branch: null` sample case, and the questions ask about it · `referenceGraph` delivers · every branch reaches a terminal · nothing a learner reads before building gives away an answer |
+| `edges` | every `evalQuestion` | which sample case is the deliberate gap, and that the questions ask about it (the audit only counts `branch: null`, and only on a branching case) · `referenceGraph` delivers · nothing a learner reads before building gives away an answer |
 
 Report `slice` in your JSON. Give score fractions for the surfaces in your slice only
 and leave the others `null` — do not guess at work you were not asked to do.
@@ -131,8 +131,20 @@ having a `misconceptionLabels` entry · `dissection[].unlocks` covering every ty
 phases require · every required type being pickable (through a phase's drawer, or through the
 Chat Model slot for a model) · every `nodeSetup` key being a type some phase actually requires,
 because the rubric counts its fields in the config denominator whether the learner can place
-the node or not · exactly one `sampleCase` with `branch: null` · `simulateAll` passing on the
-`referenceGraph` · no branch dead-ending.
+the node or not · `simulateAll` passing on the `referenceGraph` · and that the reference solution
+reaches a configured terminal — per branch (`branch-dead-end`) on a branching case, or along the
+whole chain (`chain-dead-end`) on a linear one.
+
+**Two of those depend on the case's shape, and it decides differently for each — read its output
+rather than assuming:**
+
+- **`gap-case` — "exactly one `sampleCase` with `branch: null`" — is only decided for a BRANCHING
+  case.** On a linear case there are no branch ids to name, so every sample case carries
+  `branch: null` by necessity and counting them measures nothing. The audit says so explicitly
+  with a `gap-case-undecidable` note, and **when you see that note the question is yours**: which
+  of the examples is the deliberate gap, and do the `evalQuestions` actually ask about it. That is
+  an `edges` judgement, not arithmetic.
+- **`chain-dead-end` vs `branch-dead-end`** — same reason. One of the two runs, never both.
 
 **The rest of the mechanical set belongs to `npm run problem:check -- <slug>`**, which the
 orchestrator runs before you are spawned: `validateProblem()` covers the `flowSummary` rules
@@ -169,8 +181,10 @@ judgement calls in **your slice** — the ones a script cannot decide:
   and does each `why` teach.
 
 **`edges`**
-- The `evalQuestions` really do ask about the one `branch: null` sample case — that gap is
-  the point of Stress Testing, and the audit only counts the gap, not the questions.
+- The `evalQuestions` really do ask about the deliberate gap — the example that falls through
+  every path — because that gap is the point of Stress Testing. On a branching case the audit
+  counts it (`gap-case`) but never reads the questions; on a linear case it counts nothing and
+  tells you so (`gap-case-undecidable`), so **identifying the gap is yours too**.
 - `referenceGraph` delivers the outcome the case claims: read what `simulateAll` narrated in
   the audit output and check it against the spec's intent, not just that it passed.
 - Nothing a learner reads before building — `brief`, `statement`, the sticky note,

@@ -366,6 +366,68 @@ Linear.
     });
   });
 
+  // --- Final-review coverage. `if` is the only catalog type shorter than three characters, and
+  // the token regexes required three — so the most common router in n8n was invisible to every
+  // rule in this file, and the two hardcoded type lists had drifted behind the catalog.
+
+  it('sees `if`, the one catalog type shorter than three characters', () => {
+    expect(nodeTokens('flow uses `if` then `gmail`')).toContain('if');
+    expect(nodeTokens('flow uses `if` then `gmail`')).toContain('gmail');
+  });
+
+  it('does not start reading two-letter English prose as node types', () => {
+    // The whole risk of lowering the floor. Only a token the catalog knows gets in at two chars.
+    const tokens = nodeTokens('send it `to` the `if` node, which `is` how `of` works');
+    expect(tokens).toEqual(['if']);
+  });
+
+  it('does not report `no-nodes` on a spec whose only node is `if`', () => {
+    // The reported symptom: an If-based spec linted to "no node types named anywhere".
+    const onlyIf = `
+## 3. The shape of the flow
+| Path name | What lands here |
+|---|---|
+| true | it matched |
+| false | it did not |
+
+## 4. The nodes
+> 1. \`if\` — one test, two ways out.
+
+## 5. Examples to test it with
+**The awkward one — Required.**
+> A row where the field being tested is missing entirely.
+`;
+    expect(lintSpec(onlyIf).find((i) => i.rule === 'no-nodes')).toBeUndefined();
+  });
+
+  it('rejects an `if` flow with fewer than two paths, the rule a three-character floor silenced', () => {
+    const oneRow = GOOD.replace('> 4. `switch` — routes on the category.', '> 4. `if` — one test, two ways out.').replace(
+      '| normal | everything else |\n',
+      ''
+    );
+    expect(lintSpec(oneRow)).toContainEqual(
+      expect.objectContaining({ level: 'error', rule: 'splitter-without-paths' })
+    );
+  });
+
+  it('rejects a pathless `guardrails`, a router the hardcoded splitter list did not name', () => {
+    const oneRow = GOOD.replace(
+      '> 4. `switch` — routes on the category.',
+      '> 4. `guardrails` — passes or blocks.'
+    ).replace('| normal | everything else |\n', '');
+    expect(lintSpec(oneRow)).toContainEqual(
+      expect.objectContaining({ level: 'error', rule: 'splitter-without-paths' })
+    );
+  });
+
+  it('rejects a model-less `question-answer-chain`, an AI root the hardcoded list did not name', () => {
+    const noBrain = GOOD.replace('> 2. `text-classifier` — sorts it into a path.', '')
+      .replace('> 3. `google-gemini-chat-model` — the brain attached to the classifier.', '> 3. `question-answer-chain` — answers from the docs.');
+    expect(lintSpec(noBrain)).toContainEqual(
+      expect.objectContaining({ level: 'error', rule: 'ai-without-model' })
+    );
+  });
+
   it('emits one warning per distinct token, not one per occurrence', () => {
     const twice = GOOD.replace(
       '> 2. `text-classifier` — sorts it into a path.',

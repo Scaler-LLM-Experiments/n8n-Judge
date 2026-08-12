@@ -15,6 +15,18 @@ describe('candidateTypes', () => {
     }
   });
 
+  it('offers `if`, which the pack must contain or an If-based case is unbuildable', () => {
+    // The pack tells the author to stop and report `blocked: true` rather than pick a node
+    // absent from its table. `if` is the only catalog type under three characters, so while
+    // the token regex required three it was never in the table — and the correct node for a
+    // two-way test could not legally be chosen.
+    const IF_SPEC = `
+## The nodes
+> \`webhook\` then \`if\`, ending at \`slack\`.
+`;
+    expect(candidateTypes(IF_SPEC)).toContain('if');
+  });
+
   it('adds same-category siblings, so probes still have real distractors', () => {
     expect(candidateTypes(SPEC).length).toBeGreaterThan(5);
   });

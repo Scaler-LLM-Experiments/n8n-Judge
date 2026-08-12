@@ -38,12 +38,40 @@ const only = argv.filter((a) => !a.startsWith('-'));
 /** The committed file lives beside the case it belongs to. */
 export const workflowPath = (slug) => path.join('packages/problems', slug, 'workflow.n8n.json');
 
+/**
+ * Load one case straight from its folder, registered or not.
+ *
+ * The same fallback `scripts/generate-covers.mjs` has, for the same reason and in the same
+ * pipeline stage. `/author-case` runs `workflows:generate -- <slug>` inside `author_case`, which
+ * that skill explicitly forbids from registering the case (registration makes `voice.js`'s
+ * leftover TODOs blocking, and narration is written later) — so resolving the slug against the
+ * registry exited 1 with `unknown problem` at exactly the step the skill prescribes. The
+ * committed `workflow.n8n.json` belongs in the same commit as the seven files it is derived
+ * from, so the fix is to read the disk, not to move the step after registration.
+ *
+ * `case:verify -- workflow` already loads from disk (`verify.mjs`'s `loadFromDisk`), so this is
+ * also what makes the two agree: before this, the generator refused a slug the verifier accepted.
+ */
+async function fromDisk(slug) {
+  const file = path.resolve('packages/problems', slug, 'index.js');
+  if (!fs.existsSync(file)) return null;
+  const mod = await import(`file://${file}`);
+  return Object.values(mod).find((v) => v && typeof v === 'object' && 'dissection' in v) ?? null;
+}
+
 const slugs = only.length ? only : Object.keys(problems);
+/** slug → problem, registered ones from the registry and an unregistered one from its folder. */
+const resolved = {};
 for (const slug of slugs) {
-  if (!problems[slug]) {
-    console.error(red(`✗ unknown problem "${slug}" — known: ${Object.keys(problems).join(', ')}`));
+  const problem = problems[slug] ?? (await fromDisk(slug));
+  if (!problem) {
+    console.error(
+      red(`✗ unknown problem "${slug}" — not registered and no packages/problems/${slug}/index.js`)
+    );
+    console.error(dim(`      registered: ${Object.keys(problems).join(', ')}`));
     process.exit(1);
   }
+  resolved[slug] = problem;
 }
 
 console.log(bold(`\nn8n workflow export${check ? ' (check only)' : ''}\n`));
@@ -52,7 +80,7 @@ let failed = 0;
 let stale = 0;
 
 for (const slug of slugs) {
-  const problem = problems[slug];
+  const problem = resolved[slug];
   const { workflow, warnings, unsupported } = exportN8nWorkflow(problem);
 
   if (unsupported.length) {

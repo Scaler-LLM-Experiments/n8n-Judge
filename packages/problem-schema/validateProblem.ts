@@ -14,7 +14,7 @@ interface CatalogEntry {
 const catalogEntryOf = (type: string): CatalogEntry | undefined =>
   (NODE_CATALOG as Record<string, CatalogEntry>)[type];
 import { problemSchema, type Problem } from './types.ts';
-import { GRADED_SETTING_KEYS } from './settingKeys.ts';
+import { GRADED_SETTING_KEYS, SETTING_DEPENDENCIES } from './settingKeys.ts';
 
 /**
  * Every node type reachable through `flow.branchNext`, whichever shape it takes —
@@ -292,10 +292,34 @@ export function validateProblem(input: unknown): ValidateProblemResult {
       }
     }
 
+    const gradedSettings = new Map((setup.settings ?? []).map((s) => [s.key, s]));
     for (const s of setup.settings ?? []) {
       const at = `nodeSetup.${type}.settings.${s.key}`;
       if (!GRADED_SETTING_KEYS.includes(s.key)) {
         err(at, `"${s.key}" is not a setting the NDV renders — see GRADED_SETTING_KEYS`);
+      }
+      // A dependent setting is only EDITABLE while its parent is switched on — n8n hides it
+      // otherwise, and `SettingsForm` mirrors that. But the rubric counts every graded setting
+      // in the config denominator whether or not the learner can reach it, and there is no
+      // `showWhen` for settings the way `fieldVisibility.ts` gives fields one. So grading
+      // `maxTries` without grading `retryOnFail` (or with `retryOnFail` correct at `false`)
+      // leaves the number spinner locked at its default forever: an unearnable decision that
+      // caps every learner below 100%. Same class as `nodesetup-orphan`, and latent rather than
+      // shipped — no case does this today, which is exactly when to close it.
+      const parentKey = SETTING_DEPENDENCIES[s.key];
+      if (parentKey) {
+        const parent = gradedSettings.get(parentKey);
+        if (!parent) {
+          err(
+            at,
+            `"${s.key}" is only editable while "${parentKey}" is on, and this node does not grade "${parentKey}" — so it stays locked at its default and the decision cannot be earned`
+          );
+        } else if (parent.correct !== true) {
+          err(
+            at,
+            `"${s.key}" is only editable while "${parentKey}" is on, but "${parentKey}" is graded correct at "${String(parent.correct)}" — so a learner answering correctly can never reach this control`
+          );
+        }
       }
       // A form value arrives as a string, so the map is keyed by String(correct).
       const correctKey = String(s.correct);
@@ -338,8 +362,14 @@ export function validateProblem(input: unknown): ValidateProblemResult {
       }
       // A wrong option with no misconception code records nothing, so the
       // Report can't surface why the learner went wrong.
+      //
+      // An ERROR, not a warning. `auditProblem` has always blocked on this and CLAUDE.md has
+      // always documented `validateProblem()` as rejecting "a wrong option with no misconception
+      // code" — the warning was the side that had drifted, and it meant `problem:check` exited 0
+      // on a probe whose whole purpose (naming the belief behind the wrong pick) was missing. All
+      // five shipped cases already satisfy it.
       if (!o.correct && !o.misconception) {
-        warn(`nodeProbes.${type}`, `Wrong option "${o.text}" has no misconception code, so it is never surfaced on the report`);
+        err(`nodeProbes.${type}`, `Wrong option "${o.text}" has no misconception code, so it is never surfaced on the report`);
       }
     }
   }

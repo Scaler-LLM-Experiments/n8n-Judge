@@ -1,5 +1,5 @@
 import { simulateAll, enumerateItems } from '@judge/engine';
-import { openBranchIds } from '@judge/engine/branchReach.js';
+import { openBranchIds, chainReachesReply } from '@judge/engine/branchReach.js';
 import { NODE_CATALOG } from '@judge/catalog';
 
 export interface AuditFinding {
@@ -168,6 +168,14 @@ export function auditProblem(problem: Problem): AuditFinding[] {
   }
 
   // --- the deliberate gap: exactly one sample case matching no branch
+  //
+  // Only decidable for a BRANCHING case, and the exemption is stated rather than implied. On a
+  // linear case `branch: null` is not a marker of anything: there are no branch ids to name, so
+  // every sample case carries it necessarily (low-stock-morning-post has two, trial-signup-desk
+  // three) and counting them measures the case's size, not its deliberate gap. Which of a linear
+  // case's examples is the awkward one is a judgement about its content, so it stays with the
+  // `edges` reviewer — and it says so out loud, because a rule that quietly decides nothing is
+  // worse than no rule: the reviewer prompt was telling agents this audit had already decided it.
   if ((problem.branches ?? []).length) {
     const gaps = (problem.sampleCases ?? []).filter((c: any) => c.branch === null);
     if (gaps.length !== 1) {
@@ -177,6 +185,12 @@ export function auditProblem(problem: Problem): AuditFinding[] {
         `${gaps.length} sample case(s) carry branch:null — Stress Testing is built from exactly one`
       );
     }
+  } else {
+    note(
+      'gap-case-undecidable',
+      'sampleCases',
+      `this case declares no branches, so all ${(problem.sampleCases ?? []).length} sample case(s) carry branch:null by necessity — which of them is the deliberate gap the Stress Testing questions ask about is a judgement for the edges review, not something this audit decides`
+    );
   }
 
   // --- the learner can actually get every node they need
@@ -266,12 +280,26 @@ export function auditProblem(problem: Problem): AuditFinding[] {
       `simulateAll does not deliver for: ${failed.join(', ') || 'an unnamed case'}`
     );
   }
-  const open = openBranchIds(asBranchReachGraph(problem.referenceGraph), problem);
-  if (open.length) {
+  //
+  // Two rules, one for each shape, because `openBranchIds` iterates `problem.branches` and a
+  // linear case declares none — so on a linear case it returned `[]` and this reported clean
+  // without walking one edge. `chainReachesReply` is the same walk from the trigger instead of
+  // from a router exit.
+  const reachGraph = asBranchReachGraph(problem.referenceGraph);
+  if ((problem.branches ?? []).length) {
+    const open = openBranchIds(reachGraph, problem);
+    if (open.length) {
+      blocker(
+        'branch-dead-end',
+        'referenceGraph',
+        `branch(es) ${open.join(', ')} reach no configured terminal, so a correct flow cannot complete its phase`
+      );
+    }
+  } else if (!chainReachesReply(reachGraph, problem)) {
     blocker(
-      'branch-dead-end',
+      'chain-dead-end',
       'referenceGraph',
-      `branch(es) ${open.join(', ')} reach no configured terminal, so a correct flow cannot complete its phase`
+      'the flow does not run from a single trigger through configured nodes to a terminal, so a correct build cannot complete its phase'
     );
   }
 

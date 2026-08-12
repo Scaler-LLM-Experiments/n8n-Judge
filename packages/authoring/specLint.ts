@@ -1,4 +1,4 @@
-import { NODE_CATALOG, LEGACY_ALIASES } from '@judge/catalog';
+import { NODE_CATALOG, LEGACY_ALIASES, isRouterEntry } from '@judge/catalog';
 
 export interface SpecIssue {
   level: 'error' | 'warning';
@@ -13,39 +13,70 @@ export interface SpecIssue {
  */
 const NOT_NODE_TYPES = new Set(['easy', 'moderate', 'difficult', 'linear', 'no-ai']);
 
-/** Nodes with more than one exit. Every exit must lead somewhere or the learner is stuck. */
-const SPLITTERS = ['if', 'switch', 'loop-over-items', 'compare-datasets', 'sentiment-analysis'];
+type CatalogEntry = { category?: string; needsModel?: boolean; branches?: unknown[] };
+const catalogEntries = Object.entries(NODE_CATALOG as Record<string, CatalogEntry>);
 
-/** AI roots need a model attached over `ai_languageModel`; the picker offers several. */
-const AI_ROOTS = [
-  'text-classifier',
-  'basic-llm-chain',
-  'information-extractor',
-  'sentiment-analysis',
-  'summarization-chain',
-  'ai-agent',
-];
+/**
+ * Nodes with more than one exit. Every exit must lead somewhere or the learner is stuck.
+ *
+ * **Derived, not listed.** The catalog is the authority on what branches — `isRouterEntry()`
+ * says so from an explicit `router` flag, a `branches` array, or more than one `main` output,
+ * and `branchReach.js` and the picker both ask it rather than a list. A hand-kept list here
+ * drifted the moment the catalog gained a router: it named five types while the catalog knew
+ * six, so `guardrails` could split a flow and `splitter-without-paths` never looked.
+ */
+const SPLITTERS = new Set(catalogEntries.filter(([, e]) => isRouterEntry(e)).map(([t]) => t));
+
+/**
+ * AI roots need a model attached over `ai_languageModel`; the picker offers several.
+ *
+ * Derived from the same field the app reads (`needsModel`) for the same reason as `SPLITTERS`:
+ * the hand-kept list named six types against the catalog's nine, so `question-answer-chain` —
+ * a real AI root — could be placed with no model and `ai-without-model` never fired. Legacy
+ * aliases are deliberately included: `classify` with no model is two defects, not one, and
+ * `legacy-alias` reporting the name does not make the missing model untrue.
+ */
+const AI_ROOTS = new Set(catalogEntries.filter(([, e]) => e.needsModel).map(([t]) => t));
 
 const isModel = (type: string): boolean =>
   (NODE_CATALOG as Record<string, { category?: string }>)[type]?.category === 'model';
 
 /**
- * Every `backticked-token` shaped like a node id, anywhere in the document, in order of first
- * appearance. Deliberately document-wide and unscoped by section — Task 3's brief-shrinker
- * consumes this directly and filters by catalog membership itself, so scoping to one section
- * belongs inside `lintSpec`, not here.
+ * Every backticked token in `text` that could name a node type, in appearance order, NOT
+ * deduplicated — callers that care about reuse need every occurrence, not the unique set.
+ *
+ * **Two characters is the floor, not three, and the extra character is `if`.** It is the only
+ * catalog type shorter than three characters (checked against all 200), and a three-character
+ * floor made it invisible to every rule in this file: `nodeTokens` skipped it, so an If-based
+ * spec linted to `no-nodes` and `candidateTypes` never offered it while the briefing pack tells
+ * the author to stop rather than pick a node absent from the menu; and `placements` skipped it,
+ * so `splitter-without-paths` — one of the five unbuildable shapes this linter exists to catch —
+ * could never fire for the most common router in n8n.
+ *
+ * Two characters also matches ordinary English (`to`, `is`, `of`, `at`, `no`), which is why the
+ * floor is only lowered for a token the catalog actually knows. Everything three characters and
+ * longer is unchanged, and `NOT_NODE_TYPES` still filters the words the template asks an author
+ * to backtick.
  */
-export function nodeTokens(md: string): string[] {
-  const raw = (md.match(/`[a-z][a-z0-9-]{2,}`/g) ?? []).map((t) => t.slice(1, -1));
-  return [...new Set(raw)].filter((t) => !NOT_NODE_TYPES.has(t));
+function matchTokens(text: string): string[] {
+  return (text.match(/`[a-z][a-z0-9-]+`/g) ?? [])
+    .map((t) => t.slice(1, -1))
+    .filter((t) => t.length >= 3 || t in NODE_CATALOG);
 }
 
-/** Node-shaped backticked tokens in a slice of text, in appearance order, NOT deduplicated —
- * callers that care about reuse need every occurrence, not the unique set. */
+/**
+ * Every node-shaped token anywhere in the document, in order of first appearance. Deliberately
+ * document-wide and unscoped by section — Task 3's brief-shrinker consumes this directly and
+ * filters by catalog membership itself, so scoping to one section belongs inside `lintSpec`,
+ * not here.
+ */
+export function nodeTokens(md: string): string[] {
+  return [...new Set(matchTokens(md))].filter((t) => !NOT_NODE_TYPES.has(t));
+}
+
+/** Node-shaped backticked tokens in a slice of text, in appearance order, NOT deduplicated. */
 function tokensIn(text: string): string[] {
-  return (text.match(/`[a-z][a-z0-9-]{2,}`/g) ?? [])
-    .map((t) => t.slice(1, -1))
-    .filter((t) => !NOT_NODE_TYPES.has(t));
+  return matchTokens(text).filter((t) => !NOT_NODE_TYPES.has(t));
 }
 
 /** A list item: numbered (`1.`, `2.`) or bulleted (`-`, `*`). Group 1 is its indent, group 2 the
@@ -58,11 +89,11 @@ const TABLE_ROW = /^[ \t]*\|/;
 const TABLE_SEPARATOR_ROW = /^[ \t]*\|[\s|:-]+\|\s*$/;
 /** A table cell that is nothing but one backticked token, with or without a `**bold**` wrapper —
  * the shape of a Type column, as opposed to a prose cell that happens to quote a node. */
-const TYPE_CELL = /^\*{0,2}`([a-z][a-z0-9-]{2,})`\*{0,2}$/;
+const TYPE_CELL = /^\*{0,2}`([a-z][a-z0-9-]+)`\*{0,2}$/;
 
 /** Every node-shaped backticked token on one line, in order, NOT deduplicated. */
 function lineTokens(line: string): string[] {
-  return (line.match(/`[a-z][a-z0-9-]{2,}`/g) ?? []).map((t) => t.slice(1, -1));
+  return matchTokens(line);
 }
 
 const isPlaceableType = (t: string): boolean => t in NODE_CATALOG && !NOT_NODE_TYPES.has(t);
@@ -310,7 +341,7 @@ export function lintSpec(md: string): SpecIssue[] {
     // never actually put on the canvas, so it must not look like a splitter, a model-less AI
     // step, or a reused type.
     const placed = placements(stripDistractors(nodesSection));
-    hasSplitterToken = placed.some((t) => SPLITTERS.includes(t));
+    hasSplitterToken = placed.some((t) => SPLITTERS.has(t));
 
     const seen = new Set<string>();
     for (const t of placed) {
@@ -324,7 +355,7 @@ export function lintSpec(md: string): SpecIssue[] {
       seen.add(t);
     }
 
-    if (placed.some((t) => AI_ROOTS.includes(t)) && !placed.some(isModel)) {
+    if (placed.some((t) => AI_ROOTS.has(t)) && !placed.some(isModel)) {
       err(
         'ai-without-model',
         'an AI step is named with no chat model — pick `google-gemini-chat-model` or `openai-chat-model`'

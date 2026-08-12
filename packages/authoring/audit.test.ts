@@ -1,16 +1,49 @@
 import { describe, it, expect } from 'vitest';
-import { problemList } from '@judge/problems';
+import { problemList, problems } from '@judge/problems';
 import { auditProblem } from './audit.ts';
 
 /** A deep clone, so each test can break exactly one thing. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const base = (): any => JSON.parse(JSON.stringify(problemList[0]));
 
+/**
+ * A clone of a LINEAR case — no `branches`, so every branch-shaped rule takes its other path.
+ * Picked from the registry rather than named, so removing today's linear cases surfaces as a
+ * failure here rather than as tests that quietly stop covering the linear path.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const linear = (): any => {
+  const p = problemList.find((q) => !(q.branches ?? []).length);
+  if (!p) throw new Error('no linear case in the registry — the linear-flow rules have no fixture');
+  return JSON.parse(JSON.stringify(p));
+};
+
 describe('auditProblem', () => {
-  it('finds no blocker in any shipped case', () => {
+  /**
+   * The always-run gate. `npm run case:audit -- <slug>` is a step in the authoring skill, which
+   * means nothing runs it once a case has shipped — so this sweep is what keeps a registered case
+   * audited by `npm test`, the way `workflows:generate -- --check` keeps its export current.
+   *
+   * Derived from the registry, never a list of names: a case registered tomorrow is covered
+   * without anyone remembering to add it here, which is the whole point. The length assertion is
+   * not decoration — a sweep over an empty or half-imported registry passes vacuously, and a
+   * green suite that audits nothing is exactly the failure this branch exists to stop.
+   */
+  it('audits every registered case, and finds no blocker in any of them', () => {
+    expect(problemList.length, 'the registry is empty — this sweep would pass having audited nothing').toBeGreaterThan(0);
+    expect(problemList.length).toBe(Object.keys(problems).length);
     for (const p of problemList) {
       const blockers = auditProblem(p).filter((f) => f.level === 'blocker');
       expect(blockers, `${p.id}: ${JSON.stringify(blockers, null, 2)}`).toEqual([]);
+    }
+  });
+
+  it('returns findings for every registered case without throwing on any of them', () => {
+    // Notes are not failures, but a rule that throws on a real case takes `case:audit` down with
+    // it — and three of the audit's rules walk authored graphs. Assert the whole registry gets an
+    // answer, not just that today's cases happen to be clean.
+    for (const p of problemList) {
+      expect(Array.isArray(auditProblem(p)), p.id).toBe(true);
     }
   });
 
@@ -182,6 +215,42 @@ describe('auditProblem', () => {
     expect(p.nodeSetup[model]).toBeTruthy();
     for (const ph of p.buildPhases) ph.nodeTypes = (ph.nodeTypes ?? []).filter((t: string) => t !== model);
     expect(auditProblem(p).filter((f) => f.rule === 'nodesetup-orphan')).toEqual([]);
+  });
+
+  // --- Final whole-branch review: every branch-shaped rule guarded on `problem.branches.length`,
+  // so on a linear case `gap-case` and `branch-dead-end` both reported nothing while the reviewer
+  // prompt told agents this audit had decided them.
+
+  it('blocks a linear flow whose chain is broken, which branch-dead-end could never see', () => {
+    const p = linear();
+    p.referenceGraph.edges = p.referenceGraph.edges.slice(0, 1);
+    expect(auditProblem(p)).toContainEqual(
+      expect.objectContaining({ level: 'blocker', rule: 'chain-dead-end' })
+    );
+  });
+
+  it('blocks a linear flow that reaches its reply through a node nobody configured', () => {
+    // A different failure from a missing edge: every node is wired and the chain does end on a
+    // terminal, but a node on the way was never set up — so a learner in that state cannot
+    // finish the phase either. `openBranchIds` returns [] for both.
+    const p = linear();
+    const graded = Object.keys(p.nodeSetup).filter((t) => (p.nodeSetup[t].fields ?? []).length);
+    expect(graded.length, 'the fixture has no graded node to leave unconfigured').toBeGreaterThan(0);
+    for (const n of p.referenceGraph.nodes) n.data = { configured: false };
+    expect(auditProblem(p)).toContainEqual(
+      expect.objectContaining({ level: 'blocker', rule: 'chain-dead-end' })
+    );
+  });
+
+  it('says out loud that the deliberate gap is undecidable on a linear case, rather than skipping silently', () => {
+    const p = linear();
+    expect(p.sampleCases.filter((c: any) => c.branch === null).length).toBeGreaterThan(1);
+    const findings = auditProblem(p);
+    expect(findings).toContainEqual(
+      expect.objectContaining({ level: 'note', rule: 'gap-case-undecidable' })
+    );
+    // And it is a note, not a blocker: more than one branch:null is normal here.
+    expect(findings.filter((f) => f.rule === 'gap-case')).toEqual([]);
   });
 
   it('blocks a node setting missing the `why` for its correct value', () => {

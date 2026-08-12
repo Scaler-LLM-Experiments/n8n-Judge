@@ -151,9 +151,12 @@ has failed twice — registration and the render half carry on without it, and a
   is a scaffold full of them until `case_audio` writes it.
 - **Nothing after it can work without it.** `voice:generate` looks the slug up in the registry
   and hard-errors on `Unknown problem`, so an unregistered case renders no clips at all and
-  reports success having done nothing. (`covers:generate` used to have the same failure and no
-  longer does — it reads `packages/problems/<slug>/index.js` off the disk, which is what lets
-  art start at the top of the run.)
+  reports success having done nothing. (`covers:generate` **and** `workflows:generate` used to
+  have the same failure and no longer do — both fall back to reading
+  `packages/problems/<slug>/index.js` off the disk. That is what lets art start at the top of the
+  run and lets the workflow export be committed with the case it belongs to. Do not "fix" either
+  by moving its step after registration; `case:verify -- workflow` reads the disk too, and the
+  three would then disagree.)
 
 **The revision cap is per ROUND, not per reviewer.** Three reviewers failing one round
 is one cycle, not three.
@@ -184,8 +187,15 @@ npm run case:brief -- <slug> docs/case-specs/<slug>.md # the pack the author age
 `case:spec-check` decides from the spec text alone what used to be discovered after the case
 was written — an error is a redesign, so fix the spec on disk and re-run rather than passing it
 on. `case:brief` writes `.authoring-runs/brief-<slug>.md`: the ten-or-so nodes this case might
-use rather than all 200, plus the rules that apply to it. Hand the author agent **that path**
-alongside the spec.
+use rather than all 200, plus the rules that apply to it, plus the spec verbatim.
+
+> **Paste the pack's CONTENTS into the spawn prompt. Do not hand over the path.**
+> `.authoring-runs/` is **gitignored** — deliberately, it is per-run operational state alongside
+> the run file — so an agent working from a git checkout (which is what the hosted port is, and
+> what any sandboxed agent is) finds nothing there and silently falls back to guessing its node
+> vocabulary. That is the failure the pack exists to prevent, wearing the costume of a working
+> handover. Read the file and inline it; it is a few KB. The file still gets written, because it
+> is useful locally and it is the run's record of what the author was actually shown.
 
 Then spawn **`case-author`** with the spec path. It scaffolds via `problem:new`, fills in
 `meta` · `dissection` · `build` · `nodeSetup` · `probes` · `cases` · `index`, and iterates
@@ -288,11 +298,18 @@ Tell each agent to put its slice in every path it writes (`/tmp/blind-<slug>-<sl
 `/tmp`, and a clobbered answers file reads as a reviewer contradicting itself rather than as a
 collision.
 
-**In the same message, launch `case_audio` step 1 and `case_art`** (below). Their writes are
-disjoint with one exception to hold in mind: the reviewers have no write tools and
-`case-voice-author` touches only `voice.js`, but **`case_art` writes `coverImage.src` into
-`meta.js`, which `case-author` also owns** — so if a revision cycle starts, the cover line can
-be overwritten by it. `case_finalize` verifies the cover for exactly that reason.
+**In the same message, launch `case_audio` step 1 and `case_art`** (below). **Their writes are
+genuinely disjoint**, and that is now true rather than nearly true: the reviewers have no write
+tools, `case-voice-author` touches only `voice.js`, and `case_art` writes only
+`apps/web/public/covers/<slug>.png` — the `coverImage.src` line it used to add to `meta.js` is
+written in `case_finalize` instead. `meta.js` therefore has exactly one writer, `case-author`,
+for the whole concurrent window.
+
+> **Why that moved.** `case_art` is non-blocking, so it can still be drawing when review fails —
+> and its `meta.js` write would then land in the middle of `case-author` rewriting the same file
+> for a revision, silently reverting a `brief` or `statement` fix a reviewer had just demanded.
+> Both directions of that clash were possible; only one was mitigated. `case:verify -- cover`
+> already runs in `case_finalize`, so setting the line there costs nothing and removes the race.
 
 **Merge the three reports into one round before routing anything.** Concatenate their
 `blockers` (de-duplicated — two slices can land on the same `nodeSetup` entry from different
@@ -345,15 +362,16 @@ for registration. **This stage can never fail the run.**
 npm run covers:generate -- --only <slug>
 ```
 
-Then set `coverImage.src` to `/covers/<slug>.png` in `meta.js` and re-seed later with the
-rest. Spawn **`case-art-reviewer`**, which opens the PNG and the covers already in the set and
+Then spawn **`case-art-reviewer`**, which opens the PNG and the covers already in the set and
 judges whether it belongs to it — the check that matters is legible garbled text, which
 `gpt-image-1` adds despite being told not to.
 
-> **`case-author` owns `meta.js` too**, so a revision cycle that rewrites it can drop the
-> `coverImage.src` line this stage added — the PNG is still on disk, the card silently draws its
-> placeholder, and every other check stays green. `case_finalize` re-checks it with
-> `case:verify cover`; do not rely on having set it here.
+> **Do NOT write `coverImage.src` here.** This stage's only output is the PNG. `case-author` owns
+> `meta.js`, and this stage runs concurrently with a review that may send it back to rewrite that
+> file — a `coverImage.src` line landing mid-revision reverts whatever the author had just fixed
+> in it, and a line the author's rewrite drops leaves the PNG on disk with the card drawing its
+> placeholder and every other check green. One writer per file, for the whole concurrent window.
+> `case_finalize` sets the line and `case:verify -- cover` proves it.
 
 `verdict: "redraw"` → adjust `coverImage.prompt` from its guidance and run
 `covers:generate -- --only <slug> --force` **once**. If the second attempt also fails:
@@ -447,6 +465,11 @@ git commit -m "<slug>: narration and cover"
 
 Where truth is established. Everything before this was advisory.
 
+**First, set `coverImage.src` to `/covers/<slug>.png` in `meta.js`** — if `case_art` produced a
+PNG that passed its review. This is the one place that line is written, and this is why: every
+author cycle is finished by now, so `meta.js` has no other writer and the line cannot be reverted
+by one. Skip it if art was skipped or failed twice; the card draws its own placeholder.
+
 ```bash
 npm run case:verify -- cover <slug>              # prompt + src + a real PNG on disk (non-blocking)
 npm run db:seed                                  # nothing you wrote reaches the app until this
@@ -454,12 +477,10 @@ npm run case:verify -- seeded <slug>             # Postgres serves THIS content,
 npm test && npm run typecheck
 ```
 
-**`cover` runs first, and before the seed, for a reason.** `case_art` finished long ago, but
-`case-author` owns `meta.js` and a revision cycle after it can drop the `coverImage.src` line —
-leaving the PNG on disk, the card drawing its placeholder, and every other check green. Checking
-it before `db:seed` means the fix is one line plus a re-seed rather than a second published
-version. It is non-blocking: an unset `src` is a `case_art` outcome to report on the PR, not a
-reason to halt a good case.
+**`cover` runs before the seed, for a reason.** Checking the line you just wrote before `db:seed`
+means a mistake costs one edit plus a re-seed rather than a second published version. It is
+non-blocking: an unset `src` is a `case_art` outcome to report on the PR, not a reason to halt a
+good case.
 
 `seeded` compares byte-for-byte with the same key-sorted serialisation `publishProblem` uses,
 because "a PUBLISHED row exists" is not the same as "it holds what you just wrote" — a
@@ -544,7 +565,10 @@ Authored by the `/author-case` pipeline. Run `<runId>`, `<n>` revision cycle(s).
 - [x] Independent blind solve, three concurrent reviewers:
       `understand` <dissection> dissection + <probes> probes ·
       `config` <fields> fields + <settings> settings · `edges` <stress> stress
-- [x] `settings` validated by `validateProblem()` (hand-checked until 2026-08-11)
+- [x] `settings` **shape** validated by `validateProblem()`: every graded key is one the NDV
+      renders, the correct value is explained, and a dependent setting (`maxTries`,
+      `waitBetweenTries`) grades its parent `retryOnFail` at `true` so the control can be
+      reached at all. Whether the answer key is *right* is still a human read, below.
 - [x] `simulateAll` passes on the reference graph
 - [x] `<n>` clips present on disk **and** in `s3://<bucket>/<prefix>/`
 - [x] Postgres serves v<n>, byte-identical to this branch
@@ -555,6 +579,13 @@ Authored by the `/author-case` pipeline. Run `<runId>`, `<n>` revision cycle(s).
       learner down for being right, and nothing here can catch it. `validateProblem()` now
       checks that a graded setting's key is real and that its values are explained — it still
       cannot tell whether the value marked correct is the right one.
+- [ ] **Check node `settings` in the browser.** Open each node's Settings tab and confirm every
+      graded setting is reachable, editable and gradable *there*. What the tooling covers is
+      strictly narrower: `validateProblem()` checks the key is one the NDV renders, that the
+      correct value is explained, and that a dependent setting's parent is graded on — it cannot
+      see a locked control, a stage that will not unlock, or a value the panel silently resets.
+      This line was dropped when the automatic check landed; the automatic check is an addition
+      to it, not a replacement.
 - [ ] **Listen to the narration.** No test can tell whether `[excited]` sounds different
       from `[calm]`.
 - [ ] **Walk the journey start to finish.** The gate cannot tell you whether a question is
