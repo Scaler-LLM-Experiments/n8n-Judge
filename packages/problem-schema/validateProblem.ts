@@ -14,6 +14,7 @@ interface CatalogEntry {
 const catalogEntryOf = (type: string): CatalogEntry | undefined =>
   (NODE_CATALOG as Record<string, CatalogEntry>)[type];
 import { problemSchema, type Problem } from './types.ts';
+import { GRADED_SETTING_KEYS } from './settingKeys.ts';
 
 /**
  * Every node type reachable through `flow.branchNext`, whichever shape it takes —
@@ -288,6 +289,21 @@ export function validateProblem(input: unknown): ValidateProblemResult {
           `nodeSetup.${type}.${field.key}`,
           `A ${kind} field needs whyCorrect and whyWrong — without them Iris has nothing to say about this answer`
         );
+      }
+    }
+
+    for (const s of setup.settings ?? []) {
+      const at = `nodeSetup.${type}.settings.${s.key}`;
+      if (!GRADED_SETTING_KEYS.includes(s.key)) {
+        err(at, `"${s.key}" is not a setting the NDV renders — see GRADED_SETTING_KEYS`);
+      }
+      // A form value arrives as a string, so the map is keyed by String(correct).
+      const correctKey = String(s.correct);
+      if (!s.why?.[correctKey]) {
+        err(at, `no \`why\` for the correct value "${correctKey}" — Iris reads back the explanation for whatever was chosen`);
+      }
+      if (Object.keys(s.why ?? {}).length < 2) {
+        warn(at, 'only one value is explained; the teaching lives in the wrong ones');
       }
     }
   }

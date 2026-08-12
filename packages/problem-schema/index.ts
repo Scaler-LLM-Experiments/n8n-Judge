@@ -1,4 +1,5 @@
 export * from './types.ts';
+export { GRADED_SETTING_KEYS } from './settingKeys.ts';
 export { validateProblem } from './validateProblem.ts';
 export type { ProblemIssue, ValidateProblemResult } from './validateProblem.ts';
 export { toPublicProblem, findLeakedAnswers, KNOWN_REMAINING_LEAKS } from './publicProjection.ts';

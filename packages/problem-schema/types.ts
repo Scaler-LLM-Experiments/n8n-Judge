@@ -243,6 +243,29 @@ export const nodeSetupSchema = z.object({
         )
     )
     .optional(),
+  /**
+   * Graded node settings — n8n's Settings tab, not its Parameters tab.
+   *
+   * A DIFFERENT shape from `fields` on purpose: a setting's control comes from
+   * `SETTINGS_SPEC`, so the problem supplies only the answer and the explanations,
+   * keyed by the value the learner chose. `why` keys are strings even when the
+   * value is a boolean (`{ false: '…', true: '…' }`), because that is how a form
+   * value arrives.
+   *
+   * This block was absent from the schema until 2026-08-11, and zod strips unknown
+   * keys — so `validateProblem()` never saw it, and the template's wrong shape
+   * (`options: [{ correct: true }]`) produced an undefined `graded.correct`, which
+   * marks every learner wrong forever AND ships the answer key to the browser.
+   */
+  settings: z
+    .array(
+      z.object({
+        key: z.string().min(1),
+        correct: z.union([z.string(), z.number(), z.boolean()]),
+        why: z.record(z.string().min(1)),
+      })
+    )
+    .optional(),
 });
 
 export const nodeProbeSchema = z.object({

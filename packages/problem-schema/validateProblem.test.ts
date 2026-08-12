@@ -180,4 +180,37 @@ describe('validateProblem', () => {
       expect(validateProblem(p).issues.some((i) => i.path === 'flow.modelOptions')).toBe(false);
     });
   });
+
+  it('rejects the template settings shape, which silently marks every learner wrong', () => {
+    const p = base();
+    const type = Object.keys(p.nodeSetup)[0];
+    p.nodeSetup[type].settings = [{ key: 'onError', options: [{ value: 'stopWorkflow', correct: true }] }];
+    expect(validateProblem(p).valid).toBe(false);
+  });
+
+  it('rejects a graded setting the NDV cannot render', () => {
+    const p = base();
+    const type = Object.keys(p.nodeSetup)[0];
+    p.nodeSetup[type].settings = [{ key: 'notARealSetting', correct: 'x', why: { x: 'because', y: 'no' } }];
+    const errors = validateProblem(p).issues.filter((i) => i.level === 'error');
+    expect(errors.some((e) => e.message.includes('notARealSetting'))).toBe(true);
+  });
+
+  it('rejects a correct setting value with no explanation of its own', () => {
+    const p = base();
+    const type = Object.keys(p.nodeSetup)[0];
+    p.nodeSetup[type].settings = [
+      { key: 'executeOnce', correct: false, why: { true: 'runs once per item' } },
+    ];
+    const errors = validateProblem(p).issues.filter((i) => i.level === 'error');
+    expect(errors.some((e) => e.path.includes('executeOnce'))).toBe(true);
+  });
+
+  it('warns when only the correct value is explained, because the teaching is in the wrong ones', () => {
+    const p = base();
+    const type = Object.keys(p.nodeSetup)[0];
+    p.nodeSetup[type].settings = [{ key: 'executeOnce', correct: false, why: { false: 'once per item' } }];
+    const warnings = validateProblem(p).issues.filter((i) => i.level === 'warning');
+    expect(warnings.some((w) => w.path.includes('executeOnce'))).toBe(true);
+  });
 });
