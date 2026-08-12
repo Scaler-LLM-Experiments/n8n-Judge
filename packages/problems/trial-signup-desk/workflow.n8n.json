@@ -76,6 +76,7 @@
           "mode": "url",
           "value": ""
         },
+        "options": {},
         "columns": {
           "mappingMode": "defineBelow",
           "matchingColumns": [],
@@ -86,8 +87,7 @@
             "Referral Source": "={{ $('On form submission').item.json['Referral Source'] }}",
             "USD_INR_Rate": "={{ $json.rates.INR }}"
           }
-        },
-        "options": {}
+        }
       },
       "credentials": {
         "googleSheetsOAuth2Api": {

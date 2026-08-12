@@ -217,6 +217,7 @@
           "mode": "url",
           "value": ""
         },
+        "options": {},
         "columns": {
           "mappingMode": "defineBelow",
           "matchingColumns": [],
@@ -228,8 +229,7 @@
             "Subject Email": "={{ $json.subject_email }}",
             "Detail": "={{ $json.detail }}"
           }
-        },
-        "options": {}
+        }
       },
       "credentials": {
         "googleSheetsOAuth2Api": {
