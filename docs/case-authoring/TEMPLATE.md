@@ -116,28 +116,38 @@ so in your answer and the pipeline will tell us rather than substituting somethi
 | A feed updates | `rss-feed-trigger` |
 | A file on disk changes | `local-file-trigger` |
 | Someone chats with a bot | `chat-trigger` |
+| Another workflow failed | `error-trigger` |
 | Testing only | `manual` |
 
 ### Then shape the data (core steps)
 
 | To do this | Node name |
 |---|---|
-| Rename / reshape / set fields | `edit-fields` |
+| Rename / reshape / set fields | `edit-fields` · `rename-keys` |
 | Drop items that don't qualify | `filter` |
 | **Split into 2 paths** (yes/no) | `if` |
 | **Split into many paths** (by category) | `switch` |
-| Call an outside API | `http-request` |
+| Call an outside API | `http-request` · `graphql` |
 | Combine two streams | `merge` |
 | Sort, cap, or de-duplicate | `sort` · `limit` · `remove-duplicates` |
 | Group many items into one | `aggregate` |
+| Total / count / average a set of items | `summarize-items` |
 | Split one item into many | `split-out` |
 | Pause before continuing | `wait` |
 | Handle dates | `date-time` |
-| Read or make a file | `extract-from-file` · `convert-to-file` · `xml` |
+| Read or make a file | `extract-from-file` · `convert-to-file` · `xml` · `read-write-file` · `compression` |
+| Pull fields out of a web page | `html` |
+| Convert to or from Markdown | `markdown` |
+| Read a feed on demand | `rss-read` |
+| Hash, sign or generate a value | `crypto` · `jwt` · `totp` |
+| Store rows inside n8n itself | `data-table` |
 | Loop over items in batches | `loop-over-items` |
 | Compare two datasets | `compare-datasets` |
 | Reply to the webhook caller | `respond-to-webhook` |
+| Show the person a form mid-flow | `form` |
 | Deliberately fail the run | `stop-and-error` |
+| Do nothing (a deliberate dead end) | `noop` |
+| Run another workflow | `execute-subworkflow` |
 | Write custom JavaScript | `code` |
 
 ### Add AI, if the case needs it
@@ -149,10 +159,19 @@ so in your answer and the pipeline will tell us rather than substituting somethi
 | Pull structured fields out of messy text | `information-extractor` |
 | Judge tone (positive / negative) | `sentiment-analysis` |
 | Summarise something long | `summarization-chain` |
+| Answer a question from supplied text | `question-answer-chain` |
+| Check output against a policy | `guardrails` |
 | Let the AI choose its own tools | `ai-agent` |
 
-Any AI step also needs a brain attached — pick one: `google-gemini-chat-model` or
-`openai-chat-model`. (Any `*-chat-model` works; those two are the ones learners recognise.)
+Any AI step also needs a brain attached. `google-gemini-chat-model` and `openai-chat-model` are
+the two learners recognise, so make one of them the right answer — but the picker offers more, and
+"which brain?" should be a real decision rather than a formality. Also available:
+`anthropic-chat-model` · `azure-openai-chat-model` · `mistral-cloud-chat-model` ·
+`groq-chat-model` · `deepseek-chat-model` · `ollama-chat-model` · `google-vertex-chat-model` ·
+`aws-bedrock-chat-model` · `cohere-chat-model`
+
+> **`guardrails` splits the flow** (pass / fail), so if you name it, §3 must say where both exits
+> end up — same rule as `if` and `switch`.
 
 **One AI step can do two jobs, and that is often the better case.** An extractor both *decides*
 the route and *produces* the fields the destinations need. If your paths end at nodes that need
@@ -178,6 +197,28 @@ worse challenge:
 `basic-llm-chain` · ~~`chat-gemini`~~ → use `google-gemini-chat-model` ·
 ~~`slack-message`~~ → use `slack` · ~~`notion-page`~~ → use `notion` ·
 ~~`calendar-event`~~ → use `google-calendar` · ~~`web-search`~~ → use `http-request`
+
+### What the simulator has but a case cannot use
+
+The simulator registers 200 node types. The lists above are the ~120 a case can be built from.
+The rest exist so the node library matches real n8n, and they are **not available to you**:
+
+- **Everything that plugs into an AI Agent** — vector stores, embeddings, retrievers, document
+  loaders, text splitters, memory, output parsers, rerankers and the `*-tool` nodes (about 53
+  types). They only mean anything inside a retrieval-or-agent topology, which no case teaches yet
+  and the Build stage cannot assemble.
+- **Infrastructure triggers** — `n8n-trigger`, `sse-trigger`, `mcp-server-trigger`,
+  `evaluation-trigger` and friends. They start a workflow from n8n's own plumbing, so there is no
+  story a learner can follow.
+- **Five deprecated descriptors and three deferred triggers**, kept for source parity only.
+
+If your idea genuinely needs one of these, **say so in your answer instead of substituting
+something close**. "This needs a vector store, which is not available" is a useful sentence; a
+case quietly rebuilt on the wrong node teaches the wrong thing while passing every test.
+
+The complete list, with what each node really does, is
+[docs/node-library-catalog.md](../node-library-catalog.md) — you should not need it, and the
+pipeline reads it for you.
 
 ### Common shapes, if you want a starting point
 
