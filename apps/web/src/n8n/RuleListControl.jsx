@@ -2,6 +2,7 @@ import React from 'react';
 import { Plus, Trash, ArrowUp, ArrowDown, CheckCircle, XCircle } from '@phosphor-icons/react';
 import { asListItems, emptyListItem, LIST_SPECS, aspectRowLabel } from '@judge/problem-schema';
 import { IrisBubble } from './IrisBubble.jsx';
+import { valuesFor } from './valuesFor.js';
 
 // n8n's repeatable-group parameters: the Switch's routing `rules` (a
 // fixedCollection of filters) and Edit Fields' `assignments` (name → value).
@@ -165,7 +166,7 @@ export function RuleListControl({ field, value, border, onChange, rowVerdicts, f
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 11, color: 'var(--fg-3)', flex: 'none' }}>Set it to</span>
               {field.valueOptions?.length ? (
-                <Pick label="Value" value={rule.value} options={field.valueOptions} onChange={(v) => patch(i, 'value', v)} border="var(--border-strong)" flex={2} />
+                <Pick label="Value" value={rule.value} options={valuesFor(field.valueOptions, rule[spec.keyOf])} onChange={(v) => patch(i, 'value', v)} border="var(--border-strong)" flex={2} />
               ) : (
                 <TextEntry label="Value" value={rule.value} onChange={(v) => patch(i, 'value', v)} border="var(--border-strong)" flex={2} />
               )}

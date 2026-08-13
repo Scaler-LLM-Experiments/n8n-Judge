@@ -320,7 +320,8 @@ export const nodeSetup = {
         valueOptions: [
           {
             value: 'line.bare',
-            label: 'Temperature, then the code looked up in the table of seven',
+            forName: 'weather_line',
+            label: 'The temperature, and the weather code written out in words',
             expression:
               '{{ $json.current.temperature_2m }}°C, {{ ({0:"clear skies",1:"mostly clear",2:"partly cloudy",3:"overcast",61:"light rain",63:"rain",65:"heavy rain"})[$json.current.weather_code] }}',
             correct: false,
@@ -328,7 +329,8 @@ export const nodeSetup = {
           },
           {
             value: 'note.codeOnly',
-            label: 'Advice from the code alone, with a fallback',
+            forName: 'commute_note',
+            label: 'Advice chosen from the weather code, plus a line for anything else',
             expression:
               '{{ ({0:"Easy commute.",1:"Easy commute.",2:"Easy commute.",3:"Easy commute.",61:"Grab an umbrella.",63:"Grab an umbrella.",65:"Leave early, heavy rain."})[$json.current.weather_code] || "Check the forecast before you leave." }}',
             correct: false,
@@ -336,7 +338,8 @@ export const nodeSetup = {
           },
           {
             value: 'line.mapped',
-            label: 'Temperature, then the code looked up, or the code itself if it is not in the table',
+            forName: 'weather_line',
+            label: 'The temperature, and the code in words, or the number when it is one we have not named',
             expression:
               '{{ $json.current.temperature_2m }}°C, {{ ({0:"clear skies",1:"mostly clear",2:"partly cloudy",3:"overcast",61:"light rain",63:"rain",65:"heavy rain"})[$json.current.weather_code] || "unusual conditions (code " + $json.current.weather_code + ")" }}',
             correct: true,
@@ -344,7 +347,8 @@ export const nodeSetup = {
           },
           {
             value: 'note.bare',
-            label: 'Heat first, then advice from the code looked up in the table of seven',
+            forName: 'commute_note',
+            label: 'Advice for extreme heat first, otherwise chosen from the weather code',
             expression:
               '{{ $json.current.temperature_2m >= 35 ? "Extreme heat, carry water." : ({0:"Easy commute.",1:"Easy commute.",2:"Easy commute.",3:"Easy commute.",61:"Grab an umbrella.",63:"Grab an umbrella.",65:"Leave early, heavy rain."})[$json.current.weather_code] }}',
             correct: false,
@@ -352,7 +356,8 @@ export const nodeSetup = {
           },
           {
             value: 'note.mapped',
-            label: 'Heat first, then the code looked up, or a safe line if it is not in the table',
+            forName: 'commute_note',
+            label: 'Extreme heat first, then the weather code, and a line for anything else',
             expression:
               '{{ $json.current.temperature_2m >= 35 ? "Extreme heat, carry water." : ({0:"Easy commute.",1:"Easy commute.",2:"Easy commute.",3:"Easy commute.",61:"Grab an umbrella.",63:"Grab an umbrella.",65:"Leave early, heavy rain."})[$json.current.weather_code] || "Check the forecast before you leave." }}',
             correct: true,
@@ -360,7 +365,8 @@ export const nodeSetup = {
           },
           {
             value: 'line.raw',
-            label: 'Temperature and the code as it arrived, no lookup',
+            forName: 'weather_line',
+            label: 'The temperature, and the weather code as the number it arrived as',
             expression: '{{ $json.current.temperature_2m }}°C, code {{ $json.current.weather_code }}',
             correct: false,
             // Deliberately illustrated with a code the mapping DOES cover. Naming an
@@ -371,7 +377,8 @@ export const nodeSetup = {
           },
           {
             value: 'note.precipitation',
-            label: 'Umbrella if any rain is falling right now, otherwise an easy commute',
+            forName: 'commute_note',
+            label: 'Advice based on whether any rain is falling at the moment it runs',
             expression: '{{ $json.current.precipitation > 0 ? "Grab an umbrella." : "Easy commute." }}',
             correct: false,
             why: 'A reasonable instinct — the response really does carry a precipitation figure. But it is how much is falling at 9:00 exactly: rain that starts at half past reads as a clear morning here, and it says nothing at all about the ride home at six, while the code carries the condition rather than the instant. It also has nothing to say about a 38°C morning.',
