@@ -25,7 +25,7 @@
 //
 // WHAT SHE IS HERE TO SAY, and where each one lands:
 //
-//   * The Ops Log’s six columns come from two places, two typed into the form and four
+//   * The Ops Log's six columns come from two places, two typed into the form and four
 //     worked out of the sentence: `node_placed:google-sheets`, `verify_pass:google-sheets`,
 //     `verify_fail:google-sheets`, `answer_wrong_again:read`, `report_ready`.
 //   * "The person who asked" and "the person this is about" are two people, and both have
@@ -96,7 +96,7 @@ export const voice = {
   ],
   'answer_wrong:read': [
     '[thoughtful] Hmm. Deciding which of the three kinds it is only gets you halfway. What fills the rest?',
-    "[calm] Read the Ops Log’s six headings again. What would you put under Subject Name with only a label?",
+    "[calm] Read the Ops Log's six headings again. What would you put under Subject Name with only a label?",
   ],
   'answer_wrong_again:read': [
     '[calm] Look at what the destination needs, not just what the decision needs. Four of those columns come from the sentence.',
