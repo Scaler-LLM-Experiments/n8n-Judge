@@ -90,7 +90,7 @@ export const nodeProbes = {
         correct: false,
         misconception: 'sheet-calls-webhook',
         response:
-          'The spreadsheet has no idea your URL exists. Somebody would have to write an Apps Script and wire it up by hand, and even then it would fire on edits rather than on the morning.',
+          'The spreadsheet has no idea your URL exists. Somebody would have to write an Apps Script and wire it up by hand. Even then it would fire on edits rather than on the morning.',
       },
     ],
   },
@@ -133,7 +133,7 @@ export const nodeProbes = {
         text: 'A loop over the rows, comparing two numbers on each one',
         correct: true,
         response:
-          'Right, and in Python that is exactly what you would write. Two things to weigh, though: n8n hands each row to the next node on its own already, and the ops team who will maintain this cannot read JavaScript. Is there a way to say "keep this one" without writing any?',
+          'Right, and in Python that is exactly what you would write. Two things to weigh. n8n already hands each row to the next node on its own. The ops team who maintain this cannot read JavaScript. Is there a way to say "keep this one" without writing any?',
       },
       {
         text: 'A description of what counts as low, which it works out from there',
@@ -173,7 +173,7 @@ export const nodeProbes = {
         text: 'Out of the false output, which you then have to wire somewhere',
         correct: true,
         response:
-          'Correct. If routes, it does not discard. So you now have thirty-seven perfectly healthy rows coming out of a second exit and nowhere sensible to send them, and the build will not let you leave that hanging. What would you rather happen to a bean that is fine?',
+          'Correct. If routes, it does not discard. So thirty-seven healthy rows come out of a second exit with nowhere sensible to go. The build will not let you leave that hanging. What would you rather happen to a bean that is fine?',
       },
     ],
   },
@@ -315,7 +315,7 @@ export const nodeProbes = {
         text: 'A model rewrites the shortlist into prose, and it needs a Chat Model wired to it',
         correct: true,
         response:
-          'Correct on both counts, and both are worth weighing. The buyer wants four fields per bean at half past seven, not a paragraph. And a model that rewrites the list can drop a bean or invent a number, which on a stock report is the one thing you cannot have. Knowing when NOT to reach for a model is part of the job.',
+          'Correct on both counts, and both are worth weighing. The buyer wants four fields per bean at half past seven, not a paragraph. And a model that rewrites the list can drop a bean or invent a number. Knowing when not to reach for one is part of the job.',
       },
       {
         text: 'It reads each row and works out which beans are actually low',

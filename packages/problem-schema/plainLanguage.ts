@@ -115,16 +115,15 @@ export const PLAIN_LANGUAGE = Object.freeze({
  * already clean. Delete this whole constant when the last one goes, along with the branch
  * in validateProblem that reads it.
  *
- * Count when the rules landed, so progress is legible:
- *   low-stock-morning-post 107 · ops-request-desk 86 · trial-signup-desk 57
- *   email-triage 42 · expense-approvals 16
+ * Count when the rules landed, and what is left:
+ *   low-stock-morning-post 107 -> DONE   ops-request-desk 86   trial-signup-desk 57
+ *   email-triage 42   expense-approvals 16
  */
 export const PLAIN_LANGUAGE_DEBT = Object.freeze([
   'email-triage',
   'expense-approvals',
   'trial-signup-desk',
   'ops-request-desk',
-  'low-stock-morning-post',
 ]);
 
 /** Em dash, en dash, and the double hyphen people type when they mean one. */
@@ -136,9 +135,11 @@ export function sentencesOf(text: string): string[] {
     .replace(/\s+/g, ' ')
     // Do not split inside "9:00 a.m." or "12.97" or "e.g.". A digit DOES start a new
     // sentence though: "...a WMO weather code. 0 is a clear sky" is two sentences, and
-    // omitting 0-9 here reported it as one 34-word one.
+    // omitting 0-9 here reported it as one 34-word one. "n8n" is the one lowercase word
+    // in this domain that legitimately starts a sentence, and without it
+    // "...safely edit. n8n already has..." read as a single 29-word sentence.
     .replace(/([a-z])\.([a-z])\./gi, '$1<DOT>$2<DOT>')
-    .split(/(?<=[.!?])\s+(?=[A-Z"'(0-9])/)
+    .split(/(?<=[.!?])\s+(?=[A-Z"'(0-9]|n8n\b)/)
     .map((s) => s.replace(/<DOT>/g, '.').trim())
     .filter(Boolean);
 }

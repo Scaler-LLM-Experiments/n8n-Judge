@@ -54,13 +54,13 @@ export const dissection = [
     // for; this surface was missed. What is left says what the node IS and what shape
     // its output has, both of which the prompt already presupposes.
     explanation:
-      'The Google Sheets node already speaks Google Sheets. The credential, the document, the tab and the column names are all things it understands. So getting at a spreadsheet Brightleaf already keeps takes no code and no hand-built API call. What it hands on arrives as items, one per line of the table, which is the shape every step after it works in.',
+      'The Google Sheets node already speaks Google Sheets. The credential, the document, the tab and the column names are all things it understands, so reading a sheet takes no code. What it hands on arrives as items, one per line of the table.',
     unlocks: ['google-sheets'],
   },
   {
     id: 'narrow',
     prompt:
-      'Most of those forty rows are perfectly well stocked and nobody needs to see them. What keeps the ones that are running low and stops the rest going any further, without needing anywhere to send them?',
+      'Most of those forty rows are well stocked and nobody needs to see them. What keeps the ones running low and stops the rest, without needing anywhere to send them?',
     options: [
       { label: 'If', type: 'if' },
       { label: 'Code', type: 'code' },
