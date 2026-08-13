@@ -124,6 +124,23 @@ export const buildPhaseSchema = z.object({
 export const nodeSetupFieldOptionSchema = z.object({
   value: z.string(),
   label: z.string().min(1),
+  /**
+   * The real n8n expression this option means, when that is not what the learner
+   * should be shown.
+   *
+   * `label` used to do both jobs. The exporter resolves an authored
+   * `expect.assignments` token back through `valueOptions` to the option's **label**
+   * and writes it into the workflow file, so a label had to be a working expression
+   * even when the thing being compared was a seven-entry lookup table. That is how one
+   * case grew a 296-character inline JavaScript ternary as a dropdown choice, shown to
+   * learners who cannot read JavaScript, truncated mid-token in a 420px control.
+   *
+   * Set `expression` and the two jobs separate: the learner reads `label`, the exported
+   * workflow gets `expression`. Omit it and `label` is still used for both, which is
+   * correct for the many options whose expression is already short and readable
+   * (`{{ $json["Referral Source"] }}`).
+   */
+  expression: z.string().min(1).optional(),
   correct: z.boolean(),
   why: z.string().min(1),
 });

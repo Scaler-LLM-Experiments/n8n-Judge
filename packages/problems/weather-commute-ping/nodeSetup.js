@@ -184,35 +184,43 @@ export const nodeSetup = {
         key: 'url',
         label: 'URL',
         kind: 'select',
+        // Labels show only the part that differs. Every one of these is the same host and
+        // the same Bangalore coordinates, so printing them four times cost 60 characters
+        // of each option and pushed the longest to 143, where the picker truncates it
+        // mid-parameter. The full address goes to the exporter as `expression`.
         subtitle:
-          'The address to call. Bangalore is 12.97, 77.59 in all four — the difference is what each one asks for.',
+          'The address to call. Bangalore is 12.97, 77.59 in all four. The difference is what each one asks for.',
         options: [
           {
             value: 'bare',
-            label: 'https://api.open-meteo.com/v1/forecast?latitude=12.97&longitude=77.59',
+            label: '/v1/forecast with the coordinates and nothing else',
+            expression: 'https://api.open-meteo.com/v1/forecast?latitude=12.97&longitude=77.59',
             correct: false,
             why: 'This is a valid request and it succeeds. It just does not ask for any weather: the answer is the latitude, the longitude, the elevation and the timezone, and nothing else. An endpoint tells you nothing on its own — you have to say which measurements you want.',
           },
           {
             value: 'archive',
-            label:
+            label: '/v1/archive with a start date, an end date and a daily maximum',
+            expression:
               'https://archive-api.open-meteo.com/v1/archive?latitude=12.97&longitude=77.59&start_date=2026-08-01&end_date=2026-08-11&daily=temperature_2m_max',
             correct: false,
             why: 'That is the archive: last week, already over. It would post an accurate temperature for a day he has already commuted through. Same service, different question.',
           },
           {
             value: 'daily7',
-            label:
+            label: '/v1/forecast with daily summaries and forecast_days=7',
+            expression:
               'https://api.open-meteo.com/v1/forecast?latitude=12.97&longitude=77.59&daily=temperature_2m_max,weather_code&forecast_days=7',
             correct: false,
             why: 'Seven days of daily summaries, which sounds generous and is the wrong shape: the answer arrives as arrays of seven values, so the next step has to know which position today is at. He is leaving in ten minutes; he needs one reading, not a week.',
           },
           {
             value: 'current',
-            label:
+            label: '/v1/forecast with current=temperature_2m,weather_code,precipitation',
+            expression:
               'https://api.open-meteo.com/v1/forecast?latitude=12.97&longitude=77.59&current=temperature_2m,weather_code,precipitation',
             correct: true,
-            why: 'Right — `current=` asks for conditions as of now, and naming the three measurements is what makes them appear in the answer. Look at the Output pane after you verify: one `current` object with a temperature, a weather code and a precipitation figure in it. That is the shape everything after this reads.',
+            why: 'Right. `current=` asks for conditions as of now, and naming the three measurements is what makes them appear in the answer. Look at the Output pane after you verify: one `current` object holding a temperature, a weather code and a precipitation figure. That is the shape everything after this reads.',
           },
         ],
       },
@@ -296,54 +304,64 @@ export const nodeSetup = {
             why: 'A yes-or-no flag. Something further along would then have to turn true and false into English, and you would have moved the decision rather than made it — and it has nothing to say about the mornings when the problem is 38°C rather than rain.',
           },
         ],
-        // Every label here is a REAL n8n expression, because the exporter resolves each
-        // authored `expect.assignments` token back through this list to the option's
-        // LABEL and writes that into the workflow file. A prose label would export as a
-        // literal string and post that prose to Slack every morning.
+        // `label` is what the learner compares. `expression` is what the exporter writes
+        // into the workflow file.
         //
-        // They are long, and that is the honest length: a lookup table with seven codes
-        // in it IS this much text in real n8n. Two pairs differ by one clause each, and
-        // that clause is the whole lesson — one pair has somewhere for an unrecognised
-        // code to go, one does not.
+        // These used to be the same string, and the exporter's requirement won: every
+        // label was a full n8n expression, so the seven-entry lookup table appeared
+        // inside five of them and the longest reached 296 characters. A dropdown in a
+        // 420px control truncates that mid-token. The case was asking learners who
+        // cannot read JavaScript to compare four ternaries by eye.
+        //
+        // What each option MEANS is a short sentence, and the difference that matters is
+        // one clause: whether an unrecognised code has anywhere to go. That is what the
+        // labels say now. The expressions are unchanged, so the exported workflow is
+        // exactly as faithful as it was.
         valueOptions: [
           {
             value: 'line.bare',
-            label:
+            label: 'Temperature, then the code looked up in the table of seven',
+            expression:
               '{{ $json.current.temperature_2m }}°C, {{ ({0:"clear skies",1:"mostly clear",2:"partly cloudy",3:"overcast",61:"light rain",63:"rain",65:"heavy rain"})[$json.current.weather_code] }}',
             correct: false,
             why: 'This is right on every morning you have looked at, which is exactly what makes it worth arguing about. A lookup with no second arm has no answer at all for a code that is not in the table — no error, no warning, no failed run, and a message with a hole in it where the words should be. Ask what this table covers, and then ask what the world covers.',
           },
           {
             value: 'note.codeOnly',
-            label:
+            label: 'Advice from the code alone, with a fallback',
+            expression:
               '{{ ({0:"Easy commute.",1:"Easy commute.",2:"Easy commute.",3:"Easy commute.",61:"Grab an umbrella.",63:"Grab an umbrella.",65:"Leave early, heavy rain."})[$json.current.weather_code] || "Check the forecast before you leave." }}',
             correct: false,
             why: 'The advice read off the code alone. A clear sky at 38°C comes out as "Easy commute." — and the code is not wrong, it really is clear. What makes that a hard commute is the number sitting next to it. Two independent things arrived in the response and the advice depends on both.',
           },
           {
             value: 'line.mapped',
-            label:
+            label: 'Temperature, then the code looked up, or the code itself if it is not in the table',
+            expression:
               '{{ $json.current.temperature_2m }}°C, {{ ({0:"clear skies",1:"mostly clear",2:"partly cloudy",3:"overcast",61:"light rain",63:"rain",65:"heavy rain"})[$json.current.weather_code] || "unusual conditions (code " + $json.current.weather_code + ")" }}',
             correct: true,
             why: 'The temperature as it came, and the code turned into words. The second arm after `||` is what makes this survivable: when the code is not one of the seven in the table, the message still says something true and still names the number, so whoever reads it knows what to do next. A lookup table is a list of the cases you have thought of.',
           },
           {
             value: 'note.bare',
-            label:
-              '{{ $json.current.temperature_2m >= 35 ? "Extreme heat — carry water." : ({0:"Easy commute.",1:"Easy commute.",2:"Easy commute.",3:"Easy commute.",61:"Grab an umbrella.",63:"Grab an umbrella.",65:"Leave early, heavy rain."})[$json.current.weather_code] }}',
+            label: 'Heat first, then advice from the code looked up in the table of seven',
+            expression:
+              '{{ $json.current.temperature_2m >= 35 ? "Extreme heat, carry water." : ({0:"Easy commute.",1:"Easy commute.",2:"Easy commute.",3:"Easy commute.",61:"Grab an umbrella.",63:"Grab an umbrella.",65:"Leave early, heavy rain."})[$json.current.weather_code] }}',
             correct: false,
             why: 'The heat is handled and the table is right, and it still has nowhere to go when the code is not one of the seven: the run is green and the message arrives with nothing where the advice should be. What would an expression need on the end of it so that an unrecognised code still produces something he can act on?',
           },
           {
             value: 'note.mapped',
-            label:
-              '{{ $json.current.temperature_2m >= 35 ? "Extreme heat — carry water." : ({0:"Easy commute.",1:"Easy commute.",2:"Easy commute.",3:"Easy commute.",61:"Grab an umbrella.",63:"Grab an umbrella.",65:"Leave early, heavy rain."})[$json.current.weather_code] || "Check the forecast before you leave." }}',
+            label: 'Heat first, then the code looked up, or a safe line if it is not in the table',
+            expression:
+              '{{ $json.current.temperature_2m >= 35 ? "Extreme heat, carry water." : ({0:"Easy commute.",1:"Easy commute.",2:"Easy commute.",3:"Easy commute.",61:"Grab an umbrella.",63:"Grab an umbrella.",65:"Leave early, heavy rain."})[$json.current.weather_code] || "Check the forecast before you leave." }}',
             correct: true,
             why: 'Reads both things the service answered — heat first, because a clear 38°C morning needs water more than it needs telling that it is clear — then the code, and then has an answer for a code it does not recognise. Every arm of it produces a line he can act on, which is the actual requirement.',
           },
           {
             value: 'line.raw',
-            label: '{{ $json.current.temperature_2m }}°C, code {{ $json.current.weather_code }}',
+            label: 'Temperature and the code as it arrived, no lookup',
+            expression: '{{ $json.current.temperature_2m }}°C, code {{ $json.current.weather_code }}',
             correct: false,
             // Deliberately illustrated with a code the mapping DOES cover. Naming an
             // unrecognised one here would tell a learner who made a different mistake
@@ -353,7 +371,8 @@ export const nodeSetup = {
           },
           {
             value: 'note.precipitation',
-            label: '{{ $json.current.precipitation > 0 ? "Grab an umbrella." : "Easy commute." }}',
+            label: 'Umbrella if any rain is falling right now, otherwise an easy commute',
+            expression: '{{ $json.current.precipitation > 0 ? "Grab an umbrella." : "Easy commute." }}',
             correct: false,
             why: 'A reasonable instinct — the response really does carry a precipitation figure. But it is how much is falling at 9:00 exactly: rain that starts at half past reads as a clear morning here, and it says nothing at all about the ride home at six, while the code carries the condition rather than the instant. It also has nothing to say about a 38°C morning.',
           },

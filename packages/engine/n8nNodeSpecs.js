@@ -59,7 +59,11 @@ function authored(setup, key) {
   if (!field) return undefined;
   if (field.options) {
     const correct = field.options.find((o) => o.correct === true);
-    return correct ? { value: correct.value, label: correct.label } : undefined;
+    // `expression` wins over `label` for the same reason it does in expectedRows: the
+    // label is what a learner compares in the picker, and a full URL or expression is
+    // often too long to read there. Callers use `label` as the n8n-ready value, so
+    // resolving it here keeps every spec unchanged.
+    return correct ? { value: correct.value, label: correct.expression ?? correct.label } : undefined;
   }
   if (field.correct !== undefined) return { value: field.correct, label: String(field.correct) };
   return undefined;
@@ -202,7 +206,10 @@ function channelName(value) {
 function expectedRows(setup, key) {
   const field = (setup?.fields ?? []).find((f) => f.key === key);
   const rows = field?.expect?.assignments ?? field?.expect?.rules ?? [];
-  const byToken = new Map((field?.valueOptions ?? []).map((o) => [o.value, o.label]));
+  // `expression` when the author set one, `label` otherwise. The two split because the
+  // label is what a learner compares in a dropdown, and requiring it to be a working
+  // n8n expression is what grew one option to 296 characters of inline JavaScript.
+  const byToken = new Map((field?.valueOptions ?? []).map((o) => [o.value, o.expression ?? o.label]));
   return rows.map((r) => ({
     ...r,
     // `expression` is the n8n-ready form; `value` stays the Judge token so a

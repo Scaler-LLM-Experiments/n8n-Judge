@@ -61,7 +61,7 @@
             {
               "id": "assign-1",
               "name": "commute_note",
-              "value": "={{ $json.current.temperature_2m >= 35 ? \"Extreme heat — carry water.\" : ({0:\"Easy commute.\",1:\"Easy commute.\",2:\"Easy commute.\",3:\"Easy commute.\",61:\"Grab an umbrella.\",63:\"Grab an umbrella.\",65:\"Leave early, heavy rain.\"})[$json.current.weather_code] || \"Check the forecast before you leave.\" }}",
+              "value": "={{ $json.current.temperature_2m >= 35 ? \"Extreme heat, carry water.\" : ({0:\"Easy commute.\",1:\"Easy commute.\",2:\"Easy commute.\",3:\"Easy commute.\",61:\"Grab an umbrella.\",63:\"Grab an umbrella.\",65:\"Leave early, heavy rain.\"})[$json.current.weather_code] || \"Check the forecast before you leave.\" }}",
               "type": "string"
             }
           ]
