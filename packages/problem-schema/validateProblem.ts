@@ -15,6 +15,15 @@ const catalogEntryOf = (type: string): CatalogEntry | undefined =>
   (NODE_CATALOG as Record<string, CatalogEntry>)[type];
 import { problemSchema, type Problem } from './types.ts';
 import { GRADED_SETTING_KEYS, SETTING_DEPENDENCIES } from './settingKeys.ts';
+import {
+  PLAIN_LANGUAGE,
+  PLAIN_LANGUAGE_DEBT,
+  statementIssues,
+  longSentences,
+  dashIssues,
+  capWords,
+  optionLabelIssues,
+} from './plainLanguage.ts';
 
 /**
  * Every node type reachable through `flow.branchNext`, whichever shape it takes —
@@ -430,6 +439,85 @@ export function validateProblem(input: unknown): ValidateProblemResult {
   const fallThrough = p.sampleCases.filter((c) => c.branch === null);
   if (fallThrough.length > 0) {
     warn('sampleCases', `${fallThrough.length} case(s) intentionally fall through (branch: null) — verify this is deliberate`);
+  }
+
+  // --- Plain language: ASD-STE100 sentence limits, Zinsser's brevity, no dashes.
+  //
+  // Every surface a learner reads while deciding, with the cap that belongs to it. The
+  // walk below must stay in step with `scripts/authoring/copy-check.mjs`, which reports
+  // the same rules per case; a surface in one and not the other is a surface that can
+  // drift, and drift is what this whole check exists to stop.
+  //
+  // Skipped entirely for the cases on PLAIN_LANGUAGE_DEBT, which were written before the
+  // rules existed. See that constant: the list only shrinks.
+  if (!PLAIN_LANGUAGE_DEBT.includes(p.id)) {
+    const prose = (path: string, text: unknown, cap = 0, what = '') => {
+      if (typeof text !== 'string' || !text) return;
+      for (const i of longSentences(path, text)) err(i.path, i.message);
+      for (const i of dashIssues(path, text)) err(i.path, i.message);
+      if (cap) for (const i of capWords(path, text, cap, what)) err(i.path, i.message);
+    };
+
+    for (const i of statementIssues(p.statement)) err(i.path, i.message);
+    prose('tagline', p.tagline);
+    prose('brief', p.brief);
+
+    p.dissection.forEach((d, n) => {
+      prose(`dissection[${n}].prompt`, d.prompt, PLAIN_LANGUAGE.MAX_QUESTION_WORDS, 'an Understand question');
+      prose(`dissection[${n}].explanation`, d.explanation, PLAIN_LANGUAGE.MAX_RESPONSE_WORDS, 'an Understand explanation');
+      prose(`dissection[${n}].wrongHint`, d.wrongHint, PLAIN_LANGUAGE.MAX_RESPONSE_WORDS, 'a wrong-answer hint');
+      for (const o of d.options ?? []) {
+        prose(`dissection[${n}].option`, o.label);
+        for (const i of optionLabelIssues(`dissection[${n}].option`, o.label)) err(i.path, i.message);
+      }
+    });
+
+    p.evalQuestions.forEach((q, n) => {
+      prose(`evalQuestions[${n}].prompt`, q.prompt, PLAIN_LANGUAGE.MAX_QUESTION_WORDS, 'a Stress Testing question');
+      prose(`evalQuestions[${n}].explanation`, q.explanation, PLAIN_LANGUAGE.MAX_EXPLANATION_WORDS, 'a Stress Testing explanation');
+      q.options.forEach((o, j) =>
+        prose(`evalQuestions[${n}].option[${j}]`, String(o), PLAIN_LANGUAGE.MAX_ANSWER_WORDS, 'a Stress Testing answer')
+      );
+    });
+
+    (p.buildPhases ?? []).forEach((ph, n) =>
+      prose(`buildPhases[${n}].coach`, ph.coach, PLAIN_LANGUAGE.MAX_RESPONSE_WORDS, "Iris's line entering a phase")
+    );
+
+    for (const [type, setup] of Object.entries(p.nodeSetup ?? {})) {
+      for (const l of setup.locked ?? []) prose(`${type}.locked[${l.label}]`, String(l.value ?? ''));
+      for (const f of setup.fields ?? []) {
+        prose(`${type}.${f.key}.subtitle`, f.subtitle, PLAIN_LANGUAGE.MAX_RESPONSE_WORDS, 'a field subtitle');
+        prose(`${type}.${f.key}.whyCorrect`, f.whyCorrect, PLAIN_LANGUAGE.MAX_RESPONSE_WORDS, 'a right-answer explanation');
+        prose(`${type}.${f.key}.whyWrong`, f.whyWrong, PLAIN_LANGUAGE.MAX_RESPONSE_WORDS, 'a wrong-answer hint');
+        for (const o of [...(f.options ?? []), ...(f.valueOptions ?? []), ...(f.nameOptions ?? [])]) {
+          prose(`${type}.${f.key}.why`, o.why, PLAIN_LANGUAGE.MAX_RESPONSE_WORDS, "an option's explanation");
+          // The label is what a learner compares in a picker. An expression too long to
+          // read belongs in `expression`, which is not learner-facing.
+          for (const i of optionLabelIssues(`${type}.${f.key}.option`, String(o.label ?? ''))) err(i.path, i.message);
+        }
+        if (f.why && typeof f.why === 'object') {
+          for (const [aspect, byVerdict] of Object.entries(f.why as Record<string, Record<string, string>>)) {
+            for (const [verdict, text] of Object.entries(byVerdict ?? {})) {
+              prose(`${type}.${f.key}.why.${aspect}.${verdict}`, text, PLAIN_LANGUAGE.MAX_RESPONSE_WORDS, "a list row's explanation");
+            }
+          }
+        }
+      }
+      for (const s of setup.settings ?? []) {
+        for (const [value, text] of Object.entries(s.why ?? {})) {
+          prose(`${type}.settings.${s.key}.why[${value}]`, text, PLAIN_LANGUAGE.MAX_RESPONSE_WORDS, "a setting's explanation");
+        }
+      }
+    }
+
+    for (const [type, probe] of Object.entries(p.nodeProbes ?? {})) {
+      prose(`probe.${type}.prompt`, probe?.prompt, PLAIN_LANGUAGE.MAX_QUESTION_WORDS, 'a probe question');
+      for (const o of probe?.options ?? []) {
+        prose(`probe.${type}.option`, o.text, PLAIN_LANGUAGE.MAX_ANSWER_WORDS, 'a probe answer');
+        prose(`probe.${type}.response`, o.response, PLAIN_LANGUAGE.MAX_RESPONSE_WORDS, "Iris's reply to a probe");
+      }
+    }
   }
 
   const valid = !issues.some((i) => i.level === 'error');

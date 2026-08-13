@@ -1,11 +1,42 @@
 import { describe, it, expect } from 'vitest';
 import { problemList, problems, getProblem, defaultProblem } from './index.js';
-import { validateProblem } from '@judge/problem-schema';
+import { validateProblem, PLAIN_LANGUAGE_DEBT, statementIssues, dashIssues } from '@judge/problem-schema';
 
 // Registry-wide invariants. Every shipped problem must clear the authoring
 // validator with zero errors AND zero warnings — warnings mean an author-facing
 // smell (e.g. a palette type with no catalog entry) that we don't want to ship.
 describe('problem registry', () => {
+  // The plain-language rules are enforced as errors for every case EXCEPT the ones on
+  // PLAIN_LANGUAGE_DEBT, which were written before the rules existed. That bypass is the
+  // only thing keeping this suite green while they are rewritten, so it needs a guard of
+  // its own: a bypass nobody is required to remove is a rule that has been switched off.
+  describe('the plain-language debt list only shrinks', () => {
+    it('names only real problems', () => {
+      for (const slug of PLAIN_LANGUAGE_DEBT) {
+        expect(problems[slug], `${slug} is on the debt list but not in the registry`).toBeTruthy();
+      }
+    });
+
+    it.each(PLAIN_LANGUAGE_DEBT)('%s still has copy to fix, or it should be off the list', (slug) => {
+      const p = problems[slug];
+      // Two cheap proxies for "not yet rewritten": an over-long statement, or a dash
+      // anywhere in the problem's own strings. Both are things the rewrite removes.
+      const dirty =
+        statementIssues(p.statement).length > 0 ||
+        dashIssues(slug, JSON.stringify(p)).length > 0;
+      expect(
+        dirty,
+        `${slug} looks clean now. Remove it from PLAIN_LANGUAGE_DEBT so the rules apply to it.`
+      ).toBe(true);
+    });
+
+    it('does not cover a case that was authored under the rules', () => {
+      // weather-commute-ping was rewritten to 0 violations. If it ever appears here,
+      // somebody silenced a regression instead of fixing it.
+      expect(PLAIN_LANGUAGE_DEBT).not.toContain('weather-commute-ping');
+    });
+  });
+
   it('ships every problem keyed by its own id', () => {
     expect(problemList.length).toBeGreaterThanOrEqual(1);
     for (const [key, problem] of Object.entries(problems)) {
