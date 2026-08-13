@@ -7,9 +7,11 @@
 // Settings tab unlocks, and setup needs both. Every field is graded server-side by
 // `checkAnswer()` — the browser is never told which option is correct.
 //
-// `settings` is a DIFFERENT SHAPE from `fields`, and it is not covered by
-// `nodeSetupSchema` at all — zod strips it, so `validateProblem()` never sees it and
-// nothing here can be caught mechanically. The shape is:
+// `settings` is a DIFFERENT SHAPE from `fields`, and it IS validated — `nodeSetupSchema`
+// has carried a `settings` block since 2026-08-11, and `validateProblem()` checks that the
+// key is one the NDV actually renders, that a dependent setting's parent is graded ON so
+// the control can be reached at all, and that the correct value is explained. What it
+// still cannot tell you is whether the value marked correct is the RIGHT one. The shape is:
 //
 //   { key, correct: <value>, why: { '<value>': '…', '<other value>': '…' } }
 //
@@ -75,7 +77,7 @@ export const nodeSetup = {
         whyCorrect:
           'Right — that is the hour the brief puts the call at, and he reads the result a few minutes later on his way out. Earlier would not be safer, either: this asks for conditions as of now, so an answer fetched an hour before he leaves is an hour out of date.',
         whyWrong:
-          'Read the hour back off the brief, and remember this is a 24-hour clock: 9 in the evening and 9 in the morning are not the same value in this field. What time does the brief say the call goes out?',
+          'This is a 24-hour clock, so read the hour back off the brief rather than off the shape of a morning. And earlier is not safer: the call asks for conditions as of the moment it runs, so one made well before he leaves has gone stale by the time he reads it. What time does the brief say the call goes out?',
       },
     ],
   },
@@ -379,7 +381,7 @@ export const nodeSetup = {
             correct:
               'This one reads what the service actually answered and produces a line a person can act on — on the ordinary mornings and on the odd one.',
             wrong:
-              'Two things to check on this row. Does it read everything the advice depends on, and what does it come out as on a morning the code is not one of the ones you listed? A value that is quietly empty is worse than one that is wrong, because nothing tells you.',
+              'Three things to check on this row. Read it back against its own name first — the two lines do different jobs, and it is easy to put the right value under the wrong one. Then: does it read everything the advice depends on, and what does it come out as on a morning the code is not one of the ones you listed? A value that is quietly empty is worse than one that is wrong, because nothing tells you.',
           },
         },
       },

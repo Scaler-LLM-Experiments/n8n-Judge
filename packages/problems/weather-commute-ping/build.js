@@ -111,8 +111,13 @@ export const buildPhases = [
     // Points at what changes and what does not, and leaves the conclusion to be drawn.
     // Saying "the destination never changes, so you do not need a splitter" would be the
     // `two-paths` Stress Testing answer in the author's own words, one screen early.
+    // The second question balances the first. Both `values` picks turn on the same fact —
+    // that a morning outside the codes in the brief can arrive — and the review found the
+    // brief's own "the codes he sees most mornings" was the only signpost for it. This
+    // names no code, does not say the legend is incomplete, and does not say a third kind
+    // of morning exists; it just asks what the mapping does when neither case matches.
     coach:
-      'Last part. A temperature and an integer are in the flow now, and what he needs is two short lines of English. Ask yourself what actually differs between a rainy morning and a clear one before you pick anything.',
+      'Last part. A temperature and an integer are in the flow now, and what he needs is two short lines of English. Ask yourself what actually differs between a rainy morning and a clear one — and what your answer does on a morning that is neither.',
     nodeTypes: ['edit-fields', 'slack'],
     pickable: [
       'edit-fields',
