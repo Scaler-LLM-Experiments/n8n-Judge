@@ -101,7 +101,7 @@ export const buildPhases = [
     id: 'ask',
     label: 'Get this morning\'s numbers',
     coach:
-      'That is the way in. Nothing has arrived, so the next step has to go out and get the forecast itself — the service is open, no key, no login.',
+      'That is the way in. Nothing has arrived, so the next step has to go out and get the forecast itself. The service is open, no key, no login.',
     nodeTypes: ['http-request'],
     pickable: ['http-request', 'code', 'rss-read', 'information-extractor'],
   },
@@ -117,7 +117,7 @@ export const buildPhases = [
     // names no code, does not say the legend is incomplete, and does not say a third kind
     // of morning exists; it just asks what the mapping does when neither case matches.
     coach:
-      'Last part. A temperature and an integer are in the flow now, and what he needs is two short lines of English. Ask yourself what actually differs between a rainy morning and a clear one — and what your answer does on a morning that is neither.',
+      'Last part. A temperature and an integer are in the flow now, and what he needs is two short lines of English. Ask yourself what actually differs between a rainy morning and a clear one. And what your answer does on a morning that is neither.',
     nodeTypes: ['edit-fields', 'slack'],
     pickable: [
       'edit-fields',

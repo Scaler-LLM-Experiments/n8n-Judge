@@ -31,20 +31,22 @@ export const title = 'Commute Weather Ping';
 // That is the fact the whole case rests on, and withholding it only makes the learner
 // guess whether there is prose to interpret. The codes listed are the ones the three
 // ordinary mornings produce; nothing here says the list is complete.
+// 131 words in 9 sentences, none over 25, and no dashes. It was 270 words in 15
+// sentences. What went was scene-setting, not fact: the underpass, the shoe, and two
+// restatements of "the decision never changes shape". Every fact a graded decision
+// depends on survives.
+//
+// Two things that must not move. 9:00 stays in the SECOND paragraph, because
+// `verify_fail:schedule` variant 1 tells the learner the time is "in the second
+// paragraph". And "those are the codes he sees most mornings" stays, because it is the
+// one clause telling a learner that a code outside the list can arrive, which is what
+// makes the fallback decision fair on first read. It stops short of saying WHICH codes
+// are missing; that discovery is the case.
 export const statement =
-  'Sudhanva commutes across Bangalore to an office in Indiranagar, and every morning he does the same ten seconds of work. Half out the door, one shoe on, he opens a weather app and re-derives the same decision: is this a normal commute, or one to plan around — leave earlier for rain, carry water for the heat, go the long way round the underpass that floods.\n\n' +
-  // The timeline has to hold, because `triggerAtHour` is a free-entry number with no
-  // options to eliminate: the call goes out at 9:00 and he reads the message a few
-  // minutes AFTER that, on his way out. An earlier version had him reading it "at ten to
-  // nine", which made hour 8 the better-reasoned answer than the one the case grades.
-  'The decision never changes shape. Only its answer does. So at 9:00 every morning the flow should ask a forecast service for Bangalore\'s current conditions by itself, and put one short message somewhere he is already looking on his phone. He picks the phone up a few minutes past nine, on his way out of the door.\n\n' +
-  // "the codes he sees most mornings" is the one clause that makes the mapping decision
-  // fair on first read. Without it the legend reads as the complete set, and a learner
-  // has nothing to tell them a code outside it can arrive. It stops there deliberately:
-  // WHICH codes are missing, and what they mean, is the discovery the case is built on.
-  'The service does not answer in sentences. It answers with numbers: the temperature in degrees, and the conditions as a WMO weather code, which is an integer. 0 is a clear sky, 1 to 3 are increasing cloud, and 61 to 65 are rain from light to heavy — those are the codes he sees most mornings. Turning those into something a person can read is this flow\'s job, not his.\n\n' +
-  'The message has two halves and both of them matter. One states the conditions in plain words with the temperature beside them. The other is a single line about what today\'s commute needs — and that line does not follow from the code on its own: a clear sky at 38°C is not the same commute as a clear sky at 24°C.\n\n' +
-  'One message, once, every morning. He reads it, he does not look it up.';
+  'Every morning before work, Sudhanva checks a weather app: same lookup, same decision, every day.\n\n' +
+  'At 9:00 the flow should ask a forecast service for Bangalore\'s conditions and post one short message to Slack. He reads it on his way out of the door.\n\n' +
+  'The service answers with numbers rather than sentences: a temperature, and the conditions as a WMO weather code. 0 is a clear sky, 1 to 3 are cloud, and 61 to 65 are rain. Those are the codes he sees most mornings.\n\n' +
+  'The message needs two halves: the conditions in words with the temperature, and one line on what today\'s commute needs. That second half does not follow from the code alone. A clear sky at 38\u00B0C is a different commute from a clear sky at 24\u00B0C.';
 
 export const tagline =
   'Ask a forecast service for this morning\'s numbers and turn them into one line he can act on.';
@@ -77,7 +79,7 @@ export const coverImage = {
   // amber-gold 38°, coral 17°) and a fourth warm card would make the row read as one
   // gradient. The author's original dusty orange is recorded in the case spec.
   prompt:
-    'Cool violet-indigo into soft lilac colour field — saturated indigo through periwinkle to a pale lilac, cool and high-key, not navy and not purple-black. Soft spray-paint grain. A single large soft-edged pale arc curving upward across the lower half, like a horizon line lifting, lightly soft-focus, one continuous sweep, nothing rising above it. Empty cool violet atmosphere filling the upper half. No sun, no rays, no clouds, no droplets, no chevrons, no sparkles, no bars, no text, no other symbols.',
+    'Cool violet-indigo into soft lilac colour field. Saturated indigo through periwinkle to a pale lilac, cool and high-key, not navy and not purple-black. Soft spray-paint grain. A single large soft-edged pale arc curving upward across the lower half, like a horizon line lifting, lightly soft-focus, one continuous sweep, nothing rising above it. Empty cool violet atmosphere filling the upper half. No sun, no rays, no clouds, no droplets, no chevrons, no sparkles, no bars, no text, no other symbols.',
   src: '/covers/weather-commute-ping.png',
   alt: 'Cool violet spray field with a single pale arc curving upward across the lower half',
 };

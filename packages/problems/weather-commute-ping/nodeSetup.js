@@ -67,7 +67,7 @@ export const nodeSetup = {
         max: 23,
         step: 1,
         correct: 9,
-        placeholder: '0 – 23',
+        placeholder: '0 to 23',
         subtitle: 'On a 24-hour clock, in the workflow timezone.',
         // Both of these point at the CALL, never at his departure. The earlier wording
         // closed with "What time does he leave?", which — on this case's own prose, where
@@ -75,9 +75,9 @@ export const nodeSetup = {
         // field grades. On a free-entry number with nothing to eliminate that is a careful
         // learner marked down and then handed a hint agreeing with their wrong answer.
         whyCorrect:
-          'Right — that is the hour the brief puts the call at, and he reads the result a few minutes later on his way out. Earlier would not be safer, either: this asks for conditions as of now, so an answer fetched an hour before he leaves is an hour out of date.',
+          'Right. That is the hour the brief puts the call at, and he reads the result a few minutes later on his way out. Earlier would not be safer either. This asks for conditions as of now, so an answer fetched an hour early is an hour out of date.',
         whyWrong:
-          'This is a 24-hour clock, so read the hour back off the brief rather than off the shape of a morning. And earlier is not safer: the call asks for conditions as of the moment it runs, so one made well before he leaves has gone stale by the time he reads it. What time does the brief say the call goes out?',
+          'This is a 24-hour clock, so read the hour off the brief rather than off the shape of a morning. Earlier is not safer either: the call asks for conditions as of the moment it runs. What time does the brief say it goes out?',
       },
     ],
   },
@@ -107,8 +107,8 @@ export const nodeSetup = {
       },
     },
     locked: [
-      { label: 'Authentication', value: 'None — this forecast service is open, no key and no account' },
-      { label: 'Send Query Parameters', value: 'Off — they are already in the address' },
+      { label: 'Authentication', value: 'None. This forecast service is open, no key and no account' },
+      { label: 'Send Query Parameters', value: 'Off. They are already in the address' },
       { label: 'Send Headers', value: 'Off' },
       { label: 'Send Body', value: 'Off' },
     ],
@@ -124,7 +124,7 @@ export const nodeSetup = {
         correct: true,
         why: {
           true:
-            'Right. A public forecast service occasionally answers with a temporary error, and this flow gets exactly one attempt a day — two or three tries a second apart cost nothing and save the morning.',
+            'Right. A public forecast service occasionally answers with a temporary error, and this flow gets exactly one attempt a day. Two or three tries a second apart cost nothing and save the morning.',
           false:
             'Off is a sensible default for a node that runs every few minutes and will come round again shortly. Ask how often this one comes round, and what he actually sees on a morning the single attempt does not land.',
         },
@@ -150,13 +150,13 @@ export const nodeSetup = {
             value: 'POST',
             label: 'POST',
             correct: false,
-            why: 'POST means "here is some data, do something with it". This flow is not giving the forecast service anything — it has nothing to send and nothing to change on the other side. Most weather endpoints would answer a POST with a 405.',
+            why: 'POST means "here is some data, do something with it". This flow is not giving the forecast service anything. It has nothing to send and nothing to change on the other side. Most weather endpoints would answer a POST with a 405.',
           },
           {
             value: 'GET',
             label: 'GET',
             correct: true,
-            why: 'Right. The whole request is "tell me what it is like in Bangalore" — asking for something and changing nothing, which is exactly what GET means. It is also n8n\'s default here, so a real workflow file does not even store it.',
+            why: 'Right. The whole request is "tell me what it is like in Bangalore". Asking for something and changing nothing, which is exactly what GET means. It is also n8n\'s default here, so a real workflow file does not even store it.',
           },
           {
             value: 'PUT',
@@ -196,7 +196,7 @@ export const nodeSetup = {
             label: '/v1/forecast with the coordinates and nothing else',
             expression: 'https://api.open-meteo.com/v1/forecast?latitude=12.97&longitude=77.59',
             correct: false,
-            why: 'This is a valid request and it succeeds. It just does not ask for any weather: the answer is the latitude, the longitude, the elevation and the timezone, and nothing else. An endpoint tells you nothing on its own — you have to say which measurements you want.',
+            why: 'This is a valid request and it succeeds. It just does not ask for any weather: the answer is the latitude, the longitude, the elevation and the timezone, and nothing else. An endpoint tells you nothing on its own. You have to say which measurements you want.',
           },
           {
             value: 'archive',
@@ -212,7 +212,7 @@ export const nodeSetup = {
             expression:
               'https://api.open-meteo.com/v1/forecast?latitude=12.97&longitude=77.59&daily=temperature_2m_max,weather_code&forecast_days=7',
             correct: false,
-            why: 'Seven days of daily summaries, which sounds generous and is the wrong shape: the answer arrives as arrays of seven values, so the next step has to know which position today is at. He is leaving in ten minutes; he needs one reading, not a week.',
+            why: 'Seven days of daily summaries, which sounds generous and is the wrong shape. The answer arrives as arrays of seven values. The next step would have to know which position today is at. He is leaving in ten minutes; he needs one reading, not a week.',
           },
           {
             value: 'current',
@@ -277,31 +277,31 @@ export const nodeSetup = {
             value: 'weather_code',
             label: 'weather_code',
             correct: false,
-            why: 'The code is already in the flow — it arrived inside the response, and everything after this can reach it there. Lifting it to the top level under the same name renames a number rather than turning it into anything a person can read, and the post would still have an integer in it where he needs words.',
+            why: 'The code is already in the flow. It arrived inside the response, and everything after this can reach it there. Lifting it to the top level under the same name only renames a number. The post would still carry an integer where he needs words.',
           },
           {
             value: 'weather_line',
             label: 'weather_line',
             correct: true,
-            why: 'One of the two halves of the message: the conditions in words with the temperature beside them. It is a new value — nothing upstream produced a sentence — so this is where it has to be created.',
+            why: 'One of the two halves of the message: the conditions in words with the temperature beside them. It is a new value. Nothing upstream produced a sentence. So this is where it has to be created.',
           },
           {
             value: 'forecast',
             label: 'forecast',
             correct: false,
-            why: 'One field holding the whole message. It works, and it hides the two decisions inside it: the conditions and the advice are worked out differently and change for different reasons, so the day you want to reword the advice you are editing the sentence that also carries the temperature. Keep them apart while they are being built.',
+            why: 'One field holding the whole message. It works, and it hides two decisions inside one value. The conditions and the advice are worked out differently and change for different reasons. Reword the advice and you are editing the sentence that carries the temperature. Keep them apart while they are being built.',
           },
           {
             value: 'commute_note',
             label: 'commute_note',
             correct: true,
-            why: 'The other half: one line about what today\'s commute needs. Naming it separately is what lets the message read as "conditions, then advice" rather than as one long string somebody has to parse with their eyes.',
+            why: 'The other half: one line about what today\'s commute needs. Naming it separately is what lets the message read as "conditions, then advice". The alternative is one long string somebody has to parse by eye.',
           },
           {
             value: 'umbrella',
             label: 'umbrella',
             correct: false,
-            why: 'A yes-or-no flag. Something further along would then have to turn true and false into English, and you would have moved the decision rather than made it — and it has nothing to say about the mornings when the problem is 38°C rather than rain.',
+            why: 'A yes-or-no flag. Something further along would then have to turn true and false into English, and you would have moved the decision rather than made it. And it has nothing to say about the mornings when the problem is 38°C rather than rain.',
           },
         ],
         // `label` is what the learner compares. `expression` is what the exporter writes
@@ -325,7 +325,7 @@ export const nodeSetup = {
             expression:
               '{{ $json.current.temperature_2m }}°C, {{ ({0:"clear skies",1:"mostly clear",2:"partly cloudy",3:"overcast",61:"light rain",63:"rain",65:"heavy rain"})[$json.current.weather_code] }}',
             correct: false,
-            why: 'This is right on every morning you have looked at, which is exactly what makes it worth arguing about. A lookup with no second arm has no answer at all for a code that is not in the table — no error, no warning, no failed run, and a message with a hole in it where the words should be. Ask what this table covers, and then ask what the world covers.',
+            why: 'This is right on every morning you have looked at, which is what makes it worth arguing about. A lookup with no second arm has no answer for a code outside the table. No error, no warning, no failed run, just a hole where the words should be.',
           },
           {
             value: 'note.codeOnly',
@@ -334,7 +334,7 @@ export const nodeSetup = {
             expression:
               '{{ ({0:"Easy commute.",1:"Easy commute.",2:"Easy commute.",3:"Easy commute.",61:"Grab an umbrella.",63:"Grab an umbrella.",65:"Leave early, heavy rain."})[$json.current.weather_code] || "Check the forecast before you leave." }}',
             correct: false,
-            why: 'The advice read off the code alone. A clear sky at 38°C comes out as "Easy commute." — and the code is not wrong, it really is clear. What makes that a hard commute is the number sitting next to it. Two independent things arrived in the response and the advice depends on both.',
+            why: 'The advice read off the code alone. A clear sky at 38°C comes out as "Easy commute.". And the code is not wrong, it really is clear. What makes that a hard commute is the number sitting next to it. Two independent things arrived in the response and the advice depends on both.',
           },
           {
             value: 'line.mapped',
@@ -343,7 +343,7 @@ export const nodeSetup = {
             expression:
               '{{ $json.current.temperature_2m }}°C, {{ ({0:"clear skies",1:"mostly clear",2:"partly cloudy",3:"overcast",61:"light rain",63:"rain",65:"heavy rain"})[$json.current.weather_code] || "unusual conditions (code " + $json.current.weather_code + ")" }}',
             correct: true,
-            why: 'The temperature as it came, and the code turned into words. The second arm after `||` is what makes this survivable: when the code is not one of the seven in the table, the message still says something true and still names the number, so whoever reads it knows what to do next. A lookup table is a list of the cases you have thought of.',
+            why: 'The temperature as it came, and the code turned into words. The second arm after `||` is what makes this survivable. When the code is not in the table, the message still says something true and still names the number. A lookup table is a list of the cases you have thought of.',
           },
           {
             value: 'note.bare',
@@ -352,7 +352,7 @@ export const nodeSetup = {
             expression:
               '{{ $json.current.temperature_2m >= 35 ? "Extreme heat, carry water." : ({0:"Easy commute.",1:"Easy commute.",2:"Easy commute.",3:"Easy commute.",61:"Grab an umbrella.",63:"Grab an umbrella.",65:"Leave early, heavy rain."})[$json.current.weather_code] }}',
             correct: false,
-            why: 'The heat is handled and the table is right, and it still has nowhere to go when the code is not one of the seven: the run is green and the message arrives with nothing where the advice should be. What would an expression need on the end of it so that an unrecognised code still produces something he can act on?',
+            why: 'The heat is handled and the table is right. It still has nowhere to go when the code is not in the table. The run is green, and the advice comes out blank. What would an expression need on the end of it so that an unrecognised code still produces something he can act on?',
           },
           {
             value: 'note.mapped',
@@ -361,7 +361,7 @@ export const nodeSetup = {
             expression:
               '{{ $json.current.temperature_2m >= 35 ? "Extreme heat, carry water." : ({0:"Easy commute.",1:"Easy commute.",2:"Easy commute.",3:"Easy commute.",61:"Grab an umbrella.",63:"Grab an umbrella.",65:"Leave early, heavy rain."})[$json.current.weather_code] || "Check the forecast before you leave." }}',
             correct: true,
-            why: 'Reads both things the service answered — heat first, because a clear 38°C morning needs water more than it needs telling that it is clear — then the code, and then has an answer for a code it does not recognise. Every arm of it produces a line he can act on, which is the actual requirement.',
+            why: 'Reads both things the service answered. Heat first, because a clear 38°C morning needs water more than it needs telling that it is clear. Then the code, and then has an answer for a code it does not recognise. Every arm of it produces a line he can act on, which is the actual requirement.',
           },
           {
             value: 'line.raw',
@@ -381,7 +381,7 @@ export const nodeSetup = {
             label: 'Advice based on whether any rain is falling at the moment it runs',
             expression: '{{ $json.current.precipitation > 0 ? "Grab an umbrella." : "Easy commute." }}',
             correct: false,
-            why: 'A reasonable instinct — the response really does carry a precipitation figure. But it is how much is falling at 9:00 exactly: rain that starts at half past reads as a clear morning here, and it says nothing at all about the ride home at six, while the code carries the condition rather than the instant. It also has nothing to say about a 38°C morning.',
+            why: 'A reasonable instinct. The response really does carry a precipitation figure. But it is how much is falling at 9:00 exactly. Rain that starts at half past reads as a clear morning. The code carries the condition rather than the instant. It also has nothing to say about a 38°C morning.',
           },
         ],
         expect: {
@@ -396,7 +396,7 @@ export const nodeSetup = {
           count: {
             correct: 'Two values, which is exactly what the message is made of. Nothing spare and nothing missing.',
             wrong:
-              'Work backwards from the message. How many separate things does it say, and does each one need to be built here — or is it already on the item?',
+              'Work backwards from the message. How many separate things does it say, and does each one need to be built here. Or is it already on the item?',
           },
           names: {
             correct: 'Both names say what the value holds, and the send step can reach either one on its own.',
@@ -405,9 +405,9 @@ export const nodeSetup = {
           },
           values: {
             correct:
-              'This one reads what the service actually answered and produces a line a person can act on — on the ordinary mornings and on the odd one.',
+              'This one reads what the service actually answered and produces a line a person can act on. On the ordinary mornings and on the odd one.',
             wrong:
-              'Three things to check on this row. Read it back against its own name first — the two lines do different jobs, and it is easy to put the right value under the wrong one. Then: does it read everything the advice depends on, and what does it come out as on a morning the code is not one of the ones you listed? A value that is quietly empty is worse than one that is wrong, because nothing tells you.',
+              'Three things to check on this row. Read it back against its own name: the two lines do different jobs, and the right value can end up under the wrong one. Does it read everything the advice depends on? And what does it produce on a morning you did not list?',
           },
         },
       },
@@ -418,7 +418,7 @@ export const nodeSetup = {
   // The post. What goes in the message is the decision; the shape of the send is given.
   // ---------------------------------------------------------------------------
   slack: {
-    credential: 'Slack — Sudhanva',
+    credential: 'Slack. Sudhanva',
     // What Slack answers with. Nothing downstream reads it: this is the confirmation the
     // learner gets that their node did the right thing, and it is what the graded answer
     // really produces on the ordinary morning in the sample above.
@@ -452,25 +452,25 @@ export const nodeSetup = {
             value: '#commute',
             label: '#commute',
             correct: true,
-            why: 'His own channel, holding one short line a day and nothing else — so the line is the whole content and he reads it without opening anything. A channel that carries one thing is a channel you can trust at a glance.',
+            why: 'His own channel, holding one short line a day and nothing else. So the line is the whole content and he reads it without opening anything. A channel that carries one thing is a channel you can trust at a glance.',
           },
           {
             value: '#general',
             label: '#general',
             correct: false,
-            why: 'Everyone. Forty people would get his umbrella advice every morning at nine, and within a week they would all have muted the channel that also carries things they need. A message that is useful to one person is noise to everybody else.',
+            why: 'Everyone. Forty people would get his umbrella advice every morning at nine. Within a week they would all have muted the channel. A message that is useful to one person is noise to everybody else.',
           },
           {
             value: '#weather-club',
             label: '#weather-club',
             correct: false,
-            why: 'Sounds exactly right and belongs to somebody else — it is where the office cycling group argues about the monsoon. Posting an automated line into a room you do not own, every day, forever, is how a useful flow becomes a nuisance.',
+            why: 'Sounds exactly right and belongs to somebody else. It is where the office cycling group argues about the monsoon. Posting an automated line into a room you do not own, every day, forever, is how a useful flow becomes a nuisance.',
           },
           {
             value: '#alerts',
             label: '#alerts',
             correct: false,
-            why: 'This is where things going wrong are supposed to arrive. Put a message there that turns up every single morning whether or not anything is wrong, and people stop reading the channel that exists for the days something is.',
+            why: 'This is where things going wrong are supposed to arrive. Put a message there every morning, whether or not anything is wrong, and people stop reading it. That channel exists for the days something is wrong.',
           },
         ],
       },
@@ -490,19 +490,19 @@ export const nodeSetup = {
             value: 'note-only',
             label: '{{ $json.commute_note }}',
             correct: false,
-            why: 'The advice with nothing behind it. "Grab an umbrella." on its own is fine until the morning it says "Extreme heat — carry water." and he wants to know whether that means 36 or 41. He uses the number too; that is why there are two values.',
+            why: 'The advice with nothing behind it. "Grab an umbrella." on its own is fine until the morning it says "Extreme heat. Carry water." and he wants to know whether that means 36 or 41. He uses the number too; that is why there are two values.',
           },
           {
             value: 'both',
             label: '{{ $json.weather_line }}. {{ $json.commute_note }}',
             correct: true,
-            why: 'Both halves, in the order a person reads them: what it is like, then what to do about it. Look at the Output pane after you verify — "24°C, clear skies. Easy commute." is the whole message, and it is one line because that is all it needs to be.',
+            why: 'Both halves, in the order a person reads them: what it is like, then what to do about it. Look at the Output pane after you verify. "24°C, clear skies. Easy commute." is the whole message, and it is one line because that is all it needs to be.',
           },
           {
             value: 'hardcoded',
             label: 'Good morning. Check the weather before you leave.',
             correct: false,
-            why: 'The same sentence every morning, which makes the schedule, the call and the mapping all pointless — you have built an expensive alarm clock. Worse, it is the one message that keeps arriving looking completely normal after the flow above it has stopped working.',
+            why: 'The same sentence every morning, which makes the schedule, the call and the mapping all pointless. You have built an expensive alarm clock. Worse, it is the one message that keeps arriving looking completely normal after the flow above it has stopped working.',
           },
         ],
       },

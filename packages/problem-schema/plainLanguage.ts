@@ -109,9 +109,11 @@ const DASH = /[—–]|(?<=\s)--(?=\s)/g;
 export function sentencesOf(text: string): string[] {
   return String(text ?? '')
     .replace(/\s+/g, ' ')
-    // Do not split inside "9:00 a.m." or "12.97" or "e.g."
+    // Do not split inside "9:00 a.m." or "12.97" or "e.g.". A digit DOES start a new
+    // sentence though: "...a WMO weather code. 0 is a clear sky" is two sentences, and
+    // omitting 0-9 here reported it as one 34-word one.
     .replace(/([a-z])\.([a-z])\./gi, '$1<DOT>$2<DOT>')
-    .split(/(?<=[.!?])\s+(?=[A-Z"'(])/)
+    .split(/(?<=[.!?])\s+(?=[A-Z"'(0-9])/)
     .map((s) => s.replace(/<DOT>/g, '.').trim())
     .filter(Boolean);
 }
