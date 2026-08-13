@@ -78,8 +78,6 @@ export const coverImage = {
   // gradient. The author's original dusty orange is recorded in the case spec.
   prompt:
     'Cool violet-indigo into soft lilac colour field — saturated indigo through periwinkle to a pale lilac, cool and high-key, not navy and not purple-black. Soft spray-paint grain. A single large soft-edged pale arc curving upward across the lower half, like a horizon line lifting, lightly soft-focus, one continuous sweep, nothing rising above it. Empty cool violet atmosphere filling the upper half. No sun, no rays, no clouds, no droplets, no chevrons, no sparkles, no bars, no text, no other symbols.',
-  // Drawn by a later stage. A null src is a normal state; the card draws its own
-  // placeholder until `covers:generate` runs and this points at the PNG.
-  src: null,
+  src: '/covers/weather-commute-ping.png',
   alt: 'Cool violet spray field with a single pale arc curving upward across the lower half',
 };
