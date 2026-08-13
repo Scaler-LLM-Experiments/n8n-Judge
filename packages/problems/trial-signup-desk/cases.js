@@ -15,7 +15,7 @@ export const referenceGraph = {
     // the rate DIRECTION and the sheet OPERATION are each a scored field.
     { id: 'rate-1', type: 'http-request', position: { x: 340, y: 180 }, requiredLabel: 'HTTP Request' },
     { id: 'sheet-1', type: 'google-sheets', position: { x: 680, y: 180 }, requiredLabel: 'Google Sheets' },
-    { id: 'welcome-1', type: 'action', position: { x: 1020, y: 180 }, requiredLabel: 'Send Reply — Welcome' },
+    { id: 'welcome-1', type: 'action', position: { x: 1020, y: 180 }, requiredLabel: 'Send Reply. Welcome' },
   ],
   edges: [
     { source: 'form-1', target: 'rate-1' },
@@ -169,7 +169,7 @@ export const sampleCases = [
  * flow order guarantees is the sheet.
  */
 export const simulation = {
-  onNew: 'A new signup arrives from {from} — {subject}',
+  onNew: 'A new signup arrives from {from}. {subject}',
   noTrigger: 'Nothing is listening for a form submission, so the flow never starts.',
   trigger: '{label} fires the moment the form is submitted.',
   parse: '{label} asks the rate service what a dollar is worth in rupees today.',
@@ -202,21 +202,21 @@ export const evalQuestions = [
     ],
     correctIndex: 2,
     explanation:
-      'A blank optional answer is still a value — an empty one. Every column is mapped by heading, not by position, so nothing shifts: the Name cell is simply empty and Email, Plan, Referral Source and the rate all sit where they should. Nothing errors, because nothing was required. And the greeting was written to fall back when there is no name, so the mail goes out reading properly. That is what handling a blank looks like: the signup still lands and the person still hears back. A flow that treats the blank as a failure loses a trial and tells nobody it did.',
+      'A blank optional answer is still a value. An empty one. Every column is mapped by heading, not by position, so nothing shifts. The Name cell is simply empty, and every other value sits where it should. Nothing errors, because nothing was required. The greeting falls back when there is no name, so the mail reads properly. A flow that treats the blank as a failure loses a trial and tells nobody it did.',
   },
   {
     id: 'execute-once',
     prompt:
       'Thirteen signups move through together. You switch on Execute Once on the node that fetches the rate, so it only calls the rate service once. What ends up on the sheet?',
     options: [
-      'Thirteen rows, all carrying the same rate — which is what you wanted',
+      'Thirteen rows, all carrying the same rate. Which is what you wanted',
       'Thirteen rows, twelve of them with an empty rate column',
       'Thirteen rows, each with a slightly different rate, because the service is still called per signup',
       'One row. The node runs on the first signup only and passes one item on, so the other twelve never reach the sheet',
     ],
     correctIndex: 3,
     explanation:
-      'Execute Once does not mean "fetch once and share the answer". It means run this node using only the first input item, and its output is that one item — so everything after it sees one signup. Twelve people get no row and no welcome mail, and nothing errors, so nothing tells you. Leaving it off costs thirteen small API calls, which for a signup form is nothing, and every signup gets its row and its rate.',
+      'Execute Once does not mean "fetch once and share the answer". It means run this node using only the first input item, and its output is that one item. So everything after it sees one signup. Twelve people get no row and no welcome mail, and nothing errors, so nothing tells you. Leaving it off costs thirteen small API calls, which for a signup form is nothing, and every signup gets its row and its rate.',
   },
   {
     id: 'row-before-rate',
@@ -230,6 +230,6 @@ export const evalQuestions = [
     ],
     correctIndex: 1,
     explanation:
-      'A node can only use what the nodes before it handed over. Append the row first and there is no rate in the item yet, so the expression for that column resolves to nothing and the cell comes out blank — quietly, because an empty cell is not an error. Nothing goes back to fill it in afterwards; the row was written and the flow moved on. Order is not decoration here. It is the only reason the rate is in the item at all.',
+      'A node can only use what the nodes before it handed over. Append the row first and there is no rate in the item yet. The expression for that column resolves to nothing, and the cell comes out blank. Quietly, because an empty cell is not an error. Nothing goes back to fill it in afterwards; the row was written and the flow moved on. Order is not decoration here. It is the only reason the rate is in the item at all.',
   },
 ];

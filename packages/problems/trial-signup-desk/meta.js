@@ -7,16 +7,26 @@
 export const id = 'trial-signup-desk';
 
 /** Title case, on the card and the Understand hero. */
-export const title = 'TerraTrek Gear — Free-Trial Signup Desk';
+export const title = 'TerraTrek Gear. Free-Trial Signup Desk';
 
 /**
  * The FULL brief. Stays complete: the problem panel, the sticky note and Ask-AI's
  * context all read this, so it must carry every detail a learner needs mid-build.
  */
+// 133 words in 9 sentences, none over 25, no dashes. It was 201 words in one block.
+//
+// Every fact a graded decision reads survives: the four form answers (the sheet's column
+// mapping is keyed by them), the USD_INR_Rate heading, one row per signup, an instant
+// email naming the person and their plan, and both traps.
+//
+// Two things were cut deliberately rather than for length. "There is no AI step anywhere
+// in this flow" answered a question the Understand quiz asks, and "it is four nodes" told
+// the learner how many to place before the build began.
 export const statement =
-  'TerraTrek Gear takes free-trial signups through a web form. Every submission carries four answers: Full Name, Email, Plan (Basic, Plus or Pro) and Referral Source. Today somebody copies each signup into a spreadsheet by hand, looks up the day’s dollar-to-rupee rate so the team can quote local pricing, and types out a welcome email. Build the flow that does all three on its own. Every signup gets one row on the Signups sheet, each answer under its own column heading, with the current USD to INR rate in the USD_INR_Rate column, and the person gets an instant welcome email naming them and their plan. Two things make this harder than it looks. Referral Source is free text, so people write commas, quotes, apostrophes, whole sentences and other alphabets into it, and all of that has to land inside its own column instead of spilling into the next one. And Full Name and Referral Source can both arrive blank: a blank must still produce a logged row and a welcome email, never a stopped run. There is no AI step anywhere in this flow. It is four nodes, wired in an order that matters, with every answer mapped to the right column.';
-
-/** One line, for the catalogue. */
+  'TerraTrek Gear takes free-trial signups through a web form. Every submission carries four answers: Full Name, Email, Plan (Basic, Plus or Pro) and Referral Source.\n\n' +
+  'Today somebody copies each one into a spreadsheet, looks up the day\u2019s dollar-to-rupee rate, and types a welcome email. Build the flow that does all three on its own.\n\n' +
+  'Every signup gets one row on the Signups sheet, each answer under its own heading, with the current rate in the USD_INR_Rate column. The person gets an instant welcome email naming them and their plan.\n\n' +
+  'Two things make this harder than it looks. Referral Source is free text, so commas, quotes and whole sentences all have to land inside its own column. And Full Name or Referral Source can arrive blank, which must still produce a row and an email, never a stopped run.';
 export const tagline =
   'Log every free-trial signup to a spreadsheet with a live exchange rate and send the welcome email, with no AI step at all.';
 
@@ -61,7 +71,7 @@ export const estimatedMinutes = 15;
  */
 export const coverImage = {
   prompt:
-    'Bright vivid lime-green into warm sunny yellow colour field — high-chroma spring green to golden yellow gradients, fresh and energetic, not olive, not muted. Soft spray-paint grain. A loose lattice of large soft-edged rounded squares drifting across the right half, several slightly out of focus and spaced unevenly, like a grid coming apart. Empty bright green atmosphere filling the left. No chevrons, no sparkles, no other symbols.',
+    'Bright vivid lime-green into warm sunny yellow colour field. High-chroma spring green to golden yellow gradients, fresh and energetic, not olive, not muted. Soft spray-paint grain. A loose lattice of large soft-edged rounded squares drifting across the right half, several slightly out of focus and spaced unevenly, like a grid coming apart. Empty bright green atmosphere filling the left. No chevrons, no sparkles, no other symbols.',
   src: '/covers/trial-signup-desk.png',
   alt: 'Bright lime and yellow spray field with a soft lattice of rounded squares on the right',
 };

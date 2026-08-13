@@ -116,13 +116,12 @@ export const PLAIN_LANGUAGE = Object.freeze({
  * in validateProblem that reads it.
  *
  * Count when the rules landed, and what is left:
- *   low-stock-morning-post 107 -> DONE   ops-request-desk 86 -> DONE   trial-signup-desk 57
+ *   low-stock-morning-post 107 -> DONE   ops-request-desk 86 -> DONE -> DONE   trial-signup-desk 57 -> DONE
  *   email-triage 42   expense-approvals 16
  */
 export const PLAIN_LANGUAGE_DEBT = Object.freeze([
   'email-triage',
   'expense-approvals',
-  'trial-signup-desk',
 ]);
 
 /** Em dash, en dash, and the double hyphen people type when they mean one. */
