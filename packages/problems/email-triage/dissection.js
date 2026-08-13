@@ -20,7 +20,7 @@ export const dissection = [
     ],
     correctType: 'trigger',
     wrongHint: 'Think about what has to be watching the inbox in real time. Does this one actually do that?',
-    explanation: 'A New Email trigger fires the moment a support email lands — exactly the signal this workflow needs to react to.',
+    explanation: 'A New Email trigger fires the moment a support email lands. Exactly the signal this workflow needs to react to.',
     unlocks: ['trigger'],
   },
   {
@@ -34,7 +34,7 @@ export const dissection = [
     ],
     correctType: 'classify',
     wrongHint: 'The email is messy, free-form text. Would fixed rules or code reliably tell a bug apart from a complaint?',
-    explanation: 'Classify with AI reads the message the way a person would and labels it — resilient to however the email is phrased. It’ll need a language model plugged in, which you’ll wire up later.',
+    explanation: 'Classify with AI reads the message the way a person would and labels it. Resilient to however the email is phrased. It’ll need a language model plugged in, which you’ll wire up later.',
     unlocks: ['classify', 'chat-gemini'],
   },
   {
@@ -48,7 +48,7 @@ export const dissection = [
     ],
     correctType: 'parse',
     wrongHint: 'Right now it’s just a string of text. Can the next node reliably branch on that as-is?',
-    explanation: 'Parse Result turns the AI’s text into clean fields — category and urgency — so every node after it can read them reliably.',
+    explanation: 'Parse Result turns the AI’s text into clean fields. Category and urgency. So every node after it can read them reliably.',
     unlocks: ['parse'],
   },
   {
@@ -62,7 +62,7 @@ export const dissection = [
     ],
     correctType: 'switch',
     wrongHint: 'You need one item to go down three separate paths by rule. Does this node give you that many outputs?',
-    explanation: 'Switch routes a single input to as many labelled outputs as you define — one each for Bug Report, Feature Request and Urgent Complaint.',
+    explanation: 'Switch routes a single input to as many labelled outputs as you define. One each for Bug Report, Feature Request and Urgent Complaint.',
     unlocks: ['switch'],
   },
   {
@@ -70,13 +70,13 @@ export const dissection = [
     prompt: 'Last decision. At the end of each branch, what actually responds to the customer?',
     options: [
       { label: 'Send Reply', type: 'action' },
-      { label: 'Slack — Send Message', type: 'slack-message' },
+      { label: 'Slack. Send Message', type: 'slack-message' },
       { label: 'Google Docs', type: 'google-docs' },
       { label: 'Do nothing', type: 'noop' },
     ],
     correctType: 'action',
     wrongHint: 'The customer reached out over email. Would this option actually get a response back to them?',
-    explanation: 'Send Reply emails the customer back with a message tailored to their category — the whole point of the triage.',
+    explanation: 'Send Reply emails the customer back with a message tailored to their category. The whole point of the triage.',
     unlocks: ['action'],
   },
 ];

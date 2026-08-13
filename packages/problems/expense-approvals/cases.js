@@ -15,9 +15,9 @@ export const referenceGraph = {
     { id: 'switch-1', type: 'switch', position: { x: 800, y: 180 }, requiredLabel: 'Switch' },
     // Three instances of ONE node type, which is why `nodeSetup.action` is shared: the
     // reply goes to the claimant on all three paths and only its wording differs.
-    { id: 'action-approve', type: 'action', position: { x: 1080, y: 40 }, requiredLabel: 'Send Reply — Approved' },
-    { id: 'action-manager', type: 'action', position: { x: 1080, y: 180 }, requiredLabel: 'Send Reply — With a Manager' },
-    { id: 'action-missing', type: 'action', position: { x: 1080, y: 320 }, requiredLabel: 'Send Reply — Need More Detail' },
+    { id: 'action-approve', type: 'action', position: { x: 1080, y: 40 }, requiredLabel: 'Send Reply. Approved' },
+    { id: 'action-manager', type: 'action', position: { x: 1080, y: 180 }, requiredLabel: 'Send Reply. With a Manager' },
+    { id: 'action-missing', type: 'action', position: { x: 1080, y: 320 }, requiredLabel: 'Send Reply. Need More Detail' },
   ],
   edges: [
     { source: 'model-1', target: 'classify-1', targetHandle: 'ai_model' },
@@ -146,20 +146,20 @@ export const sampleCases = [
 export const simulation = {
   // "New mail", not "new claim": the fourth case is deliberately not a claim, and this
   // one line narrates all four.
-  onNew: 'New mail from {from} — "{subject}"',
+  onNew: 'New mail from {from}. "{subject}"',
   trigger: '{label} fires the moment it lands.',
   aiRead: '{label} reads it and calls it {category}.',
   parse: '{label} → { decision: "{category}" }',
   switchNoMatch: '"{category}" matches none of the branches, so this one goes unanswered.',
-  switchUnwired: 'The {reply} branch is the right one, but nothing is wired to it — this claim goes unanswered.',
+  switchUnwired: 'The {reply} branch is the right one, but nothing is wired to it. This claim goes unanswered.',
   switchTake: '{label} sends it down the {reply} branch.',
   branchNoAction: 'That branch never reaches a reply, so the claimant hears nothing.',
   actionSend: '{targetLabel} answers {from}.',
   emptyReply: '{targetLabel} builds a reply from an empty item, so {from} gets a blank message.',
   switchAlwaysOutput:
-    'Nothing matched, but Always Output Data is on — an empty item is pushed down the first branch anyway.',
+    'Nothing matched, but Always Output Data is on. An empty item is pushed down the first branch anyway.',
   aiNoModelContinue:
-    '{label} has no Chat Model, and On Error says continue — so the claim carries on with no decision on it.',
+    '{label} has no Chat Model, and On Error says continue. So the claim carries on with no decision on it.',
   aiNoModelErrorOutput:
     '{label} has no Chat Model, so it fails to its error output. Nothing is wired there, so this claim stops here, visibly.',
 };

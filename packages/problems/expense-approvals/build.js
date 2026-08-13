@@ -23,8 +23,8 @@ export const nodePalette = [
   { type: 'filter', label: 'Filter', category: 'core', isDistractor: true },
   { type: 'if', label: 'If', category: 'core', isDistractor: true },
   { type: 'action', label: 'Send Reply', category: 'action', isDistractor: false },
-  { type: 'slack-message', label: 'Slack — Send Message', category: 'action', isDistractor: true },
-  { type: 'google-docs', label: 'Google Docs — Create Document', category: 'action', isDistractor: true },
+  { type: 'slack-message', label: 'Slack. Send Message', category: 'action', isDistractor: true },
+  { type: 'google-docs', label: 'Google Docs. Create Document', category: 'action', isDistractor: true },
 ];
 
 // The Switch's labelled outputs. These ids are what `expect.rules` names, what the

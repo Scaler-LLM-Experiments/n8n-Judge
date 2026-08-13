@@ -25,7 +25,7 @@ export const dissection = [
     correctType: 'trigger',
     wrongHint: 'A claim arrives without anyone announcing it. Does this one actually hear a mailbox?',
     explanation:
-      'A New Email trigger fires the moment a claim lands, so the flow reacts to the claim itself instead of to a clock, or to another system deciding to call in.',
+      'A New Email trigger fires the moment a claim lands. The flow reacts to the claim itself, not to a clock or to another system calling in.',
     unlocks: ['trigger'],
   },
   {
@@ -41,7 +41,7 @@ export const dissection = [
     wrongHint:
       'One claim reads "cab to the Andheri office, 480 rupees, Tuesday". The next reads "please reimburse my travel". What could read both and tell that one of them is complete?',
     explanation:
-      'Classify with AI reads a claim the way a finance person would, applies the policy it was given, and answers with one of the three decisions. It needs a language model plugged in, which you will wire up later.',
+      'Classify with AI reads a claim the way a finance person would. It applies the policy it was given and answers with one of the three decisions. It needs a language model plugged in, which you will wire up later.',
     unlocks: ['classify', 'chat-gemini'],
   },
   {
@@ -56,7 +56,7 @@ export const dissection = [
     correctType: 'parse',
     wrongHint: 'The decision is buried inside a string of text. Can the next node reliably read one field out of that?',
     explanation:
-      'Parse Result turns the AI’s text into clean named fields, so everything after it reads a decision and an amount instead of picking through a sentence.',
+      'Parse Result turns the AI’s text into clean named fields. Everything after it reads a decision and an amount instead of picking through a sentence.',
     unlocks: ['parse'],
   },
   {
@@ -71,15 +71,15 @@ export const dissection = [
     correctType: 'switch',
     wrongHint: 'You need one claim in and three separate ways out. How many ways out does this one actually give you?',
     explanation:
-      'Switch takes one item and sends it to whichever labelled output matches: one for approving, one for a manager, one for going back to the claimant.',
+      'Switch takes one item and sends it to whichever labelled output matches. One for approving, one for a manager, one for going back to the claimant.',
     unlocks: ['switch'],
   },
   {
     id: 'action',
     prompt: 'Last decision. At the end of every path, what tells the claimant what happened to their claim?',
     options: [
-      { label: 'Google Docs — Create Document', type: 'google-docs' },
-      { label: 'Slack — Send Message', type: 'slack-message' },
+      { label: 'Google Docs. Create Document', type: 'google-docs' },
+      { label: 'Slack. Send Message', type: 'slack-message' },
       { label: 'Send Reply', type: 'action' },
       { label: 'Nothing, finance will pick it up', type: 'noop' },
     ],

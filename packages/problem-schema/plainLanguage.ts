@@ -102,28 +102,6 @@ export const PLAIN_LANGUAGE = Object.freeze({
   MAX_RESPONSE_WORDS: 60,
 });
 
-/**
- * Cases whose copy predates these rules and has not been rewritten yet.
- *
- * Enforcement is live for every case NOT on this list, which is what stops a new one
- * regressing. The five here carry 308 violations between them, and turning the rules on
- * as errors for all of them at once would put the repo in a red state for as long as the
- * rewriting takes. That is how a rule gets switched off "temporarily" and stays off.
- *
- * **The list only shrinks.** Removing a slug is the definition of that case being done,
- * and `plainLanguage.test.ts` asserts an entry cannot be added back for a case that is
- * already clean. Delete this whole constant when the last one goes, along with the branch
- * in validateProblem that reads it.
- *
- * Count when the rules landed, and what is left:
- *   low-stock-morning-post 107 -> DONE   ops-request-desk 86 -> DONE -> DONE   trial-signup-desk 57 -> DONE
- *   email-triage 42   expense-approvals 16
- */
-export const PLAIN_LANGUAGE_DEBT = Object.freeze([
-  'email-triage',
-  'expense-approvals',
-]);
-
 /** Em dash, en dash, and the double hyphen people type when they mean one. */
 const DASH = /[—–]|(?<=\s)--(?=\s)/g;
 

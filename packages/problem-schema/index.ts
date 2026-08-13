@@ -7,7 +7,6 @@ export type { ProblemIssue, ValidateProblemResult } from './validateProblem.ts';
 // they are enforced instead of merely written down.
 export {
   PLAIN_LANGUAGE,
-  PLAIN_LANGUAGE_DEBT,
   plainLanguageIssues,
   capWords,
   sentencesOf,

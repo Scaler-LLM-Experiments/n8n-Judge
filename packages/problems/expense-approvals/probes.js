@@ -32,7 +32,7 @@ export const nodeProbes = {
           'Right, that is all it listens for. Now think about how a claim actually reaches finance in this problem, and pick the thing that hears it.',
       },
       {
-        text: 'Any incoming message — the trigger works out where it came from',
+        text: 'Any incoming message. The trigger works out where it came from',
         correct: false,
         misconception: 'triggers-interchangeable',
         response:
@@ -45,7 +45,7 @@ export const nodeProbes = {
     prompt: 'On a Schedule is on the canvas. When would this flow run?',
     options: [
       {
-        text: 'On a fixed clock — every few minutes, or at a set hour',
+        text: 'On a fixed clock. Every few minutes, or at a set hour',
         correct: true,
         response:
           'Correct, and a finance team sweeping the inbox each morning is a real way to work. But this flow answers people. How long should someone wait for a reply because their claim landed just after a tick?',
@@ -109,7 +109,7 @@ export const nodeProbes = {
           'Right, and for the 5,000 limit that works. Now read this claim: "please reimburse my travel from last week". Which rule catches one that never mentions a figure at all?',
       },
       {
-        text: 'Nothing — Code reads the claim and applies the policy itself',
+        text: 'Nothing. Code reads the claim and applies the policy itself',
         correct: false,
         misconception: 'code-is-smart',
         response:
@@ -122,7 +122,7 @@ export const nodeProbes = {
     prompt: 'If is on the canvas. How many separate paths can a single If node send a claim down?',
     options: [
       {
-        text: 'Two — a true path and a false path',
+        text: 'Two. A true path and a false path',
         correct: true,
         response: 'Right. Now count the outcomes this problem has to answer differently. Does two cover it?',
       },
@@ -134,7 +134,7 @@ export const nodeProbes = {
           'No. If always has exactly two outputs. Extra conditions combine into one true or false decision; they do not add paths.',
       },
       {
-        text: 'One — it lets the matching claims through',
+        text: 'One. It lets the matching claims through',
         correct: false,
         misconception: 'if-is-filter',
         response:
@@ -238,7 +238,7 @@ export const nodeProbes = {
           'Keeping a record is genuinely useful, and plenty of finance flows do both. But nobody reads a log they were never told about. What does this path owe the person waiting?',
       },
       {
-        text: 'Nothing — a document is written and filed away',
+        text: 'Nothing. A document is written and filed away',
         correct: true,
         response:
           'Right, and filing is not answering. Somebody emailed a claim in and is sitting there wondering whether they are getting their money.',

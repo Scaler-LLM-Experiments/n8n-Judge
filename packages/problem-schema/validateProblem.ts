@@ -15,7 +15,7 @@ const catalogEntryOf = (type: string): CatalogEntry | undefined =>
   (NODE_CATALOG as Record<string, CatalogEntry>)[type];
 import { problemSchema, type Problem } from './types.ts';
 import { GRADED_SETTING_KEYS, SETTING_DEPENDENCIES } from './settingKeys.ts';
-import { PLAIN_LANGUAGE_DEBT, plainLanguageIssues } from './plainLanguage.ts';
+import { plainLanguageIssues } from './plainLanguage.ts';
 
 /**
  * Every node type reachable through `flow.branchNext`, whichever shape it takes —
@@ -439,11 +439,10 @@ export function validateProblem(input: unknown): ValidateProblemResult {
   // registry.test.js all read the same surfaces. Three copies existed briefly and the
   // weakest one silently disagreed with the other two.
   //
-  // Skipped for the cases on PLAIN_LANGUAGE_DEBT, which predate the rules. That list only
-  // shrinks; see the constant.
-  if (!PLAIN_LANGUAGE_DEBT.includes(p.id)) {
-    for (const i of plainLanguageIssues(p)) err(i.path, i.message);
-  }
+  // Applies to every case. There was a PLAIN_LANGUAGE_DEBT bypass while the six shipped
+  // cases were rewritten, holding 455 violations between them; it is gone because the list
+  // reached empty, which is the only ending a grandfather clause should have.
+  for (const i of plainLanguageIssues(p)) err(i.path, i.message);
 
   const valid = !issues.some((i) => i.level === 'error');
   // Voice lines play BEFORE a learner has committed to anything, so a line that
