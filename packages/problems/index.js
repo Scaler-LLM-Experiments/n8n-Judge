@@ -9,12 +9,13 @@
 // **Registry order is the catalogue order.** Home lists problems in the order they
 // appear here, so put a new challenge where a learner should meet it.
 //
-// email-triage is the only problem, deliberately: on 2026-07-31 the other three were
-// removed so the template could be extracted from one fully-authored reference (voice,
-// cover art, difficulty, brief) rather than from four problems of which three predate
-// those fields. They are recoverable from git history — but the commit that removed
-// them also deleted their database rows, so restoring one means re-registering it AND
-// re-seeding.
+// Five problems ship. On 2026-07-31 the registry was cut back to email-triage alone so
+// `_template/` could be extracted from one fully-authored reference (voice, cover art,
+// difficulty, brief) rather than from four problems of which three predate those fields;
+// the four below it were authored after, through /author-case. lead-triage,
+// meeting-notes and order-desk are recoverable from git history — but the commit that
+// removed them also deleted their database rows, so restoring one means re-registering
+// it AND re-seeding.
 import { emailTriage } from './email-triage/index.js';
 import { expenseApprovals } from './expense-approvals/index.js';
 import { trialSignupDesk } from './trial-signup-desk/index.js';

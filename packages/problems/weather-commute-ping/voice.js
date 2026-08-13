@@ -134,14 +134,14 @@ export const voice = {
   ],
 
   'answer_correct:send': [
-    "[warm] Exactly, {answer}. One line, in a room he's already in, at ten to nine.",
+    "[warm] Exactly, {answer}. One line, in a room he's already in, on his way out of the door.",
   ],
   'answer_wrong:send': [
     "[thoughtful] Hmm. Anything he has to go and open is a thing he'll stop bothering with. Think again.",
     '[calm] Have another look. If reading it takes more effort than the weather app did, he goes back to the app.',
   ],
   'answer_wrong_again:send': [
-    "[calm] Let's slow down. Ask what he's actually holding at ten to nine, and what's already on it.",
+    "[calm] Let's slow down. Ask what he's actually holding on his way out, and what's already on it.",
   ],
 
   // ---- building --------------------------------------------------------------
@@ -234,7 +234,7 @@ export const voice = {
   'verify_fail:slack': [
     '[calm] Ah, not yet. Open the Input pane first, and see what the step before actually handed over.',
     "[thoughtful] Hmm. Ask who's reading this, and where they'd be standing when it turns up.",
-    '[calm] Not right yet. Read the marked field again, thinking about ten to nine on a Tuesday.',
+    '[calm] Not right yet. Read the marked field again, thinking about a Tuesday morning just past nine.',
     '[thoughtful] Close. Everything upstream is invisible. This is the bit with his name on it, so look again.',
   ],
 
