@@ -77,15 +77,23 @@ const AGENTS = {
       type: 'object',
       properties: {
         slug: { type: 'string' },
+        // Which surface this reviewer was given. Three run concurrently, one per slice,
+        // and the orchestrator merges their reports into one round — so a report that
+        // cannot say which slice it covers cannot be merged.
+        slice: { type: 'string', enum: ['understand', 'config', 'edges'] },
         verdict: { type: 'string', enum: ['pass', 'fail'] },
+        // Every surface fraction is nullable: a reviewer reports the surfaces in its own
+        // slice and leaves the others null. `0/0` would read as a failed surface rather
+        // than one it was never asked about.
         blindSolve: { type: 'object', additionalProperties: true },
+        mechanicalAudit: { type: 'object', additionalProperties: true },
         simulateAllPasses: { type: 'boolean' },
         blockers: { type: 'array', items: { type: 'object', additionalProperties: true } },
         notes: { type: 'array', items: { type: 'object', additionalProperties: true } },
-        settingsCheckedByHand: { type: 'boolean' },
+        settingsCheckedByHand: { type: ['boolean', 'null'] },
         answerKeyDisagreements: { type: 'number' },
       },
-      required: ['slug', 'verdict', 'blockers', 'notes'],
+      required: ['slug', 'slice', 'verdict', 'blockers', 'notes'],
     },
   },
   'case-voice-author': {

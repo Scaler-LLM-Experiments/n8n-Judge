@@ -151,7 +151,62 @@ describe('the traps that still import', () => {
   });
 });
 
+describe('a locked schedule row still exports the right rule', () => {
+  // A case that grades the HOUR has no reason to grade the interval too — a Days
+  // interval is what makes the hour row exist in real n8n at all, so it is shown as a
+  // locked row. Reading only graded fields exported `{ field: 'hours', hoursInterval: 1,
+  // triggerAtHour: 9 }`, and n8n ignores `triggerAtHour` under Hours: the convenience
+  // file fired every hour while the learner was graded on 9 a.m.
+  const rule = (setup) => N8N_NODE_SPECS.schedule.parameters({ setup }).rule.interval[0];
+
+  it('reads the interval and the minute off the locked panel', () => {
+    expect(
+      rule({
+        locked: [
+          { label: 'Trigger Interval', value: 'Days' },
+          { label: 'Days Between Triggers', value: '1' },
+          { label: 'Trigger at Minute', value: '0' },
+        ],
+        fields: [{ key: 'triggerAtHour', kind: 'number', correct: 9 }],
+      })
+    ).toEqual({ field: 'days', daysInterval: 1, triggerAtHour: 9, triggerAtMinute: 0 });
+  });
+
+  it('still prefers a graded interval over a locked one', () => {
+    // low-stock-morning-post grades all three, and this fix must not touch it.
+    expect(
+      rule({
+        locked: [{ label: 'Trigger Interval', value: 'Days' }],
+        fields: [
+          { key: 'interval', options: [{ value: 'weeks', correct: true }] },
+          { key: 'triggerAtHour', correct: 7 },
+          { key: 'triggerAtMinute', correct: 30 },
+        ],
+      })
+    ).toMatchObject({ field: 'weeks', triggerAtHour: 7, triggerAtMinute: 30 });
+  });
+
+  it('falls back to hourly when a case says nothing at all', () => {
+    // The empty locked row is the trap: '' is a prefix of every candidate, so an
+    // unguarded `find` returns 'seconds' — a workflow firing 3600× too often.
+    expect(rule({})).toEqual({ field: 'hours', hoursInterval: 1 });
+    expect(rule({ locked: [{ label: 'Timezone', value: 'Asia/Kolkata' }] })).toEqual({
+      field: 'hours',
+      hoursInterval: 1,
+    });
+  });
+});
+
 describe('the export spec table', () => {
+  it('gives Edit Fields a spec under its canonical name, not only its alias', () => {
+    // `parse` is a compatibility alias a new case must not pick, and it held the only
+    // Edit Fields spec. The generic fallback cannot emit a repeatable group, so the
+    // first case to place `edit-fields` exported `assignments: []` — a workflow that
+    // posts an empty message — and tripped the hard failure below on registration.
+    expect(N8N_NODE_SPECS['edit-fields']).toBeTruthy();
+    expect(N8N_NODE_SPECS['edit-fields']).toBe(N8N_NODE_SPECS.parse);
+  });
+
   it('covers every type any reference graph places', () => {
     const missing = new Set();
     for (const [, p] of all) {

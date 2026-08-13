@@ -185,6 +185,152 @@ EOF
 
 The most expensive failure the pipeline has is a flow that must be redesigned *after* it is written: ops-request-desk lost an outcome that way. Every rule that forces such a redesign is mechanical and already stated in `TEMPLATE.md` §3.
 
+> **Revised 2026-08-11, after the first cut shipped and was run against all three real specs.**
+> Two defects in the original version below, both in the plan, not the implementer: the token
+> scan was document-wide, so a spec's own slug, its schema/column field names, and prose about
+> OTHER cases' aliases — all indistinguishable from a node id by shape alone — were read as node
+> placements; and the section parser assumed `TEMPLATE.md`'s pristine `## N.` numbering, which a
+> *resolved* spec (one already turned into a real, shipped case) is not obliged to keep verbatim.
+> The fix below is "scope + soften": section-finding by heading keyword rather than a fixed
+> number, every node-token rule scoped to the nodes section alone, and an unrecognised token
+> demoted to a warning (`unknown-token`) because a field name shaped like a node id is the common
+> case, not the rare one. The code blocks and Step 7 below reflect the corrected version.
+>
+> **Revised again 2026-08-11, round 2.** The coordinator confirmed the residual above was real
+> and identified a second defect the first revision missed: the `type-reused` residual was one
+> class of bug — reuse must be counted over the node each list item is ABOUT (its FIRST
+> backticked token), not every backtick in the section, so a later item's prose can refer back to
+> an already-placed node ("the brain attached to the `information-extractor` step"; a
+> parenthetical citing the template's own worked `schedule` example) without that counting as
+> reuse. `firstTokenOfListItems()` implements this: a list-item line (numbered `1.`/`2.` or
+> bulleted `-`/`*`, with an optional leading `>` and an optional `**bold**` wrapper) contributes
+> only its first backticked token; a continuation line with no list marker contributes nothing.
+> Both `ops-request-desk.md` and `low-stock-morning-post.md` now pass.
+>
+> The second defect was the heading-keyword lists themselves being too narrow:
+> `trial-signup-desk.md` uses "Node vocabulary" and "The cases the flow gets tested on", neither
+> of which matched "the nodes"/"nodes this case needs" or "examples"/"test it with" — so all four
+> node-token rules silently skipped on it, which is worse than erroring. The keyword lists are now
+> broad word-boundaried matches: nodes on `node`/`nodes` (excluding a heading that also says
+> "never use"/"alias", which also talks about node names), flow on `flow` alone, examples on
+> `example(s)`/`case(s)`/`test`/`tested`. One correctness fix this required: every case spec
+> carries exactly one level-1 heading, its own title ("# Case spec — …" / "# Case brief — …"),
+> and that title always contains the word "case" — so without excluding level-1 headings from
+> candidates, the title would win the examples-section lookup on every spec (it is always the
+> first heading in the document) and "the examples section" would silently become the entire rest
+> of the file. `findSection()` now only considers headings at level 2 or deeper.
+>
+> **With both fixes, `ops-request-desk.md` and `low-stock-morning-post.md` exit 0.
+> `trial-signup-desk.md` does not — and the reason is now a genuine, different finding, not a
+> linter bug in either fix above.** Its "Node vocabulary" section, previously never scanned
+> because its heading didn't match, is now found and read, and it contains two things that were
+> always true of the document and are only now visible:
+>
+> 1. **`legacy-alias` on `action`.** Row 4 of the vocabulary table gives the "Send Reply (Gmail)"
+>    node's Type as `` `action` `` instead of `` `gmail` `` — a real, stale value in the spec
+>    text (the case was almost certainly built correctly against the real catalog; the `.md`
+>    documentation simply never got the type name updated). This is out of scope to fix here:
+>    `docs/case-specs/` is a fixture this task must not edit.
+> 2. **`splitter-without-paths` on `switch`.** The document's own "Distractors worth offering"
+>    list includes `` `switch` `` with the note "reaching for a router in a flow that has nothing
+>    to route" — i.e. `switch` is named ONLY as a wrong-answer bait node; the flow is explicitly
+>    linear. `hasSplitterToken` reads from the full nodes-section token scan (unchanged by this
+>    round's fix, which only narrowed `type-reused`'s source), so it cannot tell a distractor
+>    mention from a real placement, and the flow section correctly has no path table for a
+>    splitter that isn't actually in the flow. This is the SAME class of problem as the
+>    `type-reused` fix above — a token that quotes a node without the case using it — just
+>    surfacing through a different rule (`hasSplitterToken`) that this round's instructions did
+>    not authorise touching ("keep every other rule ... exactly as it is now"). Flagged as a
+>    known, reported, unresolved residual rather than fixed by widening scope beyond what was
+>    specified.
+>
+> **Revised a third time 2026-08-11, round 3.** The coordinator independently verified both round-2
+> findings against the spec text AND the shipped case, and they split two ways:
+>
+> - **`legacy-alias` on `action` is a TRUE POSITIVE and stays.** The shipped
+>   `packages/problems/trial-signup-desk` really does have `nodeSetup` keyed by
+>   `form-trigger, http-request, google-sheets, action` — two compatibility aliases are live in
+>   shipped content, not just in the `.md` documentation. This is the linter earning its keep, not
+>   a bug to silence.
+> - **`splitter-without-paths` on `switch` was a real defect, fixed properly this round**, via two
+>   changes to how a "placement" is recognised:
+>   1. **Placement extraction now understands table rows, not just list items.**
+>      `trial-signup-desk.md` expresses its actual answer as a markdown table
+>      (`` | 1. Trigger | On form submission | `form-trigger` | … | ``), which round 2's
+>      list-item-only logic had nothing to protect — every token in that table was still read from
+>      the section-wide scan. `placements()` now covers both shapes: a list item contributes its
+>      first backticked token (round 2, unchanged); a table row contributes the first backticked
+>      token IN THAT ROW that is a real `NODE_CATALOG` entry (the Type column is what a table names
+>      the node; other columns carry their own, unrelated backticked text).
+>   2. **Distractor blocks are excluded from placement-derived rules.** A block whose heading OR
+>      bold paragraph lead-in matches `/distractor|tempting wrong|wrong pick|worth offering/i` names
+>      nodes that must NOT be placed — `switch` sits only in exactly such a block
+>      ("**Distractors worth offering** — each is a plausible wrong pick…"). `stripDistractors()`
+>      removes that block (heading or bold lead-in, to the next block of either kind, or to the end
+>      of the section) from the text `type-reused`, `splitter-without-paths` and `ai-without-model`
+>      read. `unknown-token` and `legacy-alias` are explicitly UNCHANGED and stay section-wide,
+>      including distractor blocks — the point above about `action` is exactly why: an alias
+>      offered as bait is still a real defect with the wrong name.
+>   `hasSplitterToken` and `ai-without-model` now read this same distractor-excluded placement set
+>   instead of the raw section-wide token scan, per this round's explicit instruction.
+>
+> **Result: `ops-request-desk.md` and `low-stock-morning-post.md` exit 0.
+> `trial-signup-desk.md` exits 1 with exactly one error — `legacy-alias` on `action` — and no
+> `splitter-without-paths`.** One pre-existing, unrelated warning remains: the examples section
+> (found correctly) uses "The deliberate gap — the degraded path" rather than the literal word
+> "awkward", so `no-awkward-example` still degrades to one `section-not-found` warning. This is not
+> new to this round, not a splitter/table/distractor issue, and not something this round's
+> instructions asked to fix — flagged rather than silently addressed, same as every other residual
+> in this task's history.
+>
+> **Revised a fourth time 2026-08-12, round 4 — the last one.** An independent reviewer reproduced
+> four Important defects and one Minor, all in `placements()`/`lintSpec()`, none in the rules
+> themselves. Every one now has a test that fails when the fix is reverted (verified by reverting
+> each in turn), because this task's whole history is false positives and absence-only assertions
+> could not tell a working rule from a silent one.
+>
+> 1. **A list item's placement is its first CATALOG-KNOWN backticked token, not its first token.**
+>    Round 2 captured the token immediately after the list marker, so an item that leads with its
+>    own label (`` > 2. `category` (aka `switch`) — routes on category. ``) contributed NO
+>    placement at all and a switch with no paths went undetected — the exact defect the rule exists
+>    to catch. `placements()` now scans the item's own text in order and takes the first token that
+>    is a real `NODE_CATALOG` entry. Prose after it on the same line is still just prose, so the
+>    round-2 back-reference protection is intact.
+> 2. **A table row's placement comes from its TYPE CELL, not from anywhere in the row.** Round 3
+>    took the first catalog-known token in the whole row, so a descriptive cell mentioning another
+>    node (`` | 2 | Notify (replaces the old `slack` step) | `gmail` | ``) was misattributed and
+>    produced a bogus `type-reused`. The row's cells are now read first and the FIRST cell whose
+>    entire trimmed content is a single backticked, catalog-known token (with or without a
+>    `**bold**` wrapper) wins. Only when no cell has that shape does the row fall back to a
+>    catalog-known token elsewhere in it, and then the **LAST** one — a type column sits to the
+>    right of a label column in every spec on disk.
+> 3. **Only TOP-LEVEL list items count.** The round-2 pattern accepted any indentation, so a
+>    sub-bullet elaborating on a real placement (`` >   - `gmail`: also used for retries… ``) was
+>    counted as a second `gmail` and fired `type-reused`. Indentation is now measured after
+>    stripping `>` blockquote markers (and one space per marker), and an item two or more spaces
+>    deeper than its list's top level is elaboration, not a placement. A blank line separates the
+>    items of a loose list; unindented prose, a heading or a table ends the list.
+> 4. **`section-not-found` now has positive tests.** It had only ever been asserted ABSENT, so a
+>    `findSection()` that regressed to always returning `''` — or a changed message — would have
+>    kept `npm test` green. Two tests now assert it FIRES with its exact message: when the nodes
+>    section is absent entirely, and when a splitter is placed but there is no flow section at all.
+> 5. **Minor: one issue per distinct token per rule.** `unknown-token`/`legacy-alias` iterated raw
+>    occurrences, so `ops-request-desk.md` printed the identical `` `detail` `` warning twice, which
+>    reads as a bug in the linter. The nodes-section token list is deduplicated for those two rules
+>    only; the placement set is untouched, because `type-reused` needs every placement to count.
+>
+> Unchanged on purpose, and load-bearing: `nodeTokens(md)` keeps its document-wide, deduplicated
+> behaviour (Task 3's brief-shrinker consumes it directly); `legacy-alias` and `unknown-token` stay
+> distractor-INCLUSIVE, so an alias offered as bait is still a real defect; `legacy-alias`,
+> `type-reused`, `ai-without-model` and `splitter-without-paths` stay errors and everything else a
+> warning; and a missing section is always a warning naming what it skipped, never an error.
+>
+> **Result, verified by running it: `low-stock-morning-post.md` exits 0 with no output lines;
+> `ops-request-desk.md` exits 0 with the `` `detail` `` warning appearing exactly ONCE (was twice);
+> `trial-signup-desk.md` exits 1 with exactly one error — `legacy-alias` on `` `action` ``, the true
+> positive on shipped content — plus its one pre-existing `section-not-found` warning about the
+> missing "awkward" marker.**
+
 **Files:**
 - Create: `packages/authoring/package.json`
 - Create: `packages/authoring/index.ts`
@@ -240,7 +386,11 @@ Run `npm install` so the workspace symlink exists.
 import { describe, it, expect } from 'vitest';
 import { lintSpec, nodeTokens } from './specLint.ts';
 
-/** A minimal spec that passes every rule, so each test can break exactly one thing. */
+/** A minimal spec that passes every rule, so each test can break exactly one thing. Node items
+ * are numbered list entries, like a real filled-in spec, and the AI model gets its OWN item
+ * (item 3) rather than being mentioned inline on the classifier's line — that is how the two real
+ * specs with an AI step actually write it, and it is what makes the model a PLACEMENT rather than
+ * just prose on someone else's line. */
 const GOOD = `
 ## 3. The shape of the flow
 | Path name | What lands here |
@@ -250,11 +400,45 @@ const GOOD = `
 
 ## 4. The nodes
 **Nodes this case needs**, in the order they run:
-> \`form-trigger\` then \`text-classifier\` with \`google-gemini-chat-model\`, then \`switch\`, ending at \`slack\` or \`gmail\`.
+> 1. \`form-trigger\` — captures the request.
+> 2. \`text-classifier\` — sorts it into a path.
+> 3. \`google-gemini-chat-model\` — the brain attached to the classifier.
+> 4. \`switch\` — routes on the category.
+> 5. \`slack\` — flags urgent ones.
+> 6. \`gmail\` — replies to everything else.
 
 ## 5. Examples to test it with
 **The awkward one — Required.**
 > A submission naming a product nobody stocks, which matches no path.
+`;
+
+/**
+ * A "resolved" spec shaped like `trial-signup-desk.md`: no `## 3.`/`## 4.` numbering, no `>`
+ * blockquote answer format, and backticked field names sitting right next to real node names —
+ * exactly the shape that turned a whole-document, TEMPLATE.md-shaped scan into a false-positive
+ * machine on every already-shipped case.
+ */
+const RESOLVED = `
+# Case spec — Ferry Booking Desk
+
+## 1. Identity
+| Field | Value |
+|---|---|
+| **Slug** | \`ferry-booking-desk\` |
+
+## 2. The scenario
+Passengers submit \`subject\` and \`urgency\` values; the sheet also carries a \`bean\` column left
+over from a copy-pasted template — none of these are nodes.
+
+## 3. Node vocabulary
+
+| Stage | Node | Type | Purpose |
+|---|---|---|---|
+| 1 | Trigger | \`form-trigger\` | Captures the booking |
+| 2 | Notify | \`gmail\` | Confirms the booking |
+
+## 4. The cases the flow gets tested on
+Nothing unusual.
 `;
 
 describe('lintSpec', () => {
@@ -262,10 +446,10 @@ describe('lintSpec', () => {
     expect(lintSpec(GOOD).filter((i) => i.level === 'error')).toEqual([]);
   });
 
-  it('rejects a node type that does not exist', () => {
+  it('flags a node type that does not exist as a warning, not an error', () => {
     const issues = lintSpec(GOOD.replace('`slack`', '`slack-notifier`'));
-    const unknown = issues.find((i) => i.rule === 'unknown-node');
-    expect(unknown?.level).toBe('error');
+    const unknown = issues.find((i) => i.rule === 'unknown-token');
+    expect(unknown?.level).toBe('warning');
     expect(unknown?.message).toContain('slack-notifier');
   });
 
@@ -284,14 +468,17 @@ describe('lintSpec', () => {
   });
 
   it('rejects the same node type used twice, because nodeSetup is keyed by type', () => {
-    const twice = GOOD.replace('ending at `slack` or `gmail`', 'ending at `slack`, then another `slack`');
+    const twice = GOOD.replace(
+      '> 6. `gmail` — replies to everything else.',
+      '> 6. `slack` — replies to everything else.'
+    );
     expect(lintSpec(twice)).toContainEqual(
       expect.objectContaining({ level: 'error', rule: 'type-reused' })
     );
   });
 
   it('rejects an AI step with no model attached', () => {
-    const noBrain = GOOD.replace(' with `google-gemini-chat-model`', '');
+    const noBrain = GOOD.replace('> 3. `google-gemini-chat-model` — the brain attached to the classifier.\n', '');
     expect(lintSpec(noBrain)).toContainEqual(
       expect.objectContaining({ level: 'error', rule: 'ai-without-model' })
     );
@@ -310,6 +497,269 @@ describe('lintSpec', () => {
   it('finds node tokens and ignores prose backticks', () => {
     expect(nodeTokens('use `switch` when `moderate` difficulty')).toContain('switch');
     expect(nodeTokens('use `switch` when `moderate` difficulty')).not.toContain('moderate');
+  });
+
+  // --- Round 1 regression coverage: a document-wide token scan, and a section parser that
+  // assumed TEMPLATE.md's pristine `## N.` structure instead of tolerating a resolved spec.
+
+  it('produces zero errors on a resolved-shaped spec whose field names look like node ids', () => {
+    expect(lintSpec(RESOLVED).filter((i) => i.level === 'error')).toEqual([]);
+  });
+
+  it('does not flag a legacy alias quoted inside a "Never use these names" block', () => {
+    const withAliasNote = GOOD.replace(
+      '## 5. Examples to test it with',
+      '### Never use these names\n\nUsing `classify` instead of `text-classifier` produces a worse challenge.\n\n## 5. Examples to test it with'
+    );
+    expect(lintSpec(withAliasNote).find((i) => i.rule === 'legacy-alias')).toBeUndefined();
+  });
+
+  // --- Round 2 regression coverage: `type-reused` was counting a node named again in prose
+  // describing an already-placed item (not a second instance), and the nodes/examples heading
+  // keywords were too narrow to find either real spec's actual heading wording.
+
+  it('finds a nodes section headed "Node vocabulary" and actually runs its rules', () => {
+    const vocab = GOOD.replace('## 4. The nodes', '## 4. Node vocabulary');
+    const notFound = lintSpec(vocab).find(
+      (i) => i.rule === 'section-not-found' && i.message.includes('nodes section')
+    );
+    expect(notFound).toBeUndefined();
+
+    // Prove the rules actually run under this heading, not just that lookup succeeds.
+    const vocabWithAlias = vocab.replace('`text-classifier`', '`classify`');
+    expect(lintSpec(vocabWithAlias).find((i) => i.rule === 'legacy-alias')).toBeDefined();
+  });
+
+  it('finds an examples section headed "The cases the flow gets tested on"', () => {
+    const cases = GOOD.replace(
+      '## 5. Examples to test it with',
+      '## 5. The cases the flow gets tested on'
+    );
+    const notFound = lintSpec(cases).find(
+      (i) => i.rule === 'section-not-found' && i.message.includes('examples section')
+    );
+    expect(notFound).toBeUndefined();
+  });
+
+  it('does not flag type-reused when a later item only refers back to an earlier node in prose', () => {
+    const backref = GOOD.replace(
+      '> 4. `switch` — routes on the category.',
+      '> 4. `switch` — routes on the category the `text-classifier` step already decided.'
+    );
+    expect(lintSpec(backref).find((i) => i.rule === 'type-reused')).toBeUndefined();
+  });
+
+  // A genuine reuse — two list items whose first token is the same node type — is covered above
+  // by "rejects the same node type used twice, because nodeSetup is keyed by type".
+
+  // --- Round 3 regression coverage: `trial-signup-desk.md` expresses its answer as a markdown
+  // TABLE, not list items, so placement extraction found nothing to protect there; and `switch`
+  // named only inside "Distractors worth offering" — explicit bait for a flow the spec itself
+  // calls linear — was read as a real placement and wrongly demanded a path table for it.
+
+  it('sees a node placed in a table row as a placement (a genuine table-based splitter with no paths still errors)', () => {
+    const tableSpec = `
+## 3. The shape of the flow
+| Path name | What lands here |
+|---|---|
+| urgent | anything on fire |
+
+## 4. The nodes
+| Stage | Node | Type |
+|---|---|---|
+| 1 | Trigger | \`form-trigger\` |
+| 2 | Router | \`switch\` |
+
+## 5. Examples to test it with
+**The awkward one — Required.**
+> A submission naming a product nobody stocks, which matches no path.
+`;
+    expect(lintSpec(tableSpec)).toContainEqual(
+      expect.objectContaining({ level: 'error', rule: 'splitter-without-paths' })
+    );
+  });
+
+  it('rejects the same node type used twice across two table rows', () => {
+    const tableReuse = `
+## 4. The nodes
+| Stage | Node | Type |
+|---|---|---|
+| 1 | Trigger | \`form-trigger\` |
+| 2 | Notify | \`gmail\` |
+| 3 | Notify again | \`gmail\` |
+
+## 5. Examples to test it with
+**The awkward one — Required.**
+> A submission naming a product nobody stocks, which matches no path.
+`;
+    expect(lintSpec(tableReuse)).toContainEqual(
+      expect.objectContaining({ level: 'error', rule: 'type-reused' })
+    );
+  });
+
+  it('does not flag splitter-without-paths or type-reused for a node named only inside a distractor list', () => {
+    const distractorSpec = `
+## 3. The shape of the flow
+Linear.
+
+## 4. The nodes
+> 1. \`form-trigger\` — captures the request.
+> 2. \`gmail\` — replies.
+
+**Distractors worth offering**
+
+> - \`switch\` — reaching for a router in a flow that has nothing to route.
+> - \`gmail\` — tempting to add a second reply node here, but one is enough.
+
+## 5. Examples to test it with
+**The awkward one — Required.**
+> A submission naming a product nobody stocks, which matches no path.
+`;
+    const issues = lintSpec(distractorSpec);
+    expect(issues.find((i) => i.rule === 'splitter-without-paths')).toBeUndefined();
+    expect(issues.find((i) => i.rule === 'type-reused')).toBeUndefined();
+  });
+
+  it('still flags a legacy alias even when it is only offered as a distractor', () => {
+    const aliasDistractor = GOOD.replace(
+      '## 5. Examples to test it with',
+      '**Distractors worth offering**\n\n> - `classify` — a plausible wrong pick.\n\n## 5. Examples to test it with'
+    );
+    expect(lintSpec(aliasDistractor).find((i) => i.rule === 'legacy-alias')).toBeDefined();
+  });
+
+  // --- Round 4 regression coverage. Three of these are the placement extractor being wrong about
+  // which token on a line is the node, in both directions; the fourth is `section-not-found`
+  // having only ever been asserted ABSENT, so a `findSection` that always returned '' would have
+  // kept the suite green.
+
+  it('takes a list item placement from its first CATALOG-KNOWN token, not its first token', () => {
+    // The item leads with its own label, so `switch` is the second backticked token on the line.
+    // Reading only the first one saw no splitter at all and let a pathless router through.
+    const labelFirst = GOOD.replace(
+      '> 4. `switch` — routes on the category.',
+      '> 4. `category` (aka `switch`) — routes on the category.'
+    ).replace('| normal | everything else |\n', '');
+    expect(lintSpec(labelFirst)).toContainEqual(
+      expect.objectContaining({ level: 'error', rule: 'splitter-without-paths' })
+    );
+  });
+
+  it('does not double-count a label-first item, so its own prose is still just prose', () => {
+    const labelFirst = GOOD.replace(
+      '> 4. `switch` — routes on the category.',
+      '> 4. `category` (aka `switch`) — routes on what the `text-classifier` decided.'
+    );
+    const issues = lintSpec(labelFirst);
+    expect(issues.find((i) => i.rule === 'type-reused')).toBeUndefined();
+    expect(issues.find((i) => i.rule === 'splitter-without-paths')).toBeUndefined();
+  });
+
+  it('takes a table row placement from its type cell, not from a node named in a prose cell', () => {
+    // Row 2's description cell quotes `slack`, which row 3 actually places. Reading the row's
+    // first catalog-known token anywhere made row 2 a second `slack` placement and produced a
+    // bogus type-reused. The `switch` row and the one-path flow section are here so the same
+    // fixture also proves the rows ARE being read — an extractor that saw nothing at all would
+    // satisfy the type-reused assertion for the wrong reason.
+    const proseCell = `
+## 3. The shape of the flow
+| Path name | What lands here |
+|---|---|
+| urgent | anything on fire |
+
+## 4. The nodes
+| Stage | Node | Type |
+|---|---|---|
+| 1 | Trigger | \`form-trigger\` |
+| 2 | Notify (replaces the old \`slack\` step) | \`gmail\` |
+| 3 | Alert | \`slack\` |
+| 4 | Router | \`switch\` |
+
+## 5. Examples to test it with
+**The awkward one — Required.**
+> A submission naming a product nobody stocks, which matches no path.
+`;
+    const issues = lintSpec(proseCell);
+    expect(issues.find((i) => i.rule === 'type-reused')).toBeUndefined();
+    expect(issues).toContainEqual(
+      expect.objectContaining({ level: 'error', rule: 'splitter-without-paths' })
+    );
+  });
+
+  it('falls back to the LAST catalog-known token in a row that has no single-token type cell', () => {
+    // No cell is a bare token, so the row has to guess — and a type column sits to the RIGHT of a
+    // label column. Row 2 names `gmail` first and `switch` last, so only a last-token fallback
+    // places the router, and only then does the single path row become an error.
+    const noTypeCell = `
+## 3. The shape of the flow
+| Path name | What lands here |
+|---|---|
+| urgent | anything on fire |
+
+## 4. The nodes
+| Stage | What it does |
+|---|---|
+| 1 | starts with \`form-trigger\` |
+| 2 | not a \`gmail\` — route it with \`switch\` |
+
+## 5. Examples to test it with
+**The awkward one — Required.**
+> A submission naming a product nobody stocks, which matches no path.
+`;
+    expect(lintSpec(noTypeCell)).toContainEqual(
+      expect.objectContaining({ level: 'error', rule: 'splitter-without-paths' })
+    );
+  });
+
+  // The next two are one pair: identical inserted text, differing only in indentation. The nested
+  // one must be silent and the top-level one must fire, which is what rules out "the extractor
+  // simply stopped counting bullets."
+  it('does not count a nested sub-bullet as its own placement', () => {
+    const nested = GOOD.replace(
+      '> 6. `gmail` — replies to everything else.',
+      '> 6. `gmail` — replies to everything else.\n>   - `gmail`: also used for the retry path.'
+    );
+    expect(lintSpec(nested).find((i) => i.rule === 'type-reused')).toBeUndefined();
+  });
+
+  it('still counts a top-level bullet in the same list, so a real reuse is caught', () => {
+    const topLevel = GOOD.replace(
+      '> 6. `gmail` — replies to everything else.',
+      '> 6. `gmail` — replies to everything else.\n> - `gmail`: also used for the retry path.'
+    );
+    expect(lintSpec(topLevel)).toContainEqual(
+      expect.objectContaining({ level: 'error', rule: 'type-reused' })
+    );
+  });
+
+  it('warns section-not-found, naming the skipped rules, when there is no nodes section', () => {
+    const noNodes = GOOD.replace('## 4. The nodes', '## 4. The pieces it needs');
+    expect(lintSpec(noNodes)).toContainEqual({
+      level: 'warning',
+      rule: 'section-not-found',
+      message:
+        'could not find the nodes section — skipping unknown-token, legacy-alias, type-reused, ai-without-model',
+    });
+  });
+
+  it('warns section-not-found for the flow section when a splitter is named but no flow section exists', () => {
+    const noFlow = GOOD.replace('## 3. The shape of the flow', '## 3. The shape of it');
+    expect(lintSpec(noFlow)).toContainEqual({
+      level: 'warning',
+      rule: 'section-not-found',
+      message: 'could not find the flow section — skipping splitter-without-paths',
+    });
+  });
+
+  it('emits one warning per distinct token, not one per occurrence', () => {
+    const twice = GOOD.replace(
+      '> 2. `text-classifier` — sorts it into a path.',
+      '> 2. `text-classifier` — sorts it into a path, returning `verdict`.\n>    The `verdict` field is what the router reads.'
+    );
+    const unknown = lintSpec(twice).filter(
+      (i) => i.rule === 'unknown-token' && i.message.includes('verdict')
+    );
+    expect(unknown).toHaveLength(1);
   });
 });
 ```
@@ -353,92 +803,354 @@ const AI_ROOTS = [
 const isModel = (type: string): boolean =>
   (NODE_CATALOG as Record<string, { category?: string }>)[type]?.category === 'model';
 
-/** Every `backticked-token` shaped like a node id, in order of first appearance. */
+/**
+ * Every `backticked-token` shaped like a node id, anywhere in the document, in order of first
+ * appearance. Deliberately document-wide and unscoped by section — Task 3's brief-shrinker
+ * consumes this directly and filters by catalog membership itself, so scoping to one section
+ * belongs inside `lintSpec`, not here.
+ */
 export function nodeTokens(md: string): string[] {
   const raw = (md.match(/`[a-z][a-z0-9-]{2,}`/g) ?? []).map((t) => t.slice(1, -1));
   return [...new Set(raw)].filter((t) => !NOT_NODE_TYPES.has(t));
 }
 
-/** The body of one `## N.` section, or '' when the spec omits it. */
-function section(md: string, heading: string): string {
-  const start = md.indexOf(`## ${heading}`);
-  if (start === -1) return '';
-  const rest = md.slice(start);
-  const end = rest.indexOf('\n## ', 3);
-  return end === -1 ? rest : rest.slice(0, end);
+/** Node-shaped backticked tokens in a slice of text, in appearance order, NOT deduplicated —
+ * callers that care about reuse need every occurrence, not the unique set. */
+function tokensIn(text: string): string[] {
+  return (text.match(/`[a-z][a-z0-9-]{2,}`/g) ?? [])
+    .map((t) => t.slice(1, -1))
+    .filter((t) => !NOT_NODE_TYPES.has(t));
 }
+
+/** A list item: numbered (`1.`, `2.`) or bulleted (`-`, `*`). Group 1 is its indent, group 2 the
+ * rest of the line — the item's own text, where its tokens live. */
+const LIST_ITEM = /^([ \t]*)(?:\d+\.|[-*])[ \t]+(.*)$/;
+/** Leading `>` blockquote markers and one space per marker. A spec writes its answer inside a
+ * blockquote, so indentation has to be measured after these come off. */
+const BLOCKQUOTE = /^(?:[ \t]*>)+[ \t]?/;
+const TABLE_ROW = /^[ \t]*\|/;
+const TABLE_SEPARATOR_ROW = /^[ \t]*\|[\s|:-]+\|\s*$/;
+/** A table cell that is nothing but one backticked token, with or without a `**bold**` wrapper —
+ * the shape of a Type column, as opposed to a prose cell that happens to quote a node. */
+const TYPE_CELL = /^\*{0,2}`([a-z][a-z0-9-]{2,})`\*{0,2}$/;
+
+/** Every node-shaped backticked token on one line, in order, NOT deduplicated. */
+function lineTokens(line: string): string[] {
+  return (line.match(/`[a-z][a-z0-9-]{2,}`/g) ?? []).map((t) => t.slice(1, -1));
+}
+
+const isPlaceableType = (t: string): boolean => t in NODE_CATALOG && !NOT_NODE_TYPES.has(t);
+
+/**
+ * The node one table row places. The Type column is what names the node, so the row's own cells
+ * are read first and the FIRST cell whose entire content is a single backticked, catalog-known
+ * token wins — a description cell that mentions another node ("Notify (replaces the old `slack`
+ * step)") is prose, not a placement, and reading it as one produced a bogus `type-reused`.
+ * Only when no cell has that shape does the row fall back to a catalog-known token anywhere in
+ * it, and then the LAST one, because a type column sits to the RIGHT of a label column in every
+ * spec on disk.
+ */
+function tableRowPlacement(line: string): string | undefined {
+  const cells = line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|');
+  for (const cell of cells) {
+    const m = cell.trim().match(TYPE_CELL);
+    if (m && isPlaceableType(m[1])) return m[1];
+  }
+  const known = lineTokens(line).filter(isPlaceableType);
+  return known.length ? known[known.length - 1] : undefined;
+}
+
+/**
+ * The node each nodes-section PLACEMENT is about — one entry per list item or table row, not one
+ * per backtick. Two shapes, because a spec expresses its answer as one or the other:
+ *  - A TOP-LEVEL list item — numbered (`1.`, `2.`) or bulleted (`-`, `*`), with or without a
+ *    leading `>` blockquote marker and any `**bold**` wrapper — contributes the first
+ *    catalog-known backticked token in its own text. "First token, full stop" was wrong: an item
+ *    that leads with its label (`` 2. `category` (aka `switch`) — routes on category. ``)
+ *    contributed nothing at all, so a switch with no paths went undetected. A nested sub-item
+ *    (indented two or more spaces relative to its list's top level) is elaboration on the item
+ *    above it, not a second placement, so it contributes nothing.
+ *  - A table row — see `tableRowPlacement`.
+ * A continuation line (no list marker, not a table row) contributes nothing either, so prose is
+ * always free to refer back to an already-placed node without that reading as reuse.
+ */
+function placements(text: string): string[] {
+  const heads: string[] = [];
+  let listBase: number | null = null;
+  for (const raw of text.split('\n')) {
+    const line = raw.replace(BLOCKQUOTE, '');
+    if (TABLE_ROW.test(line)) {
+      listBase = null;
+      if (!TABLE_SEPARATOR_ROW.test(line)) {
+        const placed = tableRowPlacement(line);
+        if (placed) heads.push(placed);
+      }
+      continue;
+    }
+    const li = line.match(LIST_ITEM);
+    if (li) {
+      const indent = li[1].replace(/\t/g, '  ').length;
+      if (listBase === null || indent < listBase) listBase = indent;
+      if (indent >= listBase + 2) continue;
+      const placed = lineTokens(li[2]).find(isPlaceableType);
+      if (placed) heads.push(placed);
+      continue;
+    }
+    // A blank line separates the items of a loose list; unindented prose or a heading ends it.
+    if (line.trim() !== '' && /^[^ \t]/.test(line)) listBase = null;
+  }
+  return heads;
+}
+
+interface Heading {
+  index: number;
+  level: number;
+  text: string;
+}
+
+/** Every markdown heading in `md`, any level, in document order, with its own text. */
+function allHeadings(md: string): Heading[] {
+  const re = /^(#{1,6})[ \t]+(.*)$/gm;
+  const list: Heading[] = [];
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(md)) !== null) {
+    list.push({ index: m.index, level: m[1].length, text: m[2] });
+  }
+  return list;
+}
+
+/**
+ * The body of the first heading (in document order) whose TEXT satisfies `matches`, running to
+ * the next heading of the SAME OR HIGHER level (fewer or equal `#`s) — or to the end of the
+ * document. Returns null when nothing matches.
+ *
+ * Only headings at level 2 or deeper are candidates: every case spec carries exactly one level-1
+ * heading, the document's own title ("# Case spec — …" / "# Case brief — …"), and that title
+ * always contains the word "case" — which the examples-section keyword list below also matches.
+ * Without this floor, the title would win every examples-section lookup (it is always the FIRST
+ * heading in the document) and "the examples section" would become the entire rest of the file.
+ *
+ * This replaces indexing on `TEMPLATE.md`'s pristine `## N.` numbering, because a spec that has
+ * already been resolved into a real case rewrites its own headings ("Node vocabulary" instead of
+ * "The nodes", a different heading level, extra sections appended after §10) — the numbering is a
+ * fill-in-the-blank convention, not something a finished document is obliged to keep.
+ */
+function findSection(md: string, matches: (headingText: string) => boolean, headings: Heading[]): string | null {
+  const heading = headings.find((h) => h.level >= 2 && matches(h.text));
+  if (!heading) return null;
+  const lineEnd = md.indexOf('\n', heading.index);
+  const bodyStart = lineEnd === -1 ? md.length : lineEnd + 1;
+  const next = headings.find((h) => h.index > heading.index && h.level <= heading.level);
+  const bodyEnd = next ? next.index : md.length;
+  return md.slice(bodyStart, bodyEnd);
+}
+
+/**
+ * A markdown heading OR a bold paragraph lead-in ("**Label** …") at the start of a line — the two
+ * shapes a spec uses to introduce a labelled block within a section. Sorted by position, so the
+ * caller can strip "from this block's start to the next block's start" regardless of which kind
+ * either one is — a real spec mixes `### Sub-heading` and bare `**Bold label**` freely.
+ */
+function blockStarts(text: string): { index: number; text: string }[] {
+  const out: { index: number; text: string }[] = allHeadings(text).map((h) => ({ index: h.index, text: h.text }));
+  const boldLeadIn = /^\s*\*\*([^*]+)\*\*/;
+  let pos = 0;
+  for (const line of text.split('\n')) {
+    const m = line.match(boldLeadIn);
+    if (m) out.push({ index: pos, text: m[1] });
+    pos += line.length + 1;
+  }
+  return out.sort((a, b) => a.index - b.index);
+}
+
+/** Strip every block (see `blockStarts`) whose own label text satisfies `matches`, from its start
+ * to the next block's start, or to the end of `text`. */
+function stripBlocks(text: string, matches: (blockText: string) => boolean): string {
+  const blocks = blockStarts(text);
+  let result = text;
+  for (let i = blocks.length - 1; i >= 0; i--) {
+    if (!matches(blocks[i].text)) continue;
+    const end = i + 1 < blocks.length ? blocks[i + 1].index : text.length;
+    result = result.slice(0, blocks[i].index) + result.slice(end);
+  }
+  return result;
+}
+
+const ALIAS_HEADING = /never use|alias/i;
+
+/**
+ * Strip the two regions a nodes section can contain that name node types WITHOUT using them:
+ * a "never use these names" / aliases sub-heading (verbatim from `TEMPLATE.md`, or a spec's own
+ * pre-send checklist quoting it back), and checklist lines (`- [ ]` / `- [x]`) generally, which
+ * attest to a rule rather than declare a node. This feeds `unknown-token` and `legacy-alias`,
+ * which stay section-wide: an alias offered anywhere in the nodes section, including as a
+ * distractor, is a real defect (see `stripDistractors` below for why that is NOT true of every
+ * rule that reads this section).
+ */
+function stripQuotedNodeNames(text: string): string {
+  const headingStripped = stripBlocks(text, (t) => ALIAS_HEADING.test(t));
+  return headingStripped
+    .split('\n')
+    .filter((line) => !/^\s*-\s\[[ xX]\]/.test(line))
+    .join('\n');
+}
+
+// A distractor block — "Distractors worth offering", "Tempting wrong nodes" — deliberately names
+// nodes that must NOT be placed, so it must not feed anything that infers a placement from a
+// mention: splitter-without-paths, ai-without-model, type-reused. It stays visible to
+// unknown-token/legacy-alias (an alias offered as bait is still a bait node with the wrong name).
+const DISTRACTOR_BLOCK = /distractor|tempting wrong|wrong pick|worth offering/i;
+
+/** Strip distractor blocks from an (already alias/checklist-stripped) nodes section, leaving only
+ * the text placement-derived rules (`type-reused`, `splitter-without-paths`, `ai-without-model`)
+ * should read. A mention inside "Distractors worth offering" is bait, not a placement — the
+ * document says so explicitly ("reaching for a router in a flow that has nothing to route"). */
+function stripDistractors(text: string): string {
+  return stripBlocks(text, (t) => DISTRACTOR_BLOCK.test(t));
+}
+
+// A heading counts as the nodes section if it names nodes at all, UNLESS it is the "never use
+// these names" warning — that heading also says "names" and would otherwise self-match.
+const NEVER_USE_OR_ALIAS = /\b(never use|alias(es)?)\b/i;
+const nodesHeadingMatches = (text: string): boolean => /\bnodes?\b/i.test(text) && !NEVER_USE_OR_ALIAS.test(text);
+const flowHeadingMatches = (text: string): boolean => /\bflow\b/i.test(text);
+const examplesHeadingMatches = (text: string): boolean => /\b(example|examples|case|cases|test|tested)\b/i.test(text);
 
 /**
  * Lint one filled-in case spec.
  *
- * Every rule here has already forced a case to be redesigned AFTER it was
- * written, which is the most expensive failure this pipeline has. All of them
- * are decidable from the text, so none of them should ever cost an authoring
- * cycle again.
+ * Every rule here has already forced a case to be redesigned AFTER it was written, which is the
+ * most expensive failure this pipeline has. All of them are decidable from the text.
+ *
+ * Three things this deliberately is NOT:
+ *  - A whole-document token scan. A spec's own slug, its schema/column field names, and prose
+ *    about OTHER cases' aliases are indistinguishable from a real node id by shape alone, and the
+ *    only place node ids are actually placed is the nodes section — so every node-token rule is
+ *    scoped to it, and an unrecognised token is a WARNING (`unknown-token`), never an error,
+ *    because a field name shaped like a node id is the common case, not the rare one.
+ *  - Reliant on `TEMPLATE.md`'s exact `## N.` heading shape or wording. A resolved spec keeps
+ *    whatever heading wording and level it ended up with ("Node vocabulary", "The cases the flow
+ *    gets tested on"), so each section is found by a broad keyword match, and a section this rule
+ *    needs but genuinely cannot find degrades to a `section-not-found` warning naming which check
+ *    it skipped, rather than guessing or erroring on the absence.
+ *  - A per-backtick reuse count. `type-reused`, `splitter-without-paths` and `ai-without-model`
+ *    read the PLACEMENT set — one entry per list item or table row (see `placements`), with
+ *    distractor blocks excluded (see `stripDistractors`) — because a node named in prose, or
+ *    offered only as bait, was never actually put on the canvas. `unknown-token` and
+ *    `legacy-alias` read the wider, distractor-INCLUSIVE section text, because a real node
+ *    mentioned anywhere in the nodes section — bait or answer — is still that node, correctly or
+ *    incorrectly named.
  */
 export function lintSpec(md: string): SpecIssue[] {
   const issues: SpecIssue[] = [];
   const err = (rule: string, message: string) => issues.push({ level: 'error', rule, message });
   const warn = (rule: string, message: string) => issues.push({ level: 'warning', rule, message });
+  const sectionSkipped = (message: string) => warn('section-not-found', message);
 
-  const tokens = nodeTokens(md);
+  const headings = allHeadings(md);
+  let hasSplitterToken = false;
 
-  for (const t of tokens) {
-    if (!(t in NODE_CATALOG)) {
-      err('unknown-node', `\`${t}\` is not a registered node type — see docs/node-library-catalog.md`);
-      continue;
-    }
-    const canonical = (LEGACY_ALIASES as Record<string, string>)[t];
-    if (canonical) {
-      err('legacy-alias', `\`${t}\` is a compatibility alias kept only for existing cases — use \`${canonical}\``);
-    }
-  }
-
-  // The node list answers §4, so a type appearing twice there means the case wants
-  // one node type configured two ways. `nodeSetup` is keyed by TYPE, so both
-  // instances share one answer key and one of them gets graded wrong.
-  const nodesSection = section(md, '4.');
-  const named = (nodesSection.match(/`[a-z][a-z0-9-]{2,}`/g) ?? [])
-    .map((t) => t.slice(1, -1))
-    .filter((t) => t in NODE_CATALOG && !NOT_NODE_TYPES.has(t));
-  const seen = new Set<string>();
-  for (const t of named) {
-    if (seen.has(t)) {
-      err('type-reused', `\`${t}\` is named twice — nodeSetup is keyed by node type, so both copies share one answer key`);
-      break;
-    }
-    seen.add(t);
-  }
-
-  // A splitter's exits: §3's path table is where each one is given a destination.
-  const flow = section(md, '3.');
-  const pathRows = (flow.match(/^\|(?!\s*-)(?!\s*Path name).+\|.+\|\s*$/gm) ?? []).filter((r) =>
-    r.split('|').some((cell) => cell.trim().length > 0)
-  );
-  if (tokens.some((t) => SPLITTERS.includes(t)) && pathRows.length < 2) {
-    err(
-      'splitter-without-paths',
-      'a splitting node is named but §3 lists fewer than two paths — every exit must lead somewhere or a correct flow cannot complete its phase'
+  // --- The nodes section: unknown-token, legacy-alias, type-reused and ai-without-model all
+  // read from here, and nowhere else.
+  const nodesSectionRaw = findSection(md, nodesHeadingMatches, headings);
+  if (nodesSectionRaw === null) {
+    sectionSkipped(
+      'could not find the nodes section — skipping unknown-token, legacy-alias, type-reused, ai-without-model'
     );
+  } else {
+    const nodesSection = stripQuotedNodeNames(nodesSectionRaw);
+    // One issue per DISTINCT token: a field name mentioned twice in the nodes section is one
+    // thing to look at, and printing the identical line twice reads as a bug in the linter.
+    const named = new Set(tokensIn(nodesSection));
+
+    for (const t of named) {
+      if (!(t in NODE_CATALOG)) {
+        warn(
+          'unknown-token',
+          `\`${t}\` is not a registered node type — if it names a node this spec cannot be built; if it is a field or column name, ignore`
+        );
+        continue;
+      }
+      const canonical = (LEGACY_ALIASES as Record<string, string>)[t];
+      if (canonical) {
+        err(
+          'legacy-alias',
+          `\`${t}\` is a compatibility alias kept only for existing cases — use \`${canonical}\``
+        );
+      }
+    }
+
+    // Placement-derived rules read the distractor-excluded text: a node named only as bait was
+    // never actually put on the canvas, so it must not look like a splitter, a model-less AI
+    // step, or a reused type.
+    const placed = placements(stripDistractors(nodesSection));
+    hasSplitterToken = placed.some((t) => SPLITTERS.includes(t));
+
+    const seen = new Set<string>();
+    for (const t of placed) {
+      if (seen.has(t)) {
+        err(
+          'type-reused',
+          `\`${t}\` is named twice — nodeSetup is keyed by node type, so both copies share one answer key`
+        );
+        break;
+      }
+      seen.add(t);
+    }
+
+    if (placed.some((t) => AI_ROOTS.includes(t)) && !placed.some(isModel)) {
+      err(
+        'ai-without-model',
+        'an AI step is named with no chat model — pick `google-gemini-chat-model` or `openai-chat-model`'
+      );
+    }
   }
 
-  if (tokens.some((t) => AI_ROOTS.includes(t)) && !tokens.some(isModel)) {
-    err('ai-without-model', 'an AI step is named with no chat model — pick `google-gemini-chat-model` or `openai-chat-model`');
+  // --- The flow section: only consulted when a splitter was actually named in the nodes
+  // section, because a linear case has no exits to check.
+  if (hasSplitterToken) {
+    const flowSection = findSection(md, flowHeadingMatches, headings);
+    if (flowSection === null) {
+      sectionSkipped('could not find the flow section — skipping splitter-without-paths');
+    } else {
+      const pathRows = (flowSection.match(/^\|(?!\s*-)(?!\s*Path name).+\|.+\|\s*$/gim) ?? []).filter(
+        (r) => r.split('|').some((cell) => cell.trim().length > 0)
+      );
+      if (pathRows.length < 2) {
+        err(
+          'splitter-without-paths',
+          'a splitting node is named but the flow section lists fewer than two paths — every exit must lead somewhere or a correct flow cannot complete its phase'
+        );
+      }
+    }
   }
 
-  // §5's awkward row is what Stress Testing is built from. A blank one produces a
-  // case with nothing interesting to ask.
-  const examples = section(md, '5.');
-  const awkward = examples.slice(examples.indexOf('awkward'));
-  const answered = awkward
-    .split('\n')
-    .filter((l) => l.trimStart().startsWith('>'))
-    .some((l) => l.replace(/^\s*>\s*/, '').trim().length > 10);
-  if (!answered) {
-    err('no-awkward-example', '§5 the awkward one is blank — it is what the Stress Testing questions are built from');
+  // --- The examples section: the awkward row is what Stress Testing is built from.
+  const examplesSection = findSection(md, examplesHeadingMatches, headings);
+  if (examplesSection === null) {
+    sectionSkipped('could not find the examples section — skipping no-awkward-example');
+  } else {
+    const awkwardAt = examplesSection.toLowerCase().indexOf('awkward');
+    if (awkwardAt === -1) {
+      sectionSkipped(
+        'found the examples section but no "awkward" marker in it — skipping no-awkward-example'
+      );
+    } else {
+      const awkward = examplesSection.slice(awkwardAt);
+      const answered = awkward
+        .split('\n')
+        .filter((l) => l.trimStart().startsWith('>'))
+        .some((l) => l.replace(/^\s*>\s*/, '').trim().length > 10);
+      if (!answered) {
+        err(
+          'no-awkward-example',
+          'the awkward example is blank — it is what the Stress Testing questions are built from'
+        );
+      }
+    }
   }
 
-  if (!tokens.length) warn('no-nodes', 'no node types named anywhere in the spec');
+  if (!nodeTokens(md).length) warn('no-nodes', 'no node types named anywhere in the spec');
   return issues;
 }
 ```
@@ -446,7 +1158,7 @@ export function lintSpec(md: string): SpecIssue[] {
 - [ ] **Step 5: Run the test to green**
 
 Run: `npx vitest run packages/authoring/specLint.test.ts`
-Expected: PASS, 8 tests.
+Expected: PASS, 26 tests.
 
 - [ ] **Step 6: Add the CLI**
 
@@ -492,7 +1204,32 @@ Add to `package.json` scripts:
 - [ ] **Step 7: Run it against all three real specs**
 
 Run: `for s in trial-signup-desk ops-request-desk low-stock-morning-post; do npm run case:spec-check -- docs/case-specs/$s.md; done`
-Expected: each exits 0. **If one reports an error, read it before changing the linter** — all three specs were built successfully, so an error here is either a real latent defect worth reporting or a false positive worth fixing in `specLint.ts`. Never silence a rule to make a fixture pass without saying which of the two it was.
+
+Expected, with the shipped (round-4) implementation above — this is the actual output, not a
+prediction:
+
+- `low-stock-morning-post.md` exits **0** with **no output lines at all**.
+- `ops-request-desk.md` exits **0**, with the `unknown-token` warning on `` `detail` `` appearing
+  **exactly once** (`detail` is a genuine AI-output field name mentioned twice in the answer text;
+  round 4 emits one issue per distinct token per rule, so it no longer prints twice). A warning
+  never blocks.
+- `trial-signup-desk.md` exits **1**, with **exactly one** error: `legacy-alias` on `` `action` ``.
+  This is a TRUE POSITIVE and stays — the coordinator verified against the shipped case that
+  `packages/problems/trial-signup-desk` really does have `nodeSetup` keyed by
+  `form-trigger, http-request, google-sheets, action`, so `action` is live in shipped content,
+  not only in the `.md` documentation. `docs/case-specs/`, the case, and this rule are all
+  unchanged by this task, per its own constraints. There is **no** `splitter-without-paths` (the
+  round-2 residual — `switch` named only as a distractor — was fixed in round 3 by excluding
+  distractor blocks from placement-derived rules) and **no `section-not-found` for the nodes or
+  flow sections** (finding them is what surfaces the alias correctly). One pre-existing,
+  unrelated warning remains: the examples section is found, but its content says "The deliberate
+  gap — the degraded path" rather than the literal word "awkward", so `no-awkward-example`
+  degrades to a `section-not-found` warning for that reason alone.
+
+**If a NEW error appears anywhere that is not this one alias on `trial-signup-desk.md`**, read it
+before changing the linter — all three specs were built successfully, so a new finding is either
+a real latent defect worth reporting or a false positive worth fixing. Never silence a rule to
+make a fixture pass without saying which of the two it was.
 
 - [ ] **Step 8: Full gate and commit**
 

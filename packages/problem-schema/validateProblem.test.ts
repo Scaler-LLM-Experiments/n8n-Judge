@@ -59,13 +59,18 @@ describe('validateProblem', () => {
     expect(result.issues.some((i) => i.message.includes('at least 3 options'))).toBe(true);
   });
 
-  it('warns when a wrong probe option records no misconception', () => {
+  it('rejects a wrong probe option that records no misconception', () => {
+    // Raised from a warning on 2026-08-12: `auditProblem` always blocked on it and CLAUDE.md
+    // always documented `validateProblem()` as rejecting it, so the warning was the drifted
+    // side — and it meant `problem:check` exited 0 on a probe whose whole purpose (naming the
+    // belief behind the wrong pick) was missing.
     const p = base();
     const type = Object.keys(p.nodeProbes)[0];
     const wrong = p.nodeProbes[type].options.find((o: { correct: boolean }) => !o.correct)!;
     delete wrong.misconception;
     const result = validateProblem(p);
-    expect(result.issues.some((i) => i.level === 'warning' && i.message.includes('never surfaced'))).toBe(true);
+    expect(result.valid).toBe(false);
+    expect(result.issues.some((i) => i.level === 'error' && i.message.includes('never surfaced'))).toBe(true);
   });
 
   it('does not flag ordinary option text as an escape hatch', () => {
@@ -180,4 +185,75 @@ describe('validateProblem', () => {
       expect(validateProblem(p).issues.some((i) => i.path === 'flow.modelOptions')).toBe(false);
     });
   });
+
+  it('rejects the template settings shape, which silently marks every learner wrong', () => {
+    const p = base();
+    const type = Object.keys(p.nodeSetup)[0];
+    p.nodeSetup[type].settings = [{ key: 'onError', options: [{ value: 'stopWorkflow', correct: true }] }];
+    expect(validateProblem(p).valid).toBe(false);
+  });
+
+  it('rejects a graded setting the NDV cannot render', () => {
+    const p = base();
+    const type = Object.keys(p.nodeSetup)[0];
+    p.nodeSetup[type].settings = [{ key: 'notARealSetting', correct: 'x', why: { x: 'because', y: 'no' } }];
+    const errors = validateProblem(p).issues.filter((i) => i.level === 'error');
+    expect(errors.some((e) => e.message.includes('notARealSetting'))).toBe(true);
+  });
+
+  it('rejects a correct setting value with no explanation of its own', () => {
+    const p = base();
+    const type = Object.keys(p.nodeSetup)[0];
+    p.nodeSetup[type].settings = [
+      { key: 'executeOnce', correct: false, why: { true: 'runs once per item' } },
+    ];
+    const errors = validateProblem(p).issues.filter((i) => i.level === 'error');
+    expect(errors.some((e) => e.path.includes('executeOnce'))).toBe(true);
+  });
+
+  it('warns when only the correct value is explained, because the teaching is in the wrong ones', () => {
+    const p = base();
+    const type = Object.keys(p.nodeSetup)[0];
+    p.nodeSetup[type].settings = [{ key: 'executeOnce', correct: false, why: { false: 'once per item' } }];
+    const warnings = validateProblem(p).issues.filter((i) => i.level === 'warning');
+    expect(warnings.some((w) => w.path.includes('executeOnce'))).toBe(true);
+  });
+
+  // --- A dependent setting is only editable while its parent is on (n8n's displayOptions.show,
+  // mirrored by SettingsForm), but rubric.ts counts every graded setting in the config
+  // denominator unconditionally. Grading the child without the parent is therefore an
+  // unearnable decision that caps every learner below 100%.
+
+  it('rejects grading `maxTries` when the node does not grade `retryOnFail` at all', () => {
+    const p = base();
+    const type = Object.keys(p.nodeSetup)[0];
+    p.nodeSetup[type].settings = [{ key: 'maxTries', correct: 3, why: { 3: 'three is enough', 5: 'too many' } }];
+    const errors = validateProblem(p).issues.filter((i) => i.level === 'error');
+    expect(errors.some((e) => e.path.includes('maxTries') && e.message.includes('retryOnFail'))).toBe(true);
+  });
+
+  it('rejects grading `waitBetweenTries` when `retryOnFail` is graded correct at false', () => {
+    // Subtler and the more likely slip: the parent IS graded, so it looks answered — but a
+    // learner whose answer is correct leaves retries off, and the control never unlocks.
+    const p = base();
+    const type = Object.keys(p.nodeSetup)[0];
+    p.nodeSetup[type].settings = [
+      { key: 'retryOnFail', correct: false, why: { false: 'this call is not worth retrying', true: 'it is idempotent' } },
+      { key: 'waitBetweenTries', correct: 1000, why: { 1000: 'a second is plenty', 5000: 'too slow' } },
+    ];
+    const errors = validateProblem(p).issues.filter((i) => i.level === 'error');
+    expect(errors.some((e) => e.path.includes('waitBetweenTries') && e.message.includes('retryOnFail'))).toBe(true);
+  });
+
+  it('accepts `maxTries` when `retryOnFail` is graded correct at true', () => {
+    const p = base();
+    const type = Object.keys(p.nodeSetup)[0];
+    p.nodeSetup[type].settings = [
+      { key: 'retryOnFail', correct: true, why: { true: 'the API rate-limits', false: 'a blip loses the item' } },
+      { key: 'maxTries', correct: 3, why: { 3: 'three is enough', 5: 'too many' } },
+    ];
+    const errors = validateProblem(p).issues.filter((i) => i.level === 'error');
+    expect(errors.filter((e) => e.path.includes('maxTries'))).toEqual([]);
+  });
+
 });

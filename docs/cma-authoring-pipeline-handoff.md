@@ -64,21 +64,41 @@ brief submitted at /admin/pipeline
    ▼
 author_case      [CMA session]      write all content files, self-check, push branch auto/case-{id}
    │
-   ▼
-case_review      [CMA session #2]   fresh reviewer blind-solves the content, grades itself, verdicts
-   │  FAIL ─────────────────────────────► back to author_case (bounded loop, see §5.3)
-   │  PASS
-   ├──────────────┬──────────────────┐
-   ▼              ▼                  │
-case_audio     case_art              │   (parallel, both on the worker host)
-   │              │                  │
-   └──────┬───────┘                  │
-          ▼                          │
-    case_finalize  [worker host]  ◄──┘   authoritative build + lint + critic gate
-          │                              → draft PR via GitHub REST → Slack ping
-          ▼
-    status = awaiting_review    (human reviews, calibrates, merges)
+   ├──────────────┬──────────────┬──────────────┬──────────────┐
+   ▼              ▼              ▼              ▼              ▼
+case_review    case_review    case_review    case_audio(a)  case_art
+ understand      config         edges         write copy    draw cover
+[CMA #2]        [CMA #3]       [CMA #4]       [CMA #5]      [worker host]
+   │              │              │              │           (non-blocking)
+   └──────────────┴──────┬───────┘              │              │
+   │  ANY slice FAIL ────┼──────────────────────┼──────────────┼──► back to author_case
+   │  ALL PASS           │                      │              │    (ONE bounded cycle for
+   ▼                     ▼                      ▼              │     the whole round, §5.3)
+              REGISTER (nothing before it may register)         │
+                         │                                      │
+                         ▼                                      │
+                 case_audio(b)  [worker host]  render + upload  │
+                         │                                      │
+                         ▼                                      │
+                 case_finalize  [worker host]  ◄────────────────┘
+                         │      authoritative build + lint + critic gate
+                         │      → draft PR via GitHub REST → Slack ping
+                         ▼
+                 status = awaiting_review    (human reviews, calibrates, merges)
 ```
+
+**`case_review` is a FAN-OUT of three sessions, not one.** Each is given exactly one surface
+slice — `understand` (dissection + probes) · `config` (graded fields + graded settings) ·
+`edges` (stress questions) — and blind-solves **only** that slice, which is why `slice` is a
+**required** field of the `submit_review` result tool and why every other surface's score comes
+back `null`.
+
+A hosted port that runs one reviewer session instead of three does not degrade gracefully: the
+single agent picks a slice, nulls the other two, and returns `verdict: pass` having covered a
+third of the case — indistinguishable, from the run record, from a full pass. Three sessions per
+round is the design, the orchestrator merges their `blockers`/`notes` into one round result, and
+the round fails if **any** slice failed. The cost model is unchanged from serial review (three
+slices of one case ≈ one case), and the wall clock is one slice's instead of three.
 
 Two things to notice:
 
@@ -124,7 +144,7 @@ porting, keep the roles and swap the bodies.
 | Stage | Generic role | Runs where | Blocking? |
 |---|---|---|---|
 | `author_case` | Generate the artifact | CMA sandbox | Yes (hard gate on "needs a capability that doesn't exist") |
-| `case_review` | Independent quality gate | CMA sandbox (fresh agent) | Yes, but routes back to author |
+| `case_review` | Independent quality gate | CMA sandbox — **three fresh sessions, one per slice, concurrent** | Yes, but routes back to author; the round fails if any slice does |
 | `case_audio` | Deterministic media A | Worker host | Content failures route to author; infra failures retry then block |
 | `case_art` | Deterministic media B | Worker host | **Non-blocking** (failure becomes an unchecked PR checklist item) |
 | `case_finalize` | Authoritative verification + delivery | Worker host | Yes, but build/lint failures route back to author |
@@ -819,12 +839,20 @@ failed build on the branch, a missing or invalid media input: these are all
 fix them.
 
 ```
-case_review   FAIL ──► author_case (revision) ──► case_review   (re-review from scratch)
+case_review   FAIL ──► author_case (revision) ──► case_review   (re-review from scratch,
+                                                                 all THREE slices, fresh)
 case_audio    FAIL ──► author_case (revision) ──► case_audio    (skip re-review)
 case_finalize FAIL ──► author_case (revision) ──► case_finalize (skip re-review + media)
 ```
 
-Three implementation details that make this work:
+Four implementation details that make this work:
+
+- **A revision cycle is counted per ROUND, not per reviewer.** Three slices failing one round is
+  one cycle and one author pass fixes all of it; counting per reviewer would exhaust
+  `MAX_REVISION_CYCLES` on the first round. Merge the three slices' `blockers` (de-duplicated —
+  two slices can reach the same `nodeSetup` entry from different directions) into one revision
+  brief, and re-run **all three** slices afterwards with fresh sessions. Re-running only the slice
+  that failed loses the point of the fan-out: an author cycle can break a surface that passed.
 
 - **`resumeStage` decides where the chain re-enters.** A build fix on content
   that already passed review goes straight back to finalize; it does not need a

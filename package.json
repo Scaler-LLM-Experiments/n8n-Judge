@@ -32,11 +32,14 @@
     "problem:new": "node scripts/problem-new.mjs",
     "problem:check": "node scripts/problem-check.mjs",
     "problem:draft": "node --env-file=.env scripts/problem-draft.mjs",
+    "problem:blind": "node scripts/authoring/blind.mjs",
     "case:spec-check": "node scripts/authoring/spec-check.mjs",
+    "case:audit": "node scripts/authoring/audit.mjs",
     "case:preflight": "node --env-file=.env scripts/authoring/preflight.mjs",
     "case:verify": "node --env-file=.env scripts/authoring/verify.mjs",
     "case:run": "node --env-file=.env scripts/authoring/run-state.mjs",
     "case:cma": "node scripts/authoring/build-cma-agents.mjs",
+    "case:brief": "node scripts/authoring/brief.mjs",
     "workflows:generate": "node scripts/export-workflows.mjs"
   },
   "devDependencies": {

@@ -5,6 +5,7 @@ import expenseApprovals from './expense-approvals.json' with { type: 'json' };
 import trialSignupDesk from './trial-signup-desk.json' with { type: 'json' };
 import opsRequestDesk from './ops-request-desk.json' with { type: 'json' };
 import lowStockMorningPost from './low-stock-morning-post.json' with { type: 'json' };
+import weatherCommutePing from './weather-commute-ping.json' with { type: 'json' };
 
 /** Every problem's clip table, by slug. */
 export const voiceScripts = {
@@ -13,6 +14,7 @@ export const voiceScripts = {
   'trial-signup-desk': trialSignupDesk,
   'ops-request-desk': opsRequestDesk,
   'low-stock-morning-post': lowStockMorningPost,
+  'weather-commute-ping': weatherCommutePing,
 };
 
 /** One problem's table, or null. Shape: { version, problem, renderedWith, clips }. */

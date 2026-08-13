@@ -1,0 +1,144 @@
+{
+  "name": "Commute Weather Ping",
+  "nodes": [
+    {
+      "id": "schedule-1",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        200
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "daysInterval": 1,
+              "triggerAtHour": 9,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "http-1",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        280,
+        200
+      ],
+      "parameters": {
+        "url": "https://api.open-meteo.com/v1/forecast?latitude=12.97&longitude=77.59&current=temperature_2m,weather_code,precipitation",
+        "options": {}
+      },
+      "retryOnFail": true
+    },
+    {
+      "id": "set-1",
+      "name": "Edit Fields (Set)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        560,
+        200
+      ],
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": true,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "assign-0",
+              "name": "weather_line",
+              "value": "={{ $json.current.temperature_2m }}°C, {{ ({0:\"clear skies\",1:\"mostly clear\",2:\"partly cloudy\",3:\"overcast\",61:\"light rain\",63:\"rain\",65:\"heavy rain\"})[$json.current.weather_code] || \"unusual conditions (code \" + $json.current.weather_code + \")\" }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-1",
+              "name": "commute_note",
+              "value": "={{ $json.current.temperature_2m >= 35 ? \"Extreme heat — carry water.\" : ({0:\"Easy commute.\",1:\"Easy commute.\",2:\"Easy commute.\",3:\"Easy commute.\",61:\"Grab an umbrella.\",63:\"Grab an umbrella.\",65:\"Leave early, heavy rain.\"})[$json.current.weather_code] || \"Check the forecast before you leave.\" }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "slack-1",
+      "name": "Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.6,
+      "position": [
+        840,
+        200
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "post",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "#commute"
+        },
+        "messageType": "text",
+        "text": "={{ $json.weather_line }}. {{ $json.commute_note }}",
+        "otherOptions": {}
+      },
+      "credentials": {
+        "slackApi": {
+          "id": null,
+          "name": "Slack account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields (Set)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields (Set)": {
+      "main": [
+        [
+          {
+            "node": "Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "pinData": {}
+}

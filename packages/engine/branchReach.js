@@ -116,3 +116,46 @@ export function openBranchIds(graph, problem) {
     .filter((b) => !branchReachesReply(graph, problem, b.id))
     .map((b) => b.id);
 }
+
+/**
+ * Whether a LINEAR flow's chain reaches a configured reply.
+ *
+ * Everything above is written per BRANCH, and `openBranchIds` on a problem that declares no
+ * branches returns nothing at all — correct for a router phase, and complete silence for a
+ * case with no router. Two of the five shipped cases are linear, and they have exactly the same
+ * failure available to them: a chain that stops before a terminal, or reaches one through a node
+ * the learner never set up, cannot complete its build phase however correct it looks. The
+ * authoring audit had no rule that could see it, so `branch-dead-end` reported "no mechanical
+ * defects" on a graph it had not walked one edge of.
+ *
+ * Starts at the node with no main-flow predecessor. A sub-node (a Chat Model attached over an
+ * `ai_*` connector) has no main-flow predecessor either, so those edges are read as making their
+ * SOURCE a sub-node rather than a start — the same rule `mainSuccessor` already applies in the
+ * other direction. A graph with no start, or with several, is not linear and reports false: the
+ * caller (`auditProblem`) only asks this of a problem that declares no branches at all.
+ *
+ * @param {{nodes: Array, edges: Array}} graph the editor graph
+ * @param {Record<string, any>} problem
+ * @param {number} [maxHops] cycle/runaway guard
+ */
+export function chainReachesReply(graph, problem, maxHops = 24) {
+  const nodes = graph?.nodes ?? [];
+  const edges = graph?.edges ?? [];
+  const isSubNodeEdge = (e) => String(e.targetHandle ?? '').startsWith('ai_');
+  const subNodes = new Set(edges.filter(isSubNodeEdge).map((e) => e.source));
+  const starts = nodes.filter(
+    (n) => !subNodes.has(n.id) && !edges.some((e) => e.target === n.id && !isSubNodeEdge(e))
+  );
+  if (starts.length !== 1) return false;
+
+  let node = starts[0];
+  const seen = new Set();
+  for (let hop = 0; node && hop < maxHops; hop += 1) {
+    if (seen.has(node.id)) return false; // a loop never reaches a reply
+    seen.add(node.id);
+    if (!isConfigured(node, problem)) return false;
+    if (isTerminal(node)) return true;
+    node = mainSuccessor(graph, node.id);
+  }
+  return false;
+}

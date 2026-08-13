@@ -344,6 +344,33 @@ function condition(leftValue, rightValue, i) {
 }
 
 /**
+ * Edit Fields (Set) v3.5, shared by the canonical type and its legacy alias.
+ *
+ * The learner's job in Judge is the assignment list, so the authored
+ * `expect.assignments` is exactly the parameter payload. Defined once and registered
+ * under both `edit-fields` and `parse` below: two copies would drift, and this node's
+ * whole export is the one repeatable group the generic fallback cannot derive.
+ */
+const EDIT_FIELDS_SPEC = {
+  parameters: ({ setup }) => {
+    const rows = expectedRows(setup, 'fields');
+    return {
+      mode: 'manual',
+      includeOtherFields: true,
+      assignments: {
+        assignments: rows.map((r, i) => ({
+          id: rowId('assign', i),
+          name: r.name ?? r.key ?? `field${i + 1}`,
+          value: expr(r.expression ?? r.value ?? ''),
+          type: 'string',
+        })),
+      },
+      options: {},
+    };
+  },
+};
+
+/**
  * Per Judge node type: what it becomes in n8n.
  *
  * `parameters(ctx)` receives `{ node, problem, setup, branches }` — the
@@ -407,13 +434,30 @@ export const N8N_NODE_SPECS = {
      * convenience file is a smaller cost than a free answer on a graded field.
      */
     parameters: ({ setup }) => {
-      const field = authored(setup, 'interval')?.value ?? 'hours';
-      const at = (key) => {
-        const value = Number(authored(setup, key)?.value);
-        return Number.isFinite(value) ? value : undefined;
+      // The interval may be GRADED or merely SHOWN. A case that grades the hour has no
+      // reason to grade the interval as well — the Days interval is what makes the hour
+      // row exist in real n8n at all, so it is shown as a locked row instead. Reading
+      // only the graded field made that case export `{ field: 'hours', hoursInterval: 1,
+      // triggerAtHour: 9 }`, and n8n ignores `triggerAtHour` under an Hours interval: the
+      // convenience file fired hourly while the learner was graded on 9 a.m.
+      const shown = lockedValue(setup, 'Trigger Interval', 'Trigger interval').toLowerCase();
+      const stem = shown.replace(/s$/, '');
+      // `stem &&` is load-bearing: without it an absent row is the empty string, every
+      // candidate starts with it, and `find` returns 'seconds'.
+      const fromLocked = stem
+        ? ['seconds', 'minutes', 'hours', 'days', 'weeks', 'months', 'cronExpression'].find((f) => f.startsWith(stem))
+        : undefined;
+      const field = authored(setup, 'interval')?.value ?? fromLocked ?? 'hours';
+      const at = (key, ...lockedLabels) => {
+        const graded = Number(authored(setup, key)?.value);
+        if (Number.isFinite(graded)) return graded;
+        // Same reasoning one level down: a case that grades the hour usually SHOWS the
+        // minute, and dropping it exports "some time in the 9 o'clock hour".
+        const locked = Number(lockedValue(setup, ...lockedLabels));
+        return lockedLabels.length && Number.isFinite(locked) && lockedValue(setup, ...lockedLabels) !== '' ? locked : undefined;
       };
-      const hour = at('triggerAtHour');
-      const minute = at('triggerAtMinute');
+      const hour = at('triggerAtHour', 'Trigger at Hour');
+      const minute = at('triggerAtMinute', 'Trigger at Minute');
       if (field === 'hours' && hour === undefined && minute === undefined) {
         return { rule: { interval: [{ field: 'hours', hoursInterval: 1 }] } };
       }
@@ -523,26 +567,17 @@ export const N8N_NODE_SPECS = {
     }),
   },
 
-  parse: {
-    // Edit Fields (Set) v3.5. The learner's job in Judge is the assignment list,
-    // so the authored `expect.assignments` is exactly the parameter payload.
-    parameters: ({ setup }) => {
-      const rows = expectedRows(setup, 'fields');
-      return {
-        mode: 'manual',
-        includeOtherFields: true,
-        assignments: {
-          assignments: rows.map((r, i) => ({
-            id: rowId('assign', i),
-            name: r.name ?? r.key ?? `field${i + 1}`,
-            value: expr(r.expression ?? r.value ?? ''),
-            type: 'string',
-          })),
-        },
-        options: {},
-      };
-    },
-  },
+  parse: EDIT_FIELDS_SPEC,
+
+  // The SAME spec under the canonical type name, because `parse` is one of the ten
+  // compatibility aliases and a new case must not pick it. Without this entry the
+  // generic fallback runs, and it cannot emit a repeatable group: the Edit Fields node
+  // exports `assignments: []` and the workflow posts an empty message. Worse, the
+  // "covers every type any reference graph places" test in exportWorkflow.test.js is a
+  // deliberate hard failure — so the first case to place `edit-fields` under its real
+  // name turned the suite red at the moment it was registered, which is where
+  // `weather-commute-ping` found this.
+  'edit-fields': EDIT_FIELDS_SPEC,
 
   switch: {
     /**
