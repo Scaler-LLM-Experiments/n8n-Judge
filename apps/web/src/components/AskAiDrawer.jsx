@@ -2,6 +2,66 @@ import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { X, Lightbulb, Microphone, PaperPlaneRight } from '@phosphor-icons/react';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
+import { parseIrisMarkdown } from '../lib/irisMarkdown.js';
+
+/**
+ * Iris's reply, rendered as blocks rather than as one raw string.
+ *
+ * It used to be `{m.text}` in a div, so newlines collapsed and a three-item list arrived as
+ * a paragraph with hyphens buried mid-sentence. Nothing here interprets HTML: the parser
+ * returns data and this builds React elements from it, so a reply cannot inject markup.
+ */
+function IrisReply({ text }) {
+  const blocks = parseIrisMarkdown(text);
+  const inline = (spans) =>
+    spans.map((s, i) => {
+      if (s.kind === 'bold') return <strong key={i} style={{ fontWeight: 650 }}>{s.text}</strong>;
+      if (s.kind === 'code') {
+        return (
+          <code
+            key={i}
+            style={{
+              fontFamily: 'var(--font-mono, monospace)',
+              fontSize: '0.92em',
+              background: 'var(--surface-2)',
+              border: '1px solid var(--border-subtle)',
+              padding: '1px 4px',
+            }}
+          >
+            {s.text}
+          </code>
+        );
+      }
+      return <React.Fragment key={i}>{s.text}</React.Fragment>;
+    });
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+      {blocks.map((b, i) => {
+        if (b.kind === 'p') return <p key={i} style={{ margin: 0 }}>{inline(b.spans)}</p>;
+        const List = b.kind === 'ol' ? 'ol' : 'ul';
+        return (
+          <List
+            key={i}
+            style={{
+              margin: 0,
+              // The marker sits in the gutter so wrapped lines align under the text
+              // rather than under the bullet.
+              paddingLeft: 18,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 5,
+            }}
+          >
+            {b.items.map((item, j) => (
+              <li key={j} style={{ margin: 0 }}>{inline(item)}</li>
+            ))}
+          </List>
+        );
+      })}
+    </div>
+  );
+}
 
 // Opening prompts — generic to the problem or to n8n setup, so they make sense
 // on any screen.
@@ -159,7 +219,7 @@ export function AskAiDrawer({ onClose, context, learnerName }) {
                 <div key={i} style={{ alignSelf: 'flex-start', display: 'flex', gap: 9, maxWidth: '90%' }}>
                   <span style={{ width: 30, height: 30, flex: 'none' }}><MascotPlayer clip="idle" once={false} onceDone={() => {}} /></span>
                   <div style={{ background: 'var(--surface-1)', border: '1px solid var(--border-subtle)', color: 'var(--fg-1)', padding: '10px 13px', fontSize: 13.5, lineHeight: 1.5 }}>
-                    {m.text || (streaming ? 'Iris is thinking…' : '')}
+                    {m.text ? <IrisReply text={m.text} /> : (streaming ? 'Iris is thinking…' : '')}
                   </div>
                 </div>
               )))}
