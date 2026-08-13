@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { AsyncGate } from '../components/AsyncGate.jsx';
+import { StarShape } from '../components/ExperienceRating.jsx';
 
 // The admin dashboard: Overview, Cases, Completion, Learners, and a read-only
 // timeline of any single attempt.
@@ -328,6 +329,32 @@ function Completion({ funnel }) {
 
 // ---------------------------------------------------------------- learners
 
+// What a learner thought of the challenge, as they left it. Ratings are optional
+// and most attempts have none, so an unrated learner reads as a dash rather than
+// as a zero — a missing rating is not a bad one.
+function RatingCell({ stars, count }) {
+  if (stars == null || !count) return <span style={{ color: 'var(--fg-4)' }}>—</span>;
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, justifyContent: 'flex-end' }}>
+      <StarShape filled size={12} />
+      <span style={{ fontWeight: 700, color: 'var(--fg-1)' }}>{stars.toFixed(1)}</span>
+      {/* The count, because an average of one attempt is not an average. */}
+      <span style={{ fontSize: 11, color: 'var(--fg-3)' }}>({count})</span>
+    </span>
+  );
+}
+
+/** The five stars as given, for one attempt. */
+function StarRow({ stars }) {
+  return (
+    <span style={{ display: 'inline-flex', gap: 1, lineHeight: 0 }} aria-label={`${stars} of 5 stars`}>
+      {[1, 2, 3, 4, 5].map((n) => (
+        <StarShape key={n} filled={n <= stars} size={12} />
+      ))}
+    </span>
+  );
+}
+
 function Learners({ rows, onOpen }) {
   const [q, setQ] = useState('');
   const filtered = q.trim()
@@ -358,6 +385,7 @@ function Learners({ rows, onOpen }) {
                 <Th align="right">Attempts</Th>
                 <Th align="right">Completed</Th>
                 <Th align="right">Avg score</Th>
+                <Th align="right">Rating</Th>
                 <Th align="right">Last active</Th>
                 <Th />
               </tr>
@@ -371,6 +399,9 @@ function Learners({ rows, onOpen }) {
                   <Td align="right" mono>{l.completed}</Td>
                   <Td align="right" mono>
                     <span style={{ color: scoreColor(l.avgScore), fontWeight: 700 }}>{l.avgScore ?? '—'}</span>
+                  </Td>
+                  <Td align="right" mono>
+                    <RatingCell stars={l.avgRating} count={l.ratings} />
                   </Td>
                   <Td align="right" mono>{fmtDate(l.lastActive)}</Td>
                   <Td align="right">
@@ -501,6 +532,18 @@ function SessionDrawer({ userId, onClose }) {
                     <div style={{ fontSize: 11.5, color: 'var(--fg-3)', marginTop: 3 }}>
                       {s.status === 'COMPLETED' ? 'Completed' : 'Unfinished'} · {fmtDate(s.startedAt)} · {s.events} events
                     </div>
+                    {/* What they said about this attempt. The stars are on the
+                        learner row already; the words only exist here. */}
+                    {s.rating != null ? (
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 7, marginTop: 7 }}>
+                        <StarRow stars={s.rating} />
+                        {s.ratingText ? (
+                          <span style={{ fontSize: 11.5, lineHeight: 1.5, color: 'var(--fg-2)' }}>“{s.ratingText}”</span>
+                        ) : (
+                          <span style={{ fontSize: 11.5, color: 'var(--fg-4)' }}>no comment</span>
+                        )}
+                      </div>
+                    ) : null}
                   </button>
                 ))}
               </div>

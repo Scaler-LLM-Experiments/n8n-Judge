@@ -3,7 +3,7 @@
 **The single source of truth for what's built and what's next.** Update this file as work
 lands — don't start a new handoff doc.
 
-Last updated: 2026-08-06 · Branch: `main`
+Last updated: 2026-08-13 · Branch: `sudhanva/faster-case-authoring`
 
 ---
 
@@ -22,7 +22,7 @@ Milestones have been completed out of order. What is actually true, per mileston
 | M1 auth + problems from the DB | ✅ complete |
 | **M1.5 fidelity + assessment** | ⬅ **current.** A1, A2, A4/C1, B1, B5 done; B6 partly; rubric wired |
 | M2 persistence + tracing | ✅ complete — resume lands on the recorded point as of 2026-07-31 |
-| M3 queue + grading + ratings | ⚠️ **half done** — scoring + Claude narrative live; no worker service, no ratings |
+| M3 queue + grading + ratings | ⚠️ **half done** — scoring, Claude narrative and ratings live; no worker service |
 | M4 admin analytics | ✅ landed early — overview, cases, completion funnel, learners, admins |
 | **M5 authoring** | ⚠️ mostly done — the CLI pipeline (`problem:new/check/draft`) plus the **agent pipeline** (`/author-case`, see below); no admin editor |
 | M6 voice · M7 SQS | M6 largely done in practice (see Voice); M7 not started |
@@ -272,9 +272,28 @@ the session's own `TraceEvent` rows through `attemptsFromTrace()` → `scoreSess
 the score before calling Claude (one upserted `GradingReport` per session), and degrades to
 score-only when there is no API key.
 
+**Done (2026-08-13): ratings.** The Result screen asks "How was your experience?" in the first
+fold — five stars plus a comment whose prompt follows the band — ported from the for-emergent
+simulator, restyled to this design system. `POST /api/sessions/[id]/rating` upserts one `Rating`
+row per attempt after checking the session belongs to the caller; the challenge and the learner
+are read off the session row, never from the request.
+
+It is deliberately **not** a `TraceEvent`: a rating is not a decision, the rubric never replays
+it, and it takes no per-session advisory lock because it writes its own table. Every write is
+fire-and-forget with a localStorage copy first ([feedback.ts](apps/web/src/lib/feedback.ts)), so
+nothing about collecting feedback can break the report. A star persists on click — most learners
+never type a word — and a typed-but-unsent comment is kept on blur.
+
+Admin reads it back in two places: an **average-stars column on the Learners row** (with the
+count, because an average of one attempt is not an average) and the **stars plus the comment on
+each attempt** in that learner's drill-down, which is the only place the words appear. The
+learner average is a scalar subquery, not another `LEFT JOIN` — a session can carry more than one
+`GradingReport`, which would have counted one rating once per report.
+
 **Not done:** there is no **worker service** — grading happens inline in the request, so there
-is no queue consumer, no SSE, and no re-grade path. **Ratings are not built** (the `Rating`
-table exists; nothing writes to it). `runOutcome`/`timeline` still reach Claude as `null`/`[]`.
+is no queue consumer, no SSE, and no re-grade path. `runOutcome`/`timeline` still reach Claude as
+`null`/`[]`. Nothing aggregates ratings **per case** yet (the Cases tab has no rating column), so
+"which challenge do learners rate worst" is still a hand-written query.
 
 ### M4 — Admin analytics ✅ (landed early)
 
@@ -350,9 +369,10 @@ hosted Claude Managed Agents is a config step, not a rewrite —
 - `scripts/authoring/preflight.mjs` checks everything a run needs *before* the stages that
   spend money; `run-state.mjs` keeps one JSON file per run whose fields are already the
   `case_pipeline` / `case_pipeline_stages` columns.
-- Input is [docs/case-spec-template.md](docs/case-spec-template.md). The **hard human gate** is
-  a spec needing a node type outside the 23 in `NODE_CATALOG` — the run blocks rather than
-  substituting a near-miss, because adding a type is a code change in two files.
+- Input is [docs/case-authoring/TEMPLATE.md](docs/case-authoring/TEMPLATE.md) (filled in with
+  `STARTER-PROMPT.md`; `docs/case-spec-template.md` is now only a pointer to it). The **hard
+  human gate** is a spec needing a node type outside `NODE_CATALOG` — the run blocks rather than
+  substituting a near-miss, because adding a type is a code change in five places.
 - `--fake` walks every stage and skips only the four things that spend or touch shared state.
 
 Building it fixed the last red test: `balanceOptions.test.ts` asserted the *live registry* was
@@ -387,6 +407,28 @@ What the run proved, beyond "it works":
 filters on that map rather than falling back — now test-enforced); `simulate.js` ends its walk at
 the first `action` node, so a "log it **and** notify" flow narrates only the first; and the
 `balanceOptions` characterisation test constrained the catalogue instead of its fixture.
+
+**In progress (branch `sudhanva/faster-case-authoring`, 2026-08-06 → 08-12): cutting a run from
+95–153 minutes to ~40–45.** The principle is that anything a *rule* can decide must be decided
+before an agent is spawned, so the logic moved out of prompts and into a package —
+[packages/authoring/](packages/authoring/) (`specLint.ts` · `briefingPack.ts` · `audit.ts`),
+imported by `scripts/authoring/*` and unit-tested.
+
+- **`npm run case:spec-check -- docs/case-specs/<slug>.md`** lints a filled-in spec in ~1s.
+  Every rule in it has already forced a case to be redesigned *after* it was written.
+- **`npm run case:brief -- <slug> <spec>`** writes `.authoring-runs/brief-<slug>.md`: the ~ten
+  nodes this case might use, instead of handing the author agent all 200 catalog types.
+- **`npm run case:audit -- <slug>`** decides the mechanical half of a review in under a second
+  — blockers (a learner would be graded wrongly) separated from notes (for the PR). Run before
+  review is spawned, not after; a 29-minute round should not be spent on what a rule can say.
+- **`npm run problem:blind -- <slug>`** emits exactly what a learner's browser gets. Every
+  reviewer used to hand-write this harness into `/tmp` — setup cost per round, and a harness an
+  agent can get subtly wrong while reporting success. (Three reviewers also shared one `/tmp`
+  path, so they overwrote each other.)
+- **`case_review` fans out to three slices while narration is written in parallel**, and the
+  cover is drawn before registration so art is off the critical path.
+- Found in passing: **node `settings` were never validated** — a graded surface nothing checked
+  — plus eight silent checks that never fired, and `nodeSetup` keys for nodes no phase places.
 
 **Not done:** the in-app editor
 (`/admin` draft → form/JSON editing with live validation → `BuildPreview` → versioned publish

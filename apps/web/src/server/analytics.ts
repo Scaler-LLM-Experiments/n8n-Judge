@@ -169,6 +169,10 @@ export interface LearnerRow {
   attempts: number;
   completed: number;
   avgScore: number | null;
+  /** Mean stars this learner gave, across every attempt they rated. */
+  avgRating: number | null;
+  /** How many attempts they rated — an average of one is not an average. */
+  ratings: number;
   lastActive: string | null;
 }
 
@@ -182,6 +186,8 @@ export async function getLearners(limit = 200): Promise<LearnerRow[]> {
       attempts: bigint;
       completed: bigint;
       avgscore: number | null;
+      avgrating: number | null;
+      ratings: bigint;
       lastactive: Date | null;
     }>
   >`
@@ -189,6 +195,12 @@ export async function getLearners(limit = 200): Promise<LearnerRow[]> {
            COUNT(s.id)                                        AS attempts,
            COUNT(s.id) FILTER (WHERE s.status = 'COMPLETED')   AS completed,
            AVG(g."understandingScore")                         AS avgscore,
+           -- Scalar subqueries, NOT another LEFT JOIN. A session can carry more
+           -- than one GradingReport (a re-grade appends a row), so joining
+           -- Rating alongside would count one rating once per report and skew
+           -- the average. Both read the Rating_userId index.
+           (SELECT AVG(r.stars) FROM "Rating" r WHERE r."userId" = u.id)  AS avgrating,
+           (SELECT COUNT(*)     FROM "Rating" r WHERE r."userId" = u.id)  AS ratings,
            MAX(COALESCE(s."completedAt", s."startedAt"))       AS lastactive
     FROM "User" u
     LEFT JOIN "Batch" b ON b.id = u."batchId"
@@ -209,6 +221,10 @@ export async function getLearners(limit = 200): Promise<LearnerRow[]> {
     attempts: Number(r.attempts),
     completed: Number(r.completed),
     avgScore: r.avgscore != null ? Math.round(Number(r.avgscore)) : null,
+    // One decimal: a rating average is over at most a handful of attempts, and
+    // rounding 4.5 to 5 would report a score nobody gave.
+    avgRating: r.avgrating != null ? Math.round(Number(r.avgrating) * 10) / 10 : null,
+    ratings: Number(r.ratings),
     lastActive: r.lastactive ? r.lastactive.toISOString() : null,
   }));
 }
@@ -221,6 +237,10 @@ export async function getLearnerSessions(userId: string) {
     include: {
       problem: { select: { slug: true, title: true } },
       reports: { select: { understandingScore: true, status: true }, orderBy: { createdAt: 'desc' }, take: 1 },
+      // What they thought of this specific attempt. An average on the learner
+      // row says something is wrong; the comment here is the only thing that
+      // says what.
+      rating: { select: { stars: true, text: true } },
       _count: { select: { events: true } },
     },
   });
@@ -234,6 +254,8 @@ export async function getLearnerSessions(userId: string) {
     completedAt: s.completedAt?.toISOString() ?? null,
     events: s._count.events,
     score: s.reports[0]?.understandingScore ?? null,
+    rating: s.rating ? s.rating.stars : null,
+    ratingText: s.rating?.text ?? null,
   }));
 }
 

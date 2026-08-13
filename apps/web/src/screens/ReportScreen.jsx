@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowRight, ArrowUUpLeft, CircleNotch, DownloadSimple, House, Info } from '@phosphor-icons/react';
 import { useHideVoiceGlow, useVoiceActions } from '../lib/VoiceContext.jsx';
 import { useSignedInUser, firstNameOf } from '../lib/useSignedInUser.js';
@@ -6,6 +6,8 @@ import { Button } from '../design-system/Button.jsx';
 import { TopBar } from '../components/TopBar.jsx';
 import { ProblemStatementPanel } from '../components/ProblemStatementPanel.jsx';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
+import { ExperienceRating } from '../components/ExperienceRating.jsx';
+import { saveFeedback } from '../lib/feedback';
 import { useMascotAskClick } from '../lib/AskIrisContext.jsx';
 import { understandingScore, countsByKind } from '@judge/engine/grading.js';
 
@@ -197,6 +199,61 @@ export function ReportScreen({
   const [showStatement, setShowStatement] = useState(false);
   const firstName = firstNameOf(useSignedInUser());
 
+  // ── Experience rating ────────────────────────────────────────────────
+  // Held here, not inside the widget, because a star has to persist the moment
+  // it is clicked — a learner who rates and then closes the tab has still told
+  // us something, and most never type a word. `saveFeedback` is fire-and-forget
+  // and cannot throw, so none of this can touch the report.
+  const [rating, setRating] = useState(null);
+  const [feedbackText, setFeedbackText] = useState('');
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+
+  const persistFeedback = useCallback(
+    (stars, comment, submitted) => {
+      void saveFeedback({
+        sessionId: sessionId ?? null,
+        attemptKey: problem?.id ?? 'preview',
+        problemId: problem?.id ?? 'preview',
+        rating: stars,
+        comment,
+        submitted,
+      });
+    },
+    [sessionId, problem?.id]
+  );
+
+  const handleRate = useCallback(
+    (n) => {
+      setRating(n);
+      // Re-rating keeps whatever they had typed; the new star value goes now.
+      persistFeedback(n, feedbackText, feedbackSubmitted);
+    },
+    [feedbackText, feedbackSubmitted, persistFeedback]
+  );
+
+  const handleCommentChange = useCallback((v) => {
+    setFeedbackText(v);
+    // Editing invalidates the "saved" confirmation until they send again.
+    setFeedbackSubmitted(false);
+  }, []);
+
+  const handleSubmitFeedback = useCallback(() => {
+    if (rating == null || !feedbackText.trim()) return;
+    setFeedbackSubmitted(true);
+    persistFeedback(rating, feedbackText, true);
+  }, [rating, feedbackText, persistFeedback]);
+
+  const handleCommentFocusChange = useCallback(
+    (focused) => {
+      // On blur, keep a typed-but-unsent draft: leaving the page with words in
+      // the box should not throw them away.
+      if (!focused && rating != null && feedbackText.trim() && !feedbackSubmitted) {
+        persistFeedback(rating, feedbackText, false);
+      }
+    },
+    [rating, feedbackText, feedbackSubmitted, persistFeedback]
+  );
+
   // The server's replayed score wins whenever there is one. The local store is
   // the fallback for the dev hash routes, which run without a session — it is
   // NOT a second opinion, and the two are never blended.
@@ -302,6 +359,22 @@ export function ReportScreen({
                 <BuildItForReal sessionId={sessionId} problem={problem} />
               </div>
             ) : null}
+
+            {/* In the first fold, under the score: this is the one moment a
+                learner is still on the screen and has an opinion. Buried under
+                the breakdown it gets scrolled past. */}
+            <div style={{ marginBottom: 26 }}>
+              <ExperienceRating
+                variant="report"
+                rating={rating}
+                comment={feedbackText}
+                submitted={feedbackSubmitted}
+                onRate={handleRate}
+                onCommentChange={handleCommentChange}
+                onSubmit={handleSubmitFeedback}
+                onCommentFocusChange={handleCommentFocusChange}
+              />
+            </div>
 
             {serverReport?.phases?.length ? (
               <Section title="Where the marks came from">
