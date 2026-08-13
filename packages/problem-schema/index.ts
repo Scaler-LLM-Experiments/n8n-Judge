@@ -8,6 +8,7 @@ export type { ProblemIssue, ValidateProblemResult } from './validateProblem.ts';
 export {
   PLAIN_LANGUAGE,
   PLAIN_LANGUAGE_DEBT,
+  plainLanguageIssues,
   capWords,
   sentencesOf,
   wordsOf,

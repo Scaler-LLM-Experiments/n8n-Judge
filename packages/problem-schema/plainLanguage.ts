@@ -234,6 +234,94 @@ export function statementIssues(statement: string): PlainLanguageIssue[] {
 }
 
 /**
+ * Every plain-language violation in a whole problem.
+ *
+ * ONE walk, called by all three consumers: `validateProblem()` raises these as errors,
+ * `npm run case:copy` reports them per case, and `registry.test.js` uses it to check that
+ * a grandfathered case really is still dirty.
+ *
+ * It exists because there were briefly three copies of this walk, and the test's copy was
+ * the weakest: it proxied "not yet rewritten" as "has a dash or a long statement", so a
+ * case with 42 long sentences and no dashes read as clean and the debt guard fired on a
+ * case that was not done. A surface listed in one walk and not another is a surface that
+ * can drift, which is the whole failure this module exists to prevent.
+ *
+ * Typed loosely on purpose: the callers include a `.mjs` script and a test, and the shape
+ * is whatever `problemSchema` produced.
+ */
+export function plainLanguageIssues(problem: any): PlainLanguageIssue[] {
+  const out: PlainLanguageIssue[] = [];
+  const prose = (path: string, text: unknown, cap = 0, what = '') => {
+    if (typeof text !== 'string' || !text) return;
+    out.push(...longSentences(path, text), ...dashIssues(path, text));
+    if (cap) out.push(...capWords(path, text, cap, what));
+  };
+
+  out.push(...statementIssues(problem?.statement ?? ''));
+  prose('tagline', problem?.tagline);
+  prose('brief', problem?.brief);
+
+  (problem?.dissection ?? []).forEach((d: any, n: number) => {
+    prose(`dissection[${n}].prompt`, d.prompt, PLAIN_LANGUAGE.MAX_QUESTION_WORDS, 'an Understand question');
+    prose(`dissection[${n}].explanation`, d.explanation, PLAIN_LANGUAGE.MAX_RESPONSE_WORDS, 'an Understand explanation');
+    prose(`dissection[${n}].wrongHint`, d.wrongHint, PLAIN_LANGUAGE.MAX_RESPONSE_WORDS, 'a wrong-answer hint');
+    for (const o of d.options ?? []) {
+      prose(`dissection[${n}].option`, o.label);
+      out.push(...optionLabelIssues(`dissection[${n}].option`, o.label));
+    }
+  });
+
+  (problem?.evalQuestions ?? []).forEach((q: any, n: number) => {
+    prose(`evalQuestions[${n}].prompt`, q.prompt, PLAIN_LANGUAGE.MAX_QUESTION_WORDS, 'a Stress Testing question');
+    prose(`evalQuestions[${n}].explanation`, q.explanation, PLAIN_LANGUAGE.MAX_EXPLANATION_WORDS, 'a Stress Testing explanation');
+    (q.options ?? []).forEach((o: unknown, j: number) =>
+      prose(`evalQuestions[${n}].option[${j}]`, String(o), PLAIN_LANGUAGE.MAX_ANSWER_WORDS, 'a Stress Testing answer')
+    );
+  });
+
+  (problem?.buildPhases ?? []).forEach((ph: any, n: number) =>
+    prose(`buildPhases[${n}].coach`, ph.coach, PLAIN_LANGUAGE.MAX_RESPONSE_WORDS, "Iris's line entering a phase")
+  );
+
+  for (const [type, setup] of Object.entries<any>(problem?.nodeSetup ?? {})) {
+    for (const l of setup.locked ?? []) prose(`${type}.locked[${l.label}]`, String(l.value ?? ''));
+    for (const f of setup.fields ?? []) {
+      prose(`${type}.${f.key}.subtitle`, f.subtitle, PLAIN_LANGUAGE.MAX_RESPONSE_WORDS, 'a field subtitle');
+      prose(`${type}.${f.key}.whyCorrect`, f.whyCorrect, PLAIN_LANGUAGE.MAX_RESPONSE_WORDS, 'a right-answer explanation');
+      prose(`${type}.${f.key}.whyWrong`, f.whyWrong, PLAIN_LANGUAGE.MAX_RESPONSE_WORDS, 'a wrong-answer hint');
+      for (const o of [...(f.options ?? []), ...(f.valueOptions ?? []), ...(f.nameOptions ?? [])]) {
+        prose(`${type}.${f.key}.why`, o.why, PLAIN_LANGUAGE.MAX_RESPONSE_WORDS, "an option's explanation");
+        // `label` is what a learner compares in a picker. An expression too long to read
+        // there belongs in `expression`, which is not learner-facing.
+        out.push(...optionLabelIssues(`${type}.${f.key}.option`, String(o.label ?? '')));
+      }
+      if (f.why && typeof f.why === 'object') {
+        for (const [aspect, byVerdict] of Object.entries<any>(f.why)) {
+          for (const [verdict, text] of Object.entries(byVerdict ?? {})) {
+            prose(`${type}.${f.key}.why.${aspect}.${verdict}`, text, PLAIN_LANGUAGE.MAX_RESPONSE_WORDS, "a list row's explanation");
+          }
+        }
+      }
+    }
+    for (const s of setup.settings ?? []) {
+      for (const [value, text] of Object.entries(s.why ?? {})) {
+        prose(`${type}.settings.${s.key}.why[${value}]`, text, PLAIN_LANGUAGE.MAX_RESPONSE_WORDS, "a setting's explanation");
+      }
+    }
+  }
+
+  for (const [type, probe] of Object.entries<any>(problem?.nodeProbes ?? {})) {
+    prose(`probe.${type}.prompt`, probe?.prompt, PLAIN_LANGUAGE.MAX_QUESTION_WORDS, 'a probe question');
+    for (const o of probe?.options ?? []) {
+      prose(`probe.${type}.option`, o.text, PLAIN_LANGUAGE.MAX_ANSWER_WORDS, 'a probe answer');
+      prose(`probe.${type}.response`, o.response, PLAIN_LANGUAGE.MAX_RESPONSE_WORDS, "Iris's reply to a probe");
+    }
+  }
+
+  return out.filter((v, i, a) => a.findIndex((x) => x.path === v.path && x.message === v.message) === i);
+}
+
+/**
  * A learner-visible choice has to be readable on one line.
  *
  * This is the rule that catches an expression grown past the point of being a choice.

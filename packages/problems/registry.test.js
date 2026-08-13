@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { problemList, problems, getProblem, defaultProblem } from './index.js';
-import { validateProblem, PLAIN_LANGUAGE_DEBT, statementIssues, dashIssues } from '@judge/problem-schema';
+import { validateProblem, PLAIN_LANGUAGE_DEBT, plainLanguageIssues } from '@judge/problem-schema';
 
 // Registry-wide invariants. Every shipped problem must clear the authoring
 // validator with zero errors AND zero warnings — warnings mean an author-facing
@@ -18,16 +18,14 @@ describe('problem registry', () => {
     });
 
     it.each(PLAIN_LANGUAGE_DEBT)('%s still has copy to fix, or it should be off the list', (slug) => {
-      const p = problems[slug];
-      // Two cheap proxies for "not yet rewritten": an over-long statement, or a dash
-      // anywhere in the problem's own strings. Both are things the rewrite removes.
-      const dirty =
-        statementIssues(p.statement).length > 0 ||
-        dashIssues(slug, JSON.stringify(p)).length > 0;
+      // The real walk, not a proxy. The first version of this guard checked for a dash
+      // or a long statement, so a case with 42 long sentences and no dashes read as clean
+      // and this fired on a case that was not done.
+      const remaining = plainLanguageIssues(problems[slug]);
       expect(
-        dirty,
-        `${slug} looks clean now. Remove it from PLAIN_LANGUAGE_DEBT so the rules apply to it.`
-      ).toBe(true);
+        remaining.length,
+        `${slug} is clean. Remove it from PLAIN_LANGUAGE_DEBT so the rules apply to it.`
+      ).toBeGreaterThan(0);
     });
 
     it('does not cover a case that was authored under the rules', () => {
