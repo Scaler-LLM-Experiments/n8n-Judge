@@ -1,7 +1,7 @@
 // What Iris asks when the learner reaches for the WRONG node, and what the report calls
 // each misconception.
 //
-// Keyed by the wrong node's type. A type with no entry here falls back to the generated
+// Keyed by the wrong node’s type. A type with no entry here falls back to the generated
 // sequence probe (four rotating framings of "a node only gets what the one before it
 // hands over"), so there is an entry for every distractor any phase makes pickable.
 //
@@ -32,7 +32,7 @@ export const nodeProbes = {
           'Exactly. So ask who would call that URL when a colleague fills in a form Priya built inside this very tool. Nothing does, unless you go and build the caller too.',
       },
       {
-        text: 'Nothing special — it watches for anything arriving, the same as any trigger',
+        text: 'Nothing special. It watches for anything arriving, the same as any trigger',
         correct: false,
         misconception: 'triggers-interchangeable',
         response:
@@ -52,7 +52,7 @@ export const nodeProbes = {
           'No. A schedule fires on the clock and never on the event, so anything arriving between ticks sits there until the next one. What starts this flow is somebody pressing submit.',
       },
       {
-        text: 'On a fixed clock — every few minutes, or at a set hour',
+        text: 'On a fixed clock. Every few minutes, or at a set hour',
         correct: true,
         response:
           'Correct, and Priya sweeping the responses each morning is a real way to work. But this flow answers people. How long should somebody wait because their request landed just after a tick?',
@@ -79,7 +79,7 @@ export const nodeProbes = {
           'It does not. A classifier is asked one question and answers it with one label; nothing else about the sentence survives the step. Four of the six columns on the Ops Log need something more than a label.',
       },
       {
-        text: 'The kind, and the routing already done — no separate split needed',
+        text: 'The kind, and the routing already done. No separate split needed',
         correct: false,
         misconception: 'classify-is-routing',
         response:
@@ -89,7 +89,7 @@ export const nodeProbes = {
         text: 'Which of the three kinds this request is, and nothing else',
         correct: true,
         response:
-          'Right, and that is genuinely half the job — the split downstream would be happy. Now open the Ops Log again and look at Subject Name, Subject Email and Detail. Where do those three come from?',
+          'Right, and that is genuinely half the job. The split downstream would be happy. Now open the Ops Log again and look at Subject Name, Subject Email and Detail. Where do those three come from?',
       },
     ],
   },
@@ -98,7 +98,7 @@ export const nodeProbes = {
     prompt: 'AI Agent is on the canvas. Who decides what happens to a request in that design?',
     options: [
       {
-        text: 'You do, by wiring the paths — the agent just makes the reading more reliable',
+        text: 'You do, by wiring the paths. The agent just makes the reading more reliable',
         correct: false,
         misconception: 'agent-is-a-better-model',
         response:
@@ -108,14 +108,14 @@ export const nodeProbes = {
         text: 'The model does, at run time, by choosing which tools to call',
         correct: true,
         response:
-          'Correct, and that is a real and useful pattern — you may well have met this exact scenario built that way. It is a different skill, though. Here YOU decide the routes and the model only reads. What does this step actually have to hand back?',
+          'Correct, and that is a real and useful pattern. You may well have met this exact scenario built that way. It is a different skill, though. Here YOU decide the routes and the model only reads. What does this step actually have to hand back?',
       },
       {
-        text: 'Nobody — it works out the whole flow from the request on its own',
+        text: 'Nobody. It works out the whole flow from the request on its own',
         correct: false,
         misconception: 'agent-builds-the-flow',
         response:
-          'An agent picks between tools you have given it; it does not invent a workflow. And there is no tool here for it to pick — the paths are the thing you are being asked to build.',
+          'An agent picks between tools you have given it; it does not invent a workflow. And there is no tool here for it to pick. The paths are the thing you are being asked to build.',
       },
     ],
   },
@@ -131,17 +131,17 @@ export const nodeProbes = {
           'Code does not take a description. It runs exactly the logic you write, line by line. Something else in the drawer does take one.',
       },
       {
-        text: 'Nothing much — Code reads the sentence and works out what it means',
+        text: 'Nothing much. Code reads the sentence and works out what it means',
         correct: false,
         misconception: 'code-is-smart',
         response:
-          'Code only does what it is told. It has no idea what a request means; it can only match what you have spelled out in advance, and people do not write requests in advance.',
+          'Code only does what it is told. It has no idea what a request means. It can only match what you spelled out in advance, and people do not write requests in advance.',
       },
       {
         text: 'Rules that look for particular words and for anything shaped like an address',
         correct: true,
         response:
-          'Right, and for the obvious ones that works. Now read this: "Please delete Riya Kapoor’s row from the Ops Log — she emailed this morning." It contains the word "log" and the word "email". Which of your rules wins?',
+          'Right, and for the obvious ones that works. Now read this: "Please delete Riya Kapoor’s row from the Ops Log. She emailed this morning." It contains the word "log" and the word "email". Which of your rules wins?',
       },
     ],
   },
@@ -153,7 +153,7 @@ export const nodeProbes = {
         text: 'Values that are already on the item, renamed or rearranged',
         correct: true,
         response:
-          'Exactly — it moves what is already there. So ask where Subject Name is meant to come from. Nothing on this item holds it yet; somebody still has to work it out of the sentence.',
+          'Exactly. It moves what is already there. So ask where Subject Name is meant to come from. Nothing on this item holds it yet; somebody still has to work it out of the sentence.',
       },
       {
         text: 'New values, worked out from what the sentence says',
@@ -163,7 +163,7 @@ export const nodeProbes = {
           'It cannot work anything out. Edit Fields copies and renames; it has no reading of the text at all. A field it cannot source stays empty.',
       },
       {
-        text: 'Nothing yet — but the spreadsheet needs its fields renamed first, so it has to be here',
+        text: 'Nothing yet. But the spreadsheet needs its fields renamed first, so it has to be here',
         correct: false,
         misconception: 'sheets-needs-renaming',
         response:
@@ -201,7 +201,7 @@ export const nodeProbes = {
     prompt: 'If is on the canvas. How many separate paths can a single If node send a request down?',
     options: [
       {
-        text: 'Two — a true path and a false path',
+        text: 'Two. A true path and a false path',
         correct: true,
         response: 'Right. Now count the kinds of request this desk has to answer differently. Does two cover it?',
       },
@@ -217,7 +217,7 @@ export const nodeProbes = {
         correct: false,
         misconception: 'chained-ifs',
         response:
-          'You can, and it half works, which is what makes it worth naming. Every extra kind of request means another node, the reading is spread over two places that can disagree, and the canvas stops showing you the three ways out at a glance.',
+          'You can, and it half works, which is what makes it worth naming. Every extra kind of request means another node, and the reading spreads over two places that can disagree. The canvas stops showing the three ways out at a glance.',
       },
     ],
   },
@@ -229,7 +229,7 @@ export const nodeProbes = {
         text: 'Whatever made an HTTP call to this workflow, as the reply to that call',
         correct: true,
         response:
-          'Correct, and there is no such caller here — nothing in this flow was started by an HTTP request. The word "respond" is doing a lot of work in that node name; it means answering a call, not answering a person.',
+          'Correct, and there is no such caller here. Nothing in this flow was started by an HTTP request. The word "respond" is doing a lot of work in that node name; it means answering a call, not answering a person.',
       },
       {
         text: 'The person who filled in the form, as a message back to them',
@@ -239,7 +239,7 @@ export const nodeProbes = {
           'It does not send anybody a message. It hands a body back to a caller that is waiting on the line, and on this path there is nobody waiting.',
       },
       {
-        text: 'The next node — it passes the response on so the flow can keep going',
+        text: 'The next node. It passes the response on so the flow can keep going',
         correct: false,
         misconception: 'respond-is-passthrough',
         response:

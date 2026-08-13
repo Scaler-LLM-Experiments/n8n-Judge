@@ -25,7 +25,7 @@ export const nodeSetup = {
     // What the INPUT pane of the NEXT node shows, and what its "Insert field…"
     // dropdown is built from. Authored here because the catalog carries one sample
     // per type shared by every case, so without this the learner is offered
-    // trial-signup-desk's form (Full Name / Email / Plan / Referral Source) on the
+    // trial-signup-desk’s form (Full Name / Email / Plan / Referral Source) on the
     // exact screen where they must write an expression against THIS form's three
     // questions — every option in the dropdown wrong, the field unanswerable from
     // the pane. Keys must match the Form Fields above exactly.
@@ -33,7 +33,7 @@ export const nodeSetup = {
       'Your name': 'Arjun Mehta',
       'Your email': 'arjun@fernwoodrobotics.com',
       'What do you need?':
-        'Log a new distributor lead — Riya Kapoor at Kapoor Automation, she’s interested in the Pro plan. riya@kapoorautomation.in',
+        'Log a new distributor lead. Riya Kapoor at Kapoor Automation, she’s interested in the Pro plan. riya@kapoorautomation.in',
     },
     locked: [
       { label: 'Form Title', value: 'Ops Desk request' },
@@ -52,7 +52,7 @@ export const nodeSetup = {
             value: 'text-only',
             label: 'Only "What do you need?"',
             correct: false,
-            why: 'The box everything is read out of, yes. But two of the Ops Log’s six columns are the requester’s own name and address, and if those can arrive blank then rows land half empty — and the Slack message that is supposed to tell Priya who asked has nobody to name.',
+            why: 'The box everything is read out of, yes. But two of the Ops Log’s six columns are the requester’s own name and address. If those can arrive blank, rows land half empty. And the Slack message that is supposed to tell Priya who asked has nobody to name.',
           },
           {
             value: 'none',
@@ -64,13 +64,13 @@ export const nodeSetup = {
             value: 'name-email',
             label: 'Your name and Your email',
             correct: false,
-            why: 'These two matter, and you have made the one box that the entire flow reads optional. A request that says nothing at all would be accepted, go to the model with no text in it, and take up a run producing nothing.',
+            why: 'These two matter, and you have made the one box that the entire flow reads optional. A request that says nothing at all would still be accepted. It reaches the model with no text in it and produces nothing.',
           },
           {
             value: 'all',
             label: 'All three',
             correct: true,
-            why: 'Right. This form asks three short questions and every one of them is load-bearing: two fill columns on the Ops Log and name the requester in Slack, and the third is the only thing there is to read. Nothing here is nice-to-have, so nothing here is optional.',
+            why: 'Right. This form asks three short questions and every one is load-bearing. Two fill columns on the Ops Log and name the requester in Slack. The third is the only thing there is to read. Nothing here is nice-to-have, so nothing here is optional.',
           },
         ],
       },
@@ -83,7 +83,7 @@ export const nodeSetup = {
     // The four attributes, as the Switch and the Sheets node downstream will see them.
     // The catalog sample is `{ output: {} }`, which showed those two nodes an empty
     // input pane and gave their dropdowns nothing to offer — on the screens where the
-    // learner maps four of the Ops Log's six columns.
+    // learner maps four of the Ops Log’s six columns.
     // The form's three answers travel WITH the four extracted ones, because that is
     // the item the Ops Log row is built from: two of its six columns are typed into
     // the form and four are worked out from the sentence. A learner mapping that row
@@ -92,7 +92,7 @@ export const nodeSetup = {
       'Your name': 'Arjun Mehta',
       'Your email': 'arjun@fernwoodrobotics.com',
       'What do you need?':
-        'Log a new distributor lead — Riya Kapoor at Kapoor Automation, she’s interested in the Pro plan. riya@kapoorautomation.in',
+        'Log a new distributor lead. Riya Kapoor at Kapoor Automation, she’s interested in the Pro plan. riya@kapoorautomation.in',
       request_type: 'log',
       subject_name: 'Riya Kapoor',
       subject_email: 'riya@kapoorautomation.in',
@@ -103,7 +103,7 @@ export const nodeSetup = {
       {
         label: 'Attributes',
         value:
-          'request_type — which of the three kinds this is\nsubject_name — the person or thing the request is about, blank if none\nsubject_email — an address written inside the request, blank if none\ndetail — one plain line saying what should be recorded, or what the message should say',
+          'request_type. Which of the three kinds this is\nsubject_name. The person or thing the request is about, blank if none\nsubject_email. An address written inside the request, blank if none\ndetail. One plain line saying what should be recorded, or what the message should say',
         kind: 'textarea',
       },
       { label: 'Auto-fix format', value: 'On' },
@@ -124,9 +124,9 @@ export const nodeSetup = {
         subtitle:
           'The form asked three questions: "Your name", "Your email" and "What do you need?". Which of those three answers is the one with anything to work out in it?',
         whyCorrect:
-          'Right. The free-text box is where all the mess lives — the name of a distributor, an address halfway through a sentence, a request that turns out to be neither. Referencing it as an expression means every submission gets read, not just this one.',
+          'Right. The free-text box is where all the mess lives. The name of a distributor, an address halfway through a sentence, a request that turns out to be neither. Referencing it as an expression means every submission gets read, not just this one.',
         whyWrong:
-          'Two of the three answers on that form are already clean values that need nobody to interpret them: a name, and an address. The third is a sentence somebody typed in a hurry, and it is the only one with four things buried in it. And if you typed a request in directly, ask what the next submission gets read as.',
+          'Two of the three answers on that form are already clean values: a name and an address. Nobody needs to interpret those. The third is a sentence somebody typed in a hurry, and it is the only one with four things buried in it.',
       },
       {
         // The instruction that makes `needs_human` real. It is a graded decision rather
@@ -141,25 +141,25 @@ export const nodeSetup = {
             value: 'blank',
             label: 'Leave request_type empty',
             correct: false,
-            why: 'An empty value is not one of the things the routing is looking for, so this request arrives at the split carrying nothing that any rule tests for. Ask yourself where an item ends up when no rule claims it, and who finds out.',
+            why: 'An empty value is not one of the things the routing looks for. The request arrives at the split carrying nothing any rule tests. Ask yourself where an item ends up when no rule claims it, and who finds out.',
           },
           {
             value: 'needs_human',
             label: 'Answer needs_human',
             correct: true,
-            why: 'Right. "This is not something I can do" is an answer, and it has to be one the model is explicitly allowed to give — otherwise every request gets forced into a shape that fits. It is also the only one of the three that is honest about the desk’s limits.',
+            why: 'Right. "This is not something I can do" is an answer, and it has to be one the model is explicitly allowed to give. Otherwise every request gets forced into a shape that fits. It is also the only one of the three that is honest about the desk’s limits.',
           },
           {
             value: 'guess',
             label: 'Pick whichever of the other two is closest',
             correct: false,
-            why: 'Forcing a guess is how a request to remove somebody’s details ends up as a brand new row about them. A request the desk cannot do is not a near miss of one it can; it is a different thing, and pretending otherwise costs more than doing nothing.',
+            why: 'Forcing a guess is how a request to remove somebody’s details ends up as a brand new row about them. A request the desk cannot do is not a near miss of one it can. It is a different thing, and pretending otherwise costs more than doing nothing.',
           },
           {
             value: 'invent',
             label: 'Make up a type that describes it',
             correct: false,
-            why: 'A free invention reads well and routes nowhere. The split downstream tests for a fixed set of values, so a type nobody planned for is a type no rule will claim — and every request is different, so the inventions never repeat.',
+            why: 'A free invention reads well and routes nowhere. The split downstream tests for a fixed set of values, so a type nobody planned for is a type no rule will claim. And every request is different, so the inventions never repeat.',
           },
         ],
       },
@@ -170,7 +170,7 @@ export const nodeSetup = {
   // is mostly locked context — but temperature decides whether the same request is read
   // the same way twice, and this flow writes to a spreadsheet on the strength of it.
   'openai-chat-model': {
-    credential: 'OpenAI — Fernwood Ops',
+    credential: 'OpenAI. Fernwood Ops',
     locked: [
       { label: 'Model', value: 'gpt-4.1-mini' },
       { label: 'Response Format', value: 'Text' },
@@ -186,7 +186,7 @@ export const nodeSetup = {
         max: 1,
         step: 0.1,
         correct: 0,
-        placeholder: '0 – 1',
+        placeholder: '0. 1',
         subtitle: 'How much the model is allowed to vary its answer between runs.',
         whyCorrect:
           'Right. At 0 the same request is read the same way every time. Two people submitting the same sentence have to get the same result, or Priya cannot trust a single row on the sheet.',
@@ -208,7 +208,7 @@ export const nodeSetup = {
       'Your name': 'Arjun Mehta',
       'Your email': 'arjun@fernwoodrobotics.com',
       'What do you need?':
-        'Log a new distributor lead — Riya Kapoor at Kapoor Automation, she’s interested in the Pro plan. riya@kapoorautomation.in',
+        'Log a new distributor lead. Riya Kapoor at Kapoor Automation, she’s interested in the Pro plan. riya@kapoorautomation.in',
       request_type: 'log',
       subject_name: 'Riya Kapoor',
       subject_email: 'riya@kapoorautomation.in',
@@ -224,7 +224,7 @@ export const nodeSetup = {
         correct: false,
         why: {
           false:
-            'Correct, leave it off. A split should not manufacture an item it has no rule for. Turning it on does not rescue a request the flow failed to understand — it fabricates one, and a fabricated row in the Ops Log looks exactly like a real one to everybody who reads it afterwards.',
+            'Correct, leave it off. A split should not manufacture an item it has no rule for. Turning it on does not rescue a request the flow failed to understand. It fabricates one, and a fabricated row in the Ops Log looks exactly like a real one to everybody who reads it afterwards.',
           true:
             'Turn this on and a request that matched no rule is pushed down the FIRST branch anyway, as an empty item. So a blank line is appended to the Ops Log with nobody’s name on it, for a request nobody understood. Run the flow and watch the last case go through.',
         },
@@ -239,7 +239,7 @@ export const nodeSetup = {
         // A rule LIST, not a dropdown: n8n's real `rules` parameter, a repeatable group
         // where each entry names an output and states what that output tests. The learner
         // builds the branches, and each one they add appears on the node — the thing a
-        // hardcoded branch list can never teach: in n8n a node's shape follows its
+        // hardcoded branch list can never teach: in n8n a node’s shape follows its
         // configuration.
         //
         // The key is `routingRules` rather than `rules` on purpose. `rules` IS a real
@@ -283,7 +283,7 @@ export const nodeSetup = {
             value: 'detail',
             label: '{{ $json.detail }}',
             correct: false,
-            why: 'The one-line summary — a sentence, written fresh for every request. You would be back to hunting for words inside prose, which is the job the reading step was added to remove.',
+            why: 'The one-line summary. A sentence, written fresh for every request. You would be back to hunting for words inside prose, which is the job the reading step was added to remove.',
           },
           {
             value: 'subject_email',
@@ -304,7 +304,7 @@ export const nodeSetup = {
             value: 'contains',
             label: 'contains',
             correct: false,
-            why: 'Looser than you need. Look at the three values written out next to each other and find the one that contains another one — that overlap is a request taking the first branch that happens to match.',
+            why: 'Looser than you need. Look at the three values written out next to each other and find the one that contains another one. That overlap is a request taking the first branch that happens to match.',
           },
           {
             value: 'isNotEmpty',
@@ -321,7 +321,7 @@ export const nodeSetup = {
             value: 'Log only',
             label: 'Log only',
             correct: false,
-            why: 'That is the name written on the wire so a human can read the canvas, not the value arriving on the item. The two are allowed to differ, and here they do — an exact match against the label never fires.',
+            why: 'That is the name written on the wire so a human can read the canvas, not the value arriving on the item. The two are allowed to differ, and here they do. An exact match against the label never fires.',
           },
           {
             value: 'delete',
@@ -348,12 +348,12 @@ export const nodeSetup = {
           categories: {
             correct: 'This output is named after one of the three answers the reading step gives, so something real can arrive on it.',
             wrong:
-              'An output only ever fires if the reading step produces the value this rule tests for. Name this one after a value the reading step is actually asked to produce — the list of those lives on that node, not on this one.',
+              'An output only ever fires if the reading step produces the value this rule tests for. Name this one after a value the reading step is actually asked to produce. The list of those lives on that node, not on this one.',
           },
           conditions: {
             correct: 'This rule tests the decision the reading step already made, matched exactly, which is what makes one request take one path.',
             wrong:
-              'Look at what this rule is testing. The thing to split on is the call that has already been made about the request, not the summary of it and not who sent it — and it should match exactly, not loosely.',
+              'Look at what this rule is testing. Split on the call that has already been made about the request. Not the summary of it, and not who sent it. And it should match exactly, not loosely.',
           },
         },
       },
@@ -364,7 +364,7 @@ export const nodeSetup = {
   // case is built around.
   'google-sheets': {
     // What the OUTPUT pane shows after Verify. The catalog sample is
-    // trial-signup-desk's row (Full Name / Plan / USD_INR_Rate), which appeared right
+    // trial-signup-desk’s row (Full Name / Plan / USD_INR_Rate), which appeared right
     // after the learner had carefully mapped THESE six columns — a different case's
     // spreadsheet presented as the result of their own work.
     sampleOutput: {
@@ -376,7 +376,7 @@ export const nodeSetup = {
       Detail: 'distributor lead, interested in the Pro plan',
       updates: { updatedRows: 1 },
     },
-    credential: 'Google Sheets — Fernwood Ops',
+    credential: 'Google Sheets. Fernwood Ops',
     locked: [
       { label: 'Document', value: 'Fernwood Ops Log' },
       { label: 'Sheet', value: 'Requests' },
@@ -405,16 +405,16 @@ export const nodeSetup = {
           'One entry per column you are filling. Name the heading exactly as it appears on the sheet, then say which value belongs under it. Two of these come off the form the requester filled in; the other four had to be worked out from the sentence they wrote.',
         nameOptions: [
           { value: 'Requested By', label: 'Requested By', correct: true, why: 'A heading the Requests sheet really has. This is the column Priya scans when she wants to know who to go back to.' },
-          { value: 'Requester Email', label: 'Requester Email', correct: true, why: 'A heading on the sheet, and the reason the form asks for an address at all — so there is a way back to whoever raised it.' },
+          { value: 'Requester Email', label: 'Requester Email', correct: true, why: 'A heading on the sheet, and the reason the form asks for an address at all. So there is a way back to whoever raised it.' },
           { value: 'Type', label: 'Type', correct: true, why: 'A heading on the sheet. It records what the desk decided this request was, which is the only way to audit the decision afterwards.' },
           { value: 'Subject Name', label: 'Subject Name', correct: true, why: 'A heading on the sheet, and the first of the four that are about the request rather than about the requester.' },
-          { value: 'Subject Email', label: 'Subject Email', correct: true, why: 'A heading on the sheet. It is blank on plenty of rows, which is fine — a blank cell still writes.' },
+          { value: 'Subject Email', label: 'Subject Email', correct: true, why: 'A heading on the sheet. It is blank on plenty of rows, which is fine. A blank cell still writes.' },
           { value: 'Detail', label: 'Detail', correct: true, why: 'A heading on the sheet, and the one that has to hold a whole sentence. Commas and apostrophes inside a value are only trouble if something tries to split the value up.' },
           {
             value: 'Date',
             label: 'Date',
             correct: false,
-            why: 'Genuinely useful, and not a column this sheet has. A value sent under a heading that does not exist is simply not written, and nothing warns you — check the column list on the panel above.',
+            why: 'Genuinely useful, and not a column this sheet has. A value sent under a heading that does not exist is simply not written, and nothing warns you. Check the column list on the panel above.',
           },
           {
             value: 'Status',
@@ -464,7 +464,7 @@ export const nodeSetup = {
             value: 'form.text',
             label: '{{ $json["What do you need?"] }}',
             correct: false,
-            why: 'The request whole and raw, including the instructions the person was giving the desk. The Detail column is meant to hold what was asked for, not the asking — and a cell holding three sentences is a cell nobody reads.',
+            why: 'The request whole and raw, including the instructions the person was giving the desk. The Detail column is meant to hold what was asked for, not the asking. And a cell holding three sentences is a cell nobody reads.',
           },
           {
             value: 'ai.output',
@@ -492,13 +492,13 @@ export const nodeSetup = {
           names: {
             correct: 'Each name matches a heading that is really on the sheet, spelled the same way, so each value has somewhere to land.',
             wrong:
-              'A name here has to be a heading the Requests sheet actually has, spelled exactly. Read the column list on the locked panel above and check this row against it — a near-miss writes nothing and says nothing.',
+              'A name here has to be a heading the Requests sheet actually has, spelled exactly. Read the column list on the locked panel above and check this row against it. A near-miss writes nothing and says nothing.',
           },
           values: {
             correct:
-              'Each row puts the value that belongs under that heading, and keeps the two sources straight: what the requester typed into the form, and what had to be worked out from their sentence.',
+              'Each row puts the right value under its heading, and keeps the two sources straight. What the requester typed, and what had to be worked out from their sentence.',
             wrong:
-              'Look at what this row is putting under that heading. Almost every mistake here is the same one: the person who ASKED and the person the request is ABOUT are two different people, and both of them have a name and an address on this item.',
+              'Look at what this row is putting under that heading. Almost every mistake here is the same one. The person who ASKED and the person the request is ABOUT are two different people, and both have an address on this item.',
           },
         },
       },
@@ -515,7 +515,7 @@ export const nodeSetup = {
       to: 'riya@kapoorautomation.in',
       subject: 'From the Fernwood ops desk',
     },
-    credential: 'Gmail — Fernwood Ops',
+    credential: 'Gmail. Fernwood Ops',
     locked: [
       { label: 'Resource', value: 'Message' },
       { label: 'Operation', value: 'Send' },
@@ -533,7 +533,7 @@ export const nodeSetup = {
             value: 'requester',
             label: '{{ $json["Your email"] }}',
             correct: false,
-            why: 'That is the person who filled in the form, and they are not who this message is for. Deepa asking for a quote to go to Riya would get the quote herself, and Riya would hear nothing — the request would look handled and would not be. It is the most visible address on the item and the warmest in your hand, because you have just mapped it into a column, which is exactly why this is the mistake people make.',
+            why: 'That is the person who filled in the form, and they are not who this message is for. Deepa asking for a quote to go to Riya would get the quote herself, and Riya would hear nothing. The request would look handled and would not be.',
           },
           {
             value: 'subject',
@@ -551,7 +551,7 @@ export const nodeSetup = {
             value: 'name',
             label: '{{ $json.subject_name }}',
             correct: false,
-            why: 'The right person, and not an address. Gmail is handed something like "Riya Kapoor" to deliver to and refuses it — and on a request that named nobody, it is handed nothing at all.',
+            why: 'The right person, and not an address. Gmail is handed something like "Riya Kapoor" to deliver to and refuses it. And on a request that named nobody, it is handed nothing at all.',
           },
         ],
       },
@@ -564,13 +564,13 @@ export const nodeSetup = {
             value: 'detail',
             label: 'The one-line summary the reading step wrote',
             correct: true,
-            why: 'Right. It is already a plain sentence saying what the message should say, written for a reader rather than for the desk — which is exactly what it was asked for.',
+            why: 'Right. It is already a plain sentence saying what the message should say, written for a reader rather than for the desk. Which is exactly what it was asked for.',
           },
           {
             value: 'raw',
             label: 'The request, exactly as it was typed',
             correct: false,
-            why: 'That forwards an internal instruction to an outsider. Riya would open a mail reading "Email Riya Kapoor at riya@… and let her know the Pro plan quote is ready" — she is being shown somebody else telling somebody else to write to her.',
+            why: 'That forwards an internal instruction to an outsider. Riya would open a mail reading "Email Riya Kapoor at riya@… and let her know the Pro plan quote is ready". She is being shown somebody else telling somebody else to write to her.',
           },
           {
             value: 'json',
@@ -591,9 +591,9 @@ export const nodeSetup = {
     sampleOutput: {
       ok: true,
       channel: '#ops-desk',
-      text: 'Arjun Mehta: Log a new distributor lead — Riya Kapoor at Kapoor Automation, she’s interested in the Pro plan. riya@kapoorautomation.in',
+      text: 'Arjun Mehta: Log a new distributor lead. Riya Kapoor at Kapoor Automation, she’s interested in the Pro plan. riya@kapoorautomation.in',
     },
-    credential: 'Slack — Fernwood',
+    credential: 'Slack. Fernwood',
     locked: [
       { label: 'Resource', value: 'Message' },
       { label: 'Operation', value: 'Send' },
@@ -620,7 +620,7 @@ export const nodeSetup = {
             value: 'general',
             label: '#general',
             correct: false,
-            why: 'Everybody at Fernwood is in here, and that is the problem: a request meant for one person, put somewhere fifty people can all assume somebody else has picked it up.',
+            why: 'Everybody at Fernwood is in here, and that is the problem. A request meant for one person, put where fifty can assume somebody else took it.',
           },
           {
             value: 'ops-alerts',

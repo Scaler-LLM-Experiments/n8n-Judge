@@ -117,7 +117,7 @@ export const sampleCases = [
     id: 'lead',
     from: 'arjun@fernwoodrobotics.com',
     subject:
-      'Log a new distributor lead — Riya Kapoor at Kapoor Automation, she’s interested in the Pro plan. riya@kapoorautomation.in',
+      'Log a new distributor lead. Riya Kapoor at Kapoor Automation, she’s interested in the Pro plan. riya@kapoorautomation.in',
     category: 'log',
     urgency: 'MEDIUM',
     branch: 'log',
@@ -164,7 +164,7 @@ export const sampleCases = [
     id: 'deletion',
     from: 'arjun@fernwoodrobotics.com',
     subject:
-      'Please delete Riya Kapoor’s row from the Ops Log — she emailed this morning to say she isn’t interested and wants her details removed.',
+      'Please delete Riya Kapoor’s row from the Ops Log. She emailed this morning to say she isn’t interested and wants her details removed.',
     category: 'needs_human',
     urgency: 'HIGH',
     branch: 'needs_human',
@@ -201,24 +201,24 @@ export const sampleCases = [
  * flow missing the brain has to say so rather than walking silently past it.
  */
 export const simulation = {
-  onNew: 'New Ops Desk request from {from} — "{subject}"',
+  onNew: 'New Ops Desk request from {from}. "{subject}"',
   trigger: '{label} fires the moment they press submit.',
   aiRead: '{label} reads the box and calls it {category}.',
-  aiNoModel: '{label} has no brain plugged in, so it cannot read anything — the request stops here.',
+  aiNoModel: '{label} has no brain plugged in, so it cannot read anything. The request stops here.',
   aiNoModelContinue:
-    '{label} has no brain plugged in, but On Error says carry on — so everything downstream works from nothing.',
+    '{label} has no brain plugged in, but On Error says carry on. So everything downstream works from nothing.',
   aiNoModelErrorOutput:
-    '{label} has no brain plugged in, so it fails to its error output. Nothing is wired there, so the request stops — but at least it is visible.',
+    '{label} has no brain plugged in, so it fails to its error output. Nothing is wired there, so the request stops. But at least it is visible.',
   parse: '{label} reads the box and calls it {category}.',
   switchNoMatch: '"{category}" matches none of the rules, so this request stops right here.',
-  switchUnwired: 'The {reply} way out is the right one, but nothing is wired to it — this request goes nowhere.',
+  switchUnwired: 'The {reply} way out is the right one, but nothing is wired to it. This request goes nowhere.',
   switchTake: '{label} sends it out through {reply}.',
   branchNoAction: 'That way out never reaches anything, so nothing happens to this request.',
   actionSend: '{targetLabel} does its one job, and nothing else happens to this request.',
   emptyReply: '{targetLabel} runs on an empty item, so it acts on a request nobody made.',
   switchAlwaysOutput:
-    'Nothing matched, but Always Output Data is on — an empty item is pushed down the first way out anyway.',
-  deadEnd: 'The flow stops here — nothing is connected next.',
+    'Nothing matched, but Always Output Data is on. An empty item is pushed down the first way out anyway.',
+  deadEnd: 'The flow stops here. Nothing is connected next.',
 };
 
 /**
@@ -233,31 +233,31 @@ export const evalQuestions = [
     id: 'unmatched-type',
     caseId: 'both-at-once',
     prompt:
-      'Meera asks for two things in one sentence. The reading step is asked for exactly one type, so it answers with something that is not one of your three. What does your flow do with that request?',
+      'Meera asks for two things in one sentence. The reading step is asked for one type, so it answers with something that is not one of your three. What happens to that request?',
     options: [
       'It leaves through the first way out, because that is what an unmatched item defaults to',
       'The run stops with an error, and every request behind it waits',
-      'Nothing at all: no row, no message, no error — and nobody finds out',
+      'Nothing at all: no row, no message, no error. And nobody finds out',
       'It goes to the channel, because anything unusual belongs in front of a person',
     ],
     correctIndex: 2,
     explanation:
-      'Your three rules are exact matches on three exact values. A fourth value is claimed by none of them, so the request reaches the split and stops there — no row, no mail, no Slack message, and no failure to look at afterwards. The only trace is a form response nobody acted on. That is why being explicit with the reading step about what to answer when a request fits neither is worth a graded decision of its own: it is what stops a fourth value ever turning up.',
+      'Your three rules are exact matches on three exact values. A fourth value is claimed by none of them, so the request reaches the split and stops there. No row, no mail, no Slack message, and no failure to look at afterwards. The only trace is a form response nobody acted on. So telling the reading step what to answer when a request fits neither is worth a graded decision. It is what stops a fourth value ever turning up.',
   },
   {
     id: 'deletion-as-log',
     caseId: 'deletion',
     prompt:
-      'Arjun asks for Riya Kapoor’s row to be removed from the Ops Log. It names the Ops Log and it uses the word "emailed", so it reads like both of the other two. Suppose the reading step calls it a record-this. What lands?',
+      'Arjun asks for Riya Kapoor’s row to be removed from the Ops Log. It names the Log and says "emailed", so it reads like both. Suppose the reading step calls it a record-this. What lands?',
     options: [
-      'Nothing — the flow cannot delete, so it skips the request',
+      'Nothing. The flow cannot delete, so it skips the request',
       'A brand new row about Riya Kapoor is added, and it looks like every other row on the sheet',
       'Riya Kapoor’s existing row is overwritten with the new details',
       'The spreadsheet step fails, because removing a row is not something it can do',
     ],
     correctIndex: 1,
     explanation:
-      'The path that runs is whichever one the type names, and that path only knows how to add. So a request to take somebody’s details off the sheet produces a second copy of them — the exact opposite of what was asked, with nothing to raise an alarm. This flow has no way to remove anything, and the honest answer to a request it cannot perform is to put it in front of a person rather than do the nearest thing it can.',
+      'The path that runs is whichever one the type names, and that path only knows how to add. So a request to take somebody’s details off the sheet produces a second copy of them. The exact opposite of what was asked, with nothing to raise an alarm. This flow has no way to remove anything. The honest answer to a request it cannot perform is to put it in front of a person.',
   },
   {
     id: 'requester-vs-subject',
@@ -265,12 +265,12 @@ export const evalQuestions = [
       'Both of the send-it-on requests were submitted by one person asking that a message reach somebody else. Suppose the outgoing address were wired to the form’s "Your email" answer instead. What would you actually see?',
     options: [
       'Both would fail, because a form answer is not a valid recipient',
-      'Both would still be right — the two addresses on a request always belong to the same person',
+      'Both would still be right. The two addresses on a request always belong to the same person',
       'Only the one naming an outside address would be affected; the internal one would be unchanged',
-      'Both would go out, both would be wrong, and only one of them would look wrong — the other lands on a colleague and reads like ordinary internal mail',
+      'Both would go out, both would be wrong, and only one of them would look wrong. The other lands on a colleague and reads like ordinary internal mail',
     ],
     correctIndex: 3,
     explanation:
-      'Nothing errors. Deepa asked for a quote to reach Riya at kapoorautomation.in and gets it herself, which is visibly odd. Neha asked for a reminder to reach Alex and gets it herself too — and since both of them are at fernwoodrobotics.com, that one reads like any other internal mail and could run for months. The bug is not that it breaks; it is that it works, and half your test set hides it. That is what a request that crosses a company boundary is for.',
+      'Nothing errors. Deepa asked for a quote to reach Riya at kapoorautomation.in and gets it herself, which is visibly odd. Neha asked for a reminder to reach Alex and gets it herself too. And since both of them are at fernwoodrobotics.com, that one reads like any other internal mail and could run for months. The bug is not that it breaks; it is that it works, and half your test set hides it. That is what a request that crosses a company boundary is for.',
   },
 ];
