@@ -324,7 +324,7 @@ export const voice = {
     // Keyed by question, not by the option chosen, so it is spoken over all three
     // distractors — including the unusual ones. It cannot assert anything about which
     // guess the learner made.
-    "[calm] Ah, no. Worth reading why, though — what he does and doesn't see is the whole point.",
+    "[calm] Ah, no. Worth reading why, though. What he does and doesn't see is the whole point.",
   ],
   'stress_correct:two-paths': [
     '[warm] Yes. That one takes some honesty, because nothing about it actually looks broken.',

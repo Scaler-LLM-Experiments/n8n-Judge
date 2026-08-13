@@ -21,6 +21,7 @@ import { expenseApprovals } from './expense-approvals/index.js';
 import { trialSignupDesk } from './trial-signup-desk/index.js';
 import { opsRequestDesk } from './ops-request-desk/index.js';
 import { lowStockMorningPost } from './low-stock-morning-post/index.js';
+import { weatherCommutePing } from './weather-commute-ping/index.js';
 
 export const problems = {
   [emailTriage.id]: emailTriage,
@@ -44,6 +45,15 @@ export const problems = {
   // withheld. It is also the first case whose flow reads a data source mid-flow
   // rather than only writing to one at the end.
   [lowStockMorningPost.id]: lowStockMorningPost,
+
+  // Appended last, so it sits last on Home. 20 scored decisions over four nodes — the
+  // smallest case in the catalogue and the second `easy` one, which the set needed: there
+  // was one easy entry against four moderate. Like low-stock it has no AI step, and the
+  // overlap is deliberate — the second time a learner meets a schedule it should feel
+  // familiar, and the hard part should be somewhere new. Here that part is a lookup table
+  // with a hole in it: the mapping covers the codes the brief lists, and the morning a code
+  // outside them arrives, the message comes out with a gap and the run still passes green.
+  [weatherCommutePing.id]: weatherCommutePing,
 };
 
 export const problemList = Object.values(problems);
