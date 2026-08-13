@@ -2,6 +2,19 @@ export * from './types.ts';
 export { GRADED_SETTING_KEYS } from './settingKeys.ts';
 export { validateProblem } from './validateProblem.ts';
 export type { ProblemIssue, ValidateProblemResult } from './validateProblem.ts';
+// Plain-language rules for the copy a learner reads: ASD-STE100 sentence limits plus
+// Zinsser's brevity, as numbers rather than as advice. See plainLanguage.ts for why
+// they are enforced instead of merely written down.
+export {
+  PLAIN_LANGUAGE,
+  sentencesOf,
+  wordsOf,
+  longSentences,
+  dashIssues,
+  statementIssues,
+  optionLabelIssues,
+} from './plainLanguage.ts';
+export type { PlainLanguageIssue } from './plainLanguage.ts';
 export { toPublicProblem, findLeakedAnswers, KNOWN_REMAINING_LEAKS } from './publicProjection.ts';
 export type { PublicProblem } from './publicProjection.ts';
 export { checkAnswer } from './answerCheck.ts';
