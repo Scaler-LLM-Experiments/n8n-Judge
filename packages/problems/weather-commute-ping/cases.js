@@ -178,7 +178,7 @@ export const evalQuestions = [
   {
     id: 'blank-note',
     prompt:
-      'Three weeks of green runs and a correct message every morning. Then one morning the post arrives with the temperature and nothing else: no conditions in words, and no advice. The run is green, the service answered normally, and the next morning it is fine again. What happened, and where does the fix belong?',
+      'A colleague builds this same flow for their own commute. Three weeks of green runs and a correct message every morning. Then one morning their post arrives with the temperature and nothing else: no conditions in words, and no advice. The run is green, the service answered normally, and the next morning it is fine again. What happened, and where does the fix belong?',
     // Every option carries its own reason-why clause and they are within a few words of
     // each other in length. They were not: the correct one ran 35 words against a 22-word
     // maximum, so a learner who understood nothing could take all three of these questions
@@ -190,7 +190,7 @@ export const evalQuestions = [
       'The send step is reading field names that were never created, so it has been posting whatever it could find — and the fix belongs in the message, which is the only place that decides what actually goes out',
       'The service was slow and answered after the message had already gone out, so the values arrived too late to be used — and the fix is a longer timeout on the call, so it waits for a complete answer',
       'The service answered with a weather code the mapping does not list, so the lookup produced nothing — and the fix is another arm on the mapping, in the step that builds the two lines',
-      'The forecast service changed the shape of its response, so the mapping is reading a field that has moved — and the fix is to call a different address that answers the way it used to',
+      'The forecast service changed the shape of its response, so the mapping is reading a field that has moved — and the fix is to re-point the mapping at wherever that field went',
     ],
     correctIndex: 2,
     explanation:
@@ -208,7 +208,7 @@ export const evalQuestions = [
     // the unqualified claim was false about real n8n even though the explanation had it
     // right. An option has to be true on its own; nobody reads the explanation first.
     options: [
-      'Nothing at all: the run stops at the failed call, no message is sent, and nothing on his phone tells him. The message arriving every morning is the only thing that could ever have told him something was wrong',
+      'Nothing at all: the run stops at the failed call, no message is sent, and nothing on his phone tells him. The message arriving every morning is the only thing he has that would tell him something was wrong',
       'The flow carries on with the values empty, because a node that cannot answer hands an empty item to the one after it — so the message still arrives on time, with blanks in it where the weather should be',
       'The run is marked failed and n8n picks it up again by itself, the way a queue retries a failed job, so the message arrives a few minutes later than usual and he never notices the difference',
       'He gets the error in the channel instead of the weather, because a run that fails part-way still posts whatever it managed to produce before it stopped — so the channel tells him something went wrong',
@@ -228,7 +228,7 @@ export const evalQuestions = [
     options: [
       'The clear-morning path never fires, because an If only sends items out of its true output — so on a clear morning the item reaches the node and simply stops there, and he gets no message at all',
       'Both sends fire on every run, because an If passes the item down both of its outputs and lets each side decide what to do with it, so he gets two messages every morning and has to work out for himself which of the two applies today',
-      'Nothing at all. Separating the two situations makes the flow easier to read for whoever inherits it, and either branch can be reworded on its own without disturbing the other, so a little duplication is a fair price to pay for that',
+      'Nothing at all. Separating the two situations makes the flow easier to read for whoever inherits it — you can see at a glance that a rainy morning is handled, rather than reading an expression to work it out — so a little duplication is a fair price to pay for that',
       'Nothing breaks — which is the trap. It is two sends to keep in step for a difference the message text already makes, so every wording change is now two edits, and the morning somebody makes only one of them, half the mornings are quietly wrong',
     ],
     correctIndex: 3,
