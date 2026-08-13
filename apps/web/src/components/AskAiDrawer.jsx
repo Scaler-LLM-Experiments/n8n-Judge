@@ -38,7 +38,18 @@ function IrisReply({ text }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
       {blocks.map((b, i) => {
-        if (b.kind === 'p') return <p key={i} style={{ margin: 0 }}>{inline(b.spans)}</p>;
+        // `font: inherit` is load-bearing, not tidiness. colors_and_type.css styles the `p`
+        // ELEMENT at 16px with its own colour, and an element rule beats the size inherited
+        // from the bubble, so Iris's reply rendered larger than the learner's own message
+        // sitting right above it. Same trap as the Report hero, where `h2`/`p` colour beats
+        // the container's white.
+        if (b.kind === 'p') {
+          return (
+            <p key={i} style={{ margin: 0, font: 'inherit', color: 'inherit' }}>
+              {inline(b.spans)}
+            </p>
+          );
+        }
         const List = b.kind === 'ol' ? 'ol' : 'ul';
         return (
           <List
@@ -51,6 +62,10 @@ function IrisReply({ text }) {
               display: 'flex',
               flexDirection: 'column',
               gap: 5,
+              // No global rule targets ul/ol/li today. Inherit anyway, so one added later
+              // cannot resize half a reply while the paragraphs stay correct.
+              font: 'inherit',
+              color: 'inherit',
             }}
           >
             {b.items.map((item, j) => (
