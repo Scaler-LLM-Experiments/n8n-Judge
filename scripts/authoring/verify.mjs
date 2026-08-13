@@ -153,6 +153,34 @@ function checkProblemCheck(slug) {
  * `all` bundle builds one array literal from every check in sequence, so an
  * uncaught throw here would abort before anything already computed got printed.
  */
+/**
+ * Plain language: ASD-STE100 sentence limits, Zinsser's brevity, no dashes.
+ *
+ * `validateProblem()` raises all of it as errors, so `problem:check` already fails on it.
+ * This is a separate check because the orchestrator needs the COUNT to route on, and
+ * because the failure message has to name the tool that works a backlog down rather than
+ * printing one issue out of forty.
+ */
+async function checkCopy(slug) {
+  const problem = await loadFromDisk(slug);
+  if (!problem) return [fail('copy', 'problem does not load from disk')];
+  try {
+    const { plainLanguageIssues } = await import('@judge/problem-schema');
+    const issues = plainLanguageIssues(problem);
+    if (issues.length) {
+      return [
+        fail(
+          'copy',
+          `${issues.length} plain-language violation(s), first at ${issues[0].path} — run npm run case:copy -- ${slug} --verbose`
+        ),
+      ];
+    }
+    return [pass('copy', 'plain language clean')];
+  } catch (err) {
+    return [fail('copy', `could not be checked (${err.message.split('\n')[0]})`, { blocking: false })];
+  }
+}
+
 async function checkAudit(slug) {
   const problem = await loadFromDisk(slug);
   if (!problem) return [fail('audit', 'problem does not load from disk')];
@@ -466,6 +494,7 @@ const USAGE = [
   '  registered <slug>       in packages/problems/index.js',
   '  check <slug>            problem:check, run by us',
   '  audit <slug>            the mechanical review rules (misconceptions, unlocks, branch reach, …)',
+  '  copy <slug>             plain language: sentence, length and dash limits',
   '  cover <slug>            prompt + src + a real PNG (non-blocking)',
   '  workflow <slug>         exports importable n8n JSON, and the committed file is current',
   '  voice-rendered <slug>   every clip the table names is on disk',
@@ -495,6 +524,9 @@ switch (cmd) {
     break;
   case 'audit':
     results = await checkAudit(target);
+    break;
+  case 'copy':
+    results = await checkCopy(target);
     break;
   case 'cover':
     results = await checkCover(target);
@@ -528,6 +560,7 @@ switch (cmd) {
       ...(await checkRegistered(slug)),
       ...checkProblemCheck(slug),
       ...(await checkAudit(slug)),
+      ...(await checkCopy(slug)),
       ...(await checkCover(slug)),
       ...checkVoiceRendered(slug),
       ...(await checkWorkflow(slug)),

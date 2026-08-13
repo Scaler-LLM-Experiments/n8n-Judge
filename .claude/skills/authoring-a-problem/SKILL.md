@@ -165,6 +165,75 @@ report groups by; an unlabelled one has nothing to print.
 
 ---
 
+## 4a. Plain language, and every number in it is a `validateProblem()` error
+
+Judge teaches non-technical Scaler learners, so the copy IS the teaching. Two standards
+apply, and they are checked rather than encouraged:
+
+- **ASD-STE100 (Simplified Technical English)**, the aerospace standard for documentation
+  read under time pressure by people working in a second language. What binds here is its
+  sentence-length limit, one idea per sentence, and the active voice.
+- **Zinsser's four principles**: simplicity, brevity, clarity, humanity. Brevity does most
+  of the work. Strip every sentence to its cleanest components.
+
+| Surface | Limit |
+|---|---|
+| any sentence a learner reads | **25 words** |
+| `statement` | **150 words**, in at most **9 sentences** |
+| a question (`dissection[].prompt`, `evalQuestions[].prompt`, probe prompt) | **35 words** |
+| an answer they compare against others (`evalQuestions[].options`, probe option) | **28 words** |
+| `explanation` | **90 words** |
+| `why`, `whyCorrect`, `whyWrong`, `coach`, probe `response` | **60 words** |
+| a learner-visible option `label` | **90 characters** |
+| em dashes and en dashes | **none, anywhere** |
+
+**Dashes are banned outright, not rationed.** A full stop, a comma or a colon always does
+the job, and a dash does not read aloud, so this keeps written copy consistent with the
+voice rules, which already rejected them. `--` counts. An en dash in a numeric range
+(`0 – 23`) counts too, and reads as a minus sign; write `0 to 23`.
+
+**When the authored answer has to be a real n8n expression**, put the expression in the
+option's `expression` field and write a short sentence in `label`. The exporter writes
+`expression`; the learner reads `label`. Without that split the exporter's requirement wins
+every time, which is how one case grew a **296-character inline JavaScript ternary** as a
+dropdown choice, shown to learners who cannot read JavaScript and truncated mid-token in a
+420px control.
+
+### Why these are numbers and not taste
+
+Because measurement was the only thing that caught the drift. The one case a human wrote by
+hand, against the five authored by agents before these limits existed:
+
+| | statement | question | answer | explanation | response |
+|---|---|---|---|---|---|
+| `email-triage` (hand-written) | 43 | 18 | 22 | 46 | 29 |
+| worst agent-authored | **270** | **64** | **52** | **187** | **71** |
+
+Every one of those cases passed `problem:check`, `npm test` and three independent blind
+reviews. None of them measured length, and a reviewer reading a 270-word statement for
+correctness does not notice that it is 270 words.
+
+The first version of these rules exempted `explanation` and probe `response`, on the
+argument that they are the teaching, read after a decision, so a paragraph is often right.
+Measurement killed that argument. A learner does not become a better reader because the
+text is labelled teaching.
+
+### Working on it
+
+```bash
+npm run case:copy                       # every case, violation counts
+npm run case:copy -- <slug> --verbose   # every violation, with its path and what to do
+```
+
+`validateProblem()` raises all of it as errors, so `npm test` already fails on a
+regression. `case:copy` is the tool for working through a backlog, because it names the
+surface, the count and the cap instead of one line in a list of issues.
+
+**Short is not terse.** Cut what the learner does not need to make THIS decision. Detail
+that only matters once they are building belongs on the node that grades it.
+
+---
+
 ## 5. Rules that are not enforced, and matter more
 
 **Never park the correct option at index 0.** An audit found it there in 25/25 fields and

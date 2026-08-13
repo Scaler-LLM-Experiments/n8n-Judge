@@ -21,6 +21,11 @@
 // The rules below are the ones in `.claude/skills/authoring-a-problem/SKILL.md`. When
 // that file changes, this changes with it.
 
+// The plain-language limits are imported rather than restated. This file is a second
+// copy of the authoring rules and the one that rots unnoticed, so the numbers a draft is
+// judged against cannot be written down twice.
+import { PLAIN_LANGUAGE } from '@judge/problem-schema';
+
 export interface AuthoringInput {
   /** The brief in the designer's own words: what the learner builds, and why. */
   statement: string;
@@ -142,6 +147,30 @@ rewritten, so check the flow against them before you draft anything:
     paragraphs separated by blank lines, not one block. It must not name a tool that is
     also the label of a graded option, and must not enumerate which columns an
     \`assignmentList\` maps — both hand over a graded answer before it is asked.
+
+18. PLAIN LANGUAGE. All of it is enforced by \`validateProblem()\`, not advised. Two
+    standards apply: ASD-STE100 (Simplified Technical English), and Zinsser's simplicity,
+    brevity, clarity, humanity.
+    - No em dashes and no en dashes, anywhere a learner reads. Not rationed, banned. A full
+      stop, a comma or a colon always does the job, and a dash does not read aloud.
+    - ${PLAIN_LANGUAGE.MAX_SENTENCE_WORDS} words per sentence, maximum. One idea each.
+    - \`statement\`: under ${PLAIN_LANGUAGE.MAX_STATEMENT_WORDS} words, in at most
+      ${PLAIN_LANGUAGE.MAX_STATEMENT_SENTENCES} sentences.
+    - A question: under ${PLAIN_LANGUAGE.MAX_QUESTION_WORDS} words. An answer the learner
+      compares against three others: under ${PLAIN_LANGUAGE.MAX_ANSWER_WORDS}. An
+      \`explanation\`: under ${PLAIN_LANGUAGE.MAX_EXPLANATION_WORDS}. A \`why\`,
+      \`wrongHint\`, \`coach\` or probe \`response\`: under
+      ${PLAIN_LANGUAGE.MAX_RESPONSE_WORDS}.
+    - A learner-visible option label: under ${PLAIN_LANGUAGE.MAX_OPTION_LABEL_CHARS}
+      characters, so it reads on one line. When the authored answer must be a real n8n
+      expression, put the expression in the option's \`expression\` field and write a short
+      sentence in \`label\`. The exporter writes \`expression\`; the learner reads \`label\`.
+    These are numbers because measurement was the only thing that caught the drift. The one
+    case a human wrote has a 43-word statement, 18-word questions, 22-word answers and
+    46-word explanations. Five drafted without these limits came in at up to 270, 64, 52 and
+    187, each longer than the one before, and one option label reached 296 characters of
+    inline JavaScript shown to learners who cannot read JavaScript.
+    Short is not terse. Cut what the learner does not need to make THIS decision.
 
 ## Copy
 

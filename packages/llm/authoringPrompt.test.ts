@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { buildAuthoringPrompt } from './authoringPrompt.ts';
+import { PLAIN_LANGUAGE } from '@judge/problem-schema';
 
 // This prompt is a copy of the authoring rules, kept in a second place because the model
 // cannot read the skill file. That makes it the one piece of documentation that can be
@@ -18,6 +19,24 @@ const prompt = () =>
   );
 
 describe('the drafting prompt states the rules as they are now', () => {
+  it('carries every plain-language limit, so a draft is not written to be rejected', () => {
+    const { system } = prompt();
+    // These are validateProblem ERRORS. A prompt that omits one produces drafts that fail
+    // validation on copy the model had no way to know was over a cap.
+    //
+    // The numbers are imported, not restated. This prompt is a second copy of the
+    // authoring rules and the one CLAUDE.md records as able to rot unnoticed, so a value
+    // written down twice is a value that will disagree with itself.
+    for (const [name, limit] of Object.entries(PLAIN_LANGUAGE)) {
+      expect(system, `${name} (${limit}) is missing from the drafting prompt`).toContain(String(limit));
+    }
+    // The ban is absolute, so the prompt has to say so rather than suggest moderation.
+    expect(system.toLowerCase()).toMatch(/no em dashes|dashes are banned|banned/);
+    // And it has to offer the way out for an answer that must be a real n8n expression,
+    // or the option-label cap reads as an impossible instruction.
+    expect(system).toMatch(/expression/);
+  });
+
   it('does not demand the retired fixed topology', () => {
     const { system } = prompt();
     // It used to require `trigger → AI → parse → switch → actions` because

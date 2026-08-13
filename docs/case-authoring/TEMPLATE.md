@@ -18,6 +18,53 @@ cover art, and a downloadable n8n workflow file.
 
 ---
 
+## 0. How to write it — **read this first**
+
+Everything you write here reaches a learner almost as you typed it. They are non-technical,
+often reading in a second language, and deciding under a bit of pressure. So the brief is
+written to two standards, and the pipeline **checks** them rather than hoping:
+
+**Short sentences. One idea each. Maximum 25 words.** If a sentence has an "and" holding two
+thoughts together, make it two sentences.
+
+**No dashes. At all.** Not `—`, not `–`, not `--`. A full stop, a comma or a colon always does
+the job. A dash is where a sentence goes to avoid ending, and it does not read aloud, so the
+narrator cannot say it either. Write `0 to 23`, never `0 – 23`.
+
+**Say the thing, then stop.** Cut any words that do not help the learner make the decision in
+front of them. Detail that only matters later belongs later.
+
+### The difference this makes
+
+Both of these say the same thing. The first is real copy from a case before this rule existed.
+
+> The service does not answer in sentences. It answers with numbers: the temperature in
+> degrees, and the conditions as a WMO weather code, which is an integer. 0 is a clear sky,
+> 1 to 3 are increasing cloud, and 61 to 65 are rain from light to heavy — those are the
+> codes he sees most mornings. Turning those into something a person can read is this
+> flow's job, not his.
+
+> The service answers with numbers rather than sentences: a temperature, and the conditions
+> as a WMO weather code. 0 is a clear sky, 1 to 3 are cloud, and 61 to 65 are rain. Those
+> are the codes he sees most mornings.
+
+Same facts, 40% fewer words, no dashes, nothing over 25 words. The second one a learner
+actually reads.
+
+### Why it is checked and not just asked for
+
+One case in the catalogue was written by hand, and five by an AI before these limits existed.
+The hand-written scenario is **43 words**. The five came in at 95, 193, 201, 250 and 270,
+each longer than the one before, because nothing was counting. Every one of them passed
+three rounds of review, because a reviewer checking whether a question is *correct* does not
+notice that it is 270 words.
+
+**You do not have to count anything.** Write naturally, keep sentences short, use no dashes,
+and the pipeline will tell you if something is over. It is fixing your prose, not rejecting
+your thinking.
+
+---
+
 ## 1. Identity — **Required**
 
 | Field | Your answer |
