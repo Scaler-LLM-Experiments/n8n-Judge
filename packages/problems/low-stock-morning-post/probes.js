@@ -24,7 +24,7 @@ export const nodeProbes = {
         text: 'Every time somebody edits a row in the Stock tab',
         correct: true,
         response:
-          'Exactly right, and that is the problem. Baristas adjust counts all day, so this would fire a dozen times before lunch — and on a quiet Tuesday when nobody touches the sheet, it would not fire at all. What actually has to happen for Ritika to do this?',
+          'Exactly right, and that is the problem. Baristas adjust counts all day, so this would fire a dozen times before lunch. And on a quiet Tuesday when nobody touches the sheet, it would not fire at all. What actually has to happen for Ritika to do this?',
       },
       {
         text: 'Once a day, when the sheet is opened',
@@ -38,7 +38,7 @@ export const nodeProbes = {
         correct: false,
         misconception: 'trigger-does-two-jobs',
         response:
-          'There is no time in it to set. A trigger subscribes to exactly one event, and this one\'s event is "a row changed" — the clock is not part of it.',
+          'There is no time in it to set. A trigger subscribes to exactly one event, and this one\'s event is "a row changed". The clock is not part of it.',
       },
     ],
   },
@@ -47,7 +47,7 @@ export const nodeProbes = {
     prompt: 'A Gmail Trigger is on the canvas. What has to happen before this flow starts?',
     options: [
       {
-        text: 'Nothing in particular — it is the standard way to start a workflow',
+        text: 'Nothing in particular. It is the standard way to start a workflow',
         correct: false,
         misconception: 'triggers-interchangeable',
         response:
@@ -83,14 +83,14 @@ export const nodeProbes = {
         text: 'Another system has to send an HTTP request to its URL',
         correct: true,
         response:
-          'Correct. So ask who would send that request at 07:30 every weekday. Nothing will, unless you go and build the thing that does — at which point you have built a clock the hard way.',
+          'Correct. So ask who would send that request at 07:30 every weekday. Nothing will, unless you go and build the thing that does. At which point you have built a clock the hard way.',
       },
       {
         text: 'Google Sheets calls it whenever the Stock tab is edited',
         correct: false,
         misconception: 'sheet-calls-webhook',
         response:
-          'The spreadsheet has no idea your URL exists. Somebody would have to write an Apps Script and wire it up by hand, and even then it would fire on edits rather than on the morning.',
+          'The spreadsheet has no idea your URL exists. Somebody would have to write an Apps Script and wire it up by hand. Even then it would fire on edits rather than on the morning.',
       },
     ],
   },
@@ -99,7 +99,7 @@ export const nodeProbes = {
     prompt: 'HTTP Request is on the canvas to fetch the stock counts. What would you have to do to make that work?',
     options: [
       {
-        text: 'Nothing much — give it the spreadsheet\'s URL and it returns the rows',
+        text: 'Nothing much. Give it the spreadsheet\'s URL and it returns the rows',
         correct: false,
         misconception: 'http-fetches-a-sheet',
         response:
@@ -114,7 +114,7 @@ export const nodeProbes = {
         // product, and it owns the auth and the parsing so you do not — is the thing
         // worth asking about, and it does not identify anything on the list.
         response:
-          'Exactly, and that is real work you would then own forever — the token, the range, the parsing, and every change Google makes to any of them. Generic HTTP is what you reach for when nothing better exists. Does that hold here, for a product this well known?',
+          'Exactly, and that is real work you would then own forever. The token, the range, the parsing, and every change Google makes to any of them. Generic HTTP is what you reach for when nothing better exists. Does that hold here, for a product this well known?',
       },
       {
         text: 'Point it at the sheet and let n8n work out the authentication from the credential list',
@@ -133,7 +133,7 @@ export const nodeProbes = {
         text: 'A loop over the rows, comparing two numbers on each one',
         correct: true,
         response:
-          'Right, and in Python that is exactly what you would write. Two things to weigh, though: n8n hands each row to the next node on its own already, and the ops team who will maintain this cannot read JavaScript. Is there a way to say "keep this one" without writing any?',
+          'Right, and in Python that is exactly what you would write. Two things to weigh. n8n already hands each row to the next node on its own. The ops team who maintain this cannot read JavaScript. Is there a way to say "keep this one" without writing any?',
       },
       {
         text: 'A description of what counts as low, which it works out from there',
@@ -143,7 +143,7 @@ export const nodeProbes = {
           'Code takes instructions, not descriptions. It runs precisely the lines you write and forms no view about coffee.',
       },
       {
-        text: 'Nothing — Code reads the incoming rows and passes on the interesting ones',
+        text: 'Nothing. Code reads the incoming rows and passes on the interesting ones',
         correct: false,
         misconception: 'code-has-defaults',
         response:
@@ -173,7 +173,7 @@ export const nodeProbes = {
         text: 'Out of the false output, which you then have to wire somewhere',
         correct: true,
         response:
-          'Correct — If routes, it does not discard. So you now have thirty-seven perfectly healthy rows coming out of a second exit and nowhere sensible to send them, and the build will not let you leave that hanging. What would you rather happen to a bean that is fine?',
+          'Correct. If routes, it does not discard. So thirty-seven healthy rows come out of a second exit with nowhere sensible to go. The build will not let you leave that hanging. What would you rather happen to a bean that is fine?',
       },
     ],
   },
@@ -186,13 +186,13 @@ export const nodeProbes = {
         correct: false,
         misconception: 'first-item-only',
         response:
-          'No — that is what the Execute Once setting does, and it is off by default. Nothing is being dropped.',
+          'No. That is what the Execute Once setting does, and it is off by default. Nothing is being dropped.',
       },
       {
         text: 'It runs every node after this once per item, on its own, without being asked',
         correct: true,
         response:
-          'Exactly, and that is the thing worth carrying out of this case. Coming from Python you would reach for a loop and you would be right to; in n8n the looping is already happening. This node exists for a narrower job — handing work over in batches, usually to stay under somebody\'s rate limit.',
+          'Exactly, and that is the thing worth carrying out of this case. Coming from Python you would reach for a loop and you would be right to; in n8n the looping is already happening. This node exists for a narrower job. Handing work over in batches, usually to stay under somebody\'s rate limit.',
       },
       {
         text: 'It passes all forty on as one bundle for the next node to walk through',
@@ -225,7 +225,7 @@ export const nodeProbes = {
         text: 'It takes one item holding a list, and turns it into one item per entry',
         correct: true,
         response:
-          'Right — one thing in, many things out. Now look at what is arriving here and what has to leave: you have several separate rows and the buyer wants one post. Which direction do you actually need?',
+          'Right. One thing in, many things out. Now look at what is arriving here and what has to leave: you have several separate rows and the buyer wants one post. Which direction do you actually need?',
       },
     ],
   },
@@ -244,7 +244,7 @@ export const nodeProbes = {
         text: 'Two or more separate inputs, so items from different branches travel on together',
         correct: true,
         response:
-          'Correct, and notice it wants two inputs. This flow is one straight line — there is no second branch to bring alongside. What you have is many items on one line and you need them to become one.',
+          'Correct, and notice it wants two inputs. This flow is one straight line. There is no second branch to bring alongside. What you have is many items on one line and you need them to become one.',
       },
       {
         text: 'The columns of a row, joined into one line of text',
@@ -263,7 +263,7 @@ export const nodeProbes = {
         text: 'Items against each other within this run, and optionally against every previous run',
         correct: true,
         response:
-          'Right, and the second half is the trap. Within one run no bean appears twice — each row is its own bean and location. Across runs, a bean that is still low on Wednesday is still news on Wednesday, and suppressing it is how it gets forgotten.',
+          'Right, and the second half is the trap. Within one run no bean appears twice. Each row is its own bean and location. Across runs, a bean that is still low on Wednesday is still news on Wednesday, and suppressing it is how it gets forgotten.',
       },
       {
         text: 'Only what has been seen in earlier runs, never within the current one',
@@ -303,7 +303,7 @@ export const nodeProbes = {
         text: 'It marks the whole execution as failed and raises an error',
         correct: true,
         response:
-          'Right. Now ask whether that is what a morning with nothing low actually is. Full shelves are the good day — logging it as a failure would train everyone to ignore the alerts.',
+          'Right. Now ask whether that is what a morning with nothing low actually is. Full shelves are the good day. Logging it as a failure would train everyone to ignore the alerts.',
       },
     ],
   },
@@ -315,14 +315,14 @@ export const nodeProbes = {
         text: 'A model rewrites the shortlist into prose, and it needs a Chat Model wired to it',
         correct: true,
         response:
-          'Correct on both counts, and both are worth weighing. The buyer wants four fields per bean at half past seven, not a paragraph — and a model that rewrites the list can drop a bean or invent a number, which on a stock report is the one thing you cannot have. Knowing when NOT to reach for a model is part of the job.',
+          'Correct on both counts, and both are worth weighing. The buyer wants four fields per bean at half past seven, not a paragraph. And a model that rewrites the list can drop a bean or invent a number. Knowing when not to reach for one is part of the job.',
       },
       {
         text: 'It reads each row and works out which beans are actually low',
         correct: false,
         misconception: 'ai-does-the-comparison',
         response:
-          'It could be asked to, and it would sometimes get it wrong. Comparing two numbers that are already in the row is exact work — you do not want a probability attached to it.',
+          'It could be asked to, and it would sometimes get it wrong. Comparing two numbers that are already in the row is exact work. You do not want a probability attached to it.',
       },
       {
         text: 'It formats the message and costs nothing, because no model call is made unless it needs one',

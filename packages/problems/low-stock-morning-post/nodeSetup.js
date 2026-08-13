@@ -72,25 +72,25 @@ export const nodeSetup = {
             value: 'hours',
             label: 'Hours',
             correct: false,
-            why: 'This repeats through the day — every hour, or every second hour. The buyer would get the same shortlist again at 08:30 and 09:30, and there is no way to say "not on Saturday".',
+            why: 'This repeats through the day. Every hour, or every second hour. The buyer would get the same shortlist again at 08:30 and 09:30, and there is no way to say "not on Saturday".',
           },
           {
             value: 'days',
             label: 'Days',
             correct: false,
-            why: 'Close, and it does let you set a time. But a daily rule runs on all seven days, and the roastery does not do this at the weekend. Which interval lets you name the days?',
+            why: 'Close, and it does let you set a time. But a daily rule runs on all seven days. The roastery does not do this at the weekend. Which interval lets you name the days?',
           },
           {
             value: 'cronExpression',
             label: 'Custom (Cron)',
             correct: false,
-            why: 'It would work — `30 7 * * 1-5` is exactly right. But it hides the schedule inside a string nobody on the ops team can read or safely edit, and n8n already has a plain-language way to say the same thing.',
+            why: 'It would work. `30 7 * * 1-5` is exactly right. But it hides the schedule inside a string nobody on the ops team can read or safely edit. n8n already has a plain-language way to say the same thing.',
           },
           {
             value: 'weeks',
             label: 'Weeks',
             correct: true,
-            why: 'Weeks is the only one of the four that lets you name the days at all: pick it in n8n and the node adds a row of weekday checkboxes alongside the hour and the minute. Tick Monday to Friday and that is the whole rule — once a week, on five of its days, at a fixed time.',
+            why: 'Weeks is the only one of the four that lets you name the days. Pick it and the node adds weekday checkboxes alongside the hour and the minute. Tick Monday to Friday and that is the whole rule. Once a week, on five of its days, at a fixed time.',
           },
         ],
       },
@@ -102,12 +102,12 @@ export const nodeSetup = {
         max: 23,
         step: 1,
         correct: 7,
-        placeholder: '0 – 23',
+        placeholder: '0. 23',
         subtitle: 'On a 24-hour clock, in the workflow timezone.',
         whyCorrect:
           'Right. The sweep has to be finished and read before the first roast, and well before the suppliers stop taking orders at 10.',
         whyWrong:
-          'Read the hour back off the brief, and remember this is a 24-hour clock in Asia/Kolkata — 7 in the evening is not the same field value as 7 in the morning. What time does Ritika do this today?',
+          'Read the hour back off the brief, and remember this is a 24-hour clock in Asia/Kolkata. 7 in the evening is not the same field value as 7 in the morning. What time does Ritika do this today?',
       },
       {
         key: 'triggerAtMinute',
@@ -117,11 +117,11 @@ export const nodeSetup = {
         max: 59,
         step: 1,
         correct: 30,
-        placeholder: '0 – 59',
+        placeholder: '0. 59',
         subtitle: 'Minutes past the hour.',
         whyCorrect: 'Right. Half past, so the post lands at 07:30 on the dot.',
         whyWrong:
-          'Left at zero this fires on the hour instead. The two fields are read together — hour and minute — so check what the pair of them adds up to.',
+          'Left at zero this fires on the hour instead. The two fields are read together. Hour and minute. So check what the pair of them adds up to.',
       },
     ],
   },
@@ -131,7 +131,7 @@ export const nodeSetup = {
   // this node hands its rows on or ends the flow right here.
   // ---------------------------------------------------------------------------
   'google-sheets': {
-    credential: 'Google Sheets — Brightleaf Roastery',
+    credential: 'Google Sheets. Brightleaf Roastery',
     // One row of the Stock tab, as it arrives. Every expression the next node offers
     // is built from these keys, so they have to be the real column names.
     sampleOutput: {
@@ -157,7 +157,7 @@ export const nodeSetup = {
         correct: true,
         why: {
           true:
-            'Right. Google occasionally answers a request with a temporary error, and this flow only gets one attempt a day — a second and third try a second apart costs nothing and saves the morning.',
+            'Right. Google occasionally answers a request with a temporary error, and this flow only gets one attempt a day. A second and third try a second apart costs nothing and saves the morning.',
           false:
             'Leave it off and a momentary hiccup on Google\'s side ends the run there and then. Off is a sensible default for a node that fires every few minutes and will come round again shortly. How often does this one come round, and what does one lost run cost?',
         },
@@ -182,7 +182,7 @@ export const nodeSetup = {
             value: 'appendOrUpdate',
             label: 'Append or Update Row',
             correct: false,
-            why: 'A write either way — it looks for a matching row and edits it, or adds one if there is none. This flow must not change the stock counts; the people doing the counting own those.',
+            why: 'A write either way. It looks for a matching row and edits it, or adds one if there is none. This flow must not change the stock counts; the people doing the counting own those.',
           },
           {
             value: 'read',
@@ -194,7 +194,7 @@ export const nodeSetup = {
             value: 'update',
             label: 'Update Row',
             correct: false,
-            why: 'This edits rows that already exist. You would need to know which row and what to put in it, and neither is the job — nothing about this flow changes the sheet.',
+            why: 'This edits rows that already exist. You would need to know which row and what to put in it, and neither is the job. Nothing about this flow changes the sheet.',
           },
         ],
       },
@@ -213,13 +213,13 @@ export const nodeSetup = {
             value: 'specifyRangeA1',
             label: 'Specify Range (A1 Notation)',
             correct: false,
-            why: 'You would type something like A1:F41. It works this morning. The morning somebody adds a new single-lot at row 42, that bean simply never appears in the post and nothing tells you — the run is green either way.',
+            why: 'You would type something like A1:F41. It works this morning. The morning somebody adds a new single-lot at row 42, that bean simply never appears in the post and nothing tells you. The run is green either way.',
           },
           {
             value: 'specifyRange',
             label: 'Specify Range (Rows)',
             correct: false,
-            why: 'Same problem in a friendlier shape: you name the header row and the first data row, but you are still pinning the table down by hand on a tab whose length changes.',
+            why: 'Same problem in a friendlier shape. You name the header row and the first data row, so you are still pinning the table down by hand.',
           },
         ],
       },
@@ -275,7 +275,7 @@ export const nodeSetup = {
     fields: [
       {
         key: 'leftValue',
-        label: 'Condition — left side',
+        label: 'Condition. Left side',
         subtitle: 'The value being tested, taken from the row that just arrived.',
         options: [
           {
@@ -300,7 +300,7 @@ export const nodeSetup = {
             value: 'last_counted',
             label: '{{ $json.last_counted }}',
             correct: false,
-            why: 'When somebody last weighed it. Genuinely useful — a count three weeks old is worth knowing about — but it says nothing about how much is left today.',
+            why: 'When somebody last weighed it. Genuinely useful. A count three weeks old is worth knowing about. But it says nothing about how much is left today.',
           },
         ],
       },
@@ -313,14 +313,14 @@ export const nodeSetup = {
         // any supply-chain-literate learner something false in order to win an
         // argument the brief had already won. The brief says *below*. That is enough.
         key: 'operatorId',
-        label: 'Condition — operator',
+        label: 'Condition. Operator',
         subtitle: 'How the two sides are compared. Read the rule in the brief very carefully.',
         options: [
           {
             value: 'number:lte',
             label: 'is less than or equal to',
             correct: false,
-            why: 'This also keeps a bean sitting exactly on its reorder level. It is a defensible rule — plenty of stock systems order the moment you touch the line — so this is not a silly answer. It is just not the one you were given: the brief says the row has to have *dropped below* its reorder level, and a bean sitting exactly on it has not dropped below it. When the rule and your instinct disagree, implement the rule and raise the instinct with Ritika.',
+            why: 'This also keeps a bean sitting exactly on its reorder level. That is a defensible rule, and plenty of stock systems order the moment you touch the line. It is just not the one you were given. The brief says *dropped below*, and a bean sitting exactly on its level has not.',
           },
           {
             value: 'number:gt',
@@ -338,20 +338,20 @@ export const nodeSetup = {
             value: 'number:equals',
             label: 'is equal to',
             correct: false,
-            why: 'This keeps only the beans sitting precisely on their level and nothing else — so a bean at 1.2 kg against a level of 6 would be dropped, which is the one you most needed to see.',
+            why: 'This keeps only the beans sitting precisely on their level and nothing else. So a bean at 1.2 kg against a level of 6 would be dropped, which is the one you most needed to see.',
           },
         ],
       },
       {
         key: 'rightValue',
-        label: 'Condition — right side',
+        label: 'Condition. Right side',
         subtitle: 'What the left side is compared against.',
         options: [
           {
             value: '10',
             label: '10',
             correct: false,
-            why: 'One number for every bean. The house Brazil needs reordering at 25 kg and the Ethiopia Guji at 6, so a flat 10 would flood the post with Brazil every single day and never once mention the Guji until it was gone.',
+            why: 'One number for every bean. The house Brazil needs reordering at 25 kg and the Ethiopia Guji at 6. A flat 10 would name Brazil every day and never mention the Guji until it was gone.',
           },
           {
             value: 'kg_on_hand',
@@ -363,7 +363,7 @@ export const nodeSetup = {
             value: 'supplier',
             label: '{{ $json.supplier }}',
             correct: false,
-            why: 'Who Brightleaf buys the bean from. Worth having in the message so the buyer knows who to call, but it is a name and there is nothing to compare a quantity against.',
+            why: 'Who Brightleaf buys the bean from. Worth having in the message so the buyer knows who to call. But it is a name, and a quantity cannot be compared against one.',
           },
           {
             value: 'reorder_level',
@@ -425,13 +425,13 @@ export const nodeSetup = {
             value: 'aggregateIndividualFields',
             label: 'Individual Fields',
             correct: false,
-            why: 'This gathers each named column into a list of its own — all the bean names in one list, all the quantities in another. Nothing then ties a bean to its own shortfall, and the message would have to line the lists back up by position and hope. It is also what this node is set to before you touch it, so it is the answer you get for not answering.',
+            why: 'This gathers each named column into a list of its own. All the bean names in one list, all the quantities in another. Nothing then ties a bean to its own shortfall. It is also what the node is set to before you touch it, so it is the answer you get for not answering.',
           },
           {
             value: 'aggregateAllItemData',
             label: 'All Item Data (Into a Single List)',
             correct: true,
-            why: 'Every item that reached this step is handed on inside one item, each row still whole — bean, location, quantity and level together. That is the shape the message needs.',
+            why: 'Every item that reached this step is handed on inside one item, each row still whole. Bean, location, quantity and level together. That is the shape the message needs.',
           },
         ],
       },
@@ -463,25 +463,25 @@ export const nodeSetup = {
             value: 'Stock',
             label: 'Stock',
             correct: false,
-            why: 'That is the name of the tab the rows came from, and this is not the tab — it is the three rows out of forty that failed the comparison. Naming a value after where it came from rather than what it is reads fine on the day you write it and misleads everybody after that.',
+            why: 'That is the name of the tab the rows came from, and this is not the tab. It is the three rows out of forty that failed the comparison. Naming a value after where it came from reads fine on the day you write it. It misleads everybody after that.',
           },
           {
             value: 'data',
             label: 'data',
             correct: false,
-            why: 'n8n\'s own default, so this is what you get for leaving the field alone — and it is why the field is worth a question. Every Aggregate node in every workflow calls its output `data`, so the expression in the post would say `data` and tell the next person nothing about what is in it. Name it for what it holds and the message step reads like a sentence.',
+            why: 'n8n\'s own default, so this is what you get for leaving the field alone. And it is why the field is worth a question. Every Aggregate node calls its output `data`. The expression in the post would say `data`, which tells the next person nothing. Name it for what it holds and the message step reads like a sentence.',
           },
           {
             value: 'bean',
             label: 'bean',
             correct: false,
-            why: 'Two problems. It holds a list of rows, not one bean — and `bean` is already a column name inside every one of those rows, so the flow would now have two different things reachable by that word and you would have to keep track of which one you meant.',
+            why: 'Two problems. It holds a list of rows, not one bean. And `bean` is already a column name inside every one of those rows. Two different things would answer to that word, and you would have to track which you meant.',
           },
           {
             value: 'low_stock',
             label: 'low_stock',
             correct: true,
-            why: 'Names what is actually in it: the beans that came out under their reorder level. Look at this node\'s Output pane after you verify, and then at the next node\'s Input pane — this is the field name that appears in both, and it is the word the message step has to reach for. That is the coupling worth noticing here: nothing checks that the two agree, so if you change this name you have to change the post with it.',
+            why: 'Names what is actually in it: the beans that came out under their reorder level. Look at this node\'s Output pane after you verify, and then at the next node\'s Input pane. This name appears in both, and it is the word the message step reaches for. Nothing checks that the two agree.',
           },
         ],
       },
@@ -492,7 +492,7 @@ export const nodeSetup = {
   // The post. Channel and operation are given; what goes IN the message is the decision.
   // ---------------------------------------------------------------------------
   slack: {
-    credential: 'Slack — Brightleaf Roasters',
+    credential: 'Slack. Brightleaf Roasters',
     // What Slack answers with. Nothing downstream reads it — this is the confirmation
     // the learner gets that their node did the right thing.
     //
@@ -532,9 +532,9 @@ export const nodeSetup = {
         correct: false,
         why: {
           false:
-            'Right, leave it off. Whatever reaches this node has already been brought together into one item upstream, so there is nothing left for this toggle to trim and turning it on would only hide a step that was missing.',
+            'Right, leave it off. Whatever reaches this node was already brought together upstream, so there is nothing for this toggle to trim. Turning it on would only hide a missing step.',
           true:
-            'This does make the node run once — by keeping the first item that arrives and throwing away every other one. That is not the same as putting them together, and if the step before this ever stopped doing its job you would get a post naming one bean and never notice the rest had gone.',
+            'This does make the node run once. By keeping the first item that arrives and throwing away every other one. That is not the same as putting them together. If the step before it stopped working you would get a post naming one bean, and never notice the rest had gone.',
         },
       },
     ],
@@ -550,13 +550,13 @@ export const nodeSetup = {
             value: 'bean',
             label: '{{ $json.bean }}',
             correct: false,
-            why: 'A single bean name, and not even reliably one of the low ones — the item arriving here is not a row any more. Look at the Input pane: there is one field on it, and it is not this.',
+            why: 'A single bean name, and not even reliably one of the low ones. The item arriving here is not a row any more. Look at the Input pane: there is one field on it, and it is not this.',
           },
           {
             value: 'low_stock',
             label: '{{ $json.low_stock }}',
             correct: true,
-            why: 'The gathered shortlist, every row of it, in one value — and it is the only thing on the item that reaches this node. Look at what lands in the channel, though: the whole list goes in raw, columns and all. Getting the right value into the message is the decision here; turning it into four tidy lines is a separate job, and one you now know exactly where to do.',
+            why: 'The gathered shortlist, every row of it, in one value, and the only thing on the item that reaches this node. Look at what lands in the channel, though: the whole list goes in raw, columns and all. Tidying it into four lines is a separate job.',
           },
           {
             value: 'kg_on_hand',
@@ -568,7 +568,7 @@ export const nodeSetup = {
             value: 'reorder_level',
             label: '{{ $json.reorder_level }}',
             correct: false,
-            why: 'The threshold, not the shortage — and a threshold on its own is a fact about the sheet, not news. The step before this collected something; post that.',
+            why: 'The threshold, not the shortage. And a threshold on its own is a fact about the sheet, not news. The step before this collected something; post that.',
           },
         ],
       },

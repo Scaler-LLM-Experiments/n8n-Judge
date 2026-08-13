@@ -151,6 +151,76 @@ describe('the traps that still import', () => {
   });
 });
 
+describe('an option can read to a learner and still export real n8n', () => {
+  // `label` used to do both jobs, and the exporter's requirement won: a valueOptions
+  // label had to be a working expression, so a seven-entry lookup table appeared inside
+  // five options and the longest reached 296 characters of JavaScript in a dropdown.
+  // `expression` splits them. The learner reads the label; the file gets the expression.
+  it('writes expression, not label, into the workflow file', () => {
+    const setup = {
+      fields: [
+        {
+          key: 'fields',
+          kind: 'assignmentList',
+          valueOptions: [
+            {
+              value: 'line.mapped',
+              label: 'Temperature, then the code looked up in the table',
+              expression: '{{ $json.current.temperature_2m }}°C, {{ codeWords[$json.current.weather_code] }}',
+              correct: true,
+              why: 'x',
+            },
+          ],
+          expect: { assignments: [{ name: 'weather_line', value: 'line.mapped' }] },
+        },
+      ],
+    };
+    const { assignments } = N8N_NODE_SPECS['edit-fields'].parameters({ setup }).assignments;
+    expect(assignments[0].value).toContain('$json.current.temperature_2m');
+    // The prose the learner compared must never reach the workflow file.
+    expect(assignments[0].value).not.toContain('looked up in the table');
+  });
+
+  it('falls back to label when no expression is authored', () => {
+    // Most options need no split: `{{ $json["Referral Source"] }}` is already readable.
+    const setup = {
+      fields: [
+        {
+          key: 'fields',
+          kind: 'assignmentList',
+          valueOptions: [{ value: 'f.src', label: '{{ $json["Referral Source"] }}', correct: true, why: 'x' }],
+          expect: { assignments: [{ name: 'Referral Source', value: 'f.src' }] },
+        },
+      ],
+    };
+    const { assignments } = N8N_NODE_SPECS['edit-fields'].parameters({ setup }).assignments;
+    expect(assignments[0].value).toBe('={{ $json["Referral Source"] }}');
+  });
+
+  it('resolves a select option the same way, so a long URL is not a picker label', () => {
+    const setup = {
+      fields: [
+        {
+          key: 'url',
+          kind: 'select',
+          options: [
+            {
+              value: 'current',
+              label: '/v1/forecast with current=temperature_2m',
+              expression: 'https://api.open-meteo.com/v1/forecast?latitude=12.97&current=temperature_2m',
+              correct: true,
+              why: 'x',
+            },
+          ],
+        },
+      ],
+    };
+    expect(N8N_NODE_SPECS['http-request'].parameters({ setup }).url).toBe(
+      'https://api.open-meteo.com/v1/forecast?latitude=12.97&current=temperature_2m'
+    );
+  });
+});
+
 describe('a locked schedule row still exports the right rule', () => {
   // A case that grades the HOUR has no reason to grade the interval too — a Days
   // interval is what makes the hour row exist in real n8n at all, so it is shown as a

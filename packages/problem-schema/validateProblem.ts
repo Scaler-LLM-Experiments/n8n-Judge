@@ -15,6 +15,7 @@ const catalogEntryOf = (type: string): CatalogEntry | undefined =>
   (NODE_CATALOG as Record<string, CatalogEntry>)[type];
 import { problemSchema, type Problem } from './types.ts';
 import { GRADED_SETTING_KEYS, SETTING_DEPENDENCIES } from './settingKeys.ts';
+import { plainLanguageIssues } from './plainLanguage.ts';
 
 /**
  * Every node type reachable through `flow.branchNext`, whichever shape it takes —
@@ -431,6 +432,17 @@ export function validateProblem(input: unknown): ValidateProblemResult {
   if (fallThrough.length > 0) {
     warn('sampleCases', `${fallThrough.length} case(s) intentionally fall through (branch: null) — verify this is deliberate`);
   }
+
+  // --- Plain language: ASD-STE100 sentence limits, Zinsser's brevity, no dashes.
+  //
+  // The walk lives in plainLanguage.ts so this, `npm run case:copy` and the debt guard in
+  // registry.test.js all read the same surfaces. Three copies existed briefly and the
+  // weakest one silently disagreed with the other two.
+  //
+  // Applies to every case. There was a PLAIN_LANGUAGE_DEBT bypass while the six shipped
+  // cases were rewritten, holding 455 violations between them; it is gone because the list
+  // reached empty, which is the only ending a grandfather clause should have.
+  for (const i of plainLanguageIssues(p)) err(i.path, i.message);
 
   const valid = !issues.some((i) => i.level === 'error');
   // Voice lines play BEFORE a learner has committed to anything, so a line that

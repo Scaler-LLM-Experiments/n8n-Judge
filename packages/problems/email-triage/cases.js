@@ -13,9 +13,9 @@ export const referenceGraph = {
     { id: 'model-1', type: 'chat-gemini', position: { x: 275, y: 340 }, requiredLabel: 'Gemini Chat Model' },
     { id: 'parse-1', type: 'parse', position: { x: 540, y: 180 }, requiredLabel: 'Parse Result' },
     { id: 'switch-1', type: 'switch', position: { x: 800, y: 180 }, requiredLabel: 'Switch' },
-    { id: 'action-bug', type: 'action', position: { x: 1080, y: 40 }, requiredLabel: 'Send Reply — Bug Report' },
-    { id: 'action-feature', type: 'action', position: { x: 1080, y: 180 }, requiredLabel: 'Send Reply — Feature Request' },
-    { id: 'action-urgent', type: 'action', position: { x: 1080, y: 320 }, requiredLabel: 'Send Reply — Urgent Complaint' },
+    { id: 'action-bug', type: 'action', position: { x: 1080, y: 40 }, requiredLabel: 'Send Reply. Bug Report' },
+    { id: 'action-feature', type: 'action', position: { x: 1080, y: 180 }, requiredLabel: 'Send Reply. Feature Request' },
+    { id: 'action-urgent', type: 'action', position: { x: 1080, y: 320 }, requiredLabel: 'Send Reply. Urgent Complaint' },
   ],
   edges: [
     { source: 'model-1', target: 'classify-1', targetHandle: 'ai_model' },
@@ -105,7 +105,7 @@ export const evalQuestions = [
     ],
     correctIndex: 1,
     explanation:
-      'Your Switch only has 3 branches — Bug Report, Feature Request, Urgent Complaint. A plain question matches none of them, so it silently falls through and no reply is ever sent. Real automations need a default/catch-all branch for exactly this.',
+      'Your Switch only has 3 branches. Bug Report, Feature Request, Urgent Complaint. A plain question matches none of them, so it silently falls through and no reply is ever sent. Real automations need a default/catch-all branch for exactly this.',
   },
   {
     id: 'why-fixed-path',
@@ -114,11 +114,11 @@ export const evalQuestions = [
     options: [
       'Because Gemini cannot be used in an autonomous agent',
       'Because n8n does not support branching logic',
-      "Because the structure is fixed and predictable — the AI only does one classification step, it doesn't choose which tools to call",
+      "Because the structure is fixed and predictable. The AI only does one classification step, it doesn't choose which tools to call",
       'Because fixed-path classifiers are always more accurate than agents',
     ],
     correctIndex: 2,
     explanation:
-      'The workflow is deterministic: the AI does exactly one job — classify — and everything else (parse, route, reply) is fixed wiring you designed. A full agent would decide its own steps and tools at runtime, which is powerful but unpredictable. For reliable, repeatable triage, a fixed path is the right call.',
+      'The workflow is deterministic: the AI does exactly one job. Classify. And everything else (parse, route, reply) is fixed wiring you designed. A full agent would decide its own steps and tools at runtime, which is powerful but unpredictable. For reliable, repeatable triage, a fixed path is the right call.',
   },
 ];

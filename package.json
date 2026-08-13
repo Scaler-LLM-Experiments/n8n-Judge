@@ -34,6 +34,7 @@
     "problem:draft": "node --env-file=.env scripts/problem-draft.mjs",
     "problem:blind": "node scripts/authoring/blind.mjs",
     "case:spec-check": "node scripts/authoring/spec-check.mjs",
+    "case:copy": "node scripts/authoring/copy-check.mjs",
     "case:audit": "node scripts/authoring/audit.mjs",
     "case:preflight": "node --env-file=.env scripts/authoring/preflight.mjs",
     "case:verify": "node --env-file=.env scripts/authoring/verify.mjs",

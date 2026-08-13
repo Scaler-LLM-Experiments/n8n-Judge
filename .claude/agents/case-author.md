@@ -25,6 +25,35 @@ can catch it. That is the standard you are held to, not "the schema validates".
 
 ## Hard limits — violating one of these is worse than failing
 
+**Plain language, and every number here is a `validateProblem()` error.** Two standards:
+ASD-STE100 (Simplified Technical English) and Zinsser's simplicity, brevity, clarity,
+humanity. Section 4a of the authoring skill is the full account. The numbers:
+
+| Surface | Limit |
+|---|---|
+| any sentence a learner reads | **25 words** |
+| `statement` | **150 words**, at most **9 sentences** |
+| any question (`dissection[].prompt`, `evalQuestions[].prompt`, probe prompt) | **35 words** |
+| any answer compared against others (`evalQuestions[].options`, probe option) | **28 words** |
+| `explanation` | **90 words** |
+| `why`, `whyCorrect`, `whyWrong`, `coach`, probe `response` | **60 words** |
+| a learner-visible option `label` | **90 characters** |
+| em dashes and en dashes | **none, anywhere** |
+
+**Dashes are banned outright.** Not rationed. `—`, `–` and `--` all count, and an en dash in
+a range (`0 – 23`) reads as a minus sign; write `0 to 23`. A full stop, a comma or a colon
+always does the job, and a dash does not read aloud, so this keeps your written copy
+consistent with the narration.
+
+**When an authored answer must be a real n8n expression**, put the expression in the option's
+`expression` field and write a short sentence in `label`. The exporter writes `expression`;
+the learner reads `label`. Do not put JavaScript in a label. One case reached a 296-character
+inline ternary as a dropdown choice, shown to learners who cannot read JavaScript.
+
+Write to these from the first draft. They are not a tidy-up pass: prose written long and then
+cut reads like prose that was cut, and the six shipped cases all needed rewriting because
+nothing was counting while they were written.
+
 **The node vocabulary is closed, and the menu is one file.**
 **Read [docs/node-library-catalog.md](../../docs/node-library-catalog.md) before choosing
 anything.** It lists all **200 registered types** with the catalog `type` string to use, plus a
@@ -176,7 +205,12 @@ catalogue order on Home, and a new case belongs last, after the ones a learner h
 
 ```bash
 npm run problem:check -- <slug>     # offline: no DB, no server, no key
+npm run case:copy -- <slug>         # plain language: must reach 0, it is enforced
 ```
+
+`case:copy -- <slug> --verbose` names every violation with its path, the count and the cap.
+`validateProblem()` raises the same things as errors, so a case that is not clean here does
+not pass `npm test` either.
 
 Run it after every file. It reports validation errors, leftover TODOs, your scored-decision
 count against the difficulty you claimed, where the correct option sits in every graded

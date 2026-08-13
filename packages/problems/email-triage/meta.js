@@ -9,7 +9,7 @@ export const id = 'email-triage';
 export const title = 'Email Triage Automation';
 
 export const statement =
-  "Your inbox is full of mixed feedback. Build a flow that watches for new emails, uses AI to classify each one (Bug Report / Feature Request / Complaint), and routes urgent complaints differently from everything else — each path sends the right reply.";
+  "Your inbox is full of mixed feedback. Build a flow that watches for new emails and uses AI to classify each one: Bug Report, Feature Request or Complaint. Urgent complaints route differently from everything else, and each path sends the right reply.";
 
 export const tagline = 'Classify incoming support emails with AI and route each to the right reply.';
 // Two lines, for the Understand hero and the Home card. The full brief above is
@@ -28,7 +28,7 @@ export const coverImage = {
   // Motif reserved for this case only: soft diagonal chevron (not X, not sparkles).
   // Palette reserved: bright brand / electric blue (keep it vivid, not navy-black).
   prompt:
-    'Bright vivid electric blue and sky-blue colour field — saturated #0055FF to luminous cyan-blue gradients, airy and high-key, not dark navy. Soft spray-paint grain. Single large soft-edged pale white-blue diagonal chevron or arrow-shard in the upper-left, slightly soft-focus. Empty bright lower-right atmosphere. No other symbols.',
+    'Bright vivid electric blue and sky-blue colour field. Saturated #0055FF to luminous cyan-blue gradients, airy and high-key, not dark navy. Soft spray-paint grain. Single large soft-edged pale white-blue diagonal chevron or arrow-shard in the upper-left, slightly soft-focus. Empty bright lower-right atmosphere. No other symbols.',
   src: '/covers/email-triage.png',
   alt: 'Bright blue spray field with a soft diagonal chevron',
 };

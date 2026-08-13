@@ -28,13 +28,13 @@ export const dissection = [
     wrongHint:
       'The form is one Priya built inside the automation tool itself, and it is the only way a request reaches this flow. Does this option have any idea that form exists?',
     explanation:
-      'The form trigger publishes the Ops Desk request and fires the instant somebody submits it, so the three answers arrive as named values with nothing to fetch or dig out first.',
+      'The form trigger publishes the Ops Desk request and fires the instant somebody submits it. The three answers arrive as named values, with nothing to fetch first.',
     unlocks: ['form-trigger'],
   },
   {
     id: 'read',
     prompt:
-      'The request is one free-text box. Four separate things have to come out of it: which of the three kinds it is, who or what it is about, any address written inside it, and a one-line summary. What does that?',
+      'The request is one free-text box. Four things have to come out of it. The kind, who it is about, any address inside it, and a summary. What does that?',
     options: [
       { label: 'Text Classifier', type: 'text-classifier' },
       { label: 'Code', type: 'code' },
@@ -43,9 +43,9 @@ export const dissection = [
     ],
     correctType: 'information-extractor',
     wrongHint:
-      'Sorting the request into one of three kinds is only half the job. Read the Ops Log’s six headings again: what would you put under Subject Name and Detail if all you got back was which kind it is?',
+      'Sorting the request into one of three kinds is only half the job. Read the Ops Log’s six headings again. What would you put under Subject Name and Detail if all you got back was the kind?',
     explanation:
-      'The Information Extractor reads the sentence once and hands back several named values at a time, so the same call that decides the route also produces the details the spreadsheet and the email need. It borrows a language model, which you will plug in underneath it.',
+      'The Information Extractor reads the sentence once and hands back several named values at a time. The same call that decides the route also produces the details the spreadsheet and the email need. It borrows a language model, which you will plug in underneath it.',
     unlocks: ['information-extractor', 'openai-chat-model'],
   },
   {
@@ -62,7 +62,7 @@ export const dissection = [
     wrongHint:
       'Count the ways out this option gives you. Three kinds of request need three separate paths, and none of the three may be dropped on the floor.',
     explanation:
-      'A Switch takes one item and sends it to whichever labelled output matches: one for the ones to be recorded, one for the ones to be sent on, one for the ones a person has to look at.',
+      'A Switch takes one item and sends it to whichever labelled output matches. One output for recording, one for sending on, one for the ones a person has to look at.',
     unlocks: ['switch'],
   },
   {
@@ -79,7 +79,7 @@ export const dissection = [
     wrongHint:
       'The Ops Log already exists and Priya already works in it every day. Which of these adds a line under headings that are already there, instead of inventing a second place to keep things?',
     explanation:
-      'The Ops Log is a spreadsheet, so the node that speaks to that spreadsheet is what adds to it: one new line per request, each value landing under the heading it belongs to.',
+      'The Ops Log is a spreadsheet, so the node that speaks to it is what adds a row. One new line per request, each value under the heading it belongs to.',
     unlocks: ['google-sheets'],
   },
   {
@@ -94,20 +94,20 @@ export const dissection = [
     ],
     correctType: 'gmail',
     wrongHint:
-      'The person this message is for may not work at Fernwood at all — an address is the only thing you have for them. Would this option reach somebody like that?',
+      'The person this message is for may not work at Fernwood at all. An address is the only thing you have for them. Would this option reach somebody like that?',
     explanation:
-      'Fernwood runs on Gmail, so the Gmail node is what puts a message in somebody’s inbox. Watch whose inbox, though: the form asked the requester for their own address, and the one this message is going to is a different address entirely.',
+      'Fernwood runs on Gmail, so the Gmail node is what puts a message in somebody’s inbox. Watch whose inbox, though. The form asked the requester for their own address, and this message goes somewhere else entirely.',
     unlocks: ['gmail'],
   },
   {
     id: 'escalate',
     prompt:
-      'Third path. The request is a question about the desk, or something the desk simply cannot do. It has to land in front of Priya, in the channel she already watches all day. What gets it there?',
+      'Third path. The request is a question about the desk, or something it cannot do. It has to land in front of Priya, in the channel she watches. What gets it there?',
     options: [
       { label: 'Slack', type: 'slack' },
       { label: 'Google Sheets', type: 'google-sheets' },
       { label: 'Gmail', type: 'gmail' },
-      { label: 'Nothing — it stops here and Priya will spot it', type: 'noop' },
+      { label: 'Nothing. It stops here and Priya will spot it', type: 'noop' },
     ],
     correctType: 'slack',
     wrongHint:

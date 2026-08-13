@@ -124,6 +124,39 @@ export const buildPhaseSchema = z.object({
 export const nodeSetupFieldOptionSchema = z.object({
   value: z.string(),
   label: z.string().min(1),
+  /**
+   * The real n8n expression this option means, when that is not what the learner
+   * should be shown.
+   *
+   * `label` used to do both jobs. The exporter resolves an authored
+   * `expect.assignments` token back through `valueOptions` to the option's **label**
+   * and writes it into the workflow file, so a label had to be a working expression
+   * even when the thing being compared was a seven-entry lookup table. That is how one
+   * case grew a 296-character inline JavaScript ternary as a dropdown choice, shown to
+   * learners who cannot read JavaScript, truncated mid-token in a 420px control.
+   *
+   * Set `expression` and the two jobs separate: the learner reads `label`, the exported
+   * workflow gets `expression`. Omit it and `label` is still used for both, which is
+   * correct for the many options whose expression is already short and readable
+   * (`{{ $json["Referral Source"] }}`).
+   */
+  expression: z.string().min(1).optional(),
+  /**
+   * For a `valueOptions` entry: the row name this value is a candidate for.
+   *
+   * An assignment list has ONE pool of value options shared by every row, so a two-row
+   * list offered all seven of one case's options on both rows. With the row named
+   * `weather_line`, four of the seven were advice lines belonging to `commute_note`:
+   * choices that are not wrong answers so much as answers to the other row's question.
+   * A learner cannot tell what they are being asked when half the menu is irrelevant.
+   *
+   * Set `forName` and the row only offers what belongs to it. Omit it and the option
+   * shows on every row, which is right for a value that genuinely could go anywhere.
+   *
+   * Presentation only. Grading still compares against `expect.assignments` by token, so
+   * filtering the menu cannot change what is correct.
+   */
+  forName: z.string().min(1).optional(),
   correct: z.boolean(),
   why: z.string().min(1),
 });

@@ -16,7 +16,7 @@
 // by the value the learner chose, so they are told why THEIR answer is right or wrong.
 export const nodeSetup = {
   trigger: {
-    credential: 'Gmail — Scaler Finance',
+    credential: 'Gmail. Scaler Finance',
     locked: [
       { label: 'Event', value: 'On new email received' },
       { label: 'Poll frequency', value: 'Every minute' },
@@ -82,7 +82,7 @@ export const nodeSetup = {
         correct: 'continueErrorOutput',
         why: {
           continueErrorOutput:
-            'Right. A claim the model could not read stops somewhere you can see it, so finance can deal with that one claim by hand instead of never hearing about it.',
+            'Right. A claim the model could not read stops somewhere you can see it. Finance deals with that one by hand, instead of never hearing about it.',
           stopWorkflow:
             'One unreadable claim now halts everything behind it, and every claim still queued goes unanswered until somebody notices the inbox has gone quiet. Is one bad claim worth stopping payroll week?',
           continueRegularOutput:
@@ -135,7 +135,7 @@ export const nodeSetup = {
           },
           {
             value: 'json',
-            label: 'JSON — { decision, amount }',
+            label: 'JSON. { decision, amount }',
             correct: true,
             why: 'Two named fields the next nodes can read the same way every time: the decision to route on, the amount to quote back.',
           },
@@ -165,12 +165,12 @@ export const nodeSetup = {
         max: 1,
         step: 0.1,
         correct: 0,
-        placeholder: '0 – 1',
+        placeholder: '0. 1',
         subtitle: 'How much the model is allowed to vary its answer between runs.',
         whyCorrect:
           'Right. At 0 the same claim gets the same decision every time. Two people submitting identical claims have to get identical answers, or the policy is not a policy.',
         whyWrong:
-          'Anything above 0 lets the model answer differently on identical input, so the same 4,900 rupee claim could be approved today and sent to a manager tomorrow. Variety is worth having when you are writing prose. What value makes this repeatable?',
+          'Anything above 0 lets the model answer differently on identical input. The same 4,900 rupee claim could be approved today and sent to a manager tomorrow. Variety is worth having when you are writing prose. What value makes this repeatable?',
       },
     ],
   },
@@ -265,7 +265,7 @@ export const nodeSetup = {
           false:
             'Correct, leave it off. When a mail matches no branch the split should produce nothing at all. A claim nobody answered is a gap you can find and fix; it is not something to paper over.',
           true:
-            'Turn this on and a mail that matched nothing is still pushed down the first branch as an empty item, so somebody gets a reply approving a claim they never made. Silently wrong is worse than visibly missing. Run it and watch the payroll question.',
+            'Turn this on and a mail that matched nothing is still pushed down the first branch as an empty item. Somebody gets a reply approving a claim they never made. Silently wrong is worse than visibly missing. Run it and watch the payroll question.',
         },
       },
     ],
@@ -336,7 +336,7 @@ export const nodeSetup = {
           },
           conditions: {
             correct: 'This branch tests the decision the AI made, matched exactly, which is what makes the routing predictable.',
-            wrong: 'Look at what this branch is testing. The value to split on is the call the AI already made, not the figure behind it and not the raw claim, and it should match exactly.',
+            wrong: 'Look at what this branch is testing. Split on the call the AI already made, not the figure behind it and not the raw claim. It should match exactly.',
           },
         },
       },
@@ -359,7 +359,7 @@ export const nodeSetup = {
           },
           {
             value: 'none',
-            label: 'Fall through — no reply sent',
+            label: 'Fall through. No reply sent',
             correct: true,
             why: 'With three branches, anything else falls through silently. That is a real gap, and the stress test is about to ask you what falls into it.',
           },
@@ -369,7 +369,7 @@ export const nodeSetup = {
   },
 
   action: {
-    credential: 'Gmail — Scaler Finance',
+    credential: 'Gmail. Scaler Finance',
     locked: [
       { label: 'Operation', value: 'Reply to message' },
       { label: 'Subject', value: 'Re: your expense claim' },

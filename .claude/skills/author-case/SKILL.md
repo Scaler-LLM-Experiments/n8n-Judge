@@ -206,10 +206,17 @@ against `problem:check`. It writes neither `voice.js` nor the registration.
 ```bash
 npm run case:verify -- check <slug>         # problem:check, run by us
 npm run case:audit -- <slug>                # the mechanical half of a review, in a second
+npm run case:copy -- <slug>                 # plain language: sentence, length and dash limits
 npm run workflows:generate -- <slug>        # every case owes an importable n8n file
 npm run case:verify -- workflow <slug>
 npm test && npm run typecheck
 ```
+
+`case:copy` belongs in the same place and for the same reason. Every limit it reports is a
+`validateProblem()` error, so a case that is not clean cannot pass `npm test` either, and the
+cheapest moment to fix prose is before three reviewers have read it. The six shipped cases
+carried 455 violations between them when the rules landed, and the drift was invisible to
+review: a reviewer checking whether a question is correct does not notice it is 64 words.
 
 Run `case:audit` **here**, before review is spawned: every blocker it names is one an agent
 would otherwise spend a 20-minute round finding, and fixing them now costs a re-run of a

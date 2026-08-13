@@ -30,7 +30,7 @@ export const dissection = [
     // screens before the question is asked. What a clock trigger ignores is the thing
     // the learner should have to work out.
     explanation:
-      'A Schedule Trigger treats time itself as the event: the clock reaching 07:30 is the thing that happens. That is what "before the first roast, every weekday" actually is — a time, not an arrival.',
+      'A Schedule Trigger treats time itself as the event: the clock reaching 07:30 is the thing that happens. That is what "before the first roast, every weekday" actually is. A time, not an arrival.',
     unlocks: ['schedule'],
   },
   {
@@ -54,13 +54,13 @@ export const dissection = [
     // for; this surface was missed. What is left says what the node IS and what shape
     // its output has, both of which the prompt already presupposes.
     explanation:
-      'The Google Sheets node already speaks Google Sheets — the credential, the document, the tab and the column names are all things it understands — so getting at a spreadsheet Brightleaf already keeps takes no code and no hand-built API call. What it hands on arrives as items, one per line of the table, which is the shape every step after it works in.',
+      'The Google Sheets node already speaks Google Sheets. The credential, the document, the tab and the column names are all things it understands, so reading a sheet takes no code. What it hands on arrives as items, one per line of the table.',
     unlocks: ['google-sheets'],
   },
   {
     id: 'narrow',
     prompt:
-      'Most of those forty rows are perfectly well stocked and nobody needs to see them. What keeps the ones that are running low and stops the rest going any further, without needing anywhere to send them?',
+      'Most of those forty rows are well stocked and nobody needs to see them. What keeps the ones running low and stops the rest, without needing anywhere to send them?',
     options: [
       { label: 'If', type: 'if' },
       { label: 'Code', type: 'code' },
@@ -71,7 +71,7 @@ export const dissection = [
     wrongHint:
       'Ask what happens to a row that is fine. Does this option need somewhere to send it, or can it simply let it go?',
     explanation:
-      'Filter asks its question of every item and passes on only the ones that answer yes. The rest are dropped, not routed — which is exactly right here, because a well-stocked bean needs no path of its own.',
+      'Filter asks its question of every item and passes on only the ones that answer yes. The rest are dropped, not routed. Which is exactly right here, because a well-stocked bean needs no path of its own.',
     unlocks: ['filter'],
   },
   {
@@ -90,9 +90,9 @@ export const dissection = [
     ],
     correctType: 'aggregate',
     wrongHint:
-      'You have many items on one stream and you want one. Read each option and ask what it takes IN and what it hands OUT — one of them is the wrong direction, one needs two streams, and one just throws things away.',
+      'You have many items on one stream and you want one. Read each option and ask what it takes IN and what it hands OUT. One of them is the wrong direction, one needs two streams, and one just throws things away.',
     explanation:
-      'Aggregate collects everything that reaches it and hands it on as one item with the whole set inside — each row still intact. Whatever comes next then has a single thing to work with instead of several.',
+      'Aggregate collects everything that reaches it and hands it on as one item with the whole set inside. Each row still intact. Whatever comes next then has a single thing to work with instead of several.',
     unlocks: ['aggregate'],
   },
   {
@@ -103,7 +103,7 @@ export const dissection = [
       { label: 'Google Docs', type: 'google-docs' },
       { label: 'Slack', type: 'slack' },
       { label: 'Notion', type: 'notion' },
-      { label: 'Nothing — Ritika will check the run', type: 'noop' },
+      { label: 'Nothing. Ritika will check the run', type: 'noop' },
     ],
     correctType: 'slack',
     wrongHint:

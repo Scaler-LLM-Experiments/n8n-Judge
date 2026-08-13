@@ -26,7 +26,7 @@ export const nodePalette = [
   // asked about — the catalog label was corrected for the same reason.
   { type: 'google-sheets', label: 'Google Sheets', category: 'action', isDistractor: false },
   { type: 'action', label: 'Send Reply', category: 'action', isDistractor: false },
-  { type: 'google-docs', label: 'Google Docs — Create Document', category: 'action', isDistractor: true },
+  { type: 'google-docs', label: 'Google Docs. Create Document', category: 'action', isDistractor: true },
 ];
 
 /**
@@ -97,7 +97,7 @@ export const buildPhases = [
   {
     id: 'rate',
     label: 'Get today’s rate',
-    coach: 'That’s the way in. The row has to carry today’s dollar-to-rupee rate, and nothing on the form asks for it — so where does it come from?',
+    coach: 'That’s the way in. The row has to carry today’s dollar-to-rupee rate, and nothing on the form asks for it. So where does it come from?',
     nodeTypes: ['http-request'],
     pickable: ['http-request', 'code', 'web-search'],
   },

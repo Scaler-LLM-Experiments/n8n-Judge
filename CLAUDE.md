@@ -15,8 +15,7 @@ workflows in n8n **and grades them while they do it**. Per challenge the learner
 **Home → Understand → Build → Stress Testing → Result**.
 
 **Five cases ship**, in registry order (which *is* catalogue order — see
-[packages/problems/index.js](packages/problems/index.js), whose own header comment still
-claims email-triage is the only one and is stale):
+[packages/problems/index.js](packages/problems/index.js)):
 
 | Case | Why it exists |
 |---|---|
@@ -32,7 +31,7 @@ git history, but the same commit deleted their database rows, so restoring one m
 re-registering **and** re-seeding. Anything describing "four challenges" or "one challenge"
 is out of date.
 
-The repo root **is** the monorepo — `apps/web` plus ten `@judge/*` packages. It was
+The repo root **is** the monorepo — `apps/web` plus eleven `@judge/*` packages. It was
 restructured on 2026-07-27; anything referring to an `innate/` folder or an `app/` Vite
 prototype is out of date, and both are gone.
 
@@ -116,10 +115,22 @@ Authoring, by hand: `problem:new`, `problem:check`, `problem:draft` — see *Pro
 below. `problem:check` is offline and safe to run on anything, including an unregistered
 draft.
 
-Authoring, as a pipeline: `case:preflight`, `case:verify`, `case:run`, `case:cma` — the
-checks and run-state that `/author-case` drives. See *The agent authoring pipeline* below;
-`case:verify` is the one to know, because it is how a stage's claim gets checked rather
-than believed.
+Authoring, as a pipeline: `case:spec-check`, `case:brief`, `case:audit`, `problem:blind`,
+`case:preflight`, `case:verify`, `case:run`, `case:cma` — the checks and run-state that
+`/author-case` drives. See *The agent authoring pipeline* below; `case:verify` is the one
+to know, because it is how a stage's claim gets checked rather than believed.
+
+**The first four are the fast half, and all of them are offline.** Each replaced something
+a run used to discover late or an agent used to improvise:
+
+| Command | Does | Replaces |
+|---|---|---|
+| `case:spec-check -- docs/case-specs/<slug>.md` | Lints the filled-in spec in ~1s; every rule is decidable from the spec text | Discovering the same fault 33 minutes into a run, after the case is written |
+| `case:brief -- <slug> <spec>` | Writes `.authoring-runs/brief-<slug>.md` — the ~ten nodes this case might use | Handing the author agent all 200 catalog types |
+| `case:audit -- <slug>` | The mechanical half of a case review, in under a second: blockers (a learner would be graded wrongly) vs notes (for the PR) | A 29-minute review round finding what a rule could decide |
+| `problem:blind -- <slug> [--out <file>]` | Emits exactly what a learner's browser gets (`toPublicProblem`), the input to a blind solve | Each reviewer hand-writing the same harness into `/tmp` — subtly wrong, reported as success |
+
+Run `case:audit` **before** review is spawned, not after.
 
 `npm run workflows:generate` exports each case as an importable n8n workflow JSON. A clean
 export is not proof it would run — read what it emitted.
@@ -271,6 +282,11 @@ the procedure; the stages run as the five subagents in [.claude/agents/](.claude
   check on our side for each stage's claim, and `case:preflight` runs everything a run needs
   *before* the stages that spend money (cover render, voice render, S3 upload, PR).
   `npm run case:run` is the run-state. `-- --fake` rehearses the whole chain with no spend.
+- **Anything a rule can decide, decide before spawning an agent.** `case:spec-check`,
+  `case:brief`, `case:audit` and `problem:blind` (table in *Commands*) are the fast half, and
+  the logic behind them is a package, not script-local: [packages/authoring/](packages/authoring/)
+  (`specLint.ts` · `briefingPack.ts` · `audit.ts`), so the rules are importable and unit-tested
+  rather than living in a reviewer's prompt.
 - **A diagnosis is a claim too.** An agent correctly reported the model-picker bug and named
   the wrong file. Read the code it points at before editing.
 - **Automation stops at a draft PR.** Nothing merges, because the human walkthrough is the
@@ -279,6 +295,11 @@ the procedure; the stages run as the five subagents in [.claude/agents/](.claude
 Stage names, statuses and failure classes deliberately match the hosted design in
 [docs/cma-authoring-pipeline-handoff.md](docs/cma-authoring-pipeline-handoff.md) — the port is
 meant to be a change of *where* a stage runs, not a redesign.
+
+**`agents/*.agent.yaml` at the repo root is generated — do not edit it.** Those six files are
+the same five personas as hosted Claude Managed Agents, written by `npm run case:cma` from
+`.claude/agents/*.md` so the two copies cannot drift. Edit the markdown, re-run the script. See
+[docs/cma-setup.md](docs/cma-setup.md).
 
 Key fields: `branches`, `flow` (`start`/`next`/`branchNext`/`modelNext` — the last two
 optional), `flowSummary`, `buildPhases`, `nodeSetup` (per-node NDV: `credential` +
@@ -647,6 +668,7 @@ more than one `main` output), so a multi-output node is a router automatically.
 | `@judge/catalog` | `NODE_CATALOG` — node vocabulary, params, sample I/O |
 | `@judge/problems` | The five shipped cases (seven files each) + `_template/` + registry + tests (seed source). **Registry order is the catalogue order** |
 | `@judge/problem-schema` | zod `Problem` schema, `validateProblem()`, `toPublicProblem()`, `checkAnswer()`, `ruleList.ts` (rule/assignment lists) |
+| `@judge/authoring` | The authoring pipeline's *rules*, as importable tested code rather than prompt text: `specLint.ts` (lint a case spec), `briefingPack.ts` (the ~ten nodes one case needs), `audit.ts` (the mechanical half of a review). Consumed by `scripts/authoring/*` — never by the app |
 | `@judge/trace` | `TraceEvent` contract + `ingest.ts` — decision, screen/phase transition, ndv_open, graph_mutation, run_result, ask_ai_turn; `CLIENT_FORBIDDEN_TYPES` |
 | `@judge/queue` | Queue interface + pg-boss driver + SQS stub |
 | `@judge/llm` | Claude client + grading / authoring / ask-ai prompt builders |
@@ -848,6 +870,50 @@ degenerate (the unluckiest measured session had the answer on top for 18 of 24 f
 averages are no comfort to the learner living in that tab). `evalQuestions` are deliberately
 left alone by it — `scoreEval` grades against the authored `correctIndex`. Authored balance
 plus `verify-option-balance.mjs` remain the defence for anything the projection never sees.
+
+### IMPORTANT — plain language, and all of it is a `validateProblem()` error
+
+Every word a learner reads follows **ASD-STE100** (Simplified Technical English) and
+**Zinsser's** simplicity, brevity, clarity, humanity. The rules live once, in
+[packages/problem-schema/plainLanguage.ts](packages/problem-schema/plainLanguage.ts), as
+numbers:
+
+| Surface | Limit |
+|---|---|
+| any sentence | 25 words |
+| `statement` | 150 words, 9 sentences |
+| a question | 35 words |
+| an answer compared against others | 28 words |
+| `explanation` | 90 words |
+| `why` · `whyWrong` · `coach` · probe `response` | 60 words |
+| a learner-visible option `label` | 90 characters |
+| **em and en dashes** | **none, anywhere** |
+
+`npm run case:copy [-- <slug> --verbose]` reports them; `validateProblem()` raises them as
+errors, so `npm test` fails on a regression. **One walk serves all three consumers**
+(`plainLanguageIssues()`) — it briefly had three copies and the weakest silently disagreed,
+calling a case with 42 long sentences clean.
+
+**Dashes are banned outright, not rationed.** `--` counts, and an en dash in a range
+(`0 – 23`) reads as a minus sign. This matches the voice rules, which already rejected them
+because a dash does not read aloud.
+
+**When an authored answer must be a real n8n expression**, put it in the option's
+`expression` field and write a short sentence in `label`. The exporter writes `expression`,
+the learner reads `label`. Without that split the exporter's requirement wins: one case grew
+a 296-character inline JavaScript ternary as a dropdown choice.
+
+**Why numbers rather than taste.** The one case a human wrote has a 43-word statement; the
+five authored by agents came in at 95 to 270, each longer than the last, because nothing
+counted. All five had passed `problem:check`, `npm test` and three independent blind reviews.
+455 violations were cleared across six cases on 2026-08-13; the `PLAIN_LANGUAGE_DEBT`
+grandfather list that made that possible is gone, having reached empty.
+
+The standard is stated in four places on purpose, because agents read different ones:
+the `authoring-a-problem` skill (§4a), `docs/case-authoring/TEMPLATE.md` (§0, author-facing),
+[packages/llm/authoringPrompt.ts](packages/llm/authoringPrompt.ts) rule 18 (which **imports**
+the numbers, since CLAUDE.md records it as the doc that rots unnoticed), and
+`.claude/agents/case-author.md`.
 
 ### IMPORTANT — copy rules for anything a learner reads BEFORE building
 Also stated in the `authoring-a-problem` skill, which is the fuller version. Both are

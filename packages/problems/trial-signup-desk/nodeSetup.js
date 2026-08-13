@@ -23,7 +23,7 @@ export const nodeSetup = {
   // named values everything downstream maps from.
   'form-trigger': {
     locked: [
-      { label: 'Form Title', value: 'TerraTrek Gear — Free Trial' },
+      { label: 'Form Title', value: 'TerraTrek Gear. Free Trial' },
       { label: 'Form Description', value: 'Fourteen days, no card needed.' },
       { label: 'Form Fields', value: 'Full Name · Email · Plan · Referral Source' },
       { label: 'Respond When', value: 'Form is submitted' },
@@ -41,13 +41,13 @@ export const nodeSetup = {
             value: 'all',
             label: 'All four',
             correct: false,
-            why: 'This keeps the sheet tidy by turning people away. Somebody who would rather not say where they heard about you now cannot start a trial at all, and the brief is explicit that a blank name and a blank referral both have to get through. You do not fix a blank by refusing the signup.',
+            why: 'This keeps the sheet tidy by turning people away. Somebody who would rather not say where they heard about you now cannot start a trial. The brief is explicit that a blank name and a blank referral both have to get through. You do not fix a blank by refusing the signup.',
           },
           {
             value: 'email-plan',
             label: 'Email and Plan',
             correct: true,
-            why: 'Right. Those two are the only answers the rest of the flow genuinely cannot work without: no address means the welcome mail has nowhere to go, and no plan means there is nothing to welcome them to. Name and referral are allowed in blank, and everything after this has to cope with that.',
+            why: 'Right. Those two are the only answers the flow genuinely cannot work without. No address means the welcome mail has nowhere to go, and no plan means nothing to welcome them to. Name and referral are allowed in blank, and everything after this has to cope with that.',
           },
           {
             value: 'none',
@@ -59,7 +59,7 @@ export const nodeSetup = {
             value: 'name-email',
             label: 'Full Name and Email',
             correct: false,
-            why: 'The address, yes. But the brief says a blank name still has to produce a logged row, so making the name compulsory answers that requirement by refusing the trial. And with no plan required, a signup can arrive that you cannot tell the person anything about.',
+            why: 'The address, yes. But the brief says a blank name still has to produce a logged row. Making the name compulsory answers that requirement by refusing the trial. And with no plan required, a signup can arrive that you cannot tell the person anything about.',
           },
         ],
       },
@@ -86,7 +86,7 @@ export const nodeSetup = {
           // would reward the mistake and score one idea twice. It corrects the misreading of
           // the name and leaves the consequence to be worked out.
           true:
-            'Execute Once has nothing to do with caching a result, and the name is exactly why people believe it does. It is n8n’s switch for making a node run a single time no matter how many items arrive at it — and on a signup form one item is one person, so "how many items" is the whole question. Ask yourself what a node emits when it has only run once. The saving you are reaching for is one small GET per signup, which for a trial form costs nothing at all.',
+            'Execute Once has nothing to do with caching a result, and the name is exactly why people believe it does. It makes a node run a single time however many items arrive at it. On a signup form one item is one person. Ask yourself what a node emits when it has only run once.',
         },
       },
     ],
@@ -111,7 +111,7 @@ export const nodeSetup = {
             // factor-of-eighty. Distinguished from the `INR` value option, which is a
             // right request read at the wrong depth: here the depth is right and the
             // request is not, so the fix is in the URL rather than in the expression.
-            why: 'The right service, the wrong way round: this asks what one rupee is worth in dollars. What comes back is a dollar rate — the `rates` object holds a `USD` entry and no `INR` one — while the column is pointed at the rupee rate, so it finds nothing there and every cell comes out blank. Nothing errors, which is what makes it dangerous. Notice where that has to be fixed, too: the mapping was never wrong, the request was, so no amount of correcting the expression rescues it.',
+            why: 'The right service, the wrong way round. This asks what one rupee is worth in dollars, so the `rates` object holds a `USD` entry and no `INR` one. The column is pointed at the rupee rate, finds nothing, and every cell comes out blank. Nothing errors, which is what makes it dangerous. The mapping was never wrong. The request was.',
           },
           {
             value: 'bare',
@@ -129,7 +129,7 @@ export const nodeSetup = {
             value: 'path-style',
             label: 'https://api.frankfurter.app/USD/INR',
             correct: false,
-            why: 'A fair guess at how the URL might be shaped, and not how this one works: the path says which snapshot you want and the currencies go in the query string. A request to a path the service does not publish comes back as an error, not as a rate.',
+            why: 'A fair guess at how the URL might be shaped, and not how this one works. The path says which snapshot you want, and the currencies go in the query string. A request to a path the service does not publish comes back as an error, not as a rate.',
           },
         ],
       },
@@ -139,7 +139,7 @@ export const nodeSetup = {
   // The sheet. This node carries the decision the whole case exists for: which incoming
   // answer goes under which column heading.
   'google-sheets': {
-    credential: 'Google Sheets — TerraTrek Ops',
+    credential: 'Google Sheets. TerraTrek Ops',
     locked: [
       { label: 'Document', value: 'TerraTrek Signups' },
       { label: 'Sheet', value: 'Signups' },
@@ -232,13 +232,13 @@ export const nodeSetup = {
             value: 'Notes',
             label: 'Notes',
             correct: false,
-            why: 'There is no Notes column on the Signups sheet. A value sent under a heading that does not exist is simply not written, and nothing warns you — check the column list on the panel above.',
+            why: 'There is no Notes column on the Signups sheet. A value sent under a heading that does not exist is simply not written, and nothing warns you. Check the column list on the panel above.',
           },
           {
             value: 'Signup Date',
             label: 'Signup Date',
             correct: false,
-            why: 'Genuinely useful, and not a column this sheet has. Adding it here writes nothing; adding the column to the sheet first would be the real fix, and that is not the job you were given.',
+            why: 'Genuinely useful, and not a column this sheet has. Adding it here writes nothing. Adding the column to the sheet first would be the real fix, and that is not the job you were given.',
           },
         ],
         valueOptions: [
@@ -264,13 +264,13 @@ export const nodeSetup = {
             value: 'form.referral',
             label: '{{ $json["Referral Source"] }}',
             correct: true,
-            why: 'The free-text answer, whole and untouched. Commas, quotes and line breaks inside it only cause trouble if something tries to split the value up; taken whole it goes into one cell and stays there.',
+            why: 'The free-text answer, whole and untouched. Commas, quotes and line breaks only cause trouble if something tries to split the value up. Taken whole, it goes into one cell and stays there.',
           },
           {
             value: 'rates.INR',
             label: '{{ $json.rates.INR }}',
             correct: true,
-            why: 'The rate service answers with the amount it converted, the base currency, the date, and a `rates` object holding one entry per currency you asked for. The number is inside that object, under the currency code.',
+            why: 'The rate service answers with the amount, the base currency and the date. It also returns a `rates` object, holding one entry per currency you asked for. The number is inside that object, under the currency code.',
           },
           {
             value: 'rates',
@@ -288,7 +288,7 @@ export const nodeSetup = {
             value: 'INR',
             label: '{{ $json.INR }}',
             correct: false,
-            why: 'There is no INR at the top of the response — it is nested one level down. This resolves to nothing, so the column comes out blank on every row and no error is raised.',
+            why: 'There is no INR at the top of the response. It is nested one level down. This resolves to nothing, so the column comes out blank on every row and no error is raised.',
           },
         ],
         expect: {
@@ -313,13 +313,13 @@ export const nodeSetup = {
             correct:
               'Each name matches a heading that is really on the sheet, spelled the same way, so each value has somewhere to land.',
             wrong:
-              'A name here has to be a heading the Signups sheet actually has, spelled exactly. Read the column list on the locked panel above and check this row against it — a near-miss writes nothing and says nothing.',
+              'A name here has to be a heading the Signups sheet actually has, spelled exactly. Read the column list on the locked panel above and check this row against it. A near-miss writes nothing and says nothing.',
           },
           values: {
             correct:
               'Each row puts the answer that belongs under that heading, taken whole rather than chopped up.',
             wrong:
-              'Look at what this row is putting under that heading. Two mistakes account for almost all of these: an answer landing under its neighbour’s column, and reaching for the rate at the wrong depth. The response shape is written out in the note above this list — count the levels rather than guessing at them.',
+              'Look at what this row is putting under that heading. Two mistakes account for almost all of these: an answer landing under its neighbour’s column, and reaching for the rate at the wrong depth. The response shape is written out in the note above this list. Count the levels rather than guessing at them.',
           },
         },
       },
@@ -328,7 +328,7 @@ export const nodeSetup = {
 
   // The half the person signing up actually sees.
   action: {
-    credential: 'Gmail — TerraTrek Gear',
+    credential: 'Gmail. TerraTrek Gear',
     locked: [
       { label: 'Operation', value: 'Send message' },
       { label: 'Subject', value: 'Welcome to your TerraTrek free trial' },
@@ -348,13 +348,13 @@ export const nodeSetup = {
             value: 'email',
             label: '{{ $json.Email }}',
             correct: true,
-            why: 'The address the person typed in. Worth noticing that something like dana+trial@example.com is a perfectly ordinary address — the plus sign is part of it and nothing needs stripping out.',
+            why: 'The address the person typed in. Worth noticing that something like dana+trial@example.com is a perfectly ordinary address. The plus sign is part of it and nothing needs stripping out.',
           },
           {
             value: 'name',
             label: '{{ $json["Full Name"] }}',
             correct: false,
-            why: 'A name is not an address. Gmail is handed something like "Aarav Sharma" to deliver to and refuses it — and on the signup that arrived with no name, it is handed nothing at all.',
+            why: 'A name is not an address. Gmail is handed something like "Aarav Sharma" to deliver to and refuses it. And on the signup that arrived with no name, it is handed nothing at all.',
           },
           {
             value: 'ops',
@@ -366,7 +366,7 @@ export const nodeSetup = {
             value: 'to',
             label: '{{ $json.to }}',
             correct: false,
-            why: 'Nothing upstream produces a `to` field, so this resolves to nothing and the send fails. The form collects four answers and none of them is called `to` — read them back and pick the one that is an address.',
+            why: 'Nothing upstream produces a `to` field, so this resolves to nothing and the send fails. The form collects four answers and none of them is called `to`. Read them back and pick the one that is an address.',
           },
         ],
       },
@@ -379,13 +379,13 @@ export const nodeSetup = {
         options: [
           {
             value: 'name-always',
-            label: 'Hi {{ $json["Full Name"] }}, — every time',
+            label: 'Hi {{ $json["Full Name"] }},. Every time',
             correct: false,
             why: 'Fine for twelve signups out of thirteen, and embarrassing for the one that arrived without a name: they get a mail opening "Hi ,". A blank value does not error, it renders as nothing, which is exactly why this kind of mistake ships unnoticed.',
           },
           {
             value: 'generic-always',
-            label: 'Hi there, — every time',
+            label: 'Hi there,. Every time',
             correct: false,
             why: 'Nothing breaks, and nothing is personal either. The brief asks for a welcome that names the person, and twelve of the thirteen signups handed you a name to use. Playing safe for everybody to cover one blank is a poor trade.',
           },
@@ -397,7 +397,7 @@ export const nodeSetup = {
           },
           {
             value: 'fallback',
-            label: 'Hi {{ $json["Full Name"] || "there" }}, — the name if there is one, "there" if not',
+            label: 'Hi {{ $json["Full Name"] || "there" }},. The name if there is one, "there" if not',
             correct: true,
             why: 'Right. The name when the form gave you one, a plain greeting when it did not, and a mail that goes out either way. A blank optional answer should change how a message reads, never whether it is sent.',
           },

@@ -7,7 +7,7 @@
 export const id = 'ops-request-desk';
 
 /** Title case, on the card and the Understand hero. */
-export const title = 'Fernwood Robotics — Ops Request Desk';
+export const title = 'Fernwood Robotics. Ops Request Desk';
 
 /**
  * The FULL brief. Stays complete: the problem panel, the sticky note and Ask-AI's
@@ -20,13 +20,25 @@ export const title = 'Fernwood Robotics — Ops Request Desk';
  * sticky note for the whole session.
  *
  * Two things it deliberately does NOT spell out, because both are graded elsewhere:
- * which of the Ops Log's six columns comes from which source (the assignment list is
+ * which of the Ops Log’s six columns comes from which source (the assignment list is
  * the decision), and which Slack channel the escalation lands in.
  */
+// 136 words in 9 sentences, none over 25, no dashes. It was 193 words.
+//
+// This case has seven nodes and three ways out, so its statement legitimately carries more
+// than the others. Every fact a graded decision reads is still here: the three form fields
+// (the extractor's answers are keyed by them), the three outcomes, the three things to pull
+// out, and both traps. What went was restatement.
+//
+// The second trap has to survive in the requirement, not in an aside. An outgoing message
+// goes to the address INSIDE the request, and a learner who maps the form's own email
+// address instead has built something that quietly mails the wrong person forever.
 export const statement =
-  'Priya runs operations alone at Fernwood Robotics. Everything that is not engineering or sales reaches her through one form, the Ops Desk request: your name, your email, and "What do you need?".\n\nEvery submission is one of three things: something to record in her Ops Log spreadsheet, an email to send to a named person, or something only Priya can handle — a question about the desk, or a job it simply cannot do.\n\nBuild the flow that reads each one, decides which of the three it is, and pulls out what the destination needs: who it is about, any address written inside it, and a one-line summary.\n\nTwo traps. The Ops Log\'s six columns come from two different places — some typed into the form, the rest worked out from the sentence — and keeping them apart is most of the job. And an outgoing message goes to the address inside the request, not to the person who filled in the form. Two different people, an address for each.\n\nAnything needing a person goes to the channel Priya watches, with the requester\'s name and their own words. Nothing else happens to it.';
-
-/** One line, for the catalogue. */
+  'Priya runs operations alone at Fernwood Robotics. Everything that is not engineering or sales reaches her through one form: your name, your email, and "What do you need?".\n\n' +
+  'Every submission is one of three things. Something to record in her Ops Log sheet, an email to a named person, or something only Priya can handle.\n\n' +
+  'Build the flow that reads each one and decides which it is. It also has to pull out who it is about, any address inside it, and a one-line summary.\n\n' +
+  'The Ops Log\'s six columns come from two places: some typed into the form, the rest worked out from the sentence. And an outgoing message goes to the address inside the request, not to the person who filled in the form.\n\n' +
+  'Anything needing a person goes to the channel Priya watches, with the requester\'s name and their own words.';
 export const tagline =
   'Read a free-text ops request with AI, pull out the details it hides, and send it down one of three paths.';
 
@@ -37,7 +49,7 @@ export const tagline =
  * ~440px column, clamped to two lines, so longer copy is cut mid-word. Measured.
  */
 export const brief =
-  'One form, three kinds of request. Record it, send it on, or hand it to a person — and keep the details straight.';
+  'One form, three kinds of request. Record it, send it on, or hand it to a person. And keep the details straight.';
 
 /**
  * `easy | moderate | difficult`, and roughly how long a first attempt takes.
@@ -64,7 +76,7 @@ export const estimatedMinutes = 25;
  */
 export const coverImage = {
   prompt:
-    'Deep charcoal ground with a warm mustard-amber colour field washing across it — soft spray-paint grain, matte, no gloss. A single thin amber line enters from the left, travels most of the way across, and splits once into three prongs that fan out slightly to the right, positioned a little below centre. Nothing else: no arrows, no arrowheads, no icons, no text, no chevrons, no sparkles, no grid. Wide empty charcoal atmosphere on the left where the line begins.',
+    'Deep charcoal ground with a warm mustard-amber colour field washing across it. Soft spray-paint grain, matte, no gloss. A single thin amber line enters from the left, travels most of the way across, and splits once into three prongs that fan out slightly to the right, positioned a little below centre. Nothing else: no arrows, no arrowheads, no icons, no text, no chevrons, no sparkles, no grid. Wide empty charcoal atmosphere on the left where the line begins.',
   src: '/covers/ops-request-desk.png',
   alt: 'A single amber line on charcoal that splits into three prongs',
 };

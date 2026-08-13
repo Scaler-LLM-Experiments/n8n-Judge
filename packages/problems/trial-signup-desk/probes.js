@@ -46,7 +46,7 @@ export const nodeProbes = {
     prompt: 'On a Schedule is on the canvas. When would a new signup reach the sheet?',
     options: [
       {
-        text: 'On a fixed clock — every few minutes, or at a set hour',
+        text: 'On a fixed clock. Every few minutes, or at a set hour',
         correct: true,
         response:
           'Correct, and sweeping up a form’s responses on a timer is a real way to work. But this flow promises the person an instant welcome, so what starts it should be the submission itself.',
@@ -56,7 +56,7 @@ export const nodeProbes = {
         correct: false,
         misconception: 'poll-vs-event',
         response:
-          'No. A schedule fires on the clock and never on the event, so a signup arriving a minute after a tick sits there until the next one.',
+          'No. A schedule fires on the clock and never on the event. A signup arriving a minute after a tick sits there until the next one.',
       },
       {
         text: 'Every signup, as long as the interval is short enough',
@@ -76,10 +76,10 @@ export const nodeProbes = {
         correct: false,
         misconception: 'code-takes-instructions',
         response:
-          'Code takes JavaScript, not instructions. It runs exactly the lines you write, and nothing else in this flow is doing any interpreting either — there is no AI step here at all.',
+          'Code takes JavaScript, not instructions. It runs exactly the lines you write, and nothing else in this flow is doing any interpreting either. There is no AI step here at all.',
       },
       {
-        text: 'Not much — Code can write the values to the sheet itself once it has them',
+        text: 'Not much. Code can write the values to the sheet itself once it has them',
         correct: false,
         misconception: 'code-can-reach-the-sheet',
         response:
@@ -89,7 +89,7 @@ export const nodeProbes = {
         text: 'JavaScript that reads each answer off the item and returns an object keyed by column name',
         correct: true,
         response:
-          'Right, and it would work. Now ask what it costs: the one person on the team who can read that script owns this flow forever, and adding a column means editing code. This mapping is meant to be something you point and click.',
+          'Right, and it would work. Now ask what it costs. The one person who can read that script owns this flow forever, and adding a column means editing code. This mapping is meant to be something you point and click.',
       },
     ],
   },
@@ -128,7 +128,7 @@ export const nodeProbes = {
         correct: false,
         misconception: 'doc-is-a-log',
         response:
-          'It is a record, and it is not a table. A document has no headings and no cells, so "put this answer under that heading" has no meaning inside one — and that mapping is the entire point of this step.',
+          'It is a record, and it is not a table. A document has no headings and no cells, so "put this answer under that heading" has no meaning inside one. And that mapping is the entire point of this step.',
       },
       {
         text: 'The signups added to the end of one growing document',
@@ -141,7 +141,7 @@ export const nodeProbes = {
         text: 'One new document per signup, and nothing that can be sorted, filtered or totalled',
         correct: true,
         response:
-          'Exactly, a fresh file every time. Nobody can filter thirteen documents by plan or count last week’s trials, which is the whole reason the team asked for a spreadsheet in the first place.',
+          'Exactly, a fresh file every time. Nobody can filter thirteen documents by plan, or count last week’s trials. That is the whole reason the team asked for a spreadsheet.',
       },
     ],
   },
@@ -150,13 +150,13 @@ export const nodeProbes = {
     prompt: 'Switch is on the canvas. Read what this flow does with a signup. What would you route on?',
     options: [
       {
-        text: 'Nothing here — every signup takes the same path',
+        text: 'Nothing here. Every signup takes the same path',
         correct: true,
         response:
           'Right, and that is the answer. A split earns its place when two kinds of input need genuinely different handling. This flow treats every signup identically, so a split only adds branches with nothing to put down them.',
       },
       {
-        text: 'The plan — Basic, Plus and Pro should each have their own path',
+        text: 'The plan. Basic, Plus and Pro should each have their own path',
         correct: false,
         misconception: 'router-without-a-difference',
         response:
@@ -167,7 +167,7 @@ export const nodeProbes = {
         correct: false,
         misconception: 'blank-needs-a-branch',
         response:
-          'That is a real instinct, and it is answered a level down instead: a blank name changes how one line of the mail reads, not where the signup goes. It still needs its row and it still needs its welcome.',
+          'That is a real instinct, and it is answered a level down instead. A blank name changes how one line of the mail reads, not where the signup goes. It still needs its row and it still needs its welcome.',
       },
     ],
   },

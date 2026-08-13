@@ -12,6 +12,7 @@ import { defaultSettings, gradeSettings } from './nodeSettings.js';
 import { checkAnswer } from '../lib/grader.js';
 import { useVoiceActions } from '../lib/VoiceContext.jsx';
 import { compatibleCatalogParams, defaultsForParams, mergeCatalogFields } from './catalogFields.js';
+import { inputRows, inputPaths } from './inputFields.js';
 
 // Shown once per session: the first time a node verifies, Iris spotlights the
 // close button so the learner learns that closing a green NDV finishes the node.
@@ -530,9 +531,12 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
             ) : (
               <FieldForm
                 nodeType={node.nodeType}
-                /* Field names from the upstream node, so an expression
-                   parameter can be filled by picking as well as dragging. */
-                inputKeys={Object.keys(inputData ?? {})}
+                /* Field paths from the upstream node, so an expression parameter can be
+                   filled by picking as well as dragging. Paths, not top-level keys:
+                   `Object.keys()` offered `current` and never `current.temperature_2m`,
+                   so on a nested sample the picker could not name the field the graded
+                   answer needs. */
+                inputKeys={inputPaths(inputData ?? {})}
                 setup={resolvedSetup}
                 fields={fields}
                 values={values}
@@ -886,21 +890,42 @@ function Empty({ icon, title, text }) {
   );
 }
 
+/**
+ * The INPUT pane's field list.
+ *
+ * Rows come from `inputRows()`, which walks into nested objects and arrays. This used to
+ * map `Object.entries(data)` and print `String(v)`, so anything nested rendered as the
+ * literal text "[object Object]" — hiding `current.temperature_2m` and
+ * `current.weather_code` on the one screen whose graded decision is what to build out of
+ * them. See inputFields.js for the full account.
+ */
 function JsonFields({ data, draggable }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      {Object.entries(data).map(([k, v]) => (
-        <div
-          key={k}
-          draggable={draggable || undefined}
-          onDragStart={draggable ? (e) => { e.dataTransfer.setData('application/x-ndv-field', k); e.dataTransfer.effectAllowed = 'copy'; } : undefined}
-          title={draggable ? 'Drag onto its parameter' : undefined}
-          style={{ display: 'flex', gap: 8, alignItems: 'baseline', padding: '7px 9px', border: `1px solid ${draggable ? 'var(--brand-blue-100, rgba(0,85,255,0.25))' : 'var(--border-subtle)'}`, background: 'var(--surface-0)', cursor: draggable ? 'grab' : 'default' }}
-        >
-          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--brand-primary)', fontFamily: 'var(--font-mono, monospace)' }}>{k}</span>
-          <span style={{ fontSize: 11.5, color: 'var(--fg-3)', fontFamily: 'var(--font-mono, monospace)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(v)}</span>
-        </div>
-      ))}
+      {inputRows(data).map((row) => {
+        // Only a leaf is draggable. Dropping a group would paste a whole object into a
+        // parameter, which is never what the gesture means.
+        const canDrag = draggable && row.kind === 'leaf';
+        return (
+          <div
+            key={row.path}
+            draggable={canDrag || undefined}
+            onDragStart={canDrag ? (e) => { e.dataTransfer.setData('application/x-ndv-field', row.path); e.dataTransfer.effectAllowed = 'copy'; } : undefined}
+            title={canDrag ? `Drag onto its parameter — $json.${row.path}` : undefined}
+            style={{
+              display: 'flex', gap: 8, alignItems: 'baseline', padding: '7px 9px',
+              // Indent by depth so a leaf reads as belonging to the group above it.
+              marginLeft: row.depth * 14,
+              border: `1px solid ${canDrag ? 'var(--brand-blue-100, rgba(0,85,255,0.25))' : 'var(--border-subtle)'}`,
+              background: row.kind === 'group' ? 'var(--surface-1)' : 'var(--surface-0)',
+              cursor: canDrag ? 'grab' : 'default',
+            }}
+          >
+            <span style={{ fontSize: 12, fontWeight: 700, color: row.kind === 'group' ? 'var(--fg-2)' : 'var(--brand-primary)', fontFamily: 'var(--font-mono, monospace)' }}>{row.label}</span>
+            <span style={{ fontSize: 11.5, color: 'var(--fg-3)', fontFamily: 'var(--font-mono, monospace)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontStyle: row.kind === 'group' ? 'italic' : 'normal' }}>{row.value}</span>
+          </div>
+        );
+      })}
     </div>
   );
 }

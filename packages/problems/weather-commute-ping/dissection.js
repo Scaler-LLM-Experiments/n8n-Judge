@@ -28,13 +28,13 @@ export const dissection = [
     // Deliberately does NOT add "…and it will run whether the service is up or not",
     // which is the `service-down` Stress Testing answer three screens early.
     explanation:
-      'A Schedule Trigger treats time itself as the event: the clock reaching 9:00 is the thing that happens. That is what "every morning, before he leaves" actually is — a time, not an arrival. Nothing on the internet is going to send you Bangalore\'s temperature unasked.',
+      'A Schedule Trigger treats time itself as the event: the clock reaching 9:00 is the thing that happens. That is what "every morning, before he leaves" actually is. A time, not an arrival. Nothing on the internet is going to send you Bangalore\'s temperature unasked.',
     unlocks: ['schedule'],
   },
   {
     id: 'ask',
     prompt:
-      'The forecast lives on somebody else\'s service, out on the open internet. It is not in an app n8n has a node for, and there is no key or login involved. What goes and gets this morning\'s conditions?',
+      'The forecast lives on somebody else\'s service, out on the open internet. No n8n node covers it, and there is no key or login. What goes and gets this morning\'s conditions?',
     options: [
       { label: 'HTTP Request', type: 'http-request' },
       { label: 'Code', type: 'code' },
@@ -47,13 +47,13 @@ export const dissection = [
     // Says nothing about the METHOD or the address, both of which are graded fields on
     // this node minutes later. What it explains is why a form field beats a fetch call.
     explanation:
-      'HTTP Request is how n8n talks to anything that has no node of its own: you fill in the address in a form field and it hands the answer on as ordinary fields the next step can read. This is one of the highest-leverage nodes in n8n precisely because it is not code — no library, no error handling, nothing to maintain when somebody who cannot read JavaScript inherits the flow.',
+      'HTTP Request is how n8n talks to anything that has no node of its own. You fill in the address in a form field. It hands the answer on as ordinary fields the next step can read. It is one of the most useful nodes in n8n precisely because it is not code.',
     unlocks: ['http-request'],
   },
   {
     id: 'shape',
     prompt:
-      'What is in the flow now is a temperature and an integer. What he needs is two short lines of English — the conditions in words, and one line about today\'s commute. What builds those two values?',
+      'In the flow now: a temperature and an integer. What he needs is two short lines of English, the conditions and one line of advice. What builds those two values?',
     options: [
       { label: 'Text Classifier', type: 'text-classifier' },
       { label: 'Basic LLM Chain', type: 'basic-llm-chain' },
@@ -68,13 +68,13 @@ export const dissection = [
     // those are the three graded aspects of this node's own field, and the mapping gap
     // is the whole point of the case.
     explanation:
-      'Edit Fields is where you name a value and say what it should hold. Nothing is fetched, nothing is judged, nothing is routed — you are writing the two lines the message is made of, and every step after this can read them by name. Building text is not a decision about where an item goes, which is what separates this node from the two below it in the list.',
+      'Edit Fields is where you name a value and say what it should hold. Nothing is fetched, nothing is judged, nothing is routed. You are writing the two lines the message is made of, and every step after this can read them by name.',
     unlocks: ['edit-fields'],
   },
   {
     id: 'send',
     prompt:
-      'Last decision. It is a few minutes past nine, the message has just gone out, and he is standing up with one shoe on and his phone in his hand. Where does it need to have landed?',
+      'Last decision. It is a few minutes past nine and the message has just gone out. He is standing up, one shoe on, phone in his hand. Where does it need to have landed?',
     options: [
       { label: 'Gmail', type: 'gmail' },
       { label: 'Slack', type: 'slack' },
@@ -83,9 +83,9 @@ export const dissection = [
     ],
     correctType: 'slack',
     wrongHint:
-      'He has thirty seconds and one hand free. Which of these puts one short line in front of somebody who is already looking at their phone, rather than somewhere they have to go and open?',
+      'He has thirty seconds and one hand free. Which of these puts one short line in front of somebody already looking at their phone, rather than somewhere they must open?',
     explanation:
-      'Slack lands the line in a room he already has open on his phone, so reading it costs nothing — which matters, because a flow whose output takes effort to find is a flow he goes back to checking the weather app instead of. Mail would work and would sit in an inbox with everything else; a calendar entry would be a reminder to go and look rather than the answer itself.',
+      'Slack lands the line in a room he already has open, so reading it costs nothing. That matters: output that takes effort to find is output he stops looking at. Mail would sit in an inbox with everything else, and a calendar entry is a reminder to go and look.',
     unlocks: ['slack'],
   },
 ];

@@ -119,7 +119,7 @@ export const flow = {
  * phase declares its own `pickable`, because the picker's fallback lists cover only a
  * fraction of the 200-type library and a phase that omits it can make a required node
  * unpickable. A 'model'-category type is exempt from being pickable — it is added
- * through the AI node's Chat Model slot (`flow.modelNext`), never through the drawer.
+ * through the AI node’s Chat Model slot (`flow.modelNext`), never through the drawer.
  *
  * The split and the three terminals are ONE phase on purpose: a routing phase only
  * completes once every declared branch reaches a configured terminal (`branchReach.js`),
