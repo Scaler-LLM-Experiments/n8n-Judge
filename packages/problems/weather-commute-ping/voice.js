@@ -134,7 +134,7 @@ export const voice = {
   ],
 
   'answer_correct:send': [
-    "[warm] Exactly, {answer}. One line, in a room he's already in, on his way out of the door.",
+    "[warm] Exactly, {answer}. One line, waiting in a room he's already got open.",
   ],
   'answer_wrong:send': [
     "[thoughtful] Hmm. Anything he has to go and open is a thing he'll stop bothering with. Think again.",
@@ -213,7 +213,12 @@ export const voice = {
   'verify_fail:schedule': [
     "[calm] Ah, not yet. The time's in the brief, in the second paragraph. Read it back off that.",
     '[thoughtful] Hmm, not right yet. Have another look at the number, and at what a twenty-four hour clock does to it.',
-    "[calm] Not quite. Ask when he's still in the house, and work back from that.",
+    // Points at the CALL, not at his departure. This variant used to say "ask when he's
+    // still in the house, and work back from that" — on a free-entry number graded at 9,
+    // with him in the house until a few minutes past nine, that reasoning route lands on 8.
+    // It is the third place this same trap turned up: the statement's prose had it, then
+    // this field's own whyWrong, then here.
+    "[calm] Not quite. It's the time the call goes out you want, not the time he reads it.",
     "[thoughtful] Close. One number, and it's stated outright in the brief. Go and find the sentence.",
   ],
   'verify_fail:http-request': [
@@ -228,12 +233,15 @@ export const voice = {
     '[calm] Ah, not yet. Look at the Input pane and read the shape of what actually arrived here.',
     '[thoughtful] Hmm. Read the flagged row back as a sentence, and hear whether it says something useful.',
     '[calm] Not right yet. Work backwards from the post he reads. What does it have to say?',
-    "[thoughtful] Close. Every row's checked on its own, so take the flagged one by itself.",
-    '[calm] Not quite. This is the only step that decides what the message says. Read that row again.',
+    "[thoughtful] Close. Every row's checked on its own, so take them one at a time.",
+    '[calm] Not quite. This is the only step that decides what the message says. Read it back again.',
   ],
+  // Field-agnostic on purpose: this node grades two fields, and the rotation cannot know
+  // which one failed. A variant that says "open the Input pane" is no help to a learner
+  // stuck on the channel, and one about who is reading it is no help on the message text.
   'verify_fail:slack': [
-    '[calm] Ah, not yet. Open the Input pane first, and see what the step before actually handed over.',
-    "[thoughtful] Hmm. Ask who's reading this, and where they'd be standing when it turns up.",
+    '[calm] Ah, not yet. Read the marked field again, and check it against what this step is for.',
+    "[thoughtful] Hmm. Ask who's reading this, and what they need to see the moment it turns up.",
     '[calm] Not right yet. Read the marked field again, thinking about a Tuesday morning just past nine.',
     '[thoughtful] Close. Everything upstream is invisible. This is the bit with his name on it, so look again.',
   ],
@@ -286,7 +294,10 @@ export const voice = {
   // question on the next screen.
   run_pass: [
     '[excited] All four mornings came through your flow! [pause] Four nodes, in order, and one line out of each.',
-    '[excited] Four mornings, four messages, all of them out! [pause] That straight line you built does its job.',
+    // Variant 2 was cut rather than reworded: "that straight line you built does its job"
+    // claims the flow is correct, and on this case a naive mapping passes all four mornings
+    // and still has a hole in it — which is the blank-note Stress Testing answer. One clip
+    // saved, one claim the Run cannot support removed.
   ],
   run_fail: [
     "[calm] Hmm. Not all of those made it out. Follow one through and see where it stalls.",
@@ -310,7 +321,10 @@ export const voice = {
     "[warm] Right. And there's a second half to that answer that's worth more than the first.",
   ],
   'stress_wrong:service-down': [
-    "[calm] Ah, no. That's the guess most people make, and it's a fair one. Read on.",
+    // Keyed by question, not by the option chosen, so it is spoken over all three
+    // distractors — including the unusual ones. It cannot assert anything about which
+    // guess the learner made.
+    "[calm] Ah, no. Worth reading why, though — what he does and doesn't see is the whole point.",
   ],
   'stress_correct:two-paths': [
     '[warm] Yes. That one takes some honesty, because nothing about it actually looks broken.',
