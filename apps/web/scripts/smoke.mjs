@@ -280,6 +280,43 @@ for (const p of PROBLEMS) {
       await page.getByText('Parameters', { exact: true }).first().waitFor({ state: 'visible', timeout: 10000 });
     } catch {
       errs.push('node detail view did not open');
+      return;
+    }
+
+    // What you typed survives closing the panel.
+    //
+    // This shipped broken: values were handed back to the canvas only when the setup was
+    // COMPLETE, so configuring a node and closing it without a green verify lost the lot,
+    // and reopening showed defaults. A learner reported it as "the parameters go back to
+    // default", and nothing in the suite noticed, because every other check only asks
+    // whether the panel opens.
+    //
+    // Deliberately closes WITHOUT pressing Verify: completing a node was never the broken
+    // path, and a check that verifies first would pass against the bug.
+    const select = page.locator('select').first();
+    if (!(await select.count())) return;
+    const value = await select.evaluate((el) => {
+      const option = [...el.options].find((o) => o.value && o.value !== el.value);
+      return option ? option.value : null;
+    });
+    if (!value) return;
+
+    await select.selectOption(value).catch((e) => errs.push(`could not set a field: ${e.message}`));
+    await page.waitForTimeout(250);
+    await page.locator('button[aria-label="Close setup"]').click().catch((e) => errs.push(`close: ${e.message}`));
+    await page.waitForTimeout(900);
+
+    await node.dblclick().catch((e) => errs.push(`reopen dblclick: ${e.message}`));
+    try {
+      await page.getByText('Parameters', { exact: true }).first().waitFor({ state: 'visible', timeout: 10000 });
+    } catch {
+      errs.push('node detail view did not reopen');
+      return;
+    }
+    await page.waitForTimeout(400);
+    const after = await page.locator('select').first().inputValue().catch(() => null);
+    if (after !== value) {
+      errs.push(`a field set to "${value}" came back as "${after}" after closing and reopening the node`);
     }
   } });
 }
