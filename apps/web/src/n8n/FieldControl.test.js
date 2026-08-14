@@ -126,8 +126,15 @@ describe('grading a problem as the browser actually receives it', () => {
     expect(isCorrectValue(authored, 'word')).toBe(false);
   });
 
-  it('has no explanation to offer — this is the empty Iris bubble in the report', () => {
+  it('has no explanation to offer for a stripped option, and says so honestly', () => {
+    // `toPublicProblem()` removes every `why`, so the browser genuinely cannot explain an
+    // option the learner really picked. The NDV prefers the server's text for exactly this
+    // reason; undefined here is correct, and inventing a message would be worse.
+    //
+    // A value matching NO option is a different case and does get a fallback, because
+    // there the browser knows something real: the value is not on the menu.
     expect(whyForField(selectField, 'word', 'wrong')).toBeUndefined();
+    expect(whyForField(selectField, 'https://typed-into-a-native-box', 'wrong')).toMatch(/pick from the list/i);
   });
 });
 

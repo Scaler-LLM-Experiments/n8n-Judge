@@ -271,12 +271,24 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
   // state. The simulation reads them, so a wrong On Error has to survive the
   // modal closing — otherwise the tab grades a decision that never has a
   // consequence.
+  // Called on EVERY close, not only on a completed one, so work in progress survives.
+  // `configured` is what the NDV reports about the setup being finished; a node that was
+  // already configured stays configured, because reopening and closing it must not undo a
+  // green tick it has already earned.
   const completeNode = useCallback(
-    (id, settings, values) =>
+    (id, settings, values, configured = true) =>
       setNodes((ns) =>
         ns.map((n) =>
           n.id === id
-            ? { ...n, data: { ...n.data, configured: true, settings: settings ?? n.data.settings, values: values ?? n.data.values } }
+            ? {
+                ...n,
+                data: {
+                  ...n.data,
+                  configured: configured || n.data.configured,
+                  settings: settings ?? n.data.settings,
+                  values: values ?? n.data.values,
+                },
+              }
             : n
         )
       ),
@@ -498,7 +510,7 @@ const EditorInner = forwardRef(function EditorInner({ pickable, onGraphChange, n
             onDecision={onDecision}
             /* Server-authoritative grading: the NDV asks the API for each verdict. */
             sessionId={sessionId}
-            onComplete={(settings, values) => completeNode(ndvNode.id, settings, values)}
+            onComplete={(settings, values, configured) => completeNode(ndvNode.id, settings, values, configured)}
             onClose={() => setNdvId(null)}
           />
         ) : null}

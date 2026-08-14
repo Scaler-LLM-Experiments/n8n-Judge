@@ -17,15 +17,57 @@ export function defaultsForParams(params = []) {
 }
 
 /**
- * Older cases sometimes use teaching keys that intentionally differ from the
- * native catalog keys. Mixing those two schemas creates duplicate controls, so
- * keep the legacy authored screen intact unless every graded key has a native
- * catalog counterpart. New cases that use catalog keys retain the full surface.
+ * The native catalog parameters a node may show ALONGSIDE its authored ones.
+ *
+ * The invariant is narrow and absolute: **the panel must never show two controls for the
+ * same parameter.** Everything else about the native surface is context worth having,
+ * because it is what the node really looks like in n8n.
+ *
+ * ## The bugs this replaces
+ *
+ * The rule used to be all-or-nothing: show every native param if EVERY authored key was
+ * also a native key, otherwise show none.
+ *
+ * A case authoring one field whose key happened to be native got all 44 of HTTP Request's
+ * native params, including a free-text `url` box beside the graded `url` select. A learner
+ * typed a URL into the native box, which no select option can ever match, so the case could
+ * not be completed and trying a different URL never helped.
+ *
+ * The other direction was worse to author around: a case wanting the native surface
+ * suppressed had to deliberately misname a key (`httpMethod` instead of `method`) purely to
+ * fail the all-or-nothing test, which reads as a typo and cost a reviewer's round.
+ *
+ * ## What counts as a collision
+ *
+ * Three things claim a parameter, and all three have to, because each has produced a real
+ * duplicate on screen:
+ *
+ * 1. **An authored field's `key`.** The graded control.
+ * 2. **A field's `nativeKey`**, when it is authored under a different name. `httpMethod`
+ *    does not collide with `method`, and without this the native Method control renders at
+ *    its GET default, which on one case is also the answer.
+ * 3. **A `locked` row.** These are shown-not-graded context, matched by label against the
+ *    native param's key or label. Without this a panel showed "Method 🔒 GET" as a locked
+ *    row and a live native Method select directly under it, saying the same thing twice
+ *    with one of them editable. Same defect the low-stock aggregate node hit, where a
+ *    locked "Put Output in Field" row sat inches from the live control of that name at a
+ *    different value.
  */
-export function compatibleCatalogParams(params = [], authoredFields = []) {
-  if (!authoredFields.length) return params;
-  const keys = new Set(params.map(({ key }) => key));
-  return authoredFields.every(({ key }) => keys.has(key)) ? params : [];
+export function compatibleCatalogParams(params = [], authoredFields = [], lockedRows = []) {
+  if (!authoredFields.length && !lockedRows.length) return params;
+  const claimed = new Set(
+    authoredFields.flatMap((f) => [f?.key, f?.nativeKey]).filter(Boolean)
+  );
+  // A locked row carries a human label rather than a key, so match on either.
+  const lockedLabels = new Set(
+    lockedRows.map((l) => String(l?.label ?? '').trim().toLowerCase()).filter(Boolean)
+  );
+  return params.filter((p) => {
+    if (claimed.has(p.key)) return false;
+    if (lockedLabels.has(String(p.key ?? '').toLowerCase())) return false;
+    if (lockedLabels.has(String(p.label ?? '').trim().toLowerCase())) return false;
+    return true;
+  });
 }
 
 export function resolveNodePorts(entry = {}, values = {}) {
@@ -194,5 +236,25 @@ export function mergeCatalogFields(params = [], authoredFields = []) {
     authored.delete(field.key);
     return { ...field, ...overlay, graded: true };
   });
-  return merged.concat([...authored.values()].map((field) => ({ ...field, graded: true })));
+  const leftover = [...authored.values()].map((field) => ({ ...field, graded: true }));
+
+  // GRADED FIRST, then the node's real shape as context.
+  //
+  // Authored fields with no native counterpart used to be concatenated on the end, so on
+  // HTTP Request the single control a learner has to answer sat below forty-one native
+  // ones: Import cURL, SSL Certificates, Send Body, Options. The panel opened on a wall of
+  // things that are not the question, which is a large part of "I could not tell what it
+  // wanted". What you must answer belongs at the top; what the node looks like in n8n is
+  // worth seeing underneath it.
+  //
+  // Graded order follows the author's, since that is the order the case reasons in.
+  const gradedInAuthoredOrder = authoredFields
+    .map((f) => merged.find((m) => m.key === f.key) ?? leftover.find((l) => l.key === f.key))
+    .filter(Boolean);
+  const seen = new Set(gradedInAuthoredOrder.map((f) => f.key));
+  return [
+    ...gradedInAuthoredOrder,
+    ...leftover.filter((f) => !seen.has(f.key)),
+    ...merged.filter((f) => !f.graded),
+  ];
 }

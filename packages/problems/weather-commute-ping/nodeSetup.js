@@ -142,6 +142,9 @@ export const nodeSetup = {
         // the learner. Nothing in the export depends on the key: `GET` is n8n's default
         // and a real workflow omits it (see n8nNodeSpecs.js, `http-request`).
         key: 'httpMethod',
+        // Stands in for n8n's own `method`, so the native control is hidden rather than
+        // rendering beside this one at its GET default, which is this case's answer.
+        nativeKey: 'method',
         label: 'Method',
         kind: 'select',
         subtitle: 'What kind of request this is. Read it off what the flow is trying to do.',
@@ -267,6 +270,9 @@ export const nodeSetup = {
         // would mean live Mode / Include Other Input Fields / Options controls sitting
         // beside the locked rows above that state their values.
         key: 'fields',
+        // n8n calls this `assignments`. Declared so the native repeatable control is not
+        // drawn beside the graded one.
+        nativeKey: 'assignments',
         label: 'Fields to Set',
         kind: 'assignmentList',
         addLabel: 'Add Field',

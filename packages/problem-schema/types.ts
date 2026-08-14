@@ -172,6 +172,18 @@ export const nodeSetupSchema = z.object({
         key: z.string().min(1),
         label: z.string().min(1),
         subtitle: z.string().optional(),
+        /**
+         * The native catalog parameter this field stands in for, when it is authored
+         * under a different name.
+         *
+         * The NDV shows a node's native parameters alongside the authored ones, minus any
+         * that collide with an authored key, so the learner sees what the node really
+         * looks like without a native control shadowing a graded one. A field authored as
+         * `httpMethod` does not collide with n8n's `method`, so without this the native
+         * Method control renders at its default of GET, which on one case is also the
+         * correct answer. Declare it and the native control is hidden.
+         */
+        nativeKey: z.string().min(1).optional(),
         // Parameter kinds mirror n8n's. `select` is the default and the only
         // one that carries `options`; the rest compare a typed value against
         // `correct`, so they carry their own explanations instead of
