@@ -120,8 +120,22 @@ export function expressionFor(inputKey) {
  */
 export function whyForField(field, value, verdict) {
   if (field.options) {
+    if (verdict === 'correct') return field.options.find((o) => o.correct)?.why ?? field.whyCorrect;
     const chosen = field.options.find((o) => o.value === value);
-    return verdict === 'correct' ? field.options.find((o) => o.correct)?.why : chosen?.why;
+    // An option the learner really picked: its own `why`, or the field's. Either may be
+    // absent on the client, because `toPublicProblem()` strips every explanation and the
+    // real one comes back from `/check`. Undefined is the honest answer there, and the
+    // caller prefers the server's text anyway.
+    if (chosen) return chosen.why ?? field.whyWrong;
+    // A value matching NO option is different, and is the reported bug. It happens when
+    // something outside this control wrote to the field: a native catalog input rendered
+    // beside the graded one, a restored trace, a stale value from a field that changed
+    // shape. Iris arrived, said NOT QUITE and showed an empty bubble, which reads as the
+    // app breaking rather than as an answer being wrong.
+    return (
+      field.whyWrong ??
+      'That is not one of the choices this field offers. Open the dropdown and pick from the list.'
+    );
   }
   return verdict === 'correct' ? field.whyCorrect : field.whyWrong;
 }

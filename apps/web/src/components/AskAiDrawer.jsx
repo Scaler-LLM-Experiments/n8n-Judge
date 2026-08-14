@@ -3,6 +3,7 @@ import gsap from 'gsap';
 import { X, Lightbulb, Microphone, PaperPlaneRight } from '@phosphor-icons/react';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
 import { parseIrisMarkdown } from '../lib/irisMarkdown.js';
+import { useAskIris } from '../lib/AskIrisContext.jsx';
 
 /**
  * Iris's reply, rendered as blocks rather than as one raw string.
@@ -102,7 +103,9 @@ export function AskAiDrawer({ onClose, context, learnerName }) {
   const scrollRef = useRef(null);
   const [text, setText] = useState('');
   const [streaming, setStreaming] = useState(false);
-  const [messages, setMessages] = useState([]); // { role: 'user' | 'iris', text }
+  // { role: 'user' | 'iris', text } — owned by AskIrisProvider, so closing the drawer no
+  // longer throws the conversation away. See the comment on `messages` there.
+  const { messages, setMessages, clearAskIris } = useAskIris();
 
   useEffect(() => {
     if (panelRef.current) gsap.fromTo(panelRef.current, { xPercent: 100 }, { xPercent: 0, duration: 0.32, ease: 'power3.out' });

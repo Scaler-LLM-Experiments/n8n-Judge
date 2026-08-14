@@ -28,10 +28,68 @@ describe('catalog-backed node setup', () => {
     ]);
   });
 
-  it('does not mix legacy teaching keys with a contradictory native schema', () => {
-    const params = [{ key: 'sheetOperation' }, { key: 'appendColumns' }];
-    expect(compatibleCatalogParams(params, [{ key: 'operation' }, { key: 'columns' }])).toEqual([]);
-    expect(compatibleCatalogParams(params, [{ key: 'sheetOperation' }])).toBe(params);
+  describe('a native control must never shadow a graded one', () => {
+    const params = [{ key: 'url' }, { key: 'method' }, { key: 'authentication' }];
+
+    it('drops the native param an authored field already asks for', () => {
+      // The bug: the rule was all-or-nothing, so a case authoring ONE field whose key
+      // happened to be native got the whole native surface, including a free-text `url`
+      // box beside the graded `url` select. A learner typed into the native box, which no
+      // select option can match, and the case could not be completed.
+      const shown = compatibleCatalogParams(params, [{ key: 'url' }]);
+      expect(shown.map((p) => p.key)).toEqual(['method', 'authentication']);
+    });
+
+    it('keeps the rest of the native surface as context', () => {
+      // Dropping everything was the other half of the old rule, and it cost the learner
+      // the picture of what the node really looks like in n8n.
+      expect(compatibleCatalogParams(params, [{ key: 'url' }])).toHaveLength(2);
+    });
+
+    it('honours nativeKey, for a field authored under a different name', () => {
+      // `httpMethod` does not collide with `method`, so without this the native Method
+      // control renders at its GET default, which on one case is also the answer.
+      const shown = compatibleCatalogParams(params, [{ key: 'httpMethod', nativeKey: 'method' }]);
+      expect(shown.map((p) => p.key)).toEqual(['url', 'authentication']);
+    });
+
+    it('leaves the native surface alone when a node grades nothing', () => {
+      expect(compatibleCatalogParams(params, [])).toBe(params);
+    });
+
+    it('lets a locked row claim its native param, matched by label', () => {
+      // Found by looking at the panel: "Method (locked) GET" sat directly above a LIVE
+      // native Method select. Two controls for one parameter, one of them editable, is the
+      // same defect the low-stock aggregate node hit.
+      const withLabels = [
+        { key: 'url' },
+        { key: 'method', label: 'Method' },
+        { key: 'authentication', label: 'Authentication' },
+      ];
+      const shown = compatibleCatalogParams(withLabels, [{ key: 'url' }], [
+        { label: 'Method', value: 'GET' },
+        { label: 'Authentication', value: 'None' },
+      ]);
+      expect(shown).toEqual([]);
+    });
+
+    it('matches a locked row against the param key as well as its label', () => {
+      const shown = compatibleCatalogParams([{ key: 'responseFormat' }], [], [{ label: 'responseFormat', value: 'JSON' }]);
+      expect(shown).toEqual([]);
+    });
+
+    it('ignores a locked row that names nothing native', () => {
+      const params = [{ key: 'url', label: 'URL' }];
+      expect(compatibleCatalogParams(params, [], [{ label: 'Send Body', value: 'Off' }])).toEqual(params);
+    });
+
+    it('survives a field with no key', () => {
+      expect(compatibleCatalogParams(params, [{ label: 'orphan' }]).map((p) => p.key)).toEqual([
+        'url',
+        'method',
+        'authentication',
+      ]);
+    });
   });
 
   it('resolves dynamic ports from authored values and catalog defaults', () => {

@@ -48,8 +48,8 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
   const isSubNode = typeCategory[node.nodeType] === 'model';
 
   const catalogParams = useMemo(
-    () => compatibleCatalogParams(node.catalogParams, setup?.fields),
-    [node.catalogParams, setup?.fields]
+    () => compatibleCatalogParams(node.catalogParams, setup?.fields, setup?.locked),
+    [node.catalogParams, setup?.fields, setup?.locked]
   );
   const allFields = useMemo(
     () => mergeCatalogFields(catalogParams, setup?.fields),
@@ -420,7 +420,17 @@ export function Ndv({ node, setup, inputData, inputLabel, onDecision, onComplete
   // are derived from the rules the learner built, so the canvas needs them. In
   // n8n the NDV covers the canvas as well, so the new output appears when you
   // close the panel — same beat as the real thing.
-  const finishAndClose = () => { if (isComplete && onComplete) onComplete(settings, values); requestClose(); };
+  // ALWAYS hand the values back, complete or not, and let the caller decide whether the
+  // node counts as configured.
+  //
+  // This used to fire only when `isComplete`, so a learner who filled a panel in and closed
+  // it without a green verify lost everything they typed: reopening the node showed the
+  // defaults again. It also made the panel's own "Verify me" badge unreachable, since that
+  // state is "has values, not verified" and values were never stored unless verified.
+  //
+  // `configured` stays the caller's business. Persisting what was typed is not the same as
+  // saying the node is set up, and a green tick is still the server's to give.
+  const finishAndClose = () => { if (onComplete) onComplete(settings, values, isComplete); requestClose(); };
 
   return (
     <div ref={rootRef} onMouseDown={(e) => { if (e.target === e.currentTarget) finishAndClose(); }} style={{ position: 'absolute', inset: 0, zIndex: 45, background: 'rgba(6,20,50,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2vh 1.5vw' }}>
