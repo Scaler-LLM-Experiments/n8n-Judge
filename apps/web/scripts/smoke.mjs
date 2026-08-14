@@ -8,6 +8,7 @@
 import { chromium } from 'playwright-core';
 import { mkdirSync } from 'node:fs';
 import { problemList } from '@judge/problems';
+import { NODE_CATALOG } from '@judge/catalog';
 
 const base = process.env.SMOKE_BASE_URL ?? 'http://localhost:3000';
 const exe = process.env.SMOKE_CHROME ?? '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
@@ -567,8 +568,20 @@ async function resumeCheck() {
   try {
     await addFirst.waitFor({ state: 'visible', timeout: 20000 });
     await addFirst.click();
-    const firstNodeLabel = problem.nodePalette.find((n) => problem.buildPhases[0].nodeTypes.includes(n.type))?.label;
-    await page.getByText(firstNodeLabel, { exact: false }).first().click();
+    // The drawer renders the CATALOG label, not the problem's palette label, and the two
+    // are only sometimes the same string. `form-trigger` is "On form submission" in a
+    // palette and "n8n Form Trigger" in the catalog, so searching the palette label found
+    // nothing and this step could never place a node. It went unnoticed because the
+    // unscoped sweep resumes on email-triage, where both happen to be "New Email".
+    //
+    // Search the catalog label, and fall back to the palette one for a type the catalog
+    // does not carry.
+    const firstType = problem.nodePalette.find((n) => problem.buildPhases[0].nodeTypes.includes(n.type))?.type;
+    const firstNodeLabel = NODE_CATALOG[firstType]?.label
+      ?? problem.nodePalette.find((n) => n.type === firstType)?.label;
+    // The drawer is the only visible place this text appears, but `.first()` is DOM order
+    // rather than visible order, so ask for the visible one.
+    await page.getByText(firstNodeLabel, { exact: false }).filter({ visible: true }).first().click();
     await page.locator('.react-flow__node').first().waitFor({ state: 'visible', timeout: 15000 });
   } catch (e) {
     errs.push(`could not place a node to test tracing: ${e.message.split('\n')[0]}`);
