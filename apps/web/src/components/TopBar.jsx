@@ -369,8 +369,23 @@ export function TopBar({ activeStage, problem, currentPhase, nodeContext, learne
         background: 'var(--surface-0)',
       }}
     >
+      {/* The logo is the way back to the catalogue, and it is the only one from
+          inside a challenge: every screen that draws this bar gets it, so a
+          learner half way through a build is never stuck with the browser's Back
+          button. A real <a href="/">, not an onClick, for two reasons — no screen
+          has to thread a handler down to make it work, and middle-click and
+          "open in a new tab" keep behaving like a link. `/` carries no
+          `?problem=`, so it lands on Home rather than reopening the challenge
+          they just left. */}
       <div style={{ display: 'flex', alignItems: 'center' }}>
-        <img src={scalerLogo} alt="Scaler" style={{ height: 22, width: 'auto', display: 'block' }} />
+        <a
+          href="/"
+          title="All challenges"
+          aria-label="All challenges"
+          style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}
+        >
+          <img src={scalerLogo} alt="Scaler" style={{ height: 22, width: 'auto', display: 'block' }} />
+        </a>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', justifySelf: 'center' }}>

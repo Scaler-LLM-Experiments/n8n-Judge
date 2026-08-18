@@ -60,9 +60,16 @@ function Dashboard({ data }) {
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       {/* sidebar */}
       <aside style={{ width: 208, flex: 'none', borderRight: '1px solid var(--border-subtle)', padding: '24px 0', background: 'var(--surface-1)' }}>
-        <div style={{ padding: '0 20px 20px', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--fg-3)' }}>
+        {/* Same contract as the learner bar's logo: the wordmark goes home. The
+            admin panel had no link back to the product at all, so the only way
+            out was to edit the address bar. */}
+        <a
+          href="/"
+          title="All challenges"
+          style={{ display: 'block', padding: '0 20px 20px', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--fg-3)', textDecoration: 'none' }}
+        >
           Judge · Admin
-        </div>
+        </a>
         {TABS.map((t) => {
           const active = tab === t.key;
           return (
