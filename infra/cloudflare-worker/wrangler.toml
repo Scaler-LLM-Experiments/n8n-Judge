@@ -1,0 +1,9 @@
+name = "n8n-judge"
+main = "worker.js"
+compatibility_date = "2026-08-01"
+workers_dev = true
+
+[vars]
+# The Railway service this proxies. Changing the Railway domain means changing
+# this and redeploying the worker.
+ORIGIN_HOST = "n8n-judge-production.up.railway.app"
