@@ -964,8 +964,21 @@ starts [scripts/start-production.sh](scripts/start-production.sh). Health check
 `ANTHROPIC_API_KEY`; voice additionally needs `FEATURE_VOICE`, `ELEVENLABS_*` and (for the
 `s3` backend) `AUDIO_S3_*`. Env template: [.env.example](.env.example) — its *Pre-rendered
 voice clips* comments still describe the old content-addressed scheme; the live design is
-slug paths plus a manifest (see *Voice*). The service deploys from
-**`sudhanva/nextjs`, not `main`** — a push deploys, so a type error reaches production.
+slug paths plus a manifest (see *Voice*). **The service deploys from `main`** — a push
+deploys, so a type error reaches production. (It watched `sudhanva/nextjs` until at least
+2026-08-06; two pushes to `main` on 2026-08-18 built and went live, which is how this was
+noticed. Check the service before assuming either.)
+
+**Learners on some Indian networks cannot resolve `*.up.railway.app` at all.** Jio returns
+`DNS_PROBE_FINISHED_BAD_CONFIG` for `n8n-judge-production.up.railway.app` while the same host
+answers 200 everywhere else: the NAME is blocked, not the server, so a custom domain CNAME'd at
+Railway would not help either — the resolver still follows the chain to the blocked name. The
+way in is [infra/cloudflare-worker/](infra/cloudflare-worker/), a Cloudflare worker on
+`*.workers.dev` (a hostname those networks do resolve) that proxies to Railway from Cloudflare's
+network. It carries the public host in `x-forwarded-host` and rewrites redirects, and the
+service therefore needs `AUTH_URL` + `AUTH_TRUST_HOST` set to the worker origin — without them
+Auth.js bakes the blocked host into the post-login redirect. Delete the whole thing the day a
+delegatable domain exists; a proxied CNAME does the same job with no code.
 
 **Voice in production is a Railway bucket, wired 2026-07-30.** Object storage, not a
 volume: the serving route already speaks S3 (`AUDIO_S3_*`), a bucket survives service
