@@ -1,9 +1,11 @@
 name = "n8n-judge"
 main = "worker.js"
+# Pinned so a deploy cannot land in a different Cloudflare account than intended.
+account_id = "3780d35d86b18faf861bf6d47a0c6c19"
 compatibility_date = "2026-08-01"
 workers_dev = true
 
 [vars]
 # The Railway service this proxies. Changing the Railway domain means changing
 # this and redeploying the worker.
-ORIGIN_HOST = "n8n-judge-production.up.railway.app"
+ORIGIN_HOST = "n8n-judge-production-baa7.up.railway.app"
