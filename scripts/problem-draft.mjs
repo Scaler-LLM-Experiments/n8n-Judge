@@ -18,7 +18,7 @@
 // draft that fails the schema is printed rather than saved — a half-parsed problem on
 // disk is harder to fix than no problem on disk.
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
-import { claude, MODELS, buildAuthoringPrompt } from '@judge/llm';
+import { claude, MODELS, buildAuthoringPrompt, dialectFromEnv } from '@judge/llm';
 import { problemSchema, validateProblem } from '@judge/problem-schema';
 import { NODE_CATALOG } from '@judge/catalog';
 import { emailTriage } from '@judge/problems/email-triage/index.js';
@@ -120,11 +120,17 @@ console.log(`Drafting "${slug}" with ${MODELS.authoring()}…`);
 // is ~10k tokens of JSON on its own. At 32k the first attempt spent the budget thinking and
 // stopped mid-object. `effort: medium` is the other half of that fix — this is a long
 // mechanical generation against an exemplar, not a reasoning problem.
+//
+// `thinking` and `output_config` are Anthropic-API-only fields, dropped on an
+// endpoint not known to implement them — sending them there gets them either
+// rejected or silently ignored, and the second one is worse.
+const extended = dialectFromEnv() === 'extended';
 const stream = claude().messages.stream({
   model: MODELS.authoring(),
   max_tokens: 64000,
-  thinking: { type: 'adaptive' },
-  output_config: { effort: 'medium' },
+  ...(extended
+    ? { thinking: { type: 'adaptive' }, output_config: { effort: 'medium' } }
+    : {}),
   system: `${system}\n\n## The shape your JSON must have\n\n${JSON.stringify(schema)}`,
   messages: [{ role: 'user', content: user }],
 });

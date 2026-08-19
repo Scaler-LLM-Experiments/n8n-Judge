@@ -1,5 +1,15 @@
-export { claude, MODELS, structuredCall } from './client.ts';
-export type { StructuredCallOptions } from './client.ts';
+export {
+  claude,
+  MODELS,
+  structuredCall,
+  dialectFromEnv,
+  resolveEndpoint,
+  resetClient,
+  buildStructuredRequest,
+  extractJson,
+  jsonOnlyInstruction,
+} from './client.ts';
+export type { StructuredCallOptions, LlmDialect } from './client.ts';
 export {
   buildGradingPrompt,
   GRADING_REPORT_SCHEMA,
