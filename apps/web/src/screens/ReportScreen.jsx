@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ArrowRight, ArrowUUpLeft, CircleNotch, DownloadSimple, House, Info } from '@phosphor-icons/react';
 import { useHideVoiceGlow, useVoiceActions } from '../lib/VoiceContext.jsx';
 import { useSignedInUser, firstNameOf } from '../lib/useSignedInUser.js';
@@ -7,7 +7,7 @@ import { TopBar } from '../components/TopBar.jsx';
 import { ProblemStatementPanel } from '../components/ProblemStatementPanel.jsx';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
 import { ExperienceRating } from '../components/ExperienceRating.jsx';
-import { saveFeedback } from '../lib/feedback';
+import { useExperienceRating } from '../lib/useExperienceRating.js';
 import { useMascotAskClick } from '../lib/AskIrisContext.jsx';
 import { understandingScore, countsByKind } from '@judge/engine/grading.js';
 
@@ -185,6 +185,10 @@ export function ReportScreen({
   onNext,
   onHome,
   nextProblem,
+  // The shared rating from the journey. `null` means it was already answered in
+  // the grading loader, so this screen does not ask again; `undefined` means no
+  // journey is driving this screen (the dev hash routes), so it owns its own.
+  experience,
 }) {
   const voice = useVoiceActions();
   // Iris is large in the hero here, so the corner glow would be a second light
@@ -200,59 +204,13 @@ export function ReportScreen({
   const firstName = firstNameOf(useSignedInUser());
 
   // ── Experience rating ────────────────────────────────────────────────
-  // Held here, not inside the widget, because a star has to persist the moment
-  // it is clicked — a learner who rates and then closes the tab has still told
-  // us something, and most never type a word. `saveFeedback` is fire-and-forget
-  // and cannot throw, so none of this can touch the report.
-  const [rating, setRating] = useState(null);
-  const [feedbackText, setFeedbackText] = useState('');
-  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
-
-  const persistFeedback = useCallback(
-    (stars, comment, submitted) => {
-      void saveFeedback({
-        sessionId: sessionId ?? null,
-        attemptKey: problem?.id ?? 'preview',
-        problemId: problem?.id ?? 'preview',
-        rating: stars,
-        comment,
-        submitted,
-      });
-    },
-    [sessionId, problem?.id]
-  );
-
-  const handleRate = useCallback(
-    (n) => {
-      setRating(n);
-      // Re-rating keeps whatever they had typed; the new star value goes now.
-      persistFeedback(n, feedbackText, feedbackSubmitted);
-    },
-    [feedbackText, feedbackSubmitted, persistFeedback]
-  );
-
-  const handleCommentChange = useCallback((v) => {
-    setFeedbackText(v);
-    // Editing invalidates the "saved" confirmation until they send again.
-    setFeedbackSubmitted(false);
-  }, []);
-
-  const handleSubmitFeedback = useCallback(() => {
-    if (rating == null || !feedbackText.trim()) return;
-    setFeedbackSubmitted(true);
-    persistFeedback(rating, feedbackText, true);
-  }, [rating, feedbackText, persistFeedback]);
-
-  const handleCommentFocusChange = useCallback(
-    (focused) => {
-      // On blur, keep a typed-but-unsent draft: leaving the page with words in
-      // the box should not throw them away.
-      if (!focused && rating != null && feedbackText.trim() && !feedbackSubmitted) {
-        persistFeedback(rating, feedbackText, false);
-      }
-    },
-    [rating, feedbackText, feedbackSubmitted, persistFeedback]
-  );
+  // The journey collects this in the grading loader, which is where learners
+  // actually answer, and hands the same state down here so the widget can be
+  // shown to anyone who skipped it. `null` means already answered — stop asking.
+  // `undefined` means no journey above us (the dev hash routes), so own it.
+  const ownExperience = useExperienceRating({ sessionId, problemId: problem?.id });
+  // `experience === undefined` → nothing above us is collecting it, so use ours.
+  const ratingProps = experience === undefined ? ownExperience.props : experience;
 
   // The server's replayed score wins whenever there is one. The local store is
   // the fallback for the dev hash routes, which run without a session — it is
@@ -363,18 +321,11 @@ export function ReportScreen({
             {/* In the first fold, under the score: this is the one moment a
                 learner is still on the screen and has an opinion. Buried under
                 the breakdown it gets scrolled past. */}
-            <div style={{ marginBottom: 26 }}>
-              <ExperienceRating
-                variant="report"
-                rating={rating}
-                comment={feedbackText}
-                submitted={feedbackSubmitted}
-                onRate={handleRate}
-                onCommentChange={handleCommentChange}
-                onSubmit={handleSubmitFeedback}
-                onCommentFocusChange={handleCommentFocusChange}
-              />
-            </div>
+            {ratingProps ? (
+              <div style={{ marginBottom: 26 }}>
+                <ExperienceRating variant="report" {...ratingProps} />
+              </div>
+            ) : null}
 
             {serverReport?.phases?.length ? (
               <Section title="Where the marks came from">

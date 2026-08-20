@@ -3,6 +3,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { fetchProblemList, fetchProblem, slugFromUrl, writeSlugToUrl } from './data/problemsApi.js';
 import { AsyncGate } from './components/AsyncGate.jsx';
 import { GradingLoader } from './components/GradingLoader.jsx';
+import { useExperienceRating } from './lib/useExperienceRating.js';
 import { createSession, fetchReport, fetchResumable } from './lib/grader.js';
 import { useTrace } from './lib/useTrace.js';
 import { TraceProvider } from './lib/TraceContext.jsx';
@@ -20,6 +21,12 @@ import { RunPanel } from './screens/BuildStage.jsx';
 import { simulateAll } from '@judge/engine/simulate.js';
 import { validateGraph } from '@judge/engine/validateGraph.js';
 import { scoreEval } from '@judge/engine/evalScore.js';
+
+// How long the grading loader stays up at minimum. The score itself is usually
+// back in well under a second, so this is not a wait for the server — it is the
+// window in which the rating question is on screen and answerable. Learners were
+// not answering it on the Result screen; they have their marks by then.
+const RATING_WINDOW_MS = 8000;
 
 const SCREEN = {
   STATEMENT: 'statement',
@@ -138,6 +145,16 @@ export default function App() {
             </div>
           );
         }}
+      </DevProblem>
+    );
+  } else if (hash.startsWith('#loader-demo')) {
+    // The grading loader WITH the rating widget in it, which is otherwise only
+    // reachable by finishing a whole journey. It is the screen where the rating is
+    // actually answered, so it needs to be inspectable on its own — the same reason
+    // every other screen has a dev route.
+    body = (
+      <DevProblem>
+        {(problem) => <LoaderDemo problem={problem} />}
       </DevProblem>
     );
   } else if (hash.startsWith('#report-demo')) {
@@ -371,6 +388,14 @@ function Landing() {
   );
 }
 
+// The loader as the journey shows it, for the #loader-demo route. No session, so
+// `saveFeedback` keeps the answer in localStorage and skips the POST — which is
+// the same path a signed-out preview takes.
+function LoaderDemo({ problem }) {
+  const experience = useExperienceRating({ sessionId: null, problemId: problem.id });
+  return <GradingLoader experience={experience.props} />;
+}
+
 // Preview wrapper for the #build / #run-story routes: build → eval → report,
 // so the "Move to Stress Testing" CTA actually advances.
 // One Session per attempt. It pins the ProblemVersion the learner is graded
@@ -452,10 +477,26 @@ function MainApp({ problem, nextProblem, resume, restart = false, onRedo, onNext
   const [builtGraph, setBuiltGraph] = useState(null);
   const [evalOutcome, setEvalOutcome] = useState(null);
   const [grading, setGrading] = useState(() => createStore());
+  // The loader is no longer just a wait — it is where the rating gets asked for,
+  // because almost nobody answers it on the Result screen: by then they have their
+  // score and they are done. So the loader stays up for a beat even when the score
+  // is already in hand, and it does NOT close while they are still typing.
   const [gradingReport, setGradingReport] = useState(false);
+  const [scoreReady, setScoreReady] = useState(false);
+  const [minHeld, setMinHeld] = useState(false);
   const [serverReport, setServerReport] = useState(null);
   const record = (d) => setGrading((s) => recordDecision(s, d));
   const sessionId = useSession(problem.id, { restart });
+  // One rating, collected in the loader and (only if still unanswered) on the
+  // report. Shared state, so a star clicked during the wait is already theirs.
+  const experience = useExperienceRating({ sessionId, problemId: problem.id });
+
+  // Three conditions, all of which must be satisfied before the report paints:
+  // the score has arrived, the rating window has elapsed, and they are not in the
+  // middle of typing a comment. The last one is why this is derived rather than a
+  // timer that calls setState — a sentence in progress must not be interrupted.
+  const showLoader =
+    gradingReport && (!scoreReady || !minHeld || experience.commentFocused);
   const trace = useTrace(sessionId);
 
   // One place for screen changes, so a new screen cannot be added without being
@@ -538,6 +579,12 @@ function MainApp({ problem, nextProblem, resume, restart = false, onRedo, onNext
             // recorded decisions and the narrative is a Claude call, so this
             // wait is real work, not a staged delay.
             setGradingReport(true);
+            setScoreReady(false);
+            setMinHeld(false);
+            // Long enough to read the question and click a star. Deliberate: the
+            // score is usually back in milliseconds, and closing on arrival is
+            // what made this moment unusable for anything else.
+            setTimeout(() => setMinHeld(true), RATING_WINDOW_MS);
             goTo(SCREEN.REPORT);
             trace('session_complete', {});
             // Two asks, on purpose. The first skips Claude and returns the marks in
@@ -550,21 +597,23 @@ function MainApp({ problem, nextProblem, resume, restart = false, onRedo, onNext
               .then((score) => {
                 if (score) {
                   setServerReport(score);
-                  setGradingReport(false);
+                  setScoreReady(true);
                 }
               })
               .finally(() => {
                 fetchReport(sessionId)
                   .then((full) => { if (full) setServerReport(full); })
-                  .finally(() => setGradingReport(false));
+                  .finally(() => setScoreReady(true));
               });
           }}
         />
       ) : null}
 
-      {screen === SCREEN.REPORT && gradingReport ? <GradingLoader /> : null}
+      {screen === SCREEN.REPORT && showLoader ? (
+        <GradingLoader experience={experience.props} />
+      ) : null}
 
-      {screen === SCREEN.REPORT && !gradingReport ? (
+      {screen === SCREEN.REPORT && !showLoader ? (
         <ReportScreen
           problem={problem}
           grading={grading}
@@ -573,6 +622,9 @@ function MainApp({ problem, nextProblem, resume, restart = false, onRedo, onNext
           // server-replayed score, so the screen needs the session to ask for it.
           sessionId={sessionId}
           nextProblem={nextProblem}
+          // Already answered in the loader: the report stops asking rather than
+          // showing an empty widget over the top of their own answer.
+          experience={experience.answered ? null : experience.props}
           onRedo={onRedo}
           onNext={onNext}
           onHome={onHome}

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { MascotPlayer } from '../mascot/MascotPlayer.jsx';
+import { ExperienceRating } from './ExperienceRating.jsx';
 
 // Shown while the server works out the report.
 //
@@ -17,7 +18,7 @@ const BEATS = [
   'Writing up what you understood…',
 ];
 
-export function GradingLoader({ label }) {
+export function GradingLoader({ label, experience }) {
   const [beat, setBeat] = useState(0);
 
   useEffect(() => {
@@ -70,6 +71,16 @@ export function GradingLoader({ label }) {
       <div style={{ width: 220, height: 3, background: 'var(--surface-2)', overflow: 'hidden', position: 'relative' }}>
         <div className="grading-sweep" style={{ position: 'absolute', inset: 0, width: '40%', background: 'var(--brand-primary)' }} />
       </div>
+
+      {/* The rating lives here, not only on the Result screen: this is the last
+          moment a learner is waiting on us rather than reading their marks, and
+          it is the moment they actually answer. A star click is captured on the
+          spot — no submit needed — and the box below it is optional. */}
+      {experience ? (
+        <div style={{ width: '100%', maxWidth: 460, marginTop: 6 }}>
+          <ExperienceRating variant="overlay" {...experience} />
+        </div>
+      ) : null}
 
       <style>{`
         @keyframes grading-sweep-kf {
