@@ -388,11 +388,14 @@ function Landing() {
   );
 }
 
-// The loader as the journey shows it, for the #loader-demo route. No session, so
-// `saveFeedback` keeps the answer in localStorage and skips the POST — which is
-// the same path a signed-out preview takes.
+// The loader as the journey shows it, for the #loader-demo route.
+//
+// It creates a REAL session, for the same reason #build does: `saveFeedback` only
+// POSTs when there is one, so a session-less demo exercises localStorage and
+// nothing else — it would look identical whether or not the backend write worked.
 function LoaderDemo({ problem }) {
-  const experience = useExperienceRating({ sessionId: null, problemId: problem.id });
+  const sessionId = useSession(problem.id);
+  const experience = useExperienceRating({ sessionId, problemId: problem.id });
   return <GradingLoader experience={experience.props} />;
 }
 
