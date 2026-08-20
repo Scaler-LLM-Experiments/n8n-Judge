@@ -35,6 +35,18 @@ export function resolveEndpoint(env: NodeJS.ProcessEnv = process.env): {
   return { apiKey: anthropicKey || undefined, baseURL: explicitBase || undefined };
 }
 
+/**
+ * Is any provider configured at all?
+ *
+ * Callers gate on this instead of reading `ANTHROPIC_API_KEY` themselves. Both
+ * routes used to do the latter, which is why Ask Iris reported "not configured"
+ * and the Result screen dropped its written half on a deploy that had a perfectly
+ * good OPENROUTER_API_KEY: the key was there, the check was looking elsewhere.
+ */
+export function llmConfigured(env: NodeJS.ProcessEnv = process.env): boolean {
+  return Boolean(resolveEndpoint(env).apiKey);
+}
+
 export function claude(): Anthropic {
   if (!client) {
     const { apiKey, baseURL } = resolveEndpoint();

@@ -7,7 +7,7 @@ import {
   scoreBand,
   problemComplexity,
 } from '@judge/engine';
-import { MODELS, structuredCall, buildGradingPrompt, DEFAULT_RUBRIC_SYSTEM_PROMPT } from '@judge/llm';
+import { MODELS, structuredCall, llmConfigured, buildGradingPrompt, DEFAULT_RUBRIC_SYSTEM_PROMPT } from '@judge/llm';
 import type { GradingReportJson } from '@judge/llm';
 import { getVersionById } from '../../../../../src/server/problemVersions';
 
@@ -112,7 +112,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     return Response.json({ ...scorePayload, report: null, reason: 'narrative_pending' });
   }
 
-  if (!process.env.ANTHROPIC_API_KEY) {
+  if (!llmConfigured()) {
     return Response.json({ ...scorePayload, report: null, reason: 'llm_unconfigured' });
   }
 

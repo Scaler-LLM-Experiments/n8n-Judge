@@ -1,5 +1,5 @@
 import type { NextRequest } from 'next/server';
-import { claude, MODELS, buildAskAiSystemPrompt, type AskAiContext } from '@judge/llm';
+import { claude, MODELS, llmConfigured, buildAskAiSystemPrompt, type AskAiContext } from '@judge/llm';
 
 // Streaming Ask-AI (Iris) chat. Scoped to the current problem/node context and
 // prompted never to leak answers (see buildAskAiSystemPrompt). Turns are
@@ -14,9 +14,10 @@ interface AskBody {
 }
 
 export async function POST(req: NextRequest) {
-  // No key configured (e.g. before it's set on the deploy) — the client shows a
-  // graceful fallback rather than a broken chat.
-  if (!process.env.ANTHROPIC_API_KEY) {
+  // No provider configured (e.g. before a key is set on the deploy) — the client
+  // shows a graceful fallback rather than a broken chat. `llmConfigured` rather
+  // than a direct env read: the key may be Anthropic's or a gateway's.
+  if (!llmConfigured()) {
     return new Response(JSON.stringify({ error: 'ask_ai_unconfigured' }), {
       status: 503,
       headers: { 'content-type': 'application/json' },

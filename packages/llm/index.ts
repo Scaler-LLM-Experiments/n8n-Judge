@@ -3,6 +3,7 @@ export {
   MODELS,
   structuredCall,
   dialectFromEnv,
+  llmConfigured,
   resolveEndpoint,
   resetClient,
   buildStructuredRequest,

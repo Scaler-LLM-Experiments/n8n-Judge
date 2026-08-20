@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   dialectFromEnv,
   resolveEndpoint,
+  llmConfigured,
   buildStructuredRequest,
   extractJson,
   jsonOnlyInstruction,
@@ -164,5 +165,22 @@ describe('extractJson', () => {
 
   it('returns the text unchanged when there is no object, so the error names it', () => {
     expect(extractJson('I cannot grade this.')).toBe('I cannot grade this.');
+  });
+});
+
+describe('llmConfigured', () => {
+  it('is false with no key at all', () => {
+    expect(llmConfigured(env({}))).toBe(false);
+  });
+
+  it('is true for either provider key', () => {
+    // The bug this pins: both routes read ANTHROPIC_API_KEY directly, so a deploy
+    // holding only OPENROUTER_API_KEY reported "not configured" while working.
+    expect(llmConfigured(env({ ANTHROPIC_API_KEY: 'sk-ant-x' }))).toBe(true);
+    expect(llmConfigured(env({ OPENROUTER_API_KEY: 'sk-or-x' }))).toBe(true);
+  });
+
+  it('ignores an empty or whitespace key', () => {
+    expect(llmConfigured(env({ ANTHROPIC_API_KEY: '   ' }))).toBe(false);
   });
 });
