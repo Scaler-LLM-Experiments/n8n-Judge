@@ -500,6 +500,18 @@ function MainApp({ problem, nextProblem, resume, restart = false, onRedo, onNext
   // timer that calls setState — a sentence in progress must not be interrupted.
   const showLoader =
     gradingReport && (!scoreReady || !minHeld || experience.commentFocused);
+  // Whether the report asks for the rating, decided ONCE as the loader closes and
+  // then held for the life of the screen. It has to be a latch: the condition is
+  // "no comment yet", and if it were read live the widget would vanish on the
+  // first character they typed into it. Null means not decided yet, which is only
+  // the render the report first paints on.
+  const [askOnReport, setAskOnReport] = useState(null);
+  const askExperience = askOnReport ?? !experience.complete;
+  useEffect(() => {
+    if (screen === SCREEN.REPORT && !showLoader && askOnReport === null) {
+      setAskOnReport(!experience.complete);
+    }
+  }, [screen, showLoader, askOnReport, experience.complete]);
   const trace = useTrace(sessionId);
 
   // One place for screen changes, so a new screen cannot be added without being
@@ -625,9 +637,11 @@ function MainApp({ problem, nextProblem, resume, restart = false, onRedo, onNext
           // server-replayed score, so the screen needs the session to ask for it.
           sessionId={sessionId}
           nextProblem={nextProblem}
-          // Already answered in the loader: the report stops asking rather than
-          // showing an empty widget over the top of their own answer.
-          experience={experience.answered ? null : experience.props}
+          // Only drop the widget once BOTH halves are in. A star alone leaves the
+          // question of why unanswered, and the loader closes on a timer that is
+          // shorter than a sentence — so the report carries the same state on,
+          // stars already filled, and asks for the words.
+          experience={askExperience ? experience.props : null}
           onRedo={onRedo}
           onNext={onNext}
           onHome={onHome}

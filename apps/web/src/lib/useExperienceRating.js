@@ -78,5 +78,13 @@ export function useExperienceRating({ sessionId, problemId }) {
     commentFocused,
     /** Whether anything has been given yet, so the report can stop asking. */
     answered: rating != null,
+    /**
+     * Stars AND words. The report keeps asking until both are in: a bare star
+     * click in the loader is a complete answer for scoring us, but the comment
+     * is the half that says WHY, and the loader closes before most people have
+     * finished typing one. So the widget stays on the report — already holding
+     * their stars — until there is a comment too.
+     */
+    complete: rating != null && comment.trim() !== '',
   };
 }
