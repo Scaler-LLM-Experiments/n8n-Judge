@@ -26,7 +26,7 @@ import { scoreEval } from '@judge/engine/evalScore.js';
 // back in well under a second, so this is not a wait for the server — it is the
 // window in which the rating question is on screen and answerable. Learners were
 // not answering it on the Result screen; they have their marks by then.
-const RATING_WINDOW_MS = 8000;
+const RATING_WINDOW_MS = 10000;
 
 const SCREEN = {
   STATEMENT: 'statement',
