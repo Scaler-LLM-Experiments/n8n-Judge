@@ -29,11 +29,13 @@ import { scoreEval } from '@judge/engine/evalScore.js';
 const RATING_WINDOW_MS = 10000;
 
 // The most the loader will hold PAST that window for someone who is mid-sentence
-// in the comment box. It is a cap, not a target: without one, the hold was keyed
-// on focus and focus never ends by itself, so the loader could sit there for as
-// long as the tab was open. Nothing is lost when it expires — the same widget,
-// holding the same words, continues on the Result screen.
-const RATING_GRACE_MS = 20000;
+// in the comment box, making twenty seconds the outside figure for the whole
+// loader. It is a cap, not a target: without one, the hold was keyed on focus and
+// focus never ends by itself, so the loader could sit there for as long as the tab
+// was open. A learner who gives stars and no words waits the ten and goes, and
+// nothing is lost when the cap expires either — the same widget, holding the same
+// words, continues on the Result screen.
+const RATING_GRACE_MS = 10000;
 
 const SCREEN = {
   STATEMENT: 'statement',
