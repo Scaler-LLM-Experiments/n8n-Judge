@@ -74,17 +74,26 @@ export function useExperienceRating({ sessionId, problemId }) {
   return {
     // Spread straight onto <ExperienceRating />.
     props: { rating, comment, submitted, onRate, onCommentChange, onSubmit, onCommentFocusChange },
-    /** True while they are typing — the loader holds itself open on this. */
-    commentFocused,
+    /**
+     * Mid-sentence: the box has focus, there are words in it, and they have not
+     * been sent. This is what the loader may hold itself open on, and all three
+     * parts matter. Focus alone held the loader open forever, because focus is
+     * sticky: a learner who clicked into an empty box and never clicked out sent
+     * no blur event, so nothing ever released it. `submitted` is in here for the
+     * same reason — a textarea keeps focus after the Send button is clicked, so
+     * holding on focus alone kept the loader up after they had fully answered.
+     */
+    writing: commentFocused && !submitted && comment.trim() !== '',
     /** Whether anything has been given yet, so the report can stop asking. */
     answered: rating != null,
     /**
-     * Stars AND words. The report keeps asking until both are in: a bare star
-     * click in the loader is a complete answer for scoring us, but the comment
-     * is the half that says WHY, and the loader closes before most people have
-     * finished typing one. So the widget stays on the report — already holding
-     * their stars — until there is a comment too.
+     * Whether the comment has been SENT. The report keeps asking until it has:
+     * a bare star click is a complete answer for scoring us, but the comment is
+     * the half that says why, and the loader closes on a timer shorter than a
+     * sentence. Deliberately keyed on `submitted` rather than on "has any text",
+     * so an unsent draft is carried onto the report with its Send button still
+     * there, instead of disappearing with the loader.
      */
-    complete: rating != null && comment.trim() !== '',
+    complete: submitted,
   };
 }

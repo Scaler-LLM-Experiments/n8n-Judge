@@ -28,6 +28,13 @@ import { scoreEval } from '@judge/engine/evalScore.js';
 // not answering it on the Result screen; they have their marks by then.
 const RATING_WINDOW_MS = 10000;
 
+// The most the loader will hold PAST that window for someone who is mid-sentence
+// in the comment box. It is a cap, not a target: without one, the hold was keyed
+// on focus and focus never ends by itself, so the loader could sit there for as
+// long as the tab was open. Nothing is lost when it expires — the same widget,
+// holding the same words, continues on the Result screen.
+const RATING_GRACE_MS = 20000;
+
 const SCREEN = {
   STATEMENT: 'statement',
   DASHBOARD: 'dashboard',
@@ -487,6 +494,9 @@ function MainApp({ problem, nextProblem, resume, restart = false, onRedo, onNext
   const [gradingReport, setGradingReport] = useState(false);
   const [scoreReady, setScoreReady] = useState(false);
   const [minHeld, setMinHeld] = useState(false);
+  // The end of the mid-sentence grace period. Set by the same timer that opens the
+  // window, so both live in one place and neither depends on an effect firing.
+  const [graceOver, setGraceOver] = useState(false);
   const [serverReport, setServerReport] = useState(null);
   const record = (d) => setGrading((s) => recordDecision(s, d));
   const sessionId = useSession(problem.id, { restart });
@@ -494,17 +504,19 @@ function MainApp({ problem, nextProblem, resume, restart = false, onRedo, onNext
   // report. Shared state, so a star clicked during the wait is already theirs.
   const experience = useExperienceRating({ sessionId, problemId: problem.id });
 
-  // Three conditions, all of which must be satisfied before the report paints:
-  // the score has arrived, the rating window has elapsed, and they are not in the
-  // middle of typing a comment. The last one is why this is derived rather than a
-  // timer that calls setState — a sentence in progress must not be interrupted.
+  // Three conditions before the report paints: the score has arrived, the rating
+  // window has elapsed, and they are not mid-sentence in the comment box. The last
+  // one is BOUNDED by `graceOver`, which is the bug this had: `writing` ends on
+  // blur, and a focused box that is never clicked out of never blurs, so the
+  // loader waited for a comment that might never come. The cap makes the hold a
+  // courtesy rather than a gate.
   const showLoader =
-    gradingReport && (!scoreReady || !minHeld || experience.commentFocused);
+    gradingReport && (!scoreReady || !minHeld || (experience.writing && !graceOver));
   // Whether the report asks for the rating, decided ONCE as the loader closes and
-  // then held for the life of the screen. It has to be a latch: the condition is
-  // "no comment yet", and if it were read live the widget would vanish on the
-  // first character they typed into it. Null means not decided yet, which is only
-  // the render the report first paints on.
+  // then held for the life of the screen. It has to be a latch: read live, the
+  // widget would unmount the moment they press Send, taking the "your feedback is
+  // saved" confirmation with it and reading as a crash. Null means not decided
+  // yet, which is only the render the report first paints on.
   const [askOnReport, setAskOnReport] = useState(null);
   const askExperience = askOnReport ?? !experience.complete;
   useEffect(() => {
@@ -596,10 +608,13 @@ function MainApp({ problem, nextProblem, resume, restart = false, onRedo, onNext
             setGradingReport(true);
             setScoreReady(false);
             setMinHeld(false);
+            setGraceOver(false);
             // Long enough to read the question and click a star. Deliberate: the
             // score is usually back in milliseconds, and closing on arrival is
             // what made this moment unusable for anything else.
             setTimeout(() => setMinHeld(true), RATING_WINDOW_MS);
+            // The outer bound on the whole loader, whatever the learner is doing.
+            setTimeout(() => setGraceOver(true), RATING_WINDOW_MS + RATING_GRACE_MS);
             goTo(SCREEN.REPORT);
             trace('session_complete', {});
             // Two asks, on purpose. The first skips Claude and returns the marks in
@@ -637,10 +652,10 @@ function MainApp({ problem, nextProblem, resume, restart = false, onRedo, onNext
           // server-replayed score, so the screen needs the session to ask for it.
           sessionId={sessionId}
           nextProblem={nextProblem}
-          // Only drop the widget once BOTH halves are in. A star alone leaves the
-          // question of why unanswered, and the loader closes on a timer that is
-          // shorter than a sentence — so the report carries the same state on,
-          // stars already filled, and asks for the words.
+          // Only drop the widget once the comment has been SENT. A star alone leaves
+          // the question of why unanswered, and the loader closes on a timer that is
+          // shorter than a sentence — so the report carries the same state on, stars
+          // filled and any draft still in the box, and asks for the words.
           experience={askExperience ? experience.props : null}
           onRedo={onRedo}
           onNext={onNext}
